@@ -30,12 +30,16 @@ export interface TraceLine {
   origin: string;
   dir: 'rx' | 'tx' | 'gap';
   text: string;
+  partial?: boolean;
 }
 
 /** Splits RX bytes into lines across chunk boundaries (streaming UTF-8). */
 export class LineAssembler {
   private dec = new TextDecoder('utf-8', { fatal: false });
   private partial = '';
+
+  /** The current unterminated line is visible immediately, without consuming it. */
+  get pending(): string { return this.partial; }
 
   push(bytes: Uint8Array): string[] {
     const s = this.partial + this.dec.decode(bytes, { stream: true });
@@ -63,13 +67,25 @@ export function createUartTrace(ctx: PanelContext): PanelInstance {
   let gapsSeen = 0;
   let n = 0;
   const asm = new LineAssembler();
+  let partialLine: TraceLine | null = null;
+  const breakLine = () => {
+    asm.reset();
+    if (partialLine) {
+      partialLine.partial = false;
+      partialLine.text += '…';
+      partialLine = null;
+    }
+  };
 
   const push = (l: Omit<TraceLine, 'key'>) => {
-    lines.push({ ...l, key: String(++n) });
+    const row = { ...l, key: String(++n) };
+    lines.push(row);
     if (lines.length > MAX_LINES + EVICT_CHUNK) {
       lines.splice(0, EVICT_CHUNK);
       evicted += EVICT_CHUNK;
+      if (partialLine && Number(partialLine.key) <= evicted) partialLine = null;
     }
+    return row;
   };
 
   const root = document.createElement('div');
@@ -92,7 +108,7 @@ export function createUartTrace(ctx: PanelContext): PanelInstance {
       { key: 'x', header: '내용', width: '1fr', cell: (l) => (l.dir === 'gap' ? { text: l.text, cls: 'gap-text' } : { text: l.text, cls: 'mono' }) },
     ],
     keyOf: (l) => l.key,
-    rowAttrs: (l) => ({ 'data-origin': l.origin, 'data-dir': l.dir }),
+    rowAttrs: (l) => ({ 'data-origin': l.origin, 'data-dir': l.dir, 'data-partial': String(l.partial === true) }),
     onNeedRender: () => ctx.scheduler.invalidate(),
     emptyText: '수신 없음',
     ariaLabel: 'UART 트레이스',
@@ -103,17 +119,33 @@ export function createUartTrace(ctx: PanelContext): PanelInstance {
   const consume = () => {
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
+      if (ev.kind === 'source.gap' || ev.kind === 'record.gap' || ev.kind === 'display.gap') {
+        breakLine(); // never splice bytes across a gap inside this same batch
+        continue;
+      }
       if (ev.kind !== 'uart.data') continue;
       const p = ev.payload as Record<string, unknown>;
       const bytes = decodePayloadBytes(p.bytes ?? p);
       if (!bytes) continue;
       if (ev.dir === 'tx') push({ wallMs: wall(ev), origin: ev.origin, dir: 'tx', text: symbolize(bytes) });
-      else for (const l of asm.push(bytes)) push({ wallMs: wall(ev), origin: 'device', dir: 'rx', text: symbolize(l) });
+      else {
+        for (const l of asm.push(bytes)) {
+          if (partialLine) {
+            partialLine.text = symbolize(l);
+            partialLine.partial = false;
+            partialLine = null;
+          } else push({ wallMs: wall(ev), origin: 'device', dir: 'rx', text: symbolize(l) });
+        }
+        if (asm.pending) {
+          if (partialLine) partialLine.text = symbolize(asm.pending);
+          else partialLine = push({ wallMs: wall(ev), origin: 'device', dir: 'rx', text: symbolize(asm.pending), partial: true });
+        }
+      }
     }
     while (gapsSeen < mirror.gaps.length) {
       const g = mirror.gaps[gapsSeen++];
       if (!g) continue;
-      asm.reset();
+      if (g.fromBatch || g.kind === 'resync') breakLine();
       push({ wallMs: 0, origin: 'device', dir: 'gap', text: gapText(g) });
     }
   };

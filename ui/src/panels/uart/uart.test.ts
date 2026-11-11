@@ -106,3 +106,36 @@ describe('uart.terminal panel', () => {
     expect(h.host.querySelector('[data-testid="uart-status"]')!.textContent).toContain('보기 전용');
   });
 });
+
+
+describe('uart.trace live unterminated lines', () => {
+  const data = (text: string, dir: 'rx' | 'tx' = 'rx') => ev({
+    kind: 'uart.data', channel: 'dut', dir, origin: dir === 'rx' ? 'device' : 'agent',
+    payload: { bytes: { encoding: 'base64', data: btoa(text) } },
+  });
+  const rows = () => [...h!.host.querySelectorAll<HTMLElement>('.vt-row')].filter((r) => !r.hidden);
+  it('shows a split login prompt before LF and completes the same row once', () => {
+    h = mountPanel('uart.trace', { channel: 'dut' });
+    h.batch([data('log')]);
+    const key = rows()[0]!.dataset.key;
+    expect(rows()[0]!.textContent).toContain('log');
+    expect(rows()[0]!.dataset.partial).toBe('true');
+    h.batch([data('in: ')]);
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]!.textContent).toContain('login: ');
+    h.batch([data('root', 'tx'), data('root\r\nPassword: ')]);
+    expect(rows()).toHaveLength(3);
+    expect(rows()[0]!.dataset.key).toBe(key);
+    expect(rows()[0]!.textContent).toContain('login: root');
+    expect(rows()[0]!.dataset.partial).toBe('false');
+    expect(rows()[1]!.dataset.origin).toBe('agent');
+    expect(rows()[2]!.textContent).toContain('Password: ');
+  });
+  it('does not join an unterminated line across a source gap in the same batch', () => {
+    h = mountPanel('uart.trace', { channel: 'dut' });
+    h.batch([data('before'), ev({ kind: 'source.gap', channel: 'dut', payload: { count: '1', cause: 'lost' } }), data('after')]);
+    expect(h.host.textContent).not.toContain('beforeafter');
+    expect(rows().some((r) => r.textContent?.includes('before…'))).toBe(true);
+    expect(rows().some((r) => r.textContent?.includes('after') && r.dataset.partial === 'true')).toBe(true);
+  });
+});
