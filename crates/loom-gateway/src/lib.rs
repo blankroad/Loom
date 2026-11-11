@@ -15,4 +15,6 @@ pub mod replay;
 pub mod rpcutil;
 pub mod server;
 pub mod state;
+#[cfg(feature = "test")]
+pub mod test_services;
 pub mod worker_host;

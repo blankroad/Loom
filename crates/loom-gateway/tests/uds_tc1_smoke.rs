@@ -235,10 +235,12 @@ fn tc1_start_reports_current_gateway_wiring() {
         }),
     );
     eprintln!("TC-1 start: {r}");
+    // The real Registry command/risk table is injected: the fixture now fails the plan check on
+    // names/arguments no domain registered (details: tests/test_services_smoke.rs).
     assert_eq!(
         code(&r),
-        "E_NOT_IMPLEMENTED",
-        "unwired commands must not pretend TC-1 can start: {r}"
+        "E_USAGE",
+        "TC-1 fixture must not start against the real registry: {r}"
     );
     drop(a);
     d.shutdown();

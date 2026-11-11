@@ -25,6 +25,7 @@ loom-eth = { path = "../loom-eth", optional = true }
 loom-psu = { path = "../loom-psu", optional = true }
 loom-ui-assets = { path = "../loom-ui-assets" }
 loom-test = { path = "../loom-test", optional = true }
+loom-test-format = { path = "../loom-test-format", optional = true }
 sha2.workspace = true
 loom-journal.workspace = true
 toml.workspace = true
@@ -50,7 +51,7 @@ can = ["dep:loom-can"]
 uds = ["dep:loom-uds"]
 eth = ["dep:loom-eth"]
 psu = ["dep:loom-psu"]
-test = ["dep:loom-test"]
+test = ["dep:loom-test", "dep:loom-test-format"]
 
 [dev-dependencies]
 tempfile.workspace = true

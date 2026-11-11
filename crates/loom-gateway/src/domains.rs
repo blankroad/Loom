@@ -176,8 +176,15 @@ pub fn builtin() -> Vec<Loaded> {
             &[(loom_psu::WORKER_KIND, psu, None)],
         );
     }
+    // TEST last: its command/risk table and verifiers come from the domains registered above.
     #[cfg(feature = "test")]
-    load(&mut out, &loom_test::TestModule::new(), &[]);
+    {
+        let regs: Vec<&Registry> = out.iter().map(|l: &Loaded| &l.registry).collect();
+        match crate::test_services::test_module(&regs) {
+            Ok(test) => load(&mut out, &test, &[]),
+            Err(e) => tracing::error!("domain test disabled: {e}"),
+        }
+    }
     out
 }
 

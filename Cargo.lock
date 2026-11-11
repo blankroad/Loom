@@ -1127,6 +1127,7 @@ dependencies = [
  "loom-proto",
  "loom-psu",
  "loom-test",
+ "loom-test-format",
  "loom-uart",
  "loom-uart-worker",
  "loom-uds",
