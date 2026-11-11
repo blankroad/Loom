@@ -1,0 +1,9 @@
+docs/plan/02-core-principle.md 준수
+기능 Codex/Opus 브라우저 실행환경 차이 원인/지원되는 해결안 / DONE (보고·수정본 검증 완료) / HerdrforegroundClaudeOpus
+작업workspace w9(메인생성), pane w9:p1, cwd /Users/ctmctm/workspace/Loom, 기준b1e1595. 새모듈별workspace생성/인수후닫기 사용자최신지시를이번기능부터적용. 기존MAIN workspace나사용자기존세션손대지말것. 하위agent/백그라운드모델금지.
+소유 docs/impl/main/reports/sandbox-root-cause.md만. 코드/설정/권한/skill설치/공유index/commit/push/브라우저재실행금지. 읽기전용조사와근거평가. 메인은스킬수정별도소유.
+증거먼저 reports/p1-browser-final.md, reports/browser-smoke.md 후반웹오류검색결과, reports/p1-acceptance.md필요부분. 과거대화전체금지. root유효policy workspace-write+approval_policynever, 읽기/쓰기루트제한,networkenabled. rootEgoCLI hiservices-xpcservice Connection invalid/Failedtostart, Chromium MachPortRendezvousServer Permissiondenied1100 SIGTRAP. root CUA getApp 자동검토 'Computer Use was not approved to use ego lite' 상세없음. Opus5.5 foreground nativeCLI auto mode의정상개별명령승인에서Ego CLI와defaultChromium.launch 성공, 실제PW5/5+CANp9583.4ms, 보안설정/skip-permissions/sandbox해제없음. 같은macOS27.0.1/Ego0.6.2.9/Playwright1.65.0. 결과는이미완료, 재측정금지.
+요청: 1) 확정관측과추론을분리하여 왜실패하는지(명령외부macOS Seatbelt Mach 등록/XPC vs ComputerUse 앱승인 vs Ego RAF 문제) 설명. 동일오류primary https://github.com/openai/codex/issues/21292, Ego서비스구별 https://github.com/citrolabs/ego-lite/issues/188. 더원인좁히려면현재official CodexmacOS sandbox프로필/소스(.sbpl/mach-register등)와공식문서를검색/직접열어인용. 외부블로그추측만따르지말것. rootConfig.toml에는명시sandbox/approval/computer_use설정없었고requirements.toml두경로없었음; 관리형/호스트정책없다는뜻아님.
+2) 현장에서즉시적용가능한정상승인경로(검증된Opus실행), Codex에서계속하려면사용자/관리자가설정해야할지원되는개별실행승인방법/세션재생성필요여부를정확하게설명. `approval_policy=never`를agent가바꿀수없고수정해도호스트정책이덮을수있음을반영. FullAccess전역강요/보안flags/sandbox우회제안금지. 승인정책변경으로자동해결된다고보장말고 최소probe→실제수용성공기준제시.
+3) 제품측근본개선안은currentconfig지원옵션과upstreamexecutor/sandbox코드변경필요안을명확히구분. 단순network_access나filesystemwritable_root가Mach등록허용과다른이유, 워크스페이스생성이권한확대가아닌이유를설명. 임의MCP/소켓브리지로현재제약우회실행금지.
+최종8분한도,메인에게보고서경로반환. URL/directsourcelines/상태날짜/정확오류/한계/권장순서/누가조치할지/완료기준필수. userpermission질문필요하면왜/근거정확히제시. 검토후main이워크스페이스w9를닫는다; 인수전자가종료하지말고 READY반환/파일로그보존.

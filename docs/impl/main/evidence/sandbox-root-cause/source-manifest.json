@@ -1,0 +1,32 @@
+{
+  "upstream_commit": "392ced7d3a9160fd35d40c606359869215f50522",
+  "scope": "upstream source snapshot; executing Codex revision not established",
+  "sources": [
+    {
+      "file": "seatbelt_base_policy.sbpl",
+      "sha256": "5103332ddb8885ee5e1926de6c0ef23a61f4e55e31297506ae05fa4e0b24ba74",
+      "url": "https://github.com/openai/codex/blob/392ced7d3a9160fd35d40c606359869215f50522/codex-rs/sandboxing/src/seatbelt_base_policy.sbpl"
+    },
+    {
+      "file": "seatbelt_network_policy.sbpl",
+      "sha256": "eb2bf67e7a697d954f05fbd563e5888402fde3a279ecf383832473d44831ad0a",
+      "url": "https://github.com/openai/codex/blob/392ced7d3a9160fd35d40c606359869215f50522/codex-rs/sandboxing/src/seatbelt_network_policy.sbpl"
+    },
+    {
+      "file": "seatbelt_preferences_policy.sbpl",
+      "sha256": "bfbbe3f051112c7c24dc3a61e09b54cee7e0ea33a420ff7fa9aa4dace03d52aa",
+      "url": "https://github.com/openai/codex/blob/392ced7d3a9160fd35d40c606359869215f50522/codex-rs/sandboxing/src/seatbelt_preferences_policy.sbpl"
+    },
+    {
+      "file": "seatbelt.rs",
+      "sha256": "9482cfbb53d624f1421b6e05b231ee567b18ed0973c0547b54196dac351ffcf4",
+      "url": "https://github.com/openai/codex/blob/392ced7d3a9160fd35d40c606359869215f50522/codex-rs/sandboxing/src/seatbelt.rs"
+    }
+  ],
+  "workspace": {
+    "id": "w9",
+    "pane": "w9:p1",
+    "session": "d99812ab-bebc-4f1c-bca4-c280d82e9b32",
+    "closed": true
+  }
+}
