@@ -7,12 +7,14 @@
 //   4. confirm 'enter_twice' | 'card' asks the shell's confirm UI; a "no" is
 //      E_CANCELLED. This is mistake prevention only; the daemon policy decides
 //      (F1: default policy is all-auto, so most actions use 'none').
-// The gate never retries a mutation (D5).
+// The gate never retries a mutation (D5). A domain failure envelope (ok:false) rejects
+// with DomainRpcError (rpcEnvelope.ts) instead of resolving like a success.
 
 import type { NetClient } from '../net/api';
 import type { Right } from '../proto/provisional';
 import { hasRight } from '../store/shellControl';
 import type { ActionSpec } from './manifest';
+import { rejectDomainFailure } from './rpcEnvelope';
 
 export type GateErrorCode = 'E_RIGHTS' | 'E_STALLED' | 'E_CANCELLED';
 
@@ -74,6 +76,9 @@ export class ActionGate {
       // re-check: rights or connection may have changed while the card was open
       this.check(spec);
     }
-    return this.deps.net.call<R>(spec.rpc, params);
+    // one call, never retried; a failure envelope (ok:false, even with partial data) throws
+    // DomainRpcError, a success keeps its shape (envelope or bare) for callers like act()
+    const r = await this.deps.net.call<unknown>(spec.rpc, params);
+    return rejectDomainFailure<R>(spec.rpc, r);
   }
 }

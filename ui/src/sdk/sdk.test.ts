@@ -5,7 +5,9 @@ import { RowStore } from '../store/rowStore';
 import { ShellControlStore } from '../store/shellControl';
 import { FakeNet, TEST_HELLO, writeEv } from '../store/testing/fakeNet';
 import { ActionGate, GateError, type ConfirmRequest } from './actionGate';
+import { NetError } from '../net/rpc';
 import { createPanelContext, SimpleCursorBus, UndeclaredError } from './context';
+import { DomainRpcError } from './rpcEnvelope';
 import { ManifestError, validateManifest, type ActionSpec, type PanelManifest } from './manifest';
 
 const send: ActionSpec = { id: 'send', rpc: 'can.send', class: 'request', right: 'operate', confirm: 'none' };
@@ -152,6 +154,166 @@ describe('PanelContext', () => {
     expect(() => ctx.query('can.send', { id: 1, dry_run: false })).toThrow(UndeclaredError);
     await ctx.query('can.send', { id: 1, dry_run: true });
     expect(net.calls).toEqual([{ method: 'can.send', params: { id: 1, dry_run: true } }]);
+  });
+
+  // loom_proto::Envelope as serialized by gateway daemon `envelope()` (schema_version, ok, cmd,
+  // meta and others_since_last are always present; data/error/warnings are optional).
+  const envOk = (cmd: string, data: unknown) => ({
+    schema_version: 1,
+    ok: true,
+    cmd,
+    data,
+    meta: { truncated: false, record_health: 'ok', latch: false, viewers: { subscribed: 1, visible: 1 }, stream_epoch: '1' },
+    others_since_last: { count: '0' },
+  });
+  const envFail = (cmd: string, error: unknown, data?: unknown) => {
+    const base: Record<string, unknown> = envOk(cmd, null);
+    delete base.data;
+    return { ...base, ok: false, ...(data !== undefined ? { data } : {}), ...(error !== undefined ? { error } : {}) };
+  };
+  const ethManifest = () =>
+    manifest({ queries: ['eth.show', 'eth.filter.check', 'eth.query', 'core.time', 'can.send'] });
+
+  it('query unwraps a real domain success envelope to its data', async () => {
+    const { ctx, net } = make(ethManifest());
+    const data = { ref: 'eth:p0@seq:7', bytes: { encoding: 'hex', data: 'aabb' }, tree: [] };
+    const env = envOk('eth.show', data);
+    const snapshot = structuredClone(env);
+    net.responders.set('eth.show', () => env);
+    await expect(ctx.query('eth.show', { ref: 'eth:p0@seq:7' })).resolves.toBe(data);
+    expect(env).toEqual(snapshot); // the raw result is not mutated
+    // success with null data stays null (not the envelope)
+    net.responders.set('eth.query', () => envOk('eth.query', null));
+    await expect(ctx.query('eth.query', {})).resolves.toBeNull();
+  });
+
+  it('query rejects a failure envelope with the ErrorBody code/message, even with partial data', async () => {
+    const { ctx, net } = make(ethManifest());
+    net.responders.set('eth.show', () =>
+      envFail('eth.show', { code: 'not_found', message: 'no such packet', hint: 'pick a newer row', retryable: false, detail: { ref: 'x' } }),
+    );
+    const e1 = await ctx.query('eth.show', { ref: 'x' }).then(
+      () => null,
+      (e: unknown) => e,
+    );
+    expect(e1).toBeInstanceOf(DomainRpcError);
+    expect(e1).toMatchObject({ code: 'not_found', message: 'eth.show: no such packet', hint: 'pick a newer row', retryable: false, detail: { ref: 'x' } });
+
+    // Partial failure (daemon `envelope(.., Err(b), Some(data))`): data present but still a rejection
+    net.responders.set('can.send', () =>
+      envFail('can.send', { code: 'partial', message: 'result not yet visible', request_id: 'r7' }, { request_id: 'r7', state: 'sent' }),
+    );
+    await expect(ctx.query('can.send', { dry_run: true })).rejects.toMatchObject({
+      name: 'DomainRpcError',
+      code: 'partial',
+      requestId: 'r7',
+      data: { request_id: 'r7', state: 'sent' },
+    });
+
+    // ok:false without an error body is still a failure
+    net.responders.set('eth.query', () => envFail('eth.query', undefined));
+    await expect(ctx.query('eth.query', {})).rejects.toMatchObject({ code: 'internal' });
+  });
+
+  it('query leaves bare core/mock results and business ok/data payloads untouched', async () => {
+    const { ctx, net } = make(ethManifest());
+    // eth.filter.check business payload {ok:false,pos} — not an envelope, not a rejection
+    const check = { ok: false, pos: 3, expected: 'field', message: 'bad token' };
+    net.responders.set('eth.filter.check', () => check);
+    await expect(ctx.query('eth.filter.check', { expr: 'ip.' })).resolves.toBe(check);
+    // business payload that has ok/data/cmd but no envelope meta/others_since_last
+    const lookalike = { ok: true, cmd: 'x', data: { inner: 1 }, schema_version: 1 };
+    net.responders.set('eth.query', () => lookalike);
+    await expect(ctx.query('eth.query', {})).resolves.toBe(lookalike);
+    // core RPC bare result
+    const time = { mono_ns: '123', wall_ns: '456' };
+    net.responders.set('core.time', () => time);
+    await expect(ctx.query('core.time', {})).resolves.toBe(time);
+    // non-object results pass through
+    net.responders.set('eth.show', () => 'plain');
+    await expect(ctx.query('eth.show', {})).resolves.toBe('plain');
+  });
+
+  it('query keeps undeclared/dry-run gates synchronous and preserves abort/network errors', async () => {
+    const fake = new FakeNet();
+    fake.open();
+    const netErr = new NetError({ code: 'disconnected', message: 'eth.show: disconnected', maybeSent: true });
+    const seen: { signal?: AbortSignal }[] = [];
+    const net = {
+      call: (method: string, _p?: unknown, opts?: { signal?: AbortSignal }) => {
+        seen.push(opts ?? {});
+        if (opts?.signal?.aborted) return Promise.reject(new NetError({ code: 'aborted', message: `${method}: aborted`, maybeSent: false }));
+        return Promise.reject(netErr);
+      },
+      subscribe: fake.subscribe.bind(fake),
+      clock: fake.clock.bind(fake),
+    } as unknown as FakeNet;
+    const shell = new ShellControlStore();
+    shell.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+    const gate = new ActionGate({ net, rights: () => shell.rights, writeLocked: () => false, confirmUi: { confirm: async () => true } });
+    const { ctx } = createPanelContext(ethManifest(), {}, {
+      net,
+      gate,
+      scheduler: new RenderScheduler({ raf: () => 1, cancelRaf: () => {}, now: () => 0 }),
+      rows: new RowStore(),
+      shell,
+      cursor: new SimpleCursorBus(),
+      ui: { reveal: () => {}, openPanel: () => {}, toast: () => {} },
+    });
+    expect(() => ctx.query('uds.request', {})).toThrow(UndeclaredError);
+    expect(() => ctx.query('can.send', { dry_run: false })).toThrow(UndeclaredError);
+    expect(seen).toHaveLength(0);
+
+    await expect(ctx.query('eth.show', {})).rejects.toBe(netErr);
+    const ac = new AbortController();
+    ac.abort();
+    await expect(ctx.query('eth.show', {}, ac.signal)).rejects.toMatchObject({ name: 'NetError', code: 'aborted' });
+    expect(seen[1]?.signal).toBe(ac.signal);
+  });
+
+  it('act: a native failure envelope (even with partial data) rejects, makes no WriteHandle, one RPC', async () => {
+    const { ctx, net } = make();
+    let n = 0;
+    net.responders.set('can.send', () => {
+      n++;
+      return envFail(
+        'can.send',
+        { code: 'partial', message: 'result not yet visible to viewers (hub stalled) — do not retry', request_id: 'r5', detail: { published: false } },
+        { request_id: 'r5', state: 'sent' },
+      );
+    });
+    let handle: unknown = 'unset';
+    const err = await ctx.act('send', { id: 1 }).then(
+      (h) => {
+        handle = h;
+        return null;
+      },
+      (e: unknown) => e,
+    );
+    expect(handle).toBe('unset');
+    expect(err).toBeInstanceOf(DomainRpcError);
+    expect(err).toMatchObject({ code: 'partial', requestId: 'r5', data: { request_id: 'r5', state: 'sent' } });
+    expect(n).toBe(1);
+    expect(net.calls).toHaveLength(1);
+
+    net.responders.set('can.send', () => envFail('can.send', { code: 'stop_latched', message: 'STOP latched' }));
+    await expect(ctx.act('send', { id: 1 })).rejects.toMatchObject({ code: 'stop_latched', message: 'can.send: STOP latched' });
+    expect(net.calls).toHaveLength(2);
+  });
+
+  it('act / ActionGate keep the success shape (envelope or bare) and business ok:false payloads', async () => {
+    const { ctx, net } = make();
+    const env = envOk('can.send', { request_id: 'r2', state: 'sent' });
+    net.responders.set('can.send', () => env);
+    expect((await ctx.act('send', {})).requestId).toBe('r2');
+
+    const g = gateWith(['operate']);
+    g.net.responders.set('can.send', () => env);
+    await expect(g.gate.run(send, {})).resolves.toBe(env); // envelope returned unchanged, not unwrapped
+    const biz = { ok: false, request_id: 'r3' }; // bare business payload, not an envelope
+    g.net.responders.set('can.send', () => biz);
+    await expect(g.gate.run(send, {})).resolves.toBe(biz);
+    expect(g.net.calls).toHaveLength(2);
   });
 
   it('rows() is limited to the panel domain', () => {

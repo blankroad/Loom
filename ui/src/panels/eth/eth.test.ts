@@ -155,7 +155,13 @@ describe('eth.packets', () => {
 
   it('select → detail query → tree/hex; retransmit sends the exact bytes', async () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
-    h.net.responders.set('eth.show', (p) => fixtureDetail((p as { ref: string }).ref));
+    // Actual gateway responses use the D5 envelope; the detail panel consumes its data.
+    h.net.responders.set('eth.show', (p) => ({
+      schema_version: 1, ok: true, cmd: 'eth.show',
+      data: fixtureDetail((p as { ref: string }).ref),
+      meta: { record_health: 'ok', latch: false, stream_epoch: '1' },
+      others_since_last: { count: '0' },
+    }));
     h.batch(fixtureEvents());
     pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();
     await flush(h);

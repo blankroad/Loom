@@ -12,6 +12,7 @@ import type { ActionSpec, PanelManifest, Props } from './manifest';
 import { MIRROR_ROWS_DEFAULT } from './manifest';
 import type { EvidenceRef } from './evidenceRef';
 import { createRowView, type RowFilter, type RowView } from './rowView';
+import { unwrapDomainResult } from './rpcEnvelope';
 import { EventMirror, type StoreMirror } from './storeMirror';
 
 export type Unsubscribe = () => void;
@@ -318,14 +319,16 @@ export function createPanelContext(
       return open(topicKey, ext);
     },
 
-    query(rpc, params, signal) {
+    query<R = unknown>(rpc: string, params: object, signal?: AbortSignal): Promise<R> {
       if (!m.queries.includes(rpc)) throw new UndeclaredError(m.id, 'query', rpc);
       // An RPC declared both as query and as action (e.g. `uds.request` dry-run preview)
       // may only be queried with dry_run:true — the real write must go through act()/ActionGate.
       if (m.actions.some((a) => a.rpc === rpc) && (params as { dry_run?: unknown }).dry_run !== true) {
         throw new UndeclaredError(m.id, 'non-dry-run query of action rpc', rpc);
       }
-      return deps.net.call(rpc, params, signal ? { signal } : undefined);
+      return deps.net
+        .call<unknown>(rpc, params, signal ? { signal } : undefined)
+        .then((r) => unwrapDomainResult<R>(rpc, r));
     },
 
     async act(actionId, params) {

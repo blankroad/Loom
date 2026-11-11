@@ -1,0 +1,8 @@
+docs/plan/02-core-principle.md 준수
+기능 실제 domain RPC query 응답 envelope→PanelContext payload / WORKING / HerdrforegroundClaudeOpus 새문맥
+기준 main26f3053+브라우저WIP, indexmain단독. 소유 ui/src/sdk/{context.ts,sdk.test.ts} 및 reports/p1-ui-query-envelope.md만. 다른SDK/Panel/native/mock/E2E/Cargo/index/commit/push 금지. 하위agent금지. 8분한도.
+실제Ego브라우저를별도tc1-live(w8:p8)담당이진행중. 메인이ETH상세호출을정본eth.show로고쳤지만실제UI는계속bytes없음/송신disable. 실제RPC정본 gateway daemon::envelope→loom_proto::Envelope {ok,cmd,data,meta,...}; net.call은JSONRPC result를그대로반환하고 PanelContext.query가unwrap안함. UI query caller대부분barepayload를기대. mockbare결과만있어기존unit미검출. gateway/src/daemon.rs envelope/loom-proto/src/envelope.rs 및실clientRPC경로확인필수. broadAPI변경을추측말것.
+정상설계 PanelContext query에서명시적 domain envelope 성공을data로반환하고 실패는errorcode/message있는reject로전파. core RPC/mocks bare결과는그대로. 원본결과객체임의변경금지. 진짜업무payload의ok/data를envelope로오인하지않게정본envelope의필수구별필드예cmd/meta를보수적으로확인. 선언query검사/dry-run행동관문/abort/네트워크오류보존. actiongate/act는이번범위밖, 변경필요발견시보고만.
+테스트 실제Rust Envelope모양의성공/실패(부분data있는실패도reject), barepayload유지,業務ok/data오인방지, 기존abort/undeclared/dryrun검사보존. 호출자들의rawdata직접의존도읽기확인. targetedtests+types/lint+전체UIcheck필요검사/자체리뷰. 실제browserPASS대체하지않음. 보고서짧은진행→READY반환/소유main/세션로그보존. UIbuild는메인이통합후실행하여브라우저담당에게신호. 브라우저/권한조작금지. 기존적용권한그대로.
+
+메인 통합검토 추가 소유 승인(같은RPC응답 기능): actionGate.ts와 필요 공통SDK domain envelope helper 새파일. 실제 ok:false를ActionGate가성공resolve하는경로도함께고친다. 성공 ActionGate 응답형태는그대로보존(Envelope/raw기존행동유지), 실패만공통검증으로throw. query성공은dataunwrap. 같은Envelope판별/오류생성복사금지,작은공통helper사용. queryErrorclass명은범용RPC명으로정리해도됨(새코드이므로최소호환alias선택). 오류partialdata/requestid보존·미지업무ok오인방지. Gate의사전권한/재확인/STOP안전방향/confirm/no-retry는불변. 실패Envelope가WriteHandle성공으로보이지않음 및한번만RPC호출됨을의미있는회귀로확인. 사용자가승인흐름을추가로누르게하는위젯변경금지.
