@@ -76,13 +76,13 @@ describe('uds.console', () => {
     await vi.advanceTimersByTimeAsync(10);
     const previews = h.net.calls.filter((c) => c.method === 'uds.request');
     expect(previews).toHaveLength(1);
-    expect(previews[0]!.params).toEqual({ target: 'bcm', hex: '22F190', dry_run: true });
+    expect(previews[0]!.params).toEqual({ target: 'bcm', bytes_hex: '22F190', dry_run: true });
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('VIN');
 
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     await vi.advanceTimersByTimeAsync(10);
     const sends = h.net.calls.filter((c) => c.method === 'uds.request' && !(c.params as { dry_run?: boolean }).dry_run);
-    expect(sends).toEqual([{ method: 'uds.request', params: { target: 'bcm', hex: '22F190' } }]);
+    expect(sends).toEqual([{ method: 'uds.request', params: { target: 'bcm', bytes_hex: '22F190' } }]);
   });
 
   it('R2+ preview needs a second Enter before sending', async () => {

@@ -144,7 +144,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     const ac = new AbortController();
     previewAbort = ac;
     ctx
-      .query<Record<string, unknown>>('uds.request', { target: t, hex, dry_run: true }, ac.signal)
+      .query<Record<string, unknown>>('uds.request', { target: t, bytes_hex: hex, dry_run: true }, ac.signal)
       .then((res) => {
         if (ac.signal.aborted) return;
         previewRisk = res?.risk ?? null;
@@ -176,7 +176,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       return;
     }
     armedAt = null;
-    void act('send', { target: t, hex });
+    void act('send', { target: t, bytes_hex: hex });
     input.value = '';
     preview.textContent = '';
     previewRisk = null;
