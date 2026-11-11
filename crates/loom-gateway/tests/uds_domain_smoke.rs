@@ -251,7 +251,19 @@ fn uds_sim_connect_request_reply_and_live_events() {
     assert_eq!(row["decoded"][0]["value"], "LOOMSIM0000000001", "{r}");
 
     // The viewer sees the same request live: tx (bytes) → rx (response) → final result.
-    let ev = wait_events(&mut v, |ev| rows(ev, &rid).iter().any(|(k, _)| k == "uds.result"));
+    // Control rows can overtake the batched data lane on the wire. Both records must arrive;
+    // stream seq (the journal order) must still put device RX before the final result.
+    let mut ev = wait_events(&mut v, |ev| {
+        let r = rows(ev, &rid);
+        r.iter().any(|(k, _)| k == "uds.result") && r.iter().any(|(k, _)| k == "uds.rx")
+    });
+    ev.sort_by_key(|e| {
+        e["seq"]
+            .as_str()
+            .and_then(|s| s.parse::<u64>().ok())
+            .or_else(|| e["seq"].as_u64())
+            .expect("stream seq")
+    });
     let mine: Vec<&Value> = ev.iter().filter(|e| e["request_id"] == json!(rid)).collect();
     eprintln!("viewer rows for {rid}: {:?}", rows(&ev, &rid));
     assert_eq!(
