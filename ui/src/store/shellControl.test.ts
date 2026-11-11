@@ -5,6 +5,21 @@ import { ev, TEST_HELLO } from './testing/fakeNet';
 
 const base = { connOpen: true, lastHeartbeatMs: 0, panels: [] as never[] };
 
+it('keeps unseen interface connectivity unknown until explicit evidence, without auto-opening', () => {
+  const store = new ShellControlStore();
+  const opened: string[] = [];
+  store.onChannelOpened(({ entry }) => opened.push(entry.channel));
+  store.applyControl(ev({ domain: 'psu', channel: 'supply-a', kind: 'psu.state', payload: { out: false, voltage: 0 } }), 10_000);
+  expect(store.channels.get('psu/supply-a')?.state).toBe('unknown');
+  expect(opened).toEqual([]);
+  store.applyControl(ev({ domain: 'psu', channel: 'supply-a', kind: 'psu.state', payload: { state: 'open', out: false } }), 10_001);
+  expect(store.channels.get('psu/supply-a')?.state).toBe('open');
+  expect(opened).toEqual(['supply-a']);
+  store.applyControl(ev({ domain: 'psu', channel: 'supply-a', kind: 'psu.state', payload: { state: 'closed' } }), 10_002);
+  store.applyControl(ev({ domain: 'psu', channel: 'supply-a', kind: 'psu.state', payload: { state: 'open' } }), 10_003);
+  expect(opened).toEqual(['supply-a', 'supply-a']);
+});
+
 describe('computeLiveStatus thresholds', () => {
   it('LIVE right after a heartbeat, no warning dot', () => {
     const s = computeLiveStatus({ ...base, nowMs: 1_000 });
@@ -138,5 +153,42 @@ describe('F1 automation rights', () => {
     s.setAutomation(true);
     s.setConn({ status: 'open', hello: { ...TEST_HELLO, rights: 'watch', capabilities: ['policy/auto'] } }, 0);
     expect(s.can('operate')).toBe(false);
+  });
+});
+
+
+describe('native late-join discovery without open panels', () => {
+  it('hydrates core + reducer SnapshotItems silently and refreshes on reconnect', () => {
+    const store = new ShellControlStore();
+    const opened: string[] = [];
+    store.onChannelOpened(({ entry }) => opened.push(entry.channel));
+    store.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+    // Hub always includes core.channels, including string states, in core.activity's snapshot.
+    const core = { domain: 'core', kind: 'core.channels', state: { channels: [
+      { domain: 'uart', channel: 'dut', state: 'open', generation: 1, seq: '1', kind: 'uart.state' },
+      { domain: 'uart', channel: 'aux', state: 'open', generation: 1, seq: '2', kind: 'uart.state' },
+      { domain: 'can', channel: 'ch0', state: 'open', generation: 1, seq: '3', kind: 'can.channel_state' },
+    ] } };
+    const uds = (state: string, generation = 1) => ({ domain: 'uds', kind: 'uds.snapshot', state: {
+      kind: 'uds.state', payload: { target: 'ecu', generation, link: { state }, backend: 'sim' },
+    } });
+    store.noteSnapshotItems([core, uds('up'), { domain: 'eth', kind: 'eth.snapshot', state: {
+      kind: 'eth.capture_state', ch: 'cap', state: 'live', backend: 'sim', iface: 'lo', generation: 1,
+    } }]);
+    expect([...store.channels].map(([key, c]) => [key, c.state, c.generation, c.addedLiveMs])).toEqual([
+      ['uart/dut', 'open', 1, null], ['uart/aux', 'open', 1, null], ['can/ch0', 'open', 1, null],
+      ['uds/ecu', 'open', 1, null], ['eth/cap', 'open', 1, null],
+    ]);
+    store.noteSnapshotItems([core, uds('up')]);
+    store.applyControl(ev({ domain: 'uds', channel: 'ecu', kind: 'uds.state', payload: { target: 'ecu', link: { state: 'up' } }, generation: 1 }), 10_000);
+    expect(opened).toEqual([]);
+    store.setConn({ status: 'connecting', attempt: 1 }, 11_000);
+    store.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'rejoined' } }, 12_000);
+    store.noteSnapshotItems([uds('down', 2)]);
+    expect(store.channels.get('uds/ecu')).toMatchObject({ state: 'closed', generation: 2, addedLiveMs: null });
+    store.noteSnapshotItems([uds('up', 3)]);
+    expect(store.channels.get('uds/ecu')).toMatchObject({ state: 'open', generation: 3 });
+    expect(store.channels.size).toBe(5);
+    expect(opened).toEqual([]);
   });
 });

@@ -17,6 +17,7 @@ import type { ShellServices } from './services';
 import { ShellCtx, useServices } from './ShellContext';
 import { StopPanel } from './StopPanel';
 import { TopBar } from './TopBar';
+import { WorkbenchWelcome } from './WorkbenchWelcome';
 import { StepBand } from './test/TestScreen';
 import './shell.css';
 
@@ -54,7 +55,7 @@ export function NeedAuth({ reason }: { reason: 'expired' | 'network' | 'malforme
         벤치 PC의 <strong>터미널</strong>에서 <code>loom ui</code>를 실행하면 브라우저가 자격과 함께 열립니다. 다른 PC에서
         보려면 벤치 터미널에서 <code>loom ui pair</code>로 받은 코드를 입력하세요.
       </p>
-      <p className="muted">에이전트·자동화 브라우저에는 보기(watch) 자격만 주어집니다.</p>
+      <p className="muted">에이전트·자동화 브라우저의 자격은 데몬 정책에 따라 결정됩니다. 연결 후 상단에 표시된 자격을 확인하세요.</p>
     </main>
   );
 }
@@ -97,6 +98,7 @@ function ShellBody() {
   const { shell, stop, uiState, net, gate, toasts } = s;
   useStoreVersion(shell);
   const route = useHashRoute();
+  const welcome = shell.channels.size === 0 && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
 
   useEffect(
     () =>
@@ -135,23 +137,40 @@ function ShellBody() {
   return (
     <div className="shell" data-testid="loom-shell" data-env={shell.env ?? 'unknown'} data-locked={shell.status.writeLocked}>
       <TopBar />
-      <div className="sub-bar">
-        <ChannelBar />
-        <LayoutBar route={route} />
-        <TabSettingsControls />
-        <span className="rights" data-testid="rights">
-          자격: {shell.hello?.rights ?? '—'}
-          {shell.automationCapped ? ' → watch (자동화 브라우저)' : ''}
-        </span>
-      </div>
       <Banners />
       <StopPanel />
-      <DockLayout route={route} />
+      <div className="workbench-body">
+        <aside className="workbench-sidebar" aria-label="인터페이스 탐색기">
+          <ChannelBar />
+          <div className="sidebar-guide">
+            <span className="eyebrow">탐색 안내</span>
+            <p>인터페이스를 선택해 작업 패널을 여세요.</p>
+            <span>패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.</span>
+          </div>
+        </aside>
+        <div className="workbench-main">
+          <div className="workspace-heading">
+            <div><span className="eyebrow">WORKSPACE</span><h1>개발 워크벤치</h1></div>
+            <button type="button" className="help-button" onClick={() => uiState.setHelpOpen(true)} title="키보드 단축키 (Ctrl-] ?)">단축키 <kbd>?</kbd></button>
+          </div>
+          <div className="sub-bar" role="region" aria-label="워크스페이스 도구">
+            <LayoutBar route={route} />
+            <TabSettingsControls />
+          </div>
+          <div className={`workspace-surface${welcome ? ' has-welcome' : ''}`}>
+            <div className="workspace-dock" inert={welcome || undefined} aria-hidden={welcome || undefined}>
+              <DockLayout route={route} />
+            </div>
+            {welcome && <WorkbenchWelcome />}
+          </div>
+        </div>
+      </div>
       <footer className="foot">
         <StepBand />
         <ActivityStrip />
         <div className="keys">
-          Ctrl-] x STOP · Ctrl-] A 승인 · Ctrl-] m 마커 · Ctrl-] ? 도움말 <HeartbeatClock />
+          <span className="shortcut-hint"><kbd>Ctrl-]</kbd> <kbd>x</kbd> STOP <span>·</span> <kbd>m</kbd> 마커 <span>·</span> <kbd>?</kbd> 도움말</span>
+          <span className="footer-status"><span>LOOM / {shell.env ?? 'unknown'}</span><HeartbeatClock /></span>
         </div>
       </footer>
       <ApprovalQueue />

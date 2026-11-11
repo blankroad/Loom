@@ -1,0 +1,57 @@
+spaceId 2
+empty-1440 {"tabs":"","chans":"","welcome":true,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/empty-1440.png
+CHECK empty-no-fake-panels PASS
+empty-768 {"tabs":"","chans":"","welcome":true,"hscroll":false,"stop":"550,10 105x34 inView=true","w":768}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/empty-768.png
+empty-390 {"tabs":"","chans":"","welcome":true,"hscroll":false,"stop":"273,8 105x34 inView=true","w":390}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/empty-390.png
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/connect-dialog-1440.png
+after connect uart/dut {"tabs":"UART 터미널 · dut*","chans":"uart/dut:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+after connect uart/aux {"tabs":"UART 터미널 · dut | UART 터미널 · aux*","chans":"uart/aux:open uart/dut:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+dut login match
+aux login match
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/two-uart-1440.png
+aux Password (expect match) match
+dut Password (expect E_TIMEOUT) E_TIMEOUT
+dut Password (expect match) match
+aux shell match
+dut shell match
+agent dut marker {"cmd":"uart.send","data":{"deferred_ms":0,"generation":1,"remaining_bytes":0,"request_id":"w3","sent_escaped":"echo qa-dut-only\\r","state":"sent","written_bytes":17},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794431557","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794431557:seq:74"},"schema_version":1}
+dut echo marker match
+aux marker (expect E_TIMEOUT) E_TIMEOUT
+reopen uart/aux UART 터미널 · dut | UART 터미널 · aux*
+reopen uart/dut UART 터미널 · dut* | UART 터미널 · aux
+reopen uart/aux UART 터미널 · dut | UART 터미널 · aux*
+reopen uart/aux UART 터미널 · dut | UART 터미널 · aux*
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/reopen-aux-1440.png
+views UART aux 터미널 보기 | UART aux 트레이스 보기 | UART dut 터미널 보기 | UART dut 트레이스 보기
+after connect can/ch0 {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0*","chans":"uart/aux:open uart/dut:open can/ch0:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+after connect uds/ecu {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+after connect eth/cap {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+all {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/multi-1440.png
+after domain opens {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"1319,10 105x34 inView=true","w":1440}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/multi-domains-1440.png
+search aux uart/aux
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/search-aux-1440.png
+multi-1024 {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"903,10 105x34 inView=true","w":1024}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/multi-1024.png
+multi-768 {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"537,10 105x34 inView=true","w":768}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/multi-768.png
+multi-390 {"tabs":"UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*","chans":"uart/aux:open uart/dut:open can/ch0:open uds/ecu:open eth/cap:open","welcome":false,"hscroll":false,"stop":"273,8 105x34 inView=true","w":390}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/multi-390.png
+focused BUTTON.chan chan-open "UART aux 터미널 열기 · 연결됨" outline=solid 2px rgb(133, 184, 255) shadow=none
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/focus-1440.png
+tabs before save UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*
+saved options m1-default,uart-only,can-uds,test,eth,qa-bench
+hash after select #/l/qa-bench
+tabs after reload UART 터미널 · dut | UART 터미널 · aux | CAN 트레이스 · ch0 | UDS 콘솔 · ecu | 이더넷 패킷 · cap*
+CHECK saved-layout-reload PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/saved-layout-reload-1440.png
+late page p2
+late explorer uart/aux:unknown uart/dut:unknown can/ch0:unknown eth/cap:open
+RESULT final FAIL: page.click timed out after 3004ms: Selector [data-chan="uds/ecu"] matched 0 elements
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/final/final-fail-1794431609720.png
+close {"ok":true}
+

@@ -1,0 +1,50 @@
+.channel-bar.channel-explorer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #d6deeb;
+  background: #151c26;
+  font-size: 12px;
+}
+.explorer-header { padding: 14px 12px 10px; border-bottom: 1px solid #2c3543; }
+.explorer-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+.explorer-heading > span, .explorer-count { color: #9aaac0; font-variant-numeric: tabular-nums; }
+.explorer-search { display: block; margin-top: 10px; }
+.explorer-search-label { display: block; margin-bottom: 5px; color: #adbacd; font-size: 11px; }
+.channel-explorer .explorer-search input { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid #3a4759; border-radius: 5px; color: #e1e8f3; background: #0e151e; font: inherit; }
+.explorer-subtitle { margin: 8px 0 0; color: #9aaac0; font-size: 11px; line-height: 1.5; }
+.explorer-groups { flex: 1; min-height: 0; overflow: auto; padding: 6px; }
+.channel-explorer button { font: inherit; cursor: pointer; }
+.channel-explorer button:focus-visible, .channel-explorer input:focus-visible { outline: 2px solid #85b8ff; outline-offset: 2px; }
+.channel-explorer .explorer-group-toggle { display: flex; align-items: center; gap: 6px; width: 100%; padding: 9px 5px; border: 0; background: transparent; color: #b9c7dc; text-align: left; font-size: 11px; font-weight: 650; letter-spacing: .06em; }
+.explorer-count { margin-left: auto; }
+.explorer-channel-list { list-style: none; padding: 0; margin: 0; }
+.explorer-channel { margin-bottom: 5px; border: 1px solid transparent; border-radius: 5px; }
+.explorer-channel:hover { background: #1c2735; border-color: #344258; }
+.channel-bar.channel-explorer .chan { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 8px; box-sizing: border-box; width: 100%; padding: 8px; border: 0; border-radius: 4px; background: transparent; color: #dce5f3; text-align: left; }
+.channel-explorer button.chan:hover { background: #26364a; }
+.explorer-channel-name { flex: 1 1 70px; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.explorer-state { color: #a6b4c7; font-size: 10px; }
+.chan-open .explorer-state { color: #8bd8b3; }
+.chan-unknown .explorer-state { color: #e0c48a; }
+.explorer-generation { color: #a8b9d2; font-size: 10px; }
+.channel-explorer .chan-new { box-shadow: inset 2px 0 #73b5f8; }
+.channel-explorer .chan-gen { background: #233247; }
+.explorer-views { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 8px; }
+.channel-explorer .explorer-views button { padding: 3px 6px; border: 1px solid #35465c; border-radius: 4px; color: #b9cde8; background: #172230; font-size: 10px; }
+.channel-explorer .explorer-views button:hover { color: #f0f6ff; border-color: #81a6d8; background: #293c55; }
+.explorer-empty { padding: 10px 6px; color: #bdcadd; line-height: 1.7; overflow-wrap: anywhere; }
+.explorer-empty span { color: #96a7bd; }
+.explorer-empty button { display: block; margin-top: 8px; }
+.explorer-unsupported { display: block; padding: 0 8px 8px; color: #adbacd; font-size: 10px; }
+.explorer-overflow { margin: 0; padding: 10px 12px; color: #e0c48a; border-top: 1px solid #344258; }
+
+.channel-bar.channel-explorer .chan-closed { opacity: 1; text-decoration: none; }
+.channel-bar.channel-explorer .chan-new { outline: none; }

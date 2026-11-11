@@ -180,8 +180,13 @@ function securityText(sec: Record<string, unknown>, prev: string | undefined): s
 
 export function reduceTarget(prev: TargetView | undefined, ev: LoomEvent): TargetView | null {
   if (ev.kind !== 'uds.state') return null;
-  const p = obj(ev.payload);
-  const target = s(p.target) ?? ev.channel;
+  return reduceTargetState(prev, ev.payload, ev.channel);
+}
+
+/** State projection shared by native snapshots and live events; creates no history. */
+export function reduceTargetState(prev: TargetView | undefined, payload: unknown, channel?: string | null): TargetView | null {
+  const p = obj(payload);
+  const target = s(p.target) ?? channel;
   if (!target) return null;
   const link = obj(p.link);
   const sess = obj(p.session);

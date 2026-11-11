@@ -315,6 +315,7 @@ export function createPanelContext(
       // close the old server subscription first (contract v1: ≤ 8 per connection)
       subByKey.get(topicKey)?.close();
       subByKey.delete(topicKey);
+      mirrors.get(topicKey)?.dispose();
       mirrors.delete(topicKey);
       return open(topicKey, ext);
     },
@@ -405,6 +406,7 @@ export function createPanelContext(
       handle.dispose();
       deps.shell.setPanelFreshness(instanceId, null);
       metrics.remove(instanceId);
+      for (const mirror of mirrors.values()) mirror.dispose();
       mirrors.clear();
     },
   };

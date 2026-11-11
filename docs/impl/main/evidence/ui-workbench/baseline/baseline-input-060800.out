@@ -1,0 +1,24 @@
+spaceId 2
+uart dut {"cmd":"uart.open","data":{"channel":"dut","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794431281","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1}
+uart aux {"cmd":"uart.open","data":{"channel":"aux","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794431281","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794431281:seq:13"},"schema_ver
+dut login match
+aux login match
+textareas after uart/aux 1
+aux Password (expect match) match
+dut Password (expect no match) E_TIMEOUT
+tabs UART 터미널 · dut | UART 터미널 · aux* | CAN 트레이스 · ch0* | UDS 콘솔 · bcm*
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/baseline/input-aux-typed.png
+textareas after uart/dut 1
+dut Password (expect match) E_TIMEOUT
+chip after dut input 입력권: 나 (입력 중)
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/baseline/input-dut-typed.png
+tabs after reopen aux UART 터미널 · dut | UART 터미널 · aux* | CAN 트레이스 · ch0* | UDS 콘솔 · bcm*
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/baseline/reopen-aux.png
+tabs after reload UART 터미널 · dut* | CAN 트레이스 · ch0* | UDS 콘솔 · bcm*
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/baseline/after-reload.png
+deep link aux tabs UART 터미널 · dut* | CAN 트레이스 · ch0* | UDS 콘솔 · bcm*
+hash #boot=<redacted>
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/baseline/deeplink-aux.png
+RESULT baseline-input PASS
+close {"ok":true}
+

@@ -4,7 +4,7 @@ import { CHANNEL_PROP } from '../../sdk/propsSchema';
 import { registerPanel } from '../../sdk/registry';
 import { TabSettings, type KV } from '../../store/tabSettings';
 import { ev, FakeNet, TEST_HELLO } from '../../store/testing/fakeNet';
-import { PRESETS, type Preset } from '../routes';
+import { PRESETS, type Preset, type Slot } from '../routes';
 import { createShellServices } from '../services';
 import { DockHost } from './dockHost';
 import {
@@ -300,6 +300,38 @@ describe('DockHost', () => {
     expect(services.toasts.items.at(-1)?.text).toBe('에이전트가 uart dut2를 열었습니다 — 패널을 열었습니다');
     expect(services.showSlot({ panel: 'uart.terminal', props: { channel: 'dut2' } })).toBe('shown');
     expect(d.api.panels).toHaveLength(4);
+  });
+
+  it('keeps more than four added interfaces, deduplicates views and persists stable identities/titles', () => {
+    const { dock: d, services } = mountDock();
+    d.load(slotLayout({ panel: 'uart.terminal', props: { channel: 'base' } }));
+    const slots: Slot[] = [
+      ...Array.from({ length: 6 }, (_, i) => ({ panel: 'uart.terminal', props: { channel: `dut-${i}` } })),
+      { panel: 'can.trace', props: { channel: 'bus-2' } },
+      { panel: 'uds.console', props: { targets: 'ecu-2' } },
+      { panel: 'eth.packets', props: { channel: 'lan-2' } },
+      { panel: 'psu.gauge', props: { channel: 'supply-2' } },
+    ];
+    for (const slot of slots) expect(services.showSlot(slot)).toBe('added');
+    const ids = slots.map((slot) => d.find(slot)!.id);
+    for (const slot of slots) {
+      expect(services.showSlot({ ...slot, props: { ...slot.props, at: 'seq:20' } })).toBe('shown');
+      expect(d.api.activePanel).toBe(d.find(slot));
+      expect(d.find(slot)!.title).toContain(String(slot.props.channel ?? slot.props.targets));
+    }
+    expect(services.showSlot({ panel: 'can.trace', props: { ch: 'bus-2' } })).toBe('shown');
+    expect(d.api.panels).toHaveLength(11);
+    expect(services.uiState.extraSlots).toEqual([]); // mounted dock bypasses the four-slot fallback
+    const saved = d.snapshot('interfaces');
+    const parsed = parseLayout(serializeLayout(saved).ok ? JSON.stringify(saved) : '').layout!;
+    expect(parsed).not.toBeNull();
+    d.load(parsed);
+    expect(slots.map((slot) => d.find(slot)!.id)).toEqual(ids);
+    const removedId = d.find(slots[0]!)!.id;
+    d.find(slots[0]!)!.api.close();
+    d.open(slots[0]!);
+    expect(d.find(slots[0]!)!.id).toBe(removedId);
+    expect(d.api.panels).toHaveLength(11);
   });
 
   it('focus request in a dock: activate the open tab and reveal (no route change)', () => {

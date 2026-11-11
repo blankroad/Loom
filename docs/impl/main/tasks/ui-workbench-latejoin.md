@@ -1,0 +1,13 @@
+# UI workbench late-join / DONE
+
+User authorized feature-team-coding parallel foreground Sol then Opus fallback, implement/test/commit. Main owns git. Read only this task and related code/reports. No nested/background agents, no security changes. Herdr wF:p1. Shared tree owned source modules previously released to main; preserve all existing edits.
+
+Bug found by actual Ego final: second browser viewer joins after UI-connected UART dut/aux, CAN ch0, UDS ecu, ETH cap. Explorer shows uart/aux:unknown uart/dut:unknown can/ch0:unknown eth/cap:open, **UDS ecu missing**. Raw docs/impl/main/evidence/ui-workbench/final/final-061236.out; screenshot final-fail-* preserved. Fix cannot rely on a panel already open/default ghost target. State must be hydrated honestly from native snapshots.
+
+Own files: ui/src/store/channels.ts, shellControl.ts, related tests; ui/src/shell/services.ts if discovery subscription required; panels/uds consolePanel.ts/udsModel.ts if native snapshot hydration needs it. SDK context/storeMirror only if necessary, request main ownership first. Do not edit shell.css/ShellApp/InterfaceConnect/dock/terminalView or QA files (other owners).
+
+Strong source leads: gateway hub/mod.rs always snapshot items core.channels = {domain:core,kind:core.channels,state:{channels:[{domain,channel,state,generation,seq,kind}]}}. It is currently ignored by shell readSnapshotChannel; native state can be STRING. Domain reducer items are outer {domain,kind:uds.snapshot,state:{kind:uds.state,payload:{target,link:{state:up},...}}}. Current parser unwraps only one level. CAN reducer outer state has {kind:can.fixed,channel,state:{...},ids}. UDS domain snapshot items do not necessarily outer channel. Read exact Rust shapes. Existing core.activity shell subscription receives all reducer/core snapshots in gateway. No need high-volume subscription if unwrapping existing items suffices. Tests must use exact nested wire SnapshotItem, not simplified fixtures.
+
+Acceptance: late join discovers known interfaces with correct explicit state, including UDS, without sending connection/write; nested UDS snapshot console shows existing target; closed/output-off/unknown truthfulness retained; no duplicate toasts/reconnect; reconnect resnapshot works. Existing main changed unknown->open inference to only explicit confirmed state, preserve it. Unit regression meaningful. No full pnpm check via escalation (tsx EPERM known in Sol); run focused vitest + typecheck and report main finalchecks.
+
+Write docs/impl/main/reports/ui-workbench-latejoin.md READY_FOR_REVIEW with files/diff/checks/constraints. ~10min initial. Main handles browser rerun and commit. Do not commit/push. Return then stop edits.

@@ -27,7 +27,18 @@ export interface Projection<T> {
   truncated: boolean;
 }
 
+type SnapshotItem = NonNullable<SnapshotPart['items']>[number];
+
+export interface MirrorSnapshot {
+  readonly items: readonly Readonly<SnapshotItem>[];
+  /** Native snapshot_end high water; snapshot items themselves have no event seq. */
+  readonly throughSeq: bigint;
+  readonly version: number;
+  readonly truncated: boolean;
+}
+
 export interface StoreMirror<T = LoomEvent> {
+  readonly snapshot: MirrorSnapshot | null;
   readonly snapshotDone: boolean;
   readonly headSeq: bigint;
   readonly gaps: readonly GapMark[];
@@ -41,9 +52,17 @@ export interface StoreMirror<T = LoomEvent> {
 }
 
 const MAX_GAP_MARKS = 100;
+const MAX_SNAPSHOT_ITEMS = 1_024;
+const MAX_SNAPSHOT_BYTES = 1_048_576; // UTF-16 JSON size estimate, bounded independently of event rows
 
 export class EventMirror implements StoreMirror<LoomEvent> {
   snapshotDone = false;
+  private currentSnapshot: MirrorSnapshot | null = null;
+  private pendingItems: SnapshotItem[] = [];
+  private pendingBytes = 0;
+  private snapshotTruncated = false;
+  private snapshotVersion = 0;
+  get snapshot(): MirrorSnapshot | null { return this.currentSnapshot; }
   headSeq = 0n;
   gaps: GapMark[] = [];
   overwritten = 0;
@@ -58,11 +77,33 @@ export class EventMirror implements StoreMirror<LoomEvent> {
 
   // ---- fed by SubscriptionHandlers ----
   snapshotPart(part: SnapshotPart): void {
+    if (part.n === 1) {
+      this.snapshotDone = false;
+      this.currentSnapshot = null;
+      this.pendingItems = [];
+      this.pendingBytes = 0;
+      this.snapshotTruncated = false;
+    }
+    for (const item of part.items ?? []) {
+      const bytes = JSON.stringify(item).length * 2;
+      if (this.pendingItems.length >= Math.min(this.capacity, MAX_SNAPSHOT_ITEMS) || this.pendingBytes + bytes > MAX_SNAPSHOT_BYTES) {
+        this.snapshotTruncated = true;
+        continue;
+      }
+      this.pendingItems.push(item);
+      this.pendingBytes += bytes;
+    }
     this.pushMany(part.events ?? []);
   }
   snapshotEnd(h: string): void {
     this.snapshotDone = true;
     const hs = u64(h);
+    this.currentSnapshot = {
+      items: Object.freeze(this.pendingItems), throughSeq: hs ?? this.headSeq,
+      version: ++this.snapshotVersion, truncated: this.snapshotTruncated,
+    };
+    this.pendingItems = [];
+    this.pendingBytes = 0;
     if (hs !== null && hs > this.headSeq) this.headSeq = hs;
     this.notify(this.headSeq, this.headSeq);
   }
@@ -73,8 +114,22 @@ export class EventMirror implements StoreMirror<LoomEvent> {
   }
   resync(reason: string): void {
     this.snapshotDone = false;
+    this.currentSnapshot = null;
+    this.pendingItems = [];
+    this.pendingBytes = 0;
+    this.snapshotTruncated = false;
     this.addGap({ kind: 'resync', firstSeq: null, lastSeq: null, count: 'unknown', cause: reason });
     this.notify(this.headSeq, this.headSeq);
+  }
+
+  /** Release retained state/history when the owning topic closes. */
+  dispose(): void {
+    this.currentSnapshot = null;
+    this.pendingItems = [];
+    this.pendingBytes = 0;
+    this.ring.fill(undefined);
+    this.count = 0;
+    this.listeners.clear();
   }
 
   // ---- StoreMirror ----

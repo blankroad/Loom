@@ -23,6 +23,7 @@ import {
   inputChip,
   reduceInput,
   reducePort,
+  restoreUartState,
   symbolize,
   type UartInputState,
   type UartPortState,
@@ -62,6 +63,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   let lastOverwritten = 0;
   let gapsSeen = 0;
   let separatorDone = false;
+  let snapshotVersion = 0;
   let paused = false;
   let lastSend: { origin: string; text: string; requestId: string | null; state: WriteState | null; atMs: number } | null = null;
   const rx: { atMs: number; n: number }[] = []; // bounded by RX_WINDOW_MS pruning
@@ -137,12 +139,23 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
 
   const consume = (): void => {
     const t = now();
+    const snapshot = mirror.snapshot;
+    if (snapshot && snapshot.version !== snapshotVersion) {
+      snapshotVersion = snapshot.version;
+      for (const item of snapshot.items) {
+        if (item.domain !== 'uart' || item.kind !== 'uart.snapshot') continue;
+        const state = item.state as Record<string, unknown> | null;
+        if (!state || (item.channel ?? state.channel) !== channel) continue;
+        ({ port, input } = restoreUartState(state, t));
+      }
+    }
     if (mirror.overwritten !== lastOverwritten) {
       term.markGap(`⋯ 화면 생략 ${mirror.overwritten - lastOverwritten}건 (패널 버퍼) — 기록은 데몬 저널`);
       lastOverwritten = mirror.overwritten;
     }
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
+      if (snapshot && lastSeq <= snapshot.throughSeq && ev.kind !== 'uart.data' && ev.kind !== 'uart.write') continue;
       handle(ev, t);
     }
     while (gapsSeen < mirror.gaps.length) {

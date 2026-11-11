@@ -28,6 +28,7 @@ import {
   nrcText,
   previewText,
   reduceTarget,
+  reduceTargetState,
   resultSymbol,
   targetLine,
   timingText,
@@ -66,8 +67,10 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   let targetsOverflow = 0;
   const lastValues = new Map<string, LastValue>();
   let lastSeq = -1n;
+  let snapshotVersion = 0;
   let rowsVersionSeen = -1;
   let rowsVersion = 0;
+  const targetScope = typeof ctx.props.targets === 'string' ? new Set(ctx.props.targets.split(',')) : null;
   const initialTarget = typeof ctx.props.targets === 'string' ? ctx.props.targets.split(',')[0] : undefined;
   let selectedTarget: string | null = initialTarget ?? null;
 
@@ -303,10 +306,25 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   };
 
   const draw = (): bigint => {
+    const snapshot = mirror.snapshot;
+    if (snapshot && snapshot.version !== snapshotVersion) {
+      snapshotVersion = snapshot.version;
+      targets.clear();
+      targetsOverflow = 0;
+      for (const item of snapshot.items) {
+        if (item.domain !== 'uds' || item.kind !== 'uds.snapshot') continue;
+        const state = item.state as { kind?: unknown; payload?: unknown } | null;
+        if (!state || state.kind !== 'uds.state') continue;
+        const next = reduceTargetState(undefined, state.payload);
+        if (!next || (targetScope && !targetScope.has(next.target))) continue;
+        noteTarget(next.target);
+        if (targets.has(next.target)) targets.set(next.target, next);
+      }
+    }
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
       const name = ev.kind === 'uds.state' ? (str((ev.payload as Record<string, unknown>).target) || ev.channel) : null;
-      if (name) {
+      if (name && (!targetScope || targetScope.has(name)) && (!snapshot || BigInt(ev.seq) > snapshot.throughSeq)) {
         noteTarget(name);
         const next = reduceTarget(targets.get(name), ev);
         if (next && targets.has(name)) targets.set(name, next);
@@ -318,7 +336,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       const now = performance.now();
       for (const r of list) {
         const t = str(r.payload.target) || r.channel;
-        if (t) noteTarget(t);
+        if (t && (!targetScope || targetScope.has(t))) noteTarget(t);
         updateLastValues(lastValues, r, now);
       }
     }

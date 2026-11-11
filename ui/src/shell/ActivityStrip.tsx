@@ -35,13 +35,13 @@ export function ActivityStrip() {
   const entries = activity.recent(open ? 50 : 2);
   return (
     <section className={`activity${open ? ' open' : ''}`} aria-label="Activity">
-      <button type="button" className="act-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-        Activity {open ? '▾' : '▸'}
+      <button type="button" className="act-toggle" aria-expanded={open} aria-controls="workbench-activity-entries" onClick={() => setOpen(!open)}>
+        <span aria-hidden="true">{open ? '▾' : '▸'}</span> Activity <span className="activity-count">{activity.recent(50).length}</span>
       </button>
       {activity.dropped > 0 && <span className="muted"> (오래된 {activity.dropped}건 보관 범위 밖)</span>}
-      <ul>
+      <ul id="workbench-activity-entries">
         {entries.length === 0 ? (
-          <li className="muted">활동 없음</li>
+          <li className="activity-empty"><span className="muted">아직 기록된 활동이 없습니다.</span> 장치와 사용자의 작업이 여기에 표시됩니다.</li>
         ) : (
           entries.map((e, i) => <Line key={`${e.seq}-${i}`} e={e} delivered={activity.isDelivered(e)} />)
         )}

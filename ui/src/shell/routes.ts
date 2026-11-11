@@ -19,7 +19,7 @@ export interface Preset {
 export const PRESETS: readonly Preset[] = [
   {
     name: 'm1-default',
-    label: 'm1-default',
+    label: '기본 작업 공간',
     grid: 'two-top-one-bottom',
     slots: [
       { panel: 'uart.terminal', props: { channel: 'dut' } },
@@ -27,10 +27,10 @@ export const PRESETS: readonly Preset[] = [
       { panel: 'uds.console', props: { targets: 'bcm' } },
     ],
   },
-  { name: 'uart-only', label: 'uart-only', grid: 'single', slots: [{ panel: 'uart.terminal', props: { channel: 'dut' } }] },
+  { name: 'uart-only', label: 'UART 터미널', grid: 'single', slots: [{ panel: 'uart.terminal', props: { channel: 'dut' } }] },
   {
     name: 'can-uds',
-    label: 'can-uds',
+    label: 'CAN·UDS 분석',
     grid: 'stack',
     slots: [
       { panel: 'can.trace', props: { channel: 'ch0' } },
@@ -40,7 +40,7 @@ export const PRESETS: readonly Preset[] = [
   {
     // M1b: test execution screen (shell-owned) + the bench PSU used by TC-1
     name: 'test',
-    label: 'test',
+    label: '테스트 실행',
     grid: 'stack',
     slots: [
       { panel: 'shell.test', props: {} },
@@ -50,7 +50,7 @@ export const PRESETS: readonly Preset[] = [
   {
     // F2: DoIP over Ethernet — packets next to the UDS console (↔UDS chips reveal there)
     name: 'eth',
-    label: 'eth',
+    label: 'Ethernet·DoIP',
     grid: 'stack',
     slots: [
       { panel: 'eth.packets', props: { channel: 'lan1' } },
@@ -93,9 +93,21 @@ export function slotHash(slot: Slot, at: string | null = null): string {
   return `#/p/${domain}/${name}${qs ? `?${qs}` : ''}`;
 }
 
-/** same panel type and the same props (ignoring the cursor `at`) */
+/** Canonical slot identity; `at` is a reveal cursor, never a new panel instance.
+ * CAN's legacy `ch` prop is equivalent to `channel` (the panel gives channel priority).
+ */
+export function slotKey(slot: Slot): string {
+  const props = { ...slot.props };
+  delete props.at;
+  if (slot.panel === 'can.trace' && props.ch !== undefined) {
+    props.channel ??= props.ch;
+    delete props.ch;
+  }
+  const entries = Object.entries(props).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, String(v)]);
+  return JSON.stringify([slot.panel, entries]);
+}
+
+/** same view and configuration, ignoring a reveal cursor and equivalent aliases */
 export function sameSlot(a: Slot, b: Slot): boolean {
-  if (a.panel !== b.panel) return false;
-  const strip = (p: Props) => JSON.stringify(Object.entries(p).filter(([k]) => k !== 'at').sort(([x], [y]) => (x < y ? -1 : 1)).map(([k, v]) => [k, String(v)]));
-  return strip(a.props) === strip(b.props);
+  return slotKey(a) === slotKey(b);
 }

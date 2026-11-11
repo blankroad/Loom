@@ -319,3 +319,50 @@ describe('uds.console — canonical dry-run preview (fixtures/dry_run.json)', ()
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
 });
+
+describe('uds.console native late-join state', () => {
+  it('hydrates an empty-backlog second viewer without configured ghost targets or writes', () => {
+    h = mountPanel('uds.console');
+    const payload = { target: 'ecu1', generation: 1, link: { state: 'up' }, backend: 'sim',
+      session: { id: 3, name: 'extended', confidence: 'confirmed' }, security: { level: null },
+      tester_present: null, p2_ms: 50, p2_star_ms: 5000, lease: null };
+    const deliver = (p = payload) => {
+      h!.net.subs[0]!.h.onSnapshotPart?.({ sub: h!.net.subs[0]!.id, n: 1, total: 1, items: [
+        { domain: 'uds', kind: 'uds.snapshot', state: { kind: 'uds.state', payload: p } },
+        { domain: 'uart', channel: 'foreign', kind: 'uart.snapshot', state: { kind: 'uds.state', payload: { ...p, target: 'foreign' } } },
+      ], events: [] });
+      h!.snapshotEnd('100');
+    };
+    deliver();
+    const bar = () => h!.host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+    expect(bar()).toContain('ecu1 ● sim');
+    expect(bar()).toContain('sess=extended✓');
+    expect(bar()).not.toContain('foreign');
+    expect(rowsIn(h.host)).toHaveLength(0);
+    expect(h.net.calls).toEqual([]);
+    h.net.subs[0]!.h.onResync?.('reconnect');
+    deliver({ ...payload, generation: 2, link: { state: 'down' } });
+    expect(bar()).toContain('ecu1 ○ down');
+    expect(h.toasts).toEqual([]);
+    const net = h.net;
+    h.dispose();
+    h = null;
+    expect(net.subs.every((s) => s.closed)).toBe(true);
+  });
+
+  it('honors configured targets and keeps newer live state over native snapshot/backlog', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    const state = (target: string, link: string) => ({ target, link: { state: link }, backend: 'sim' });
+    h.net.subs[0]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, items: [
+      { domain: 'uds', kind: 'uds.snapshot', state: { kind: 'uds.state', payload: state('ecu1', 'up') } },
+      { domain: 'uds', kind: 'uds.snapshot', state: { kind: 'uds.state', payload: state('ecu2', 'up') } },
+    ], events: [ev({ seq: '9', kind: 'uds.state', payload: state('ecu1', 'down') })] });
+    h.snapshotEnd('10');
+    expect(h.host.querySelector('[data-testid="uds-targets"]')!.textContent).toContain('ecu1 ● sim');
+    h.batch([ev({ seq: '11', kind: 'uds.state', payload: state('ecu1', 'down') }), ev({ seq: '12', kind: 'uds.state', payload: state('ecu2', 'up') })]);
+    const bar = h.host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+    expect(bar).toContain('ecu1 ○ down');
+    expect(bar).not.toContain('ecu2');
+    expect(h.net.calls).toEqual([]);
+  });
+});

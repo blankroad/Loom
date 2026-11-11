@@ -18,7 +18,7 @@ import { createPanelContext, type PanelContextHandle } from '../../sdk/context';
 import type { Props } from '../../sdk/manifest';
 import { validateProps } from '../../sdk/propsSchema';
 import { getPanel, type PanelInstance } from '../../sdk/registry';
-import { sameSlot, type Slot } from '../routes';
+import { sameSlot, slotKey, type Slot } from '../routes';
 import type { ShellServices } from '../services';
 import { ShellCtx } from '../ShellContext';
 import { TestScreen } from '../test/TestScreen';
@@ -37,7 +37,7 @@ export interface DockController {
   /** the open dock panel showing this slot (props compared without the `at` cursor) */
   find(slot: Slot): IDockviewPanel | null;
   /** activate the slot's tab, or add it as a tab next to the active one */
-  open(slot: Slot): 'shown' | 'added';
+  open(slot: Slot, options?: { activate?: boolean }): 'shown' | 'added';
 }
 
 let instanceSeq = 0;
@@ -190,7 +190,6 @@ export interface DockHostOptions {
 
 export class DockHost implements DockController {
   readonly api: DockviewApi;
-  private addSeq = 0;
   private name = '';
 
   constructor(
@@ -210,6 +209,12 @@ export class DockHost implements DockController {
 
   private dims(): { w: number; h: number } {
     return { w: this.el.clientWidth || 1200, h: this.el.clientHeight || 700 };
+  }
+
+  /** Empty default workbench; no placeholder device targets or subscriptions. */
+  clear(name = ''): void {
+    this.name = name;
+    this.api.clear();
   }
 
   /** replace the dock with a layout (vendor state when it matches, else rebuilt from root) */
@@ -249,21 +254,24 @@ export class DockHost implements DockController {
     return null;
   }
 
-  open(slot: Slot): 'shown' | 'added' {
+  open(slot: Slot, options: { activate?: boolean } = {}): 'shown' | 'added' {
     const have = this.find(slot);
     if (have) {
-      have.api.setActive();
+      if (options.activate !== false) have.api.setActive();
       return 'shown';
     }
     // next to a panel of the same domain if there is one, else in the active group
     const domain = slot.panel.split('.')[0];
     const near = this.api.panels.find((p) => String((p.params as { panel?: string } | undefined)?.panel ?? '').startsWith(`${domain}.`));
     const group = near?.group ?? this.api.activeGroup;
-    let id = `x${++this.addSeq}`;
-    while (this.api.getPanel(id)) id = `x${++this.addSeq}`;
+    const stableId = `slot:${slotKey(slot)}`;
+    let id = stableId;
+    let suffix = 1;
+    while (this.api.getPanel(id)) id = `${stableId}:${suffix++}`;
     this.api.addPanel({
       id,
       component: PANEL_COMPONENT,
+      inactive: options.activate === false,
       title: panelTitle(slot),
       params: { panel: slot.panel, props: { ...slot.props } },
       ...(group ? { position: { referenceGroup: group, direction: 'within' as const } } : {}),

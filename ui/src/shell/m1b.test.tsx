@@ -231,7 +231,10 @@ describe('new channel rule (UD-31)', () => {
     expect(services.uiState.extraSlots).toEqual([]);
     advance(JOIN_GRACE_MS);
     emit(ev({ kind: 'psu.state', domain: 'psu', channel: 'aux', origin: 'agent', payload: { out: false } }));
-    expect(toastTexts()).toEqual(['에이전트가 psu aux를 열었습니다 — 패널을 열었습니다']);
+    expect(toastTexts()).toEqual([]); // output state alone does not confirm a connection
+    expect(chip('psu/aux')!.dataset.state).toBe('unknown');
+    emit(ev({ kind: 'psu.state', domain: 'psu', channel: 'aux', origin: 'agent', payload: { connected: true, out: false } }));
+    expect(toastTexts()).toEqual(['에이전트가 psu aux를 다시 열었습니다 — 패널을 열었습니다']);
   });
 
   it('late join: channels from snapshot items appear silently', () => {

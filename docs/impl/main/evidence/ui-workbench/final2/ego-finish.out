@@ -1,0 +1,3 @@
+{"name":"loom ui-workbench qa","ownership":"agent","tabs":[{"label":"p1","openedBy":"agent"},{"label":"p2","openedBy":"agent"}]}
+{"spaceId":2,"closedSpace":true,"keptManagedLabels":[],"closedManagedLabels":["p1","p2"],"preservedUnmanagedCount":0}
+

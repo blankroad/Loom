@@ -3,12 +3,34 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ev, mountPanel, type Harness } from '../../sdk/testing/harness';
 import './terminalPanel';
 import { LineAssembler } from './tracePanel';
-import { INITIAL_INPUT, inputChip, reduceInput, symbolize, type UartInputState } from './uartState';
+import { INITIAL_INPUT, inputChip, reduceInput, reducePort, restoreUartState, symbolize, type UartInputState } from './uartState';
 
 beforeAll(() => {
   if (!window.matchMedia) {
     window.matchMedia = ((q: string) => ({ matches: false, media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false })) as unknown as typeof window.matchMedia;
   }
+});
+
+it('reads native UART connection/config and restores metadata without device output', () => {
+  const initial = { status: '?', baud: null, generation: null };
+  expect(reducePort(initial, ev({ kind: 'uart.state', generation: 3, payload: { state: 'open' } }))).toEqual({ status: 'open', baud: null, generation: 3 });
+  expect(restoreUartState({ channel: 'aux', generation: 4, state: { state: 'open', path: 'sim://bootshell' }, config: { baud: 9600 }, input_owner: { owner: 'user', viewer: 'other', dirty: true, hold: true }, lock: { on: false } }, 100)).toMatchObject({ port: { status: 'open', baud: 9600, generation: 4 }, input: { owner: 'user', viewer: 'other', dirty: true, hold: true, lock: null } });
+});
+
+it('hydrates only its UART metadata, supersedes older backlog state and keeps newer live state', () => {
+  const h = mountPanel('uart.terminal', { channel: 'aux' });
+  try {
+    h.net.subs[0]!.h.onSnapshotPart?.({ sub: h.net.subs[0]!.id, n: 1, total: 1, events: [ev({ seq: '3', kind: 'uart.state', channel: 'aux', payload: { state: 'closed' } })], items: [
+      { domain: 'uart', channel: 'dut', kind: 'uart.snapshot', state: { channel: 'dut', generation: 99, state: { state: 'closed' }, config: { baud: 4800 } } },
+      { domain: 'uart', channel: 'aux', kind: 'uart.snapshot', state: { channel: 'aux', generation: 4, state: { state: 'open' }, config: { baud: 9600 }, input_owner: { owner: 'user', viewer: 'other', dirty: true } } },
+    ] });
+    h.snapshotEnd('10');
+    expect(h.host.querySelector('.uart-port')?.textContent).toContain('open 9600 gen4');
+    expect(h.host.querySelector('.uart-chip')?.textContent).toContain('다른');
+    h.batch([ev({ seq: '11', kind: 'uart.state', channel: 'aux', payload: { state: 'closed' } })]);
+    expect(h.host.querySelector('.uart-port')?.textContent).toContain('closed');
+    expect(h.net.calls).toEqual([]);
+  } finally { h.dispose(); }
 });
 
 describe('input-lease chip transitions', () => {

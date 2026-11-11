@@ -104,8 +104,12 @@ export function TopBar() {
   const approvals = shell.approvals.size;
   return (
     <header className="top-bar" role="banner" data-env={shell.env ?? 'unknown'}>
-      <span className="brand">Loom</span>
+      <span className="brand"><span className="brand-mark" aria-hidden="true">L</span>Loom<span className="brand-caption">Workbench</span></span>
       <EnvBadge env={shell.env} />
+      <span className={`connection connection-${shell.conn.status}`} data-testid="connection-status" title={shell.conn.status === 'closed' ? shell.conn.reason : 'Loom 서버 연결'}>
+        <span className="connection-dot" aria-hidden="true" />
+        {shell.conn.status === 'open' ? '연결됨' : shell.conn.status === 'closed' ? '연결 끊김' : '연결 중'}
+      </span>
       <LiveBadge />
       <span className={`rec rec-${shell.recordHealth}`} data-prio="4">
         REC {shell.recordHealth}
@@ -126,6 +130,7 @@ export function TopBar() {
       )}
       <TestBadge />
       <span className="spacer" />
+      <span className="rights" data-testid="rights">자격: {shell.hello?.rights ?? '—'}{shell.automationCapped ? ' → watch (자동화 브라우저)' : ''}</span>
       <StopButton />
     </header>
   );

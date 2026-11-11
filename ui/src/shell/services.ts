@@ -105,7 +105,7 @@ export interface ShellServices {
   settings: TabSettings;
   focus: FocusController;
   /** make a panel visible: already in the layout → 'shown', else added as a dock tab → 'added' */
-  showSlot(slot: Slot): 'shown' | 'added' | 'routed';
+  showSlot(slot: Slot, options?: { activate?: boolean }): 'shown' | 'added' | 'routed';
   /** the mounted dock (null on #/need-auth or in tests without a dock) */
   dock: { current: DockController | null };
   /** the dock registers itself while mounted; returns the detach function */
@@ -257,9 +257,9 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
       if (dock.current === c) dock.current = null;
     };
   };
-  const showSlot = (slot: Slot): 'shown' | 'added' | 'routed' => {
+  const showSlot = (slot: Slot, options: { activate?: boolean } = {}): 'shown' | 'added' | 'routed' => {
     // docking (M2): an open panel's tab is activated, a new one becomes a tab
-    if (dock.current) return dock.current.open(slot);
+    if (dock.current) return dock.current.open(slot, options);
     // no dock mounted (tests / need-auth): the M1 fallback below
     const route = parseRoute(currentHash());
     const shown =
@@ -321,7 +321,9 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
         const verb = isNew ? '열었습니다' : '다시 열었습니다';
         const key = `chan:${entry.domain}/${entry.channel}`;
         if (dp && settings.autoOpenPanels === 'on') {
-          const r = showSlot(dp);
+          // New agent/device connections must not replace the view the user is reading
+          // or redirect terminal input. Explicit explorer selection still activates it.
+          const r = showSlot(dp, { activate: false });
           toasts.push(`${subj} ${what}를 ${verb}${r === 'added' ? ' — 패널을 열었습니다' : ''}`, { key, ttlMs: 8_000 });
         } else {
           toasts.push(`${subj} ${what}를 ${verb}`, {

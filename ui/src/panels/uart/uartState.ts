@@ -51,8 +51,12 @@ const n = (v: unknown): number | null => (typeof v === 'number' && Number.isFini
 
 /** Apply one uart.* control/state event. Returns the new state (or the same object). */
 export function reduceInput(st: UartInputState, ev: LoomEvent, nowMs: number): UartInputState {
-  const p = obj(ev.payload);
-  switch (ev.kind) {
+  return reduceInputState(st, ev.kind, ev.payload, nowMs);
+}
+
+function reduceInputState(st: UartInputState, kind: string, payload: unknown, nowMs: number): UartInputState {
+  const p = obj(payload);
+  switch (kind) {
     case 'uart.input_owner': {
       const owner = p.owner === 'user' || p.owner === 'agent' ? p.owner : 'none';
       return {
@@ -83,12 +87,28 @@ export function reduceInput(st: UartInputState, ev: LoomEvent, nowMs: number): U
 
 export function reducePort(st: UartPortState, ev: LoomEvent): UartPortState {
   if (ev.kind !== 'uart.state' && ev.kind !== 'uart.config') return st;
-  const p = obj(ev.payload);
+  return reducePortState(st, ev.payload, ev.generation);
+}
+
+function reducePortState(st: UartPortState, payload: unknown, generation?: number | null): UartPortState {
+  const p = obj(payload);
   return {
-    status: s(p.status) ?? st.status,
-    baud: n(p.baud) ?? st.baud,
-    generation: ev.generation ?? st.generation,
+    status: s(p.state) ?? s(p.status) ?? st.status,
+    baud: n(obj(p.config).baud) ?? n(p.baud) ?? st.baud,
+    generation: generation ?? n(p.generation) ?? st.generation,
   };
+}
+
+/** Native UART reducer state; metadata restoration never invents device bytes/events. */
+export function restoreUartState(value: unknown, nowMs: number): { port: UartPortState; input: UartInputState } {
+  const state = obj(value);
+  let port = reducePortState({ status: '?', baud: null, generation: null }, state.state, n(state.generation));
+  port = reducePortState(port, state.config);
+  let input = INITIAL_INPUT;
+  for (const [key, kind] of [['input_owner', 'uart.input_owner'], ['lock', 'uart.lock'], ['agent_activity', 'uart.agent_activity']] as const) {
+    if (state[key] !== undefined) input = reduceInputState(input, kind, state[key], nowMs);
+  }
+  return { port, input };
 }
 
 export type ChipKind = 'free' | 'me' | 'other' | 'lock' | 'deferred' | 'dirty' | 'hold' | 'paused';

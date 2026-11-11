@@ -75,7 +75,11 @@ export function TabSettingsControls() {
   const { settings } = useServices();
   useStoreVersion(settings);
   return (
-    <span className="tab-settings">
+    <details className="tab-settings">
+      <summary>패널 동작 <span aria-hidden="true">⌄</span></summary>
+      <div className="tab-settings-popover">
+      <strong>이 브라우저 탭의 동작</strong>
+      <p className="muted">장치 연결과 송신 권한에는 영향을 주지 않습니다.</p>
       <label>
         새 채널 패널{' '}
         <select aria-label="auto_open_panels" value={settings.autoOpenPanels} onChange={(e) => settings.setAutoOpen(e.target.value as AutoOpen)}>
@@ -91,6 +95,7 @@ export function TabSettingsControls() {
           <option value="off">끄기</option>
         </select>
       </label>
-    </span>
+      </div>
+    </details>
   );
 }

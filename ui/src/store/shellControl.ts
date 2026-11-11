@@ -33,7 +33,7 @@ import {
   type RecordHealth,
   type WorkerStateView,
 } from './adapter';
-import { readChannelSignal, readSnapshotChannel, type ChanState, type ChannelSignal } from './channels';
+import { readChannelSignal, readSnapshotChannels, type ChanState, type ChannelSignal } from './channels';
 import { Emitter } from './emitter';
 
 export const HEARTBEAT_WARN_MS = 1_500;
@@ -355,8 +355,9 @@ export class ShellControlStore extends Emitter {
     if (!e) return;
     const before = e.state;
     if (sig.state !== 'unknown') e.state = sig.state;
-    else if (!existed) e.state = 'open'; // a state report for an unseen channel = it is in use
-    const opened = e.state === 'open' && (!existed || before === 'closed');
+    // A report establishes identity, not connectivity (e.g. PSU output-off telemetry).
+    // Keep unknown until an explicit connection state is available.
+    const opened = e.state === 'open' && before !== 'open';
     // join grace: right after (re)connecting, periodic state reports describe channels that
     // were already open before this tab — bar only. An explicit "opened" still toasts.
     const inGrace = this.connOpenedMs !== null && nowMs - this.connOpenedMs < JOIN_GRACE_MS;
@@ -371,11 +372,12 @@ export class ShellControlStore extends Emitter {
   noteSnapshotItems(items: readonly unknown[]): void {
     let changed = false;
     for (const it of items) {
-      const c = readSnapshotChannel(it);
-      if (!c) continue;
-      const e = this.noteChannel(c.domain, c.channel, null, null);
-      if (e && c.state !== 'unknown' && e.state !== c.state) e.state = c.state;
-      changed = true;
+      for (const c of readSnapshotChannels(it)) {
+        const e = this.noteChannel(c.domain, c.channel, c.generation, null);
+        if (!e) continue;
+        if (c.state !== 'unknown') e.state = c.state;
+        changed = true;
+      }
     }
     if (changed) this.changed();
   }
