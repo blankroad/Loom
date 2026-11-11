@@ -37,3 +37,12 @@ pub const KIND_RX: &str = "uds.rx";
 pub const KIND_RESULT: &str = "uds.result";
 /// Target state (session, security, link, lease).
 pub const KIND_STATE: &str = "uds.state";
+
+/// The DoIP entity and virtual-ECU crates behind `connect --sim`, re-exported so gateway
+/// integration tests can put a slow or faulty ECU behind a real loopback DoIP entity (reached
+/// with `uds.connect {host, port}`) without a manifest change. Not an API for domain code.
+#[doc(hidden)]
+pub mod sim_support {
+    pub use loom_uds_doip;
+    pub use loom_uds_sim;
+}

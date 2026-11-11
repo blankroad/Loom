@@ -286,6 +286,11 @@ impl Outcome {
         match code {
             None => Ok(data),
             Some(code) => {
+                // Top-level `write_state` is what the gateway records for a failed call (audit
+                // `write.result`, fallback row): an aborted write after hand-off stays
+                // `outcome_unknown` there too, never `failed`.
+                let mut data = data;
+                data["write_state"] = json!(self.row.write_state);
                 let msg = match (self.row.nrc, &self.row.nrc_name) {
                     (Some(n), Some(name)) => format!("NRC 0x{n:02X} {name}"),
                     (Some(n), None) => format!("NRC 0x{n:02X}"),
@@ -588,6 +593,16 @@ pub struct UdsManager {
     presend: Arc<PresendState>,
     writes: Mutex<WriteLog>,
     request_seq: AtomicU64,
+    /// CORE STOP latch as last reported through `WriteHooks::on_latch`. Agent/script requests
+    /// check it under this lock right before entering the runner, so a request that passed the
+    /// gateway's latch check just before STOP is either cancelled by [`UdsManager::stop_latch`]
+    /// or refused here — never sent after STOP.
+    stopped: Mutex<bool>,
+}
+
+/// Origins STOP cancels (contract A3): agents and scripts. User traffic is never touched.
+fn stoppable(origin: Origin) -> bool {
+    matches!(origin, Origin::Agent | Origin::Script)
 }
 
 impl UdsManager {
@@ -796,6 +811,10 @@ impl UdsManager {
             });
         }
 
+        if stoppable(origin) && self.stopped() {
+            return Err(self.refuse_stopped(&mut row, &rid, others, finish_refused));
+        }
+
         // Lease (plan U-08 minimal): a user write takes the target; agent/script writes wait for it.
         if class.risk >= Risk::R1 {
             let mut s = lock(&target.session);
@@ -888,14 +907,30 @@ impl UdsManager {
             .with_priority(priority)
             .with_origin(origin)
             .with_request_id(rid.clone());
-        let res = {
-            let fut = handle.request(txn);
-            tokio::pin!(fut);
-            loop {
-                tokio::select! {
-                    biased;
-                    Some(ev) = gate.events.recv() => self.on_event(ctx, &target, &mut row, &rid, ev, false),
-                    r = &mut fut => break r,
+        let probe = txn.clone();
+        // STOP check and runner submission under one lock: see `UdsManager::stopped`.
+        let submitted = {
+            let stopped = lock(&self.stopped);
+            (!(*stopped && stoppable(origin))).then(|| handle.try_submit(txn))
+        };
+        let Some(submitted) = submitted else {
+            drop(handle);
+            drop(gate);
+            return Err(self.refuse_stopped(&mut row, &rid, others, finish_refused));
+        };
+        let res = match submitted {
+            Err(rejected) => *rejected,
+            Ok(rx) => {
+                tokio::pin!(rx);
+                loop {
+                    tokio::select! {
+                        biased;
+                        Some(ev) = gate.events.recv() => self.on_event(ctx, &target, &mut row, &rid, ev, false),
+                        r = &mut rx => break r.unwrap_or_else(|_| {
+                            let clock = MonoClock::new(target.clock.at, target.clock.base_ns);
+                            TxnResult::rejected(&probe, RejectReason::RunnerStopped, &clock, 0)
+                        }),
+                    }
                 }
             }
         };
@@ -1123,25 +1158,53 @@ impl UdsManager {
         }))
     }
 
-    /// STOP latch (core A3): stop agent and script traffic on every target with `E_STOPPED`.
-    /// User requests and safe-state recovery are untouched. The gateway calls this when STOP
-    /// latches (no Registry hook for it yet — see report).
+    /// CORE STOP latch is on (as last reported through `WriteHooks::on_latch`).
+    pub fn stopped(&self) -> bool {
+        *lock(&self.stopped)
+    }
+
+    /// Refuse an agent/script request because STOP is latched: row `failed`, not sent.
+    fn refuse_stopped(
+        &self,
+        row: &mut RowPayload,
+        rid: &str,
+        others: Value,
+        finish_refused: impl FnOnce(&mut RowPayload, String),
+    ) -> DomainError {
+        let reason = "STOP is latched (not sent)".to_string();
+        finish_refused(row, reason.clone());
+        let data = json!({"request_id": rid, "row": row, "others_since_last": others, "write_state": row.write_state});
+        DomainError::new(ErrorCode::Stopped, reason).with_detail(data)
+    }
+
+    /// STOP latch on (core A3, `WriteHooks::on_latch(true)`): stop agent and script traffic on
+    /// every target with `E_STOPPED`. Waiting requests end `failed` unsent; the one in flight
+    /// stops waiting (read `failed`, write after hand-off `outcome_unknown` + quarantine). Later
+    /// agent/script requests are refused before the runner until [`UdsManager::release_latch`].
+    /// User requests and safe-state recovery are untouched. Synchronous and bounded: short
+    /// locks only, no await, no device I/O (at most [`MAX_TARGETS`] targets).
     pub fn stop_latch(&self) -> Value {
+        *lock(&self.stopped) = true;
         let mut out = Vec::new();
         for t in self.targets() {
-            let waiting = t.lanes.cancel(
-                AbortKind::Stop,
-                |o, _| matches!(o, Origin::Agent | Origin::Script),
-                false,
-            );
+            let waiting = t.lanes.cancel(AbortKind::Stop, |o, _| stoppable(o), false);
+            let mut runner_waiting = 0;
             let mut in_flight = false;
             if let Some(h) = t.ctl() {
                 for o in [Origin::Agent, Origin::Script] {
-                    in_flight |= h.abort_with(AbortScope::Origin(o), AbortKind::Stop).in_flight;
+                    let s = h.abort_with(AbortScope::Origin(o), AbortKind::Stop);
+                    runner_waiting += s.cancelled_waiting;
+                    in_flight |= s.in_flight;
                 }
             }
-            out.push(json!({"target": t.name, "cancelled_waiting": waiting, "in_flight_aborted": in_flight}));
+            out.push(json!({"target": t.name, "cancelled_waiting": waiting + runner_waiting, "in_flight_aborted": in_flight}));
         }
         json!({"targets": out})
+    }
+
+    /// STOP released (`WriteHooks::on_latch(false)`): agent/script requests may enter the runner
+    /// again. Nothing cancelled is resumed or resent — those calls already returned `E_STOPPED`.
+    pub fn release_latch(&self) {
+        *lock(&self.stopped) = false;
     }
 }

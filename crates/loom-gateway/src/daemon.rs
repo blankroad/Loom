@@ -565,6 +565,11 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
 
     // Restart with on/unknown latch → latched everywhere, and say so.
     if latched {
+        for domain in daemon.domains.values() {
+            if let Some(hooks) = &domain.hooks {
+                hooks.on_latch(true);
+            }
+        }
         for w in daemon.workers() {
             let _ = tokio::time::timeout(
                 LATCH_ACK,
@@ -1556,6 +1561,11 @@ impl Daemon {
     pub async fn stop(&self, c: &Caller, on: bool, reason: Option<&str>) -> Value {
         let _g = self.latch_lock.lock().await;
         self.latch.store(on, Ordering::Release);
+        for domain in self.domains.values() {
+            if let Some(hooks) = &domain.hooks {
+                hooks.on_latch(on);
+            }
+        }
         // TEST sessions: STOP ends running attempts (no fence, no cleanup) and marks them STOPPED;
         // their gates already read the memory latch above. Release does not resume them.
         #[cfg(feature = "test")]

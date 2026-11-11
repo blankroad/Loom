@@ -663,3 +663,115 @@ async fn stop_latch_stops_agents_not_users() {
         .await;
     r.expect("user request still runs during STOP");
 }
+
+/// CORE STOP through the registered `WriteHooks::on_latch` (what `daemon::stop` calls):
+/// a script write already handed to the ECU ends `outcome_unknown` (never confirmed), a waiting
+/// agent read ends `failed` unsent, new agent requests are refused before the runner, user
+/// traffic still runs, and releasing STOP resends nothing.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn on_latch_hook_stops_agent_and_script_release_resends_nothing() {
+    let mut env = connected().await;
+    env.module
+        .manager()
+        .target("ecu1")
+        .expect("target")
+        .with_sim_ecu(|e| {
+            e.add_fault(FaultRule::always(
+                FaultMatch::sid(0x2E),
+                FaultAction::PendingThen {
+                    count: 40,
+                    every: Duration::from_millis(100),
+                },
+            ))
+        })
+        .expect("sim")
+        .expect("fault");
+    let hooks = env.reg.hooks_ref().expect("uds hooks").clone();
+    let sent = |env: &Env, rid: &str| {
+        env.rows(rid)
+            .iter()
+            .filter(|(k, s)| k == "uds.tx" && s.as_deref() == Some("sent"))
+            .count()
+    };
+
+    let (w, hw) = env.spawn(
+        Role::Script,
+        "uds.request",
+        json!({"target": "ecu1", "text": "2E F1 A0 01", "timeout_ms": 10_000}),
+    );
+    tokio::time::sleep(Duration::from_millis(300)).await; // handed off, 0x78 arriving
+    assert_eq!(sent(&env, &w), 1, "script write in flight: {:?}", env.rows(&w));
+    let (a, ha) = env.spawn(
+        Role::Agent,
+        "uds.read_did",
+        json!({"target": "ecu1", "dids": ["F18C"]}),
+    );
+    tokio::time::sleep(Duration::from_millis(30)).await;
+
+    let t = Instant::now();
+    hooks.on_latch(true);
+    assert!(
+        t.elapsed() < Duration::from_millis(10),
+        "on_latch is bounded: {:?}",
+        t.elapsed()
+    );
+    assert!(env.module.manager().stopped());
+
+    let r = hw.await.expect("task");
+    assert_eq!(err_code(&r), Some(ErrorCode::Stopped), "{r:?}");
+    let detail = r.as_ref().err().map(|e| e.detail.clone()).unwrap_or_default();
+    assert_eq!(detail["write_state"], "outcome_unknown", "{detail}");
+    assert_eq!(
+        env.last_result(&w).draft.payload["write_state"],
+        "outcome_unknown"
+    );
+    assert!(
+        !kinds(&env.rows(&w)).iter().any(|k| k.ends_with(":confirmed")),
+        "no false confirmed: {:?}",
+        env.rows(&w)
+    );
+    let r = ha.await.expect("task");
+    assert_eq!(err_code(&r), Some(ErrorCode::Stopped), "{r:?}");
+    assert_eq!(env.last_result(&a).draft.payload["write_state"], "failed");
+    assert_eq!(sent(&env, &a), 0, "waiting agent read never sent");
+
+    // A new agent request while latched: refused before the runner, nothing sent.
+    let (r, rid, _) = env
+        .call(
+            Role::Agent,
+            "uds.request",
+            json!({"target": "ecu1", "text": "3E 00"}),
+        )
+        .await;
+    assert_eq!(err_code(&r), Some(ErrorCode::Stopped), "{r:?}");
+    assert_eq!(sent(&env, &rid), 0);
+    assert_eq!(env.last_result(&rid).draft.payload["write_state"], "failed");
+
+    // User traffic is not touched (waits out the quarantine quiet period of the aborted write).
+    let (r, _, _) = env
+        .call(
+            Role::Viewer,
+            "uds.request",
+            json!({"target": "ecu1", "text": "3E 00", "timeout_ms": 8000}),
+        )
+        .await;
+    assert_eq!(
+        r.expect("user request during STOP")["row"]["write_state"],
+        "confirmed"
+    );
+
+    // Release: nothing cancelled comes back.
+    hooks.on_latch(false);
+    assert!(!env.module.manager().stopped());
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    assert_eq!(sent(&env, &w), 1, "cancelled write not resent");
+    assert_eq!(sent(&env, &a), 0, "cancelled read not resent");
+    let (r, _, _) = env
+        .call(
+            Role::Agent,
+            "uds.request",
+            json!({"target": "ecu1", "text": "3E 00", "timeout_ms": 8000}),
+        )
+        .await;
+    assert_eq!(r.expect("agent after release")["row"]["write_state"], "confirmed");
+}

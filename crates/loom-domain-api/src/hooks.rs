@@ -124,6 +124,11 @@ impl PresendError {
 
 /// Domain write hooks (A2). All synchronous; see module docs for the budget.
 pub trait WriteHooks: Send + Sync {
+    /// Observe CORE's STOP latch. Synchronous, bounded, non-blocking, no device I/O.
+    /// Domains with in-process transactions use this to cancel agent/script work already active.
+    /// Releasing the latch must not resume or resend a cancelled operation.
+    fn on_latch(&self, _on: bool) {}
+
     /// Risk of the actual bytes/operation and target. No env adjustment (B4).
     fn classify(&self, req: &WriteRequest<'_>) -> Classification;
 

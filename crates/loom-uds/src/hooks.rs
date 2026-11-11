@@ -13,7 +13,7 @@ use loom_proto::policy::{BlockClass, PolicyAction};
 use loom_uds_codec::fnv1a64;
 use serde_json::{Value, json};
 
-use crate::manager::PresendState;
+use crate::manager::{PresendState, UdsManager};
 use crate::payload::{DryRunResult, summarize};
 use crate::risk::{UdsClassification, classify_pdu};
 use crate::text::{encode_typed, parse_text};
@@ -41,11 +41,12 @@ fn unencodable(why: &str) -> Classification {
     }
 }
 
-/// UDS write hooks. P0: stateless. Quarantine/lease/current-value checks join `presend_check`
-/// when the TargetSession registry is wired in (P1).
+/// UDS write hooks. `presend_check` reads the live target state (lease, generation, quarantine);
+/// `on_latch` forwards CORE's STOP latch to the connection manager.
 #[derive(Debug, Default)]
 pub struct UdsHooks {
     presend: Option<Arc<PresendState>>,
+    manager: Option<Arc<UdsManager>>,
 }
 
 impl UdsHooks {
@@ -53,11 +54,32 @@ impl UdsHooks {
     pub fn with_presend(presend: Arc<PresendState>) -> Self {
         UdsHooks {
             presend: Some(presend),
+            manager: None,
+        }
+    }
+
+    /// Hooks of a registration: live target state and STOP for `manager`'s targets.
+    pub fn with_manager(manager: Arc<UdsManager>) -> Self {
+        UdsHooks {
+            presend: Some(manager.presend()),
+            manager: Some(manager),
         }
     }
 }
 
 impl WriteHooks for UdsHooks {
+    /// STOP on: cancel agent/script requests waiting or in flight on every target and refuse new
+    /// ones before the runner. STOP off: only lift that refusal — nothing is resumed or resent.
+    /// Short locks only, no await, no device I/O.
+    fn on_latch(&self, on: bool) {
+        let Some(m) = &self.manager else { return };
+        if on {
+            m.stop_latch();
+        } else {
+            m.release_latch();
+        }
+    }
+
     fn classify(&self, req: &WriteRequest<'_>) -> Classification {
         match request_bytes(req) {
             Ok(bytes) => {

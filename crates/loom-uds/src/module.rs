@@ -140,8 +140,8 @@ mod params {
 /// The UDS domain module, as `loomd` registers it (`&loom_uds::UdsModule`).
 ///
 /// Each registration creates its own [`UdsManager`] (targets, runners, lease) shared by the
-/// handlers and the write hooks of that registry. Use [`UdsModule::with_manager`] to keep a handle
-/// on the manager (tests, STOP wiring).
+/// handlers and the write hooks of that registry; the hooks' `on_latch` carries CORE STOP to it.
+/// Use [`UdsModule::with_manager`] to keep a handle on the manager (tests).
 #[derive(Debug, Default, Clone, Copy)]
 pub struct UdsModule;
 
@@ -512,7 +512,7 @@ fn register_with(reg: &mut Registry, m: &Arc<UdsManager>) -> Result<(), Register
         ],
     ))?
     .risk_table(risk_table())?
-    .hooks(Arc::new(UdsHooks::with_presend(m.presend())))?
+    .hooks(Arc::new(UdsHooks::with_manager(m.clone())))?
     .policy_section(schema_for!(crate::policy::PolicySection))?
     .runtime(ModuleRuntime::Dedicated { threads: 1 })?
     .reducer(Box::new(StateReducer::default()))?

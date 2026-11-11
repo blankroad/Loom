@@ -185,6 +185,8 @@ pub fn write_did(m: Arc<UdsManager>) -> Arc<dyn Handler> {
             let mut out = send(m, ctx, &p, pdu).await?;
             if out.row.write_state == WriteState::Confirmed {
                 let target = m.resolve(target_arg(&p))?;
+                // A read-back that cannot run (STOP latched, lease, queue full) leaves the
+                // confirmed write `effect_unverified`; it must not turn into a failed write.
                 let verify = m
                     .request(
                         ctx,
@@ -196,10 +198,11 @@ pub fn write_did(m: Arc<UdsManager>) -> Arc<dyn Handler> {
                             recovery: false,
                         },
                     )
-                    .await?;
+                    .await
+                    .ok();
                 let read_back = verify
-                    .result
                     .as_ref()
+                    .and_then(|v| v.result.as_ref())
                     .and_then(|r| r.response.as_deref())
                     .filter(|r| r.len() >= 3 && r[0] == 0x62)
                     .map(|r| r[3..].to_vec());
