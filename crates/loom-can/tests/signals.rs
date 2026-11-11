@@ -616,6 +616,20 @@ fn verifier_signal_range() {
         }
         other => panic!("{other:?}"),
     }
+    // TEST's source filter must exclude the matching agent frame, even when the
+    // predicate's own optional origin is absent.
+    let scoped = json!({"signal":"EngRPM","op":">","value":3000,"db_sha256":sha,
+        "filter":{"domain":"can","channel":"ch0","kinds":["can.frame"],"origins":["device"]},"ch":"ch0"});
+    assert!(matches!(
+        check(scoped.clone(), true),
+        Verification::Mismatch { .. }
+    ));
+    let mut device = scoped;
+    device["value"] = json!(2000);
+    match check(device, true) {
+        Verification::Match { matched, .. } => assert_eq!(matched[0].seq, U64(3)),
+        other => panic!("{other:?}"),
+    }
     // Origin pins it to device frames; tolerance widens equality.
     match check(
         json!({"signal": "EngRPM", "op": ">", "value": 2000, "origin": "device", "db_sha256": sha}),

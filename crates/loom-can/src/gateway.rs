@@ -2184,6 +2184,58 @@ struct MatchArgs {
     origin: Option<Origin>,
 }
 
+/// Scope supplied by TEST alongside predicate arguments. TEST retains all domain events
+/// for verifiers that need request/response pairs; CAN must apply its declared source scope.
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PredicateScope {
+    #[serde(default)]
+    domain: Option<String>,
+    #[serde(default)]
+    channel: Option<String>,
+    #[serde(default)]
+    kinds: Vec<String>,
+    #[serde(default)]
+    origins: Vec<Origin>,
+    #[serde(default)]
+    request_id: Option<String>,
+}
+impl PredicateScope {
+    pub(crate) fn parse(args: &Value) -> Result<Self, String> {
+        let mut scope: Self = args
+            .get("filter")
+            .cloned()
+            .map(serde_json::from_value)
+            .transpose()
+            .map_err(|e| e.to_string())?
+            .unwrap_or_default();
+        if scope.domain.as_deref().is_some_and(|d| d != DOMAIN) {
+            return Err("filter.domain must be can".into());
+        }
+        if let Some(ch) = args.get("ch") {
+            let ch = ch.as_str().ok_or("ch must be a string")?;
+            if scope.channel.as_deref().is_some_and(|c| c != ch) {
+                return Err("filter.channel and ch disagree".into());
+            }
+            scope.channel = Some(ch.into());
+        }
+        Ok(scope)
+    }
+    pub(crate) fn matches(&self, rec: &PublishedRecord) -> bool {
+        rec.domain == DOMAIN
+            && self
+                .channel
+                .as_ref()
+                .is_none_or(|c| rec.channel.as_ref() == Some(c))
+            && (self.kinds.is_empty() || self.kinds.contains(&rec.kind))
+            && (self.origins.is_empty() || self.origins.contains(&rec.origin))
+            && self
+                .request_id
+                .as_ref()
+                .is_none_or(|r| rec.request_id.as_ref() == Some(r))
+    }
+}
+
 /// Re-evaluates `can.frame_match{id, ext?, data?, mask?, dir?, origin?}` and
 /// `can.signal_range{…}` (see [`crate::signals`]) on the original events.
 /// Meaning: "a matching frame / sample exists in the window" (coverage `Positive`).
@@ -2211,7 +2263,17 @@ impl EvidenceVerifier for CanVerifier {
         if pred.name == PRED_SIGNAL_RANGE {
             return verify_signal_range(&self.dbs, pred, events, cov, budget);
         }
-        let spec = serde_json::from_value::<MatchArgs>(pred.args.clone())
+        let scope = match PredicateScope::parse(&pred.args) {
+            Ok(scope) => scope,
+            Err(reason) => return Verification::Inconclusive { reason },
+        };
+        // Source scope is evaluated separately from the predicate-specific keys.
+        let mut args = pred.args.clone();
+        if let Some(o) = args.as_object_mut() {
+            o.remove("filter");
+            o.remove("ch");
+        }
+        let spec = serde_json::from_value::<MatchArgs>(args)
             .map_err(|e| e.to_string())
             .and_then(|a| {
                 let id = a.id.single().map_err(|e| e.message)?;
@@ -2236,7 +2298,7 @@ impl EvidenceVerifier for CanVerifier {
             }
             for rec in chunk {
                 checked += 1;
-                if spec.matches(rec) {
+                if scope.matches(rec) && spec.matches(rec) {
                     return Verification::Match {
                         matched: vec![EventRef {
                             epoch: rec.epoch,

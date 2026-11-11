@@ -42,6 +42,7 @@ Full command reference (authoritative): `loom can help --json`.
 ## As a test step (loom-test)
 - Judge "the device responded" with `loom can expect` (or `send --expect`), a signal condition with `loom can sig wait-for`; copy `data.evidence[]` / `refs` (e.g. `can:ch0@e1:seq:5013`, `can:ch0@e1:seq:42#/signals/EngRPM`) into the verdict. Never type seq numbers or values yourself.
 - A timeout result cites the scanned window (`scanned: can:ch0@e1:seq:10..14`); a timeout alone is not proof that nothing happened.
+- TEST plan filters default to `origins: [device]`. To inspect an agent TX frame, explicitly name `origins: [agent]`; this still cannot prove device behavior. Predicate origin and plan filter must both match.
 - Your own sent frame (`AGT`, `can.tx`) is never evidence of device behavior. Gap (exit 8) or user intervention in the window → not PASS.
 
 ## Not yet (M2b)

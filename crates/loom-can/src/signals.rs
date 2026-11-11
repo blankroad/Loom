@@ -1029,6 +1029,10 @@ pub(crate) fn verify_signal_range(
     cov: &Coverage,
     budget: &mut EvalBudget,
 ) -> Verification {
+    let scope = match crate::gateway::PredicateScope::parse(&pred.args) {
+        Ok(scope) => scope,
+        Err(reason) => return Verification::Inconclusive { reason },
+    };
     let (cond, sha, origin) = match condition_from_args(&pred.args) {
         Ok(v) => v,
         Err(e) => {
@@ -1060,7 +1064,7 @@ pub(crate) fn verify_signal_range(
             };
         }
         for rec in chunk {
-            if origin.is_some_and(|o| o != rec.origin) {
+            if !scope.matches(rec) || origin.is_some_and(|o| o != rec.origin) {
                 continue;
             }
             let Some(v) = sample(s, rec) else { continue };

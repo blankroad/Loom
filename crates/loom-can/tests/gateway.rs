@@ -694,6 +694,51 @@ fn verifier_match_mismatch_inconclusive() {
     ));
 }
 
+#[test]
+fn verifier_accepts_test_source_scope_without_accepting_unknown_predicate_keys() {
+    let (reg, _) = RegistryProbe::assert_ok(&Can);
+    let v = reg.evidence_verifiers()[0].clone();
+    // TEST provides a domain window; the verifier must apply origins/kinds/request scope.
+    let events = vec![frame("301#02", Origin::Device, "ch0")];
+    let args = json!({"id":"0x301","data":"02","origin":"device",
+        "filter":{"domain":"can","channel":"ch0","kinds":["can.frame"]},"ch":"ch0"});
+    assert!(matches!(
+        v.verify(
+            &pred(args.clone()),
+            &events,
+            &cov(true),
+            &mut EvalBudget::default()
+        ),
+        Verification::Match { .. }
+    ));
+    for (key, value) in [
+        ("origins", json!(["user"])),
+        ("kinds", json!(["can.signal"])),
+        ("request_id", json!("another-request")),
+        ("channel", json!("ch1")),
+    ] {
+        let mut excluded = args.clone();
+        excluded["filter"][key] = value;
+        // Keep the framework channel alias consistent so this tests filtering, not parsing.
+        if key == "channel" {
+            excluded["ch"] = json!("ch1");
+        }
+        assert!(
+            matches!(
+                v.verify(&pred(excluded), &events, &cov(true), &mut EvalBudget::default()),
+                Verification::Mismatch { .. }
+            ),
+            "ignored source filter {key}"
+        );
+    }
+    let mut invalid = args;
+    invalid["typo"] = json!(true);
+    assert!(matches!(
+        v.verify(&pred(invalid), &events, &cov(true), &mut EvalBudget::default()),
+        Verification::Inconclusive { reason } if reason.contains("unknown field")
+    ));
+}
+
 // ---- can.isotp.* -----------------------------------------------------------------------------------
 
 #[test]
