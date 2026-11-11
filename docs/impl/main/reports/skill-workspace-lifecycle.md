@@ -42,6 +42,8 @@ patch -d "$HOME/.codex/skills/feature-team-coding" -p1 < "$HOME/workspace/Loom/d
 
 ## 최종 SHA256
 
-- `SKILL.md`: `dd52e07b27d2b84645882b9b8f5ace1ed27541fc7dc3ac2ff23be630b87b9d68`
+- `SKILL.md`: `a689cd68e60d3fdaacbf6bf95d749e8be568643f338ed546f31374914732679a`
 - `references/herdr.md`: `b239b79ec809c7a8996fa41669b2795a442abe1b146c76366aae0cdda7e7e1a7`
-- patch: `a8499804f94611dd250e1d067a976e0a6633c5c9c9df889f3625500f65bf2912`
+- patch: `3bb45b4883cc9c71f3fd9ee5fba32991b204a04a02b862587b1a81aa6029d16c`
+
+브라우저 실행 환경/승인/복구 지침도 같은 최신 패치에 포함했다. 추가 파일 references/browser-execution.md SHA256 `b9302330dec2d11a0a32aebd1bc0ce422de76d767f8f63c87a8522bbbee640cd`. [추가 규칙과 Codex 재확인](skill-browser-execution.md). 설치 명령은 동일하며 세 파일을 반영한다.
