@@ -1,7 +1,7 @@
 //! `UdsModule`: what `loomd` registers for the `uds` domain.
 //!
-//! P0: device handlers return `E_NOT_IMPLEMENTED` (never fake device success). Pure handlers
-//! that need no device are real: `uds.help` and `uds.request{dry_run:true}`.
+//! Handlers are wired to the connection manager ([`crate::manager`]): requests go through the
+//! runner over DoIP (also for `connect --sim`) and publish `uds.*` events before replying.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -12,7 +12,6 @@ use loom_domain_api::{
     Handler, HelpExample, HelpSpec, ModuleRuntime, PointerSpec, Reducer, RegisterError, Registry, RoleSet,
     SafeStateSpec, ValueType,
 };
-use loom_proto::error::ErrorCode;
 use loom_proto::event::PublishedRecord;
 use loom_proto::policy::WriteClass;
 use loom_proto::rpc::SubFilter;
@@ -20,7 +19,9 @@ use loom_uds_codec::nrc_name;
 use schemars::{JsonSchema, Schema, schema_for};
 use serde_json::{Value, json};
 
-use crate::hooks::{UdsHooks, dry_run};
+use crate::handlers;
+use crate::hooks::UdsHooks;
+use crate::manager::UdsManager;
 use crate::payload::{DryRunResult, RowPayload, RxPayload, StatePayload};
 use crate::risk::{RULES, risk_table};
 use crate::{DOMAIN, KIND_PENDING, KIND_RESULT, KIND_RX, KIND_STATE, KIND_TX};
@@ -35,19 +36,28 @@ mod params {
     pub struct Connect {
         /// Target alias (`ecu1`).
         pub name: String,
-        /// `sim` (M1), `doip`, `cantp` (M1b).
-        pub transport: String,
-        /// Sim profile (`bench`).
-        pub profile: Option<String>,
-        /// DoIP entity IP.
-        pub ip: Option<String>,
-        /// DoIP target logical address (hex string, `0x1001`).
-        pub la: Option<String>,
-        /// Tester source address (hex string).
-        pub sa: Option<String>,
-        /// Routing activation type (numeric only).
+        /// Start the virtual ECU behind a loopback DoIP entity and connect to it: `true` or the
+        /// profile name `bench`.
+        pub sim: Option<serde_json::Value>,
+        /// DoIP entity IP (real hardware).
+        pub host: Option<String>,
+        /// TCP port, default 13400.
+        pub port: Option<u16>,
+        /// Target logical address (number or hex string `0x1001`), default 0x1001 for sim.
+        pub la: Option<serde_json::Value>,
+        /// Tester logical address, default 0x0E80.
+        pub tester_la: Option<serde_json::Value>,
+        /// Routing activation type (numeric), default 0x00.
         pub activation: Option<u8>,
+        /// Reconnect after link loss (generation + 1, no resend), default true.
+        pub auto_reconnect: Option<bool>,
         pub timeout_ms: Option<u32>,
+    }
+
+    /// `uds.lease.takeover` / `uds.lease.release`.
+    #[derive(JsonSchema)]
+    pub struct Lease {
+        pub target: Option<String>,
     }
 
     /// `uds.status`.
@@ -118,6 +128,8 @@ mod params {
     #[derive(JsonSchema)]
     pub struct Abort {
         pub target: Option<String>,
+        /// Viewer: `all` (default) or `agent`. Agents and scripts abort only their own origin.
+        pub scope: Option<String>,
     }
 
     /// `uds.help`.
@@ -125,36 +137,30 @@ mod params {
     pub struct Help {}
 }
 
-/// The UDS domain module.
-#[derive(Debug, Default)]
+/// The UDS domain module, as `loomd` registers it (`&loom_uds::UdsModule`).
+///
+/// Each registration creates its own [`UdsManager`] (targets, runners, lease) shared by the
+/// handlers and the write hooks of that registry. Use [`UdsModule::with_manager`] to keep a handle
+/// on the manager (tests, STOP wiring).
+#[derive(Debug, Default, Clone, Copy)]
 pub struct UdsModule;
 
-/// Handler for device commands not wired yet: `E_NOT_IMPLEMENTED` (exit 1).
-#[derive(Debug)]
-struct NotYet(&'static str);
-impl Handler for NotYet {
-    fn call<'a>(
-        &'a self,
-        _ctx: &'a mut CallCtx,
-        _params: Value,
-    ) -> BoxFuture<'a, Result<Value, DomainError>> {
-        Box::pin(async move { Err(DomainError::not_implemented(self.0)) })
+impl UdsModule {
+    /// Registration that uses `manager` instead of a fresh one.
+    pub fn with_manager(manager: Arc<UdsManager>) -> ManagedUdsModule {
+        ManagedUdsModule { manager }
     }
 }
 
-/// `uds.request`: dry-run is real (pure); sending is not wired yet.
-#[derive(Debug)]
-struct RequestHandler;
-impl Handler for RequestHandler {
-    fn call<'a>(&'a self, _ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
-        Box::pin(async move {
-            if params.get("dry_run").and_then(Value::as_bool) != Some(true) {
-                return Err(DomainError::not_implemented("uds.request (send)"));
-            }
-            let target = params.get("target").and_then(Value::as_str).unwrap_or("");
-            serde_json::to_value(dry_run(target, &params))
-                .map_err(|e| DomainError::new(ErrorCode::Internal, e.to_string()))
-        })
+/// [`UdsModule`] bound to a caller-owned [`UdsManager`].
+#[derive(Debug, Clone)]
+pub struct ManagedUdsModule {
+    manager: Arc<UdsManager>,
+}
+
+impl ManagedUdsModule {
+    pub fn manager(&self) -> &Arc<UdsManager> {
+        &self.manager
     }
 }
 
@@ -227,10 +233,6 @@ fn command(
         bounds: bounds(max_wait_s),
         default_action: None, // F1: automatic; the user's loom.toml decides
     }
-}
-
-fn not_yet(what: &'static str) -> Arc<dyn Handler> {
-    Arc::new(NotYet(what))
 }
 
 fn ptr(path: &str, ty: ValueType) -> PointerSpec {
@@ -358,141 +360,173 @@ impl DomainModule for UdsModule {
     const API_VERSION: u32 = DOMAIN_API_VERSION;
 
     fn register(&self, reg: &mut Registry) -> Result<(), RegisterError> {
-        use ValueType as T;
-        use params::*;
-        let w = RoleSet::WRITE;
-        let r = RoleSet::READ;
-        reg.command(command(
-            "uds.connect",
-            schema_for!(Connect),
-            false,
-            w,
-            30,
-            not_yet("uds.connect"),
-        ))?
-        .command(command(
-            "uds.status",
-            schema_for!(Status),
-            false,
-            r,
-            10,
-            not_yet("uds.status"),
-        ))?
-        .command(command(
-            "uds.read_did",
-            schema_for!(ReadDid),
-            true,
-            w,
-            30,
-            not_yet("uds.read_did"),
-        ))?
-        .command(command(
-            "uds.write_did",
-            schema_for!(WriteDid),
-            true,
-            w,
-            30,
-            not_yet("uds.write_did"),
-        ))?
-        .command(command(
-            "uds.session",
-            schema_for!(Session),
-            true,
-            w,
-            30,
-            not_yet("uds.session"),
-        ))?
-        .command(command(
-            "uds.dtc.list",
-            schema_for!(DtcList),
-            true,
-            w,
-            30,
-            not_yet("uds.dtc.list"),
-        ))?
-        .command(command(
-            "uds.request",
-            schema_for!(Request),
-            true,
-            w,
-            30,
-            Arc::new(RequestHandler),
-        ))?
-        .command(command(
-            "uds.trace",
-            schema_for!(Trace),
-            false,
-            r,
-            10,
-            not_yet("uds.trace"),
-        ))?
-        .command(command(
-            "uds.abort",
-            schema_for!(Abort),
-            false,
-            w,
-            10,
-            not_yet("uds.abort"),
-        ))?
-        .command(command(
-            "uds.help",
-            schema_for!(Help),
-            false,
-            r,
-            5,
-            Arc::new(HelpHandler),
-        ))?
-        .event_kind(kind::<RowPayload>(KIND_TX, row_pointers()))?
-        .event_kind(kind::<RowPayload>(KIND_PENDING, row_pointers()))?
-        .event_kind(kind::<RowPayload>(KIND_RESULT, row_pointers()))?
-        .event_kind(kind::<RxPayload>(
-            KIND_RX,
-            vec![
-                ptr("/payload/bytes/data", T::Hex),
-                ptr(
-                    "/payload/kind",
-                    T::Enum(
-                        ["positive", "negative", "pending", "foreign", "malformed"]
-                            .map(String::from)
-                            .to_vec(),
-                    ),
-                ),
-                ptr("/payload/nrc", T::U8),
-                ptr("/payload/late", T::Bool),
-                ptr("/payload/t_rx_mono_ns", T::U64String),
-            ],
-        ))?
-        .event_kind(kind::<StatePayload>(
-            KIND_STATE,
-            vec![
-                ptr("/payload/generation", T::U32),
-                ptr(
-                    "/payload/link/state",
-                    T::Enum(["up", "down", "connecting"].map(String::from).to_vec()),
-                ),
-                ptr("/payload/session/id", T::U8),
-                ptr("/payload/session/confidence", confidences()),
-                ptr("/payload/security/level", T::U8),
-                ptr_ms("/payload/p2_ms", T::U32),
-                ptr_ms("/payload/p2_star_ms", T::U32),
-            ],
-        ))?
-        .risk_table(risk_table())?
-        .hooks(Arc::new(UdsHooks))?
-        .runtime(ModuleRuntime::Dedicated { threads: 1 })?
-        .reducer(Box::new(StateReducer::default()))?
-        .safe_state(SafeStateSpec {
-            name: "uds.session_default".into(),
-            method: "uds.session".into(),
-            args: json!({"session": "default"}),
-            description: "Return the ECU to the default session (10 01)".into(),
-        })?
-        .capability("doip")?
-        .capability("sim")?
-        .capability("dry_run")?
-        .help(help_spec())?;
-        Ok(())
+        register_with(reg, &Arc::new(UdsManager::new()))
     }
+}
+
+impl DomainModule for ManagedUdsModule {
+    const NAME: &'static str = DOMAIN;
+    const API_VERSION: u32 = DOMAIN_API_VERSION;
+
+    fn register(&self, reg: &mut Registry) -> Result<(), RegisterError> {
+        register_with(reg, &self.manager)
+    }
+}
+
+fn register_with(reg: &mut Registry, m: &Arc<UdsManager>) -> Result<(), RegisterError> {
+    use ValueType as T;
+    use params::*;
+    let w = RoleSet::WRITE;
+    let r = RoleSet::READ;
+    let h = |f: fn(Arc<UdsManager>) -> Arc<dyn Handler>| f(m.clone());
+    reg.command(command(
+        "uds.connect",
+        schema_for!(Connect),
+        false,
+        w,
+        30,
+        h(handlers::connect),
+    ))?
+    .command(command(
+        "uds.status",
+        schema_for!(Status),
+        false,
+        r,
+        10,
+        h(handlers::status),
+    ))?
+    .command(command(
+        "uds.read_did",
+        schema_for!(ReadDid),
+        true,
+        w,
+        30,
+        h(handlers::read_did),
+    ))?
+    .command(command(
+        "uds.write_did",
+        schema_for!(WriteDid),
+        true,
+        w,
+        30,
+        h(handlers::write_did),
+    ))?
+    .command(command(
+        "uds.session",
+        schema_for!(Session),
+        true,
+        w,
+        30,
+        h(handlers::session),
+    ))?
+    .command(command(
+        "uds.dtc.list",
+        schema_for!(DtcList),
+        true,
+        w,
+        30,
+        h(handlers::dtc_list),
+    ))?
+    .command(command(
+        "uds.request",
+        schema_for!(Request),
+        true,
+        w,
+        30,
+        h(handlers::request),
+    ))?
+    .command(command(
+        "uds.trace",
+        schema_for!(Trace),
+        false,
+        r,
+        10,
+        h(handlers::trace),
+    ))?
+    .command(command(
+        "uds.abort",
+        schema_for!(Abort),
+        false,
+        w,
+        10,
+        h(handlers::abort),
+    ))?
+    .command(command(
+        "uds.lease.takeover",
+        schema_for!(Lease),
+        false,
+        RoleSet::VIEWER_OPERATE,
+        5,
+        h(handlers::lease_takeover),
+    ))?
+    .command(command(
+        "uds.lease.release",
+        schema_for!(Lease),
+        false,
+        RoleSet::VIEWER_OPERATE,
+        5,
+        h(handlers::lease_release),
+    ))?
+    .command(command(
+        "uds.help",
+        schema_for!(Help),
+        false,
+        r,
+        5,
+        Arc::new(HelpHandler),
+    ))?
+    .dry_run_preview("uds.request", RoleSet::READ)?
+    .event_kind(kind::<RowPayload>(KIND_TX, row_pointers()))?
+    .event_kind(kind::<RowPayload>(KIND_PENDING, row_pointers()))?
+    .event_kind(kind::<RowPayload>(KIND_RESULT, row_pointers()))?
+    .event_kind(kind::<RxPayload>(
+        KIND_RX,
+        vec![
+            ptr("/payload/bytes/data", T::Hex),
+            ptr(
+                "/payload/kind",
+                T::Enum(
+                    ["positive", "negative", "pending", "foreign", "malformed"]
+                        .map(String::from)
+                        .to_vec(),
+                ),
+            ),
+            ptr("/payload/nrc", T::U8),
+            ptr("/payload/late", T::Bool),
+            ptr("/payload/t_rx_mono_ns", T::U64String),
+        ],
+    ))?
+    .event_kind(kind::<StatePayload>(
+        KIND_STATE,
+        vec![
+            ptr("/payload/generation", T::U32),
+            ptr(
+                "/payload/link/state",
+                T::Enum(["up", "down", "connecting"].map(String::from).to_vec()),
+            ),
+            ptr("/payload/session/id", T::U8),
+            ptr("/payload/session/confidence", confidences()),
+            ptr("/payload/security/level", T::U8),
+            ptr_ms("/payload/p2_ms", T::U32),
+            ptr_ms("/payload/p2_star_ms", T::U32),
+        ],
+    ))?
+    .risk_table(risk_table())?
+    .hooks(Arc::new(UdsHooks::with_presend(m.presend())))?
+    .policy_section(schema_for!(crate::policy::PolicySection))?
+    .runtime(ModuleRuntime::Dedicated { threads: 1 })?
+    .reducer(Box::new(StateReducer::default()))?
+    .safe_state(SafeStateSpec {
+        name: "uds.session_default".into(),
+        method: "uds.session".into(),
+        args: json!({"session": "default", "recovery": true}),
+        description: "Return the ECU to the default session (10 01)".into(),
+    })?
+    .capability("doip")?
+    .capability("sim")?
+    .capability("dry_run")?
+    .help(help_spec())?;
+    Ok(())
 }
 
 /// JSON Schema of the dry-run result (for the UI request answer).

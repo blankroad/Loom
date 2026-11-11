@@ -183,6 +183,7 @@ struct DomainEntry {
     write_kind: String,
     /// Declared success terminal per write method (`Registry::success_terminal`; default `confirmed`).
     terminals: HashMap<String, WriteState>,
+    dry_run_previews: HashMap<String, RoleSet>,
     help: Option<loom_domain_api::HelpSpec>,
     pools: Vec<Arc<WorkerPool>>,
 }
@@ -393,6 +394,16 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
                     .commands()
                     .iter()
                     .map(|c| (c.method.clone(), c.clone()))
+                    .collect(),
+                dry_run_previews: l
+                    .registry
+                    .commands()
+                    .iter()
+                    .filter_map(|c| {
+                        l.registry
+                            .dry_run_preview_roles(&c.method)
+                            .map(|roles| (c.method.clone(), roles))
+                    })
                     .collect(),
                 hooks: l.registry.hooks_ref().cloned(),
                 safe_states: l.registry.safe_states().to_vec(),
@@ -1361,7 +1372,11 @@ impl Daemon {
                 let Some(spec) = d.commands.get(m).cloned() else {
                     return Err(rpc_error(METHOD_NOT_FOUND, format!("method not found: {m}")));
                 };
-                if !c.allowed(&spec.roles) {
+                let args = p.unwrap_or_else(|| json!({}));
+                let preview_roles = (args.get("dry_run").and_then(Value::as_bool) == Some(true))
+                    .then(|| d.dry_run_previews.get(m))
+                    .flatten();
+                if !c.allowed(preview_roles.unwrap_or(&spec.roles)) {
                     return Ok(self.envelope(
                         c,
                         m,
@@ -1373,7 +1388,9 @@ impl Daemon {
                         None,
                     ));
                 }
-                let args = p.unwrap_or_else(|| json!({}));
+                if preview_roles.is_some() {
+                    return Ok(self.read(c, domain, &spec, args).await);
+                }
                 Ok(match spec.write_class {
                     None => self.read(c, domain, &spec, args).await,
                     Some(WriteClass::Request) => self.write_request(c, domain, &spec, args, false).await,

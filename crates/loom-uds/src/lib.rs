@@ -11,9 +11,14 @@
 //! Everything an agent sends to an ECU goes through `loomd` and is published before the reply,
 //! so the user sees the same rows in the Loom UI at the same time (02 core principle).
 
+pub mod events;
+pub mod handlers;
 pub mod hooks;
+pub mod lanes;
+pub mod manager;
 pub mod module;
 pub mod payload;
+pub mod policy;
 pub mod risk;
 pub mod session;
 pub mod text;

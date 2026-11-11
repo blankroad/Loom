@@ -384,7 +384,7 @@ fn channels_reducer_and_per_channel_workers() {
 }
 
 /// Domains registered in `loomd` answer over RPC through their workers: eth (sim capture → packets
-/// recorded and queryable), can (sim worker status), uds (registered; commands are not wired yet).
+/// recorded and queryable), can (sim worker status), uds (registered status).
 #[test]
 fn domain_smoke_rpc() {
     let d = D::start(Duration::from_millis(300));
@@ -409,10 +409,8 @@ fn domain_smoke_rpc() {
     assert_eq!(r["result"]["ok"], true, "{r}");
     assert_eq!(r["result"]["data"]["backend"], "sim");
     let r = a.request("uds.status", json!({}));
-    assert_eq!(
-        r["result"]["error"]["code"], "E_NOT_IMPLEMENTED",
-        "registered, not wired: {r}"
-    );
+    assert_eq!(r["result"]["ok"], true, "{r}");
+    assert!(r["result"]["data"]["targets"].is_array(), "{r}");
     let st = a.request("core.status", json!({}));
     let names: Vec<&str> = st["result"]["domains"]
         .as_array()

@@ -1296,10 +1296,15 @@ dependencies = [
  "loom-proto",
  "loom-testkit",
  "loom-uds-codec",
+ "loom-uds-doip",
+ "loom-uds-runner",
  "loom-uds-sim",
+ "loom-worker-sdk",
  "schemars",
  "serde",
  "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

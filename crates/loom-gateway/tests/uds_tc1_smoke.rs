@@ -49,12 +49,11 @@ impl D {
         c
     }
     fn viewer(&self) -> Client {
+        self.viewer_as(loom_proto::rpc::Rights::Operate)
+    }
+    fn viewer_as(&self, rights: loom_proto::rpc::Rights) -> Client {
         let port = self.run().addr.port();
-        let code = self
-            .run()
-            .daemon
-            .auth
-            .issue_code(loom_proto::rpc::Rights::Operate);
+        let code = self.run().daemon.auth.issue_code(rights);
         let (session, _) = self.run().daemon.auth.redeem(&code).unwrap();
         let mut c = Client::connect(
             port,
@@ -174,23 +173,54 @@ fn code(r: &Value) -> &Value {
 }
 
 #[test]
-fn uds_device_commands_are_explicitly_unwired() {
+fn uds_sim_request_reaches_live_viewer() {
     let d = D::start(Duration::from_secs(2));
     let mut a = d.agent("uds-smoke");
-    for (method, params) in [
-        ("uds.status", json!({"target":"ecu"})),
-        (
-            "uds.connect",
-            json!({"target":"ecu","transport":"doip","addr":"127.0.0.1"}),
-        ),
-        ("uds.request", json!({"target":"ecu","hex":"22F190"})),
-    ] {
-        let r = a.request(method, params);
-        eprintln!("{method}: {r}");
-        assert_eq!(code(&r), "E_NOT_IMPLEMENTED", "{r}");
+    let mut viewer = d.viewer();
+    let connected = a.request("uds.connect", json!({"name":"ecu","sim":true}));
+    assert!(code(&connected).is_null(), "{connected}");
+    let response = a.request("uds.request", json!({"target":"ecu","bytes_hex":"22F190"}));
+    assert!(code(&response).is_null(), "{response}");
+    assert_eq!(
+        response["result"]["data"]["row"]["write_state"], "confirmed",
+        "{response}"
+    );
+    viewer.pump(Duration::from_millis(300));
+    let events = viewer.events();
+    for kind in ["uds.tx", "uds.rx", "uds.result"] {
+        assert!(
+            events.iter().any(|event| event["kind"] == kind),
+            "missing {kind}: {events:?}"
+        );
     }
-    drop(a);
-    d.shutdown();
+    assert_eq!(viewer.request("core.stop", json!({}))["result"]["on"], true);
+    let blocked = a.request("uds.request", json!({"target":"ecu","bytes_hex":"22F190"}));
+    assert_eq!(code(&blocked), "E_STOPPED", "{blocked}");
+    let user = viewer.request("uds.request", json!({"target":"ecu","bytes_hex":"22F190"}));
+    assert!(code(&user).is_null(), "{user}");
+    assert_eq!(
+        user["result"]["data"]["row"]["write_state"], "confirmed",
+        "{user}"
+    );
+    let epoch = d.run().daemon.hub.epoch;
+    let live_uds: Vec<_> = events
+        .iter()
+        .filter(|e| ["uds.tx", "uds.rx", "uds.result"].contains(&e["kind"].as_str().unwrap_or_default()))
+        .cloned()
+        .collect();
+    drop((a, viewer));
+    let home = d.shutdown();
+    std::thread::sleep(Duration::from_millis(1100));
+    let restarted = D::start_in(home, Duration::from_secs(2));
+    let mut reader = restarted.agent("uds-journal-smoke");
+    let journal = reader.request("core.events.query", json!({"since":format!("e{epoch}:seq:1"),"filter":{"kinds":["uds.tx","uds.rx","uds.result"]},"max":100,"peek":true}));
+    assert_eq!(journal["result"]["source"], "journal", "{journal}");
+    let recorded = journal["result"]["events"].as_array().unwrap();
+    for event in live_uds {
+        assert!(recorded.contains(&event), "missing journal event {event}");
+    }
+    drop(reader);
+    restarted.shutdown();
 }
 
 #[test]
@@ -211,5 +241,36 @@ fn tc1_start_reports_current_gateway_wiring() {
         "unwired commands must not pretend TC-1 can start: {r}"
     );
     drop(a);
+    d.shutdown();
+}
+
+/// Only a domain-declared pure preview skips the write pipeline; arbitrary dry_run never does.
+#[test]
+fn registered_preview_is_read_only_even_during_stop() {
+    let d = D::start(Duration::from_secs(2));
+    let mut agent = d.agent("preview-smoke");
+    let mut viewer = d.viewer_as(loom_proto::rpc::Rights::Watch);
+    assert_eq!(viewer.request("core.stop", json!({}))["result"]["on"], true);
+    for client in [&mut agent, &mut viewer] {
+        let preview = client.request(
+            "uds.request",
+            json!({"target":"unopened","bytes_hex":"22F190","dry_run":true}),
+        );
+        assert!(code(&preview).is_null(), "{preview}");
+        assert!(preview["result"]["data"]["risk"].is_string(), "{preview}");
+    }
+    let forged = agent.request("echo.send", json!({"text":"must not send","dry_run":true}));
+    assert_eq!(code(&forged), "E_STOPPED", "{forged}");
+    let write = viewer.request(
+        "uds.request",
+        json!({"target":"unopened","bytes_hex":"22F190","dry_run":false}),
+    );
+    assert_eq!(code(&write), "E_DENIED", "{write}");
+    viewer.pump(Duration::from_millis(200));
+    assert!(
+        !viewer.events().iter().any(|event| event["domain"] == "uds"),
+        "preview must publish no UDS rows"
+    );
+    drop((agent, viewer));
     d.shutdown();
 }

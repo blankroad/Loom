@@ -408,6 +408,7 @@ pub struct Registry {
     policy_section: Option<Schema>,
     help: Option<HelpSpec>,
     success_terminals: BTreeMap<String, WriteState>,
+    dry_run_previews: BTreeMap<String, RoleSet>,
     worker_programs: BTreeMap<String, String>,
     worker_ticks: BTreeMap<String, Duration>,
     input_events: Owner,
@@ -496,6 +497,7 @@ impl Registry {
             policy_section: None,
             help: None,
             success_terminals: BTreeMap::new(),
+            dry_run_previews: BTreeMap::new(),
             worker_programs: BTreeMap::new(),
             worker_ticks: BTreeMap::new(),
             input_events: Owner::Core,
@@ -703,6 +705,27 @@ impl Registry {
         Ok(self)
     }
 
+    /// Declare a pure `dry_run: true` query variant of a Request command.
+    ///
+    /// The handler must return before device access and publish no write events for this variant.
+    /// CORE uses the declared query roles and skips write rows, audit intent and send policy only
+    /// for this explicitly registered variant. Other commands never gain a dry-run exception.
+    pub fn dry_run_preview(&mut self, method: &str, roles: RoleSet) -> Result<&mut Self, RegisterError> {
+        self.check_owned(method)?;
+        if !self
+            .commands
+            .iter()
+            .any(|c| c.method == method && c.write_class == Some(WriteClass::Request))
+        {
+            return Err(RegisterError::Invalid {
+                what: "dry_run_preview",
+                reason: format!("{method}: register a Request command before its query preview"),
+            });
+        }
+        self.dry_run_previews.insert(method.to_owned(), roles);
+        Ok(self)
+    }
+
     /// The worker `kind` is a separate executable `name` (found next to `loomd`, e.g.
     /// `loom-eth-worker` for least-privilege capture). Default: `loomd worker <kind>`.
     pub fn worker_program(&mut self, kind: &str, name: &str) -> Result<&mut Self, RegisterError> {
@@ -814,6 +837,11 @@ impl Registry {
     /// Declared success terminal of a write command (`None` = core default `confirmed`).
     pub fn success_terminal_of(&self, method: &str) -> Option<WriteState> {
         self.success_terminals.get(method).copied()
+    }
+
+    /// Query roles for an explicitly declared pure dry-run variant.
+    pub fn dry_run_preview_roles(&self, method: &str) -> Option<RoleSet> {
+        self.dry_run_previews.get(method).copied()
     }
 
     /// Separate executable of worker `kind`, if declared.

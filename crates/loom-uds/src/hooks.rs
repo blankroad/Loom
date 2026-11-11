@@ -5,13 +5,15 @@
 //! params (same encoder the handlers use).
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use loom_domain_api::{Binding, Classification, Grant, PresendError, WriteHooks, WriteRequest};
-use loom_proto::event::{PayloadBytes, Risk};
+use loom_proto::event::{Origin, PayloadBytes, Risk};
 use loom_proto::policy::{BlockClass, PolicyAction};
 use loom_uds_codec::fnv1a64;
 use serde_json::{Value, json};
 
+use crate::manager::PresendState;
 use crate::payload::{DryRunResult, summarize};
 use crate::risk::{UdsClassification, classify_pdu};
 use crate::text::{encode_typed, parse_text};
@@ -42,7 +44,18 @@ fn unencodable(why: &str) -> Classification {
 /// UDS write hooks. P0: stateless. Quarantine/lease/current-value checks join `presend_check`
 /// when the TargetSession registry is wired in (P1).
 #[derive(Debug, Default)]
-pub struct UdsHooks;
+pub struct UdsHooks {
+    presend: Option<Arc<PresendState>>,
+}
+
+impl UdsHooks {
+    /// Hooks that see the live target state (lease, generation, quarantine).
+    pub fn with_presend(presend: Arc<PresendState>) -> Self {
+        UdsHooks {
+            presend: Some(presend),
+        }
+    }
+}
 
 impl WriteHooks for UdsHooks {
     fn classify(&self, req: &WriteRequest<'_>) -> Classification {
@@ -86,12 +99,41 @@ impl WriteHooks for UdsHooks {
     }
 
     fn presend_check(&self, req: &WriteRequest<'_>, _grant: Option<&Grant>) -> Result<(), PresendError> {
-        match req.target.generation {
-            Some(0) => Err(PresendError::EpochChanged(
+        if req.target.generation == Some(0) {
+            return Err(PresendError::EpochChanged(
                 "target link was never connected".into(),
-            )),
-            _ => Ok(()),
+            ));
         }
+        let Some(state) = &self.presend else { return Ok(()) };
+        let name = req
+            .args
+            .get("target")
+            .and_then(Value::as_str)
+            .or(req.target.channel.as_deref());
+        let Some(snap) = name.and_then(|n| state.get(n)) else {
+            return Ok(());
+        };
+        if let Some(g) = req.target.generation
+            && g != snap.generation
+        {
+            return Err(PresendError::EpochChanged(format!(
+                "generation {g} → {}",
+                snap.generation
+            )));
+        }
+        let bytes = request_bytes(req).unwrap_or_default();
+        let risk = classify_pdu(&bytes, is_functional(req.args)).risk;
+        if snap.user_lease && req.origin != Origin::User && risk >= Risk::R1 {
+            return Err(PresendError::Locked("target held by the user".into()));
+        }
+        if let Some(sid) = bytes.first()
+            && snap.quarantined.contains(sid)
+        {
+            return Err(PresendError::Quarantine(format!(
+                "SID 0x{sid:02X} may still answer late"
+            )));
+        }
+        Ok(())
     }
 }
 
