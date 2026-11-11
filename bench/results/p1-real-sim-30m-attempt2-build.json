@@ -1,0 +1,8 @@
+{
+  "captured_utc": "2026-11-11T15:59:36.141670+00:00",
+  "head": "37feca4adce4c7230f08379c1c4d9d2f03d89568",
+  "source_snapshot_sha256": "1673d66aed1da086e54f5327749c5b1805418fc490f124e0fbfbc2989c64817d",
+  "binary_sha256": "db06869f99b1477282364b22e2ad6dfb48639f7cffcf185187572223d0bf98de",
+  "profile": "debug; default features; same actual sim load/criteria as attempt1",
+  "build_log": "/private/tmp/loom-p1-attempt2-build.log"
+}

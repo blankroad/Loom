@@ -25,8 +25,9 @@ const error = (message: string) => { errorCount++; if (errors.length < 64) error
 const repo = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
 const source = {
   head: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-  diff_sha256: createHash('sha256').update(execFileSync('git', ['-C', repo, 'diff', '--binary', 'HEAD', '--', 'crates', 'ui', 'Cargo.lock'])).digest('hex'),
-  binary_sha256: createHash('sha256').update(await readFile(process.env.LOOMD_BIN ?? '../target/debug/loomd')).digest('hex'),
+  diff_sha256: createHash('sha256').update(execFileSync('git', ['-C', repo, 'diff', '--binary', 'HEAD', '--', 'crates', 'ui', 'Cargo.toml', 'Cargo.lock'])).digest('hex'),
+  worktree_status_sha256: createHash('sha256').update(execFileSync('git', ['-C', repo, 'status', '--porcelain'])).digest('hex'),
+  binary_sha256: createHash('sha256').update(await readFile(process.env.LOOMD_BIN ?? path.join(repo, 'target/debug/loomd'))).digest('hex'),
 };
 const stats = { uart: 0, can_frames_requested: 0, uds: 0, eth_tx: 0, psu: 0, queries: 0, stop_cycles: 0, slow_disconnects: 0, slow_reconnects: 0 };
 function checked(method: string, result: Obj): Obj {

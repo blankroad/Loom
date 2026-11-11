@@ -45,8 +45,10 @@ test('real UART agent trace, browser input and STOP', async ({ page }, info) => 
     expect(await server.call('uart.open', { target: 'sim://bootshell?split=0', alias: 'dut', profile: 'linux-shell' })).toMatchObject({ ok: true });
     await expect(page.locator('.uart-trace')).toContainText('U-Boot');
     await evidence(page, info, 'uart-agent-live', performance.now() - t);
+    await expect(page.locator('.uart-trace')).toContainText('login:');
     expect(await server.call('uart.send', { channel: 'dut', data: Buffer.from('root').toString('hex'), eol: 'cr' })).toMatchObject({ ok: true });
     await expect(page.locator('.uart-trace [data-origin="agent"][data-dir="tx"]')).toContainText('root');
+    await expect(page.locator('.uart-trace')).toContainText('Password:');
     await open(page, server, '/p/uart/terminal?channel=dut');
     const terminal = page.locator('.xterm-helper-textarea');
     await expect(terminal).toBeAttached();
