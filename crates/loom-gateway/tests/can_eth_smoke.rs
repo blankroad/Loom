@@ -188,8 +188,12 @@ fn can_sim_gateway_open_smoke() {
     assert!(
         frames
             .iter()
-            .any(|e| e["kind"] == "can.frame" && e["payload"]["id"] == 769),
+            .any(|e| e["domain"] == "can" && e["kind"] == "can.frame" && e["payload"]["id"] == 769),
         "ECU reply must reach live viewer: {frames:?}"
+    );
+    assert!(
+        frames.iter().all(|e| e["domain"] != "can_sim"),
+        "backend kind leaked into event domain: {frames:?}"
     );
     assert_eq!(v.request("core.stop", json!({}))["result"]["on"], true);
     let blocked_open = a.request("can.open", json!({"channel":"ch1"}));

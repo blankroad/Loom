@@ -453,6 +453,7 @@ fn pump_loop(core: &Mutex<Core>, stop: &AtomicBool) {
 
 impl Worker for CanSimWorker {
     const KIND: &'static str = WORKER_KIND_SIM;
+    const DOMAIN: &'static str = "can";
 
     fn on_call<'a>(&'a mut self, cx: &'a WorkerCtx, call: Call) -> BoxFuture<'a, Result<Value, WorkerError>> {
         Box::pin(async move { self.call(cx, &call) })

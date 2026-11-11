@@ -120,6 +120,9 @@ pub trait Worker: Send + 'static {
     /// Worker kind (`uart`, `can` …), equals the `WorkerSpec.kind` registered by the gateway side.
     const KIND: &'static str;
 
+    /// Event domain. A backend kind (e.g. `can_sim`) may serve a different domain (`can`).
+    const DOMAIN: &'static str = Self::KIND;
+
     /// Generic call (open, close, query …).
     fn on_call<'a>(&'a mut self, cx: &'a WorkerCtx, call: Call) -> BoxFuture<'a, Result<Value, WorkerError>>;
 
@@ -151,6 +154,9 @@ pub trait Worker: Send + 'static {
 pub trait SharedWorker: Send + Sync + 'static {
     /// gateway에 등록한 worker 종류.
     const KIND: &'static str;
+
+    /// Event domain; defaults to the worker kind for existing backends.
+    const DOMAIN: &'static str = Self::KIND;
     /// 일반 요청.
     fn on_call(&self, cx: WorkerCtx, call: Call) -> BoxFuture<'static, Result<Value, WorkerError>>;
     /// 쓰기. 필요한 우선 이벤트를 발행한 뒤 결과를 반환한다.

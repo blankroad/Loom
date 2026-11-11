@@ -484,11 +484,13 @@ struct Dispatch {
 }
 trait Driver: Send + 'static {
     const KIND: &'static str;
+    const DOMAIN: &'static str;
     fn dispatch(self, args: Dispatch);
 }
 struct Serial<W>(W);
 impl<W: Worker> Driver for Serial<W> {
     const KIND: &'static str = W::KIND;
+    const DOMAIN: &'static str = W::DOMAIN;
     fn dispatch(self, d: Dispatch) {
         dispatcher(
             self.0,
@@ -505,6 +507,7 @@ impl<W: Worker> Driver for Serial<W> {
 struct Concurrent<W>(Arc<W>);
 impl<W: SharedWorker> Driver for Concurrent<W> {
     const KIND: &'static str = W::KIND;
+    const DOMAIN: &'static str = W::DOMAIN;
     fn dispatch(self, d: Dispatch) {
         concurrent::dispatcher(self.0, d);
     }
@@ -585,7 +588,7 @@ async fn ipc_main<D: Driver>(worker: D, args: WorkerArgs, hooks: RunHooks) -> i3
         build: env!("CARGO_PKG_VERSION").to_owned(),
         schema_hash: String::new(),
         codecs: vec!["msgpack-map".into()],
-        domains: vec![D::KIND.to_owned()],
+        domains: vec![D::DOMAIN.to_owned()],
         capabilities: Vec::new(),
         journal_dir: args.journal_dir.clone(),
         resume_nonce: None,
@@ -656,7 +659,7 @@ async fn ipc_main<D: Driver>(worker: D, args: WorkerArgs, hooks: RunHooks) -> i3
     });
     let base = Emitter::new(
         args.session_id.clone(),
-        D::KIND,
+        D::DOMAIN,
         args.instance.clone(),
         U64(args.producer_epoch),
         1,
