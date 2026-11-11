@@ -96,3 +96,33 @@ JS
 4. 정상 Ego 경로에서 실제 사용자 입력을 검증하고, Playwright로 실제 live trace·STOP 회귀를 실행한다. webdriver watch cap은 정상 테스트에서 기대 동작으로 확인하며 숨김으로 우회하지 않는다.
 
 후속 리뷰 반영: 신규 TS 3파일을 기존 2-space 스타일로 정리. agent WebSocket open 대기를 10초로 제한하고, cleanup은 정상 core.shutdown 이후 최대 5초 종료 대기 → 필요한 경우에만 자기 child SIGTERM → 추가 5초 대기로 변경하여 정상 journal seal 기회를 보장했다. 변경 후 실제 daemon preflight 재실행 PASS, eslint·TypeScript PASS. 브라우저 launch 차단 및 DOM assertions 실행 미검증 상태는 동일하다.
+
+## 2026-11-12 최신 P1 browser 상태 (앞의 webdriver 설명 대체)
+
+마스터 §2.5 F1은 기본 Auto일 때 automation도 부여된 operate권한을 유지하고, confirm/approve를 설정했을 때만 V5 watch상한을 적용한다. 앞 보고의 항상watch 판정은 오래된 V5만 읽은 오류였다. 메인이 daemon core.hello에 policy/auto capability를 추가하고 UI가 명시선언을받을때만 cap해제하도록수정. 정책변경통지뒤에는 새연결hello전까지 failclosed, watch부트스트랩을operate로승격하지않음. 기본/deny only/confirm/approve실gatewayhello정책검사2개와UI권한38개검사통과. 실제UIcheck362 PASS, buildPASS.
+
+브라우저시험4개 준비: UART 실제agenttrace→xterm 사용자키입력→deviceexpect→STOP, CAN 실제ECU응답→browser사용자send→STOP, UDS same request_id confirmed row→browser요청→STOP, Ethernet실packet목록→detail→raw편집송신→STOP. screenshot/명령시작→DOM확인상한시간첨부. e2e타입/lint/testdiscovery PASS, **렌더/input 실제실행은 미수행(아래차단)**. 시험코드준비를P1합격으로세지않는다.
+
+- Ego Lite실행은확인했지만 앱제어 autoapproval 거부: `Computer Use was not approved to use ego lite` (구체적거부이유제공없음).
+- EgoCLI실행은XPC연결실패, Playwrightlaunch는MachPortRendezvousServer Permissiondenied1100 SIGTRAP.
+- 사용자에게 Settings>Computeruse>Control AnyApp과 앱접근승인/OS Accessibility·ScreenRecording의구분을안내했고접근허용후알려달라는질문이대기중. 해당보안설정을agent가변경하거나다른worker에서우회실행하지않음.
+- 사용자허용신호후EgoLite우선, 불가시이미허용된Playwrightfallback실행. 브라우저관문은필수이며 BLOCKED권한을미확인/완료로기록하지않는다.
+
+## 최종 준비 구성 (5개 필수 시나리오)
+
+기존 네 도메인에 실제 powered TC-1의 `shell.test` LIVE → journal 판정 → DONE/passed 화면 검사를 추가했다. CAN은 20개 고유 프레임의 장치 RX DOM과 2회 RAF를 기다리고, 명령 시작부터의 보수적 end-to-end 상한 p95 < 150 ms를 검사한다. paint timestamp 자체라고 표기하지 않는다. 화면 캡처는 각 도메인 사용자 개입·STOP과 TC-1 최종 판정 시점에 남긴다.
+
+Rust fixture/Node bridge의 사전 검증은 **브라우저 없이** 완료했다: fresh UI HTTP serve, 정상 일회용 cookie 교환, 실제 viewer WS 구독, 실제 TC-1 passed, release 후 정상 child 종료. `/private/tmp/loom-p1-browser-protocol-preflight2.log`(exit0). 결과 JSON은 browser_rendering=false, browser_input=false다. ready.json은 private0600이며 읽은 즉시 삭제하고 URL/token을 로그·trace로 출력하지 않는다. 이 사전 검증을 실제 화면 PASS로 세지 않는다.
+
+실제 브라우저 권한 차단 해소 후 실행(저장소 root):
+
+```sh
+CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$HOME/.cache/loom-main-target" cargo build -p loom-gateway --locked --offline
+CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$HOME/.cache/loom-main-target" cargo test -p loom-gateway --test tc1_live_smoke --no-run --locked --offline --message-format=json > /private/tmp/loom-tc1-build.jsonl
+export LOOM_TC1_TEST_BIN="$(python3 -c 'import json; rows=[json.loads(s) for s in open("/private/tmp/loom-tc1-build.jsonl")]; print(next(r["executable"] for r in rows if r.get("target",{}).get("name")=="tc1_live_smoke" and r.get("executable")))')"
+cd ui
+pnpm build
+LOOMD_BIN="$HOME/.cache/loom-main-target/debug/loomd" LOOM_REAL_SMOKE=1 pnpm exec playwright test -c e2e/real-smoke.config.ts
+```
+
+`LOOM_REAL_SMOKE=1`에서 TC-1 바이너리를 지정하지 않으면 다섯째 검사는 실패한다(필수 시나리오를 skip해서 전체 PASS로 오인하지 않도록 함). 실제 실행 시 5개 모두 통과·스크린샷·CAN 시간 증거를 확인해야 브라우저 축 완료다. Ego Lite가 우선이며 Playwright는 사용자가 명시 허용한 fallback이다. 이 명령을 Herdr 다른 담당에게 넘겨 현재 샌드박스/앱 접근 거부를 우회 실행하지 않는다.
