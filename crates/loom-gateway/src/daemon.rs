@@ -2511,6 +2511,11 @@ impl CtxServices for Services {
         );
         s.producer_id = format!("gateway.{}", self.domain);
         s.dir = draft.dir;
+        // Gateway-side transports (e.g. DoIP) receive bytes on behalf of a caller. The
+        // request stays linked, but the received bytes came from the device, not that caller.
+        if s.dir == Some(loom_proto::event::Dir::Rx) {
+            s.origin = Origin::Device;
+        }
         s.request_id = draft.request_id;
         s.job_id = draft.job_id;
         s.generation = draft.generation;

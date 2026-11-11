@@ -10,6 +10,7 @@ use loom_proto::event::{Risk, WriteState};
 
 use crate::classify::BASE_RULES;
 use crate::commands::{command_specs, help_spec};
+use crate::evidence::UartEvidence;
 use crate::hooks::UartHooks;
 use crate::mirror::{Mirror, MirrorReducer};
 use crate::{DOMAIN, MAX_PORTS, WORKER_KIND, kinds};
@@ -128,6 +129,7 @@ impl DomainModule for Uart {
                 platforms: vec![Platform::Windows, Platform::Linux, Platform::Macos],
             })?
             .reducer(Box::new(MirrorReducer(self.mirror.clone())))?
+            .evidence_verifier(Arc::new(UartEvidence))?
             .capability("sim")?
             .capability("pty")?
             .help(help_spec())?;

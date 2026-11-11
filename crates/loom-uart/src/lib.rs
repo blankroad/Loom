@@ -12,6 +12,8 @@ pub mod cli;
 #[cfg(feature = "gateway")]
 pub mod commands;
 #[cfg(feature = "gateway")]
+pub mod evidence;
+#[cfg(feature = "gateway")]
 pub mod hooks;
 #[cfg(feature = "gateway")]
 pub mod kinds;

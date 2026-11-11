@@ -21,7 +21,8 @@ pub struct EventDraft {
     pub kind: String,
     /// Channel.
     pub channel: Option<String>,
-    /// Direction.
+    /// Direction. `Rx` denotes bytes received from the device: CORE assigns device origin,
+    /// while keeping the initiating request/client linkage. Do not use it for agent summaries.
     pub dir: Option<Dir>,
     /// Request id (write rows).
     pub request_id: Option<String>,

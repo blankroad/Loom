@@ -19,6 +19,7 @@ use loom_uds_codec::nrc_name;
 use schemars::{JsonSchema, Schema, schema_for};
 use serde_json::{Value, json};
 
+use crate::evidence::UdsEvidence;
 use crate::handlers;
 use crate::hooks::UdsHooks;
 use crate::manager::UdsManager;
@@ -516,6 +517,7 @@ fn register_with(reg: &mut Registry, m: &Arc<UdsManager>) -> Result<(), Register
     .policy_section(schema_for!(crate::policy::PolicySection))?
     .runtime(ModuleRuntime::Dedicated { threads: 1 })?
     .reducer(Box::new(StateReducer::default()))?
+    .evidence_verifier(Arc::new(UdsEvidence))?
     .safe_state(SafeStateSpec {
         name: "uds.session_default".into(),
         method: "uds.session".into(),

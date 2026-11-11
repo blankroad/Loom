@@ -12,6 +12,7 @@
 //! so the user sees the same rows in the Loom UI at the same time (02 core principle).
 
 pub mod events;
+pub mod evidence;
 pub mod handlers;
 pub mod hooks;
 pub mod lanes;

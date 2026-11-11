@@ -187,6 +187,10 @@ fn uds_sim_request_reaches_live_viewer() {
     );
     viewer.pump(Duration::from_millis(300));
     let events = viewer.events();
+    let received = events.iter().find(|event| event["kind"] == "uds.rx").unwrap();
+    assert_eq!(received["origin"], "device", "{received}");
+    assert_eq!(received["dir"], "rx", "{received}");
+    assert!(received["request_id"].is_string(), "{received}");
     for kind in ["uds.tx", "uds.rx", "uds.result"] {
         assert!(
             events.iter().any(|event| event["kind"] == kind),
