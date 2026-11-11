@@ -86,11 +86,11 @@ fn commands_map_to_rpcs() {
     assert!(c.wait.is_none());
     let c = ok(&["trace", "--follow", "--timeout", "20s", "--since", "seq:10"]);
     assert_eq!(c.params["wait_ms"], 20_000);
-    assert_eq!(c.wait, Some(Duration::from_secs(20)));
+    assert_eq!(c.wait, Some(Duration::from_secs(22)));
     let c = ok(&["trace", "--follow", "--timeout", "2h"]);
     assert_eq!(
         c.wait,
-        Some(Duration::from_secs(600)),
+        Some(Duration::from_secs(602)),
         "follow is capped at 600 s"
     );
 
@@ -118,7 +118,7 @@ fn commands_map_to_rpcs() {
     assert_eq!(c.params["count"], json!({"min": 3, "max": null}));
     assert_eq!(c.params["within_ms"], 5000);
     assert_eq!(c.params["timeout_ms"], 10_000);
-    assert_eq!(c.wait, Some(Duration::from_secs(10)));
+    assert_eq!(c.wait, Some(Duration::from_secs(12)));
 
     let c = ok(&["stats", "--by", "conv"]);
     assert_eq!(c.params["by"], "conv");

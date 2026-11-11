@@ -15,6 +15,8 @@ pub struct UartCli;
 
 /// Longest single-result wait (contract 03 §3.1).
 const MAX_WAIT_S: u64 = 3600;
+/// RPC delivery margin beyond the device observation deadline (including zero-time polls).
+const REPLY_MARGIN_S: u64 = 2;
 
 fn ch() -> Arg {
     Arg::new("channel")
@@ -268,7 +270,7 @@ impl DomainCli for UartCli {
                 put("timeout_ms", json!(t * 1000));
                 put("defer_timeout_ms", json!(d * 1000));
                 put("dry_run", json!(a.get_flag("dry_run")));
-                wait = Some(Duration::from_secs(t + d));
+                wait = Some(Duration::from_secs(t + d + REPLY_MARGIN_S));
                 "uart.send"
             }
             "read" => {
@@ -309,7 +311,7 @@ impl DomainCli for UartCli {
                 put("from", json!(s(a, "from")));
                 let t = a.get_one::<u64>("timeout").copied().unwrap_or(30);
                 put("timeout_ms", json!(t * 1000));
-                wait = Some(Duration::from_secs(t));
+                wait = Some(Duration::from_secs(t + REPLY_MARGIN_S));
                 "uart.expect"
             }
             "run" => {
@@ -320,7 +322,7 @@ impl DomainCli for UartCli {
                 put("prompt", json!(s(a, "prompt")));
                 let t = a.get_one::<u64>("timeout").copied().unwrap_or(30);
                 put("timeout_ms", json!(t * 1000));
-                wait = Some(Duration::from_secs(t));
+                wait = Some(Duration::from_secs(t + REPLY_MARGIN_S));
                 "uart.run"
             }
             other => {

@@ -3,13 +3,20 @@
 //! [`cli`] (the `loom can …` fragment). [`schema`] is the event/RPC shape shared by all three and
 //! promised to the UI in `docs/impl/requests/can-ui.md`.
 
+#[cfg(feature = "cli")]
 pub mod cli;
+pub mod condition;
+#[cfg(feature = "runtime")]
 pub mod gateway;
+#[cfg(feature = "runtime")]
 pub mod isotp;
+pub mod pdu;
 pub mod schema;
+#[cfg(feature = "runtime")]
 pub mod signals;
-#[cfg(feature = "uds-sim")]
+#[cfg(all(feature = "runtime", feature = "uds-sim"))]
 pub mod uds_sim;
+#[cfg(feature = "runtime")]
 pub mod worker;
 
 /// Domain name (RPC prefix, CLI group, event `domain`).

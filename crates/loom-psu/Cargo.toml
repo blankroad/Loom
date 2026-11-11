@@ -9,12 +9,17 @@ publish.workspace = true
 [dependencies]
 loom-proto.workspace = true
 loom-domain-api.workspace = true
-loom-worker-sdk.workspace = true
-loom-cli-kit.workspace = true
+loom-worker-sdk = { workspace = true, optional = true }
+loom-cli-kit = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
-clap.workspace = true
+clap = { workspace = true, optional = true }
+
+[features]
+default = ["runtime", "cli"]
+cli = ["dep:loom-cli-kit", "dep:clap"]
+runtime = ["dep:loom-worker-sdk"]
 
 [dev-dependencies]
 loom-testkit.workspace = true

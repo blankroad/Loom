@@ -282,7 +282,7 @@ impl DomainCli for TestCli {
             .or(call.params.get("wait_approval_ms"))
             .and_then(Value::as_u64)
         {
-            call.wait = Some(Duration::from_millis(ms));
+            call.wait = Some(Duration::from_millis(ms) + Duration::from_secs(2));
         }
         Ok(call)
     }

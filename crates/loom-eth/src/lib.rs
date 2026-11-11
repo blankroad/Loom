@@ -5,9 +5,12 @@
 //! and [`cli`] (`loom eth …`). The payload model shared by all three is [`model`]
 //! (schema v1, `docs/impl/eth/schema-v1.md`).
 
+#[cfg(feature = "cli")]
 pub mod cli;
+#[cfg(feature = "runtime")]
 pub mod gateway;
 pub mod model;
+#[cfg(feature = "runtime")]
 pub mod worker;
 
 /// Domain name (RPC prefix, CLI group, event `domain`).

@@ -127,7 +127,7 @@ fn cli_commands_and_control_flags_translate_without_a_daemon() {
     ]);
     assert_eq!(start.params["tc"], json!({"path":"tc.md"}));
     assert_eq!(start.params["wait_approval_ms"], 3000);
-    assert_eq!(start.wait, Some(std::time::Duration::from_secs(3)));
+    assert_eq!(start.wait, Some(std::time::Duration::from_secs(5)));
     let check = parsed_call(&["loom", "test", "check", "s", "S1"]);
     assert!(
         check.params.get("evidence").is_none(),

@@ -377,3 +377,99 @@ fn domains_smoke_via_cli() {
         .collect();
     assert!(inst.contains(&"uart.dut"), "{inst:?}");
 }
+
+#[test]
+#[cfg(all(
+    feature = "can",
+    feature = "uds",
+    feature = "eth",
+    feature = "psu",
+    feature = "test"
+))]
+fn default_domain_commands_reach_real_daemon_and_stop_gate() {
+    let h = Home::new();
+    for args in [
+        vec!["can", "open", "-c", "ch0"],
+        vec![
+            "can", "send", "300#01", "-c", "ch0", "--expect", "0x301", "--within", "1000",
+        ],
+        vec!["psu", "connect", "bench"],
+        vec!["psu", "meas", "bench"],
+        vec!["uds", "connect", "--sim", "bench", "--name", "ecu"],
+        vec!["uds", "read-did", "F190", "-t", "ecu"],
+        vec!["uds", "session", "extended", "-t", "ecu"],
+        vec!["uds", "write-did", "F1A0", "--hex", "02", "-t", "ecu"],
+        vec!["uds", "dtc", "list", "--mask", "09", "-t", "ecu"],
+        vec![
+            "eth",
+            "capture",
+            "start",
+            "sim0",
+            "--ch",
+            "cap",
+            "--backend",
+            "sim",
+        ],
+        vec![
+            "eth",
+            "send",
+            "raw",
+            "ffffffffffff02000000000108060001080006040001020000000001c0a80001000000000000c0a80002",
+            "--ch",
+            "cap",
+        ],
+    ] {
+        let (code, result) = h.json(&args);
+        assert_eq!(code, 0, "{args:?}: {result}");
+        assert_eq!(result["ok"], true, "{args:?}: {result}");
+    }
+    let (code, result) = h.json(&["stop-all", "--reason", "own disposable CLI smoke"]);
+    assert_eq!(code, 0, "{result}");
+    let (code, result) = h.json(&["can", "send", "300#02", "-c", "ch0"]);
+    assert_eq!(code, 6, "{result}");
+    assert_eq!(result["error"]["code"], "E_STOPPED", "{result}");
+    let (code, result) = h.json(&["uds", "raw", "22F190", "-t", "ecu"]);
+    assert_eq!(code, 6, "{result}");
+    assert_eq!(result["error"]["code"], "E_STOPPED", "{result}");
+}
+
+#[test]
+#[cfg(all(feature = "can", feature = "uart"))]
+fn tiny_domain_deadline_does_not_restart_a_healthy_daemon() {
+    let h = Home::new();
+    assert_eq!(h.json(&["daemon", "start"]).0, 0);
+    let before = h.json(&["status"]).1["data"]["pid"].clone();
+    for args in [
+        vec!["can", "isotp", "recv", "ch0:7e8", "--timeout", "1"],
+        vec!["uart", "expect", "dut", "ok", "--timeout", "0"],
+    ] {
+        let started = Instant::now();
+        let (_, result) = h.json(&args);
+        assert_ne!(result["error"]["code"], "E_DAEMON", "{args:?}: {result}");
+        assert!(!has_warning(&result, "daemon_autostarted"), "{args:?}: {result}");
+        assert!(
+            started.elapsed() < Duration::from_secs(3),
+            "unexpected autostart wait: {result}"
+        );
+    }
+    assert_eq!(
+        h.json(&["uart", "open", "sim://bootshell?split=0", "--as", "dut"])
+            .0,
+        0
+    );
+    let (code, result) = h.json(&[
+        "uart",
+        "expect",
+        "dut",
+        "NEVERMATCH-CLI-DEADLINE",
+        "--timeout",
+        "1",
+    ]);
+    assert_eq!(
+        code, 3,
+        "the device deadline must return the domain timeout: {result}"
+    );
+    assert_eq!(result["error"]["code"], "E_TIMEOUT", "{result}");
+    assert!(!has_warning(&result, "daemon_autostarted"), "{result}");
+    assert_eq!(h.json(&["status"]).1["data"]["pid"], before);
+}

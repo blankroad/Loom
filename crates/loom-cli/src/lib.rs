@@ -6,6 +6,7 @@
 
 pub mod client;
 pub mod render;
+mod skills;
 
 use std::io::{self, IsTerminal as _, Write};
 use std::path::{Path, PathBuf};
@@ -36,7 +37,6 @@ const LATER: &[(&str, &str)] = &[
     ("test", "Integration test sessions"),
     ("record", "Recording sessions and export"),
     ("policy", "Show / diff / propose policy"),
-    ("skills", "Sync agent skills"),
 ];
 
 /// Domain CLI fragments linked into `loom` (cli pieces only — invariant I1).
@@ -48,6 +48,8 @@ pub fn domains() -> Vec<Box<dyn DynDomainCli>> {
         Box::new(loom_cli_kit::CliOf::<loom_uart::cli::UartCli>::new()),
         #[cfg(feature = "can")]
         Box::new(loom_cli_kit::CliOf::<loom_can::cli::CanCli>::new()),
+        #[cfg(feature = "uds")]
+        Box::new(loom_cli_kit::CliOf::<loom_uds::cli::UdsCli>::new()),
         #[cfg(feature = "eth")]
         Box::new(loom_cli_kit::CliOf::<loom_eth::cli::EthCli>::new()),
         #[cfg(feature = "psu")]
@@ -179,7 +181,8 @@ pub fn command(domains: &[Box<dyn DynDomainCli>]) -> Command {
         )
         .subcommand(Command::new("help").about("Commands (use --json for the canonical machine help)"))
         .subcommand(Command::new("version").about("Version"))
-        .subcommand(Command::new("doctor").about("Check paths, permissions, daemon and port"));
+        .subcommand(Command::new("doctor").about("Check paths, permissions, daemon and port"))
+        .subcommand(skills::command());
     for (name, about) in LATER {
         if domains.iter().any(|d| d.name() == *name) {
             continue;
@@ -775,11 +778,19 @@ fn domain_help(args: &[String], domains: &[Box<dyn DynDomainCli>]) -> Option<(us
 }
 
 fn context(m: &ArgMatches, home: PathBuf) -> Ctx {
+    // Only the root's seconds-valued timeout configures transport. Domain deadlines are
+    // interpreted by to_call() and carried in RpcCall.wait; 1ms/zero-poll commands must not
+    // shorten connect/hello and mistake a healthy daemon for a missing one.
+    let timeout = m
+        .try_get_one::<u64>("timeout")
+        .ok()
+        .flatten()
+        .filter(|s| **s > 0)
+        .map_or(DEFAULT_TIMEOUT, |s| Duration::from_secs(*s))
+        .min(MAX_WAIT);
     Ctx {
         json: m.get_flag("json"),
-        timeout: m
-            .get_one::<u64>("timeout")
-            .map_or(DEFAULT_TIMEOUT, |s| Duration::from_secs(*s)),
+        timeout,
         home,
         client: client_id(),
         idem: m.get_one::<String>("idempotency_key").cloned(),
@@ -898,6 +909,18 @@ pub fn run(args: &[String], out: &mut dyn Write) -> u8 {
             }
         }
         "doctor" => doctor(&ctx),
+        "skills" => Output {
+            env: match sub.subcommand() {
+                Some(("sync", m)) => match skills::sync(m) {
+                    Ok(data) => {
+                        Envelope::success("skills sync", data, Meta::default(), OthersSinceLast::default())
+                    }
+                    Err(e) => failure("skills sync", body(ErrorCode::Usage, e, None)),
+                },
+                _ => not_implemented("skills"),
+            },
+            human: Human::Core(render::generic),
+        },
         n if LATER.iter().any(|(l, _)| *l == n) && !domains.iter().any(|d| d.name() == n) => Output {
             env: not_implemented(n),
             human: Human::Core(render::generic),
@@ -913,4 +936,27 @@ pub fn run(args: &[String], out: &mut dyn Write) -> u8 {
 /// Path helper for tests and tools.
 pub fn daemon_json(home: &Path) -> PathBuf {
     home.join("run/daemon.json")
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod argument_tests {
+    use super::*;
+    #[test]
+    fn domain_deadlines_do_not_shorten_transport_or_panic_on_arg_types() {
+        let ds = domains();
+        let mut cases = vec![(vec!["loom", "events", "--timeout", "2"], 2000)];
+        #[cfg(feature = "eth")]
+        cases.push((vec!["loom", "eth", "trace", "--timeout", "25ms"], 30000));
+        #[cfg(feature = "test")]
+        cases.push((vec!["loom", "test", "wait", "s", "--timeout", "3s"], 30000));
+        for (args, millis) in cases {
+            let m = command(&ds).try_get_matches_from(args.clone()).unwrap();
+            assert_eq!(
+                context(&m, PathBuf::new()).timeout.as_millis(),
+                millis,
+                "{args:?}"
+            );
+        }
+    }
 }

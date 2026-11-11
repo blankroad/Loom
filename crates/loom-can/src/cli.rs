@@ -14,8 +14,8 @@ use loom_proto::cursor::Cursor;
 use loom_proto::envelope::Envelope;
 use serde_json::{Map, Value, json};
 
+use crate::condition::{SIG_MAX_WINDOW_MS, WAIT_MAX_MS, parse_condition};
 use crate::schema::{MAX_EXPECT_MS, MAX_GAP_MS, MAX_SEND_COUNT};
-use crate::signals::{SIG_MAX_WINDOW_MS, WAIT_MAX_MS, parse_condition};
 use crate::{
     RPC_DB_INFO, RPC_DB_LOAD, RPC_EXPECT, RPC_ISOTP_ABORT, RPC_ISOTP_BARRIER, RPC_ISOTP_CANCEL,
     RPC_ISOTP_CLOSE, RPC_ISOTP_LIST, RPC_ISOTP_OPEN, RPC_ISOTP_RECV, RPC_ISOTP_SEND, RPC_LAST,
@@ -344,16 +344,8 @@ fn isotp_command() -> clap::Command {
                         .value_parser(clap::value_parser!(u8))
                         .help("STmin byte we ask for (default 0)"),
                 )
-                .arg(ms_arg(
-                    "n-bs",
-                    crate::isotp::MAX_TIMEOUT_MS,
-                    "N_Bs (default 1000)",
-                ))
-                .arg(ms_arg(
-                    "n-cr",
-                    crate::isotp::MAX_TIMEOUT_MS,
-                    "N_Cr (default 1000)",
-                ))
+                .arg(ms_arg("n-bs", crate::pdu::MAX_TIMEOUT_MS, "N_Bs (default 1000)"))
+                .arg(ms_arg("n-cr", crate::pdu::MAX_TIMEOUT_MS, "N_Cr (default 1000)"))
                 .arg(flag("server", "Sim ECU side (answers with --model)"))
                 .arg(
                     clap::Arg::new("model")
@@ -458,6 +450,22 @@ impl DomainCli for CanCli {
         clap::Command::new("can")
             .about("CAN / CAN FD through the Loom daemon (M1: sim bus); the user sees it live in the Loom UI")
             .subcommand_required(true)
+            .subcommand(
+                clap::Command::new("open")
+                    .about("Open a simulated channel and its ECU nodes")
+                    .arg(channel_arg().default_value("ch0"))
+                    .arg(clap::Arg::new("bus").long("bus"))
+                    .arg(
+                        clap::Arg::new("nodes")
+                            .long("nodes")
+                            .help("default, none, or a node TOML path"),
+                    ),
+            )
+            .subcommand(
+                clap::Command::new("close")
+                    .about("Close a channel")
+                    .arg(channel_arg().default_value("ch0")),
+            )
             .subcommand(
                 clap::Command::new("send")
                     .about("Send a frame or a short burst (cansend syntax: 300#01, 123##1AABB, 300#R)")
@@ -702,6 +710,13 @@ impl DomainCli for CanCli {
                 .map(|c| json!(c)),
         );
         match sub.as_str() {
+            "open" => {
+                for key in ["bus", "nodes"] {
+                    set(&mut p, key, s.get_one::<String>(key).map(|v| json!(v)));
+                }
+                Ok(RpcCall::new("can.open", Value::Object(p)))
+            }
+            "close" => Ok(RpcCall::new("can.close", Value::Object(p))),
             "send" => {
                 let frame: &String = s
                     .get_one("frame")
@@ -855,7 +870,7 @@ impl DomainCli for CanCli {
                 let pdu = s
                     .get_one::<String>("pdu")
                     .ok_or_else(|| UsageError::new("missing PDU"))?;
-                let bytes = crate::isotp::parse_pdu(pdu)
+                let bytes = crate::pdu::parse_pdu(pdu)
                     .map_err(|e| UsageError::new(e).with_hint("loom can isotp send tp1 22F190"))?;
                 p.insert("endpoint".into(), json!(ep));
                 p.insert("pdu".into(), json!(hex_lower(&bytes)));

@@ -38,7 +38,7 @@ fn open_read_expect_run() {
     assert_eq!(call(&["read", "dut", "--tail", "20"]).params["mode"], "peek");
     let e = call(&["expect", "dut", "login:", "Kernel panic", "--timeout", "5"]);
     assert_eq!(e.params["patterns"].as_array().unwrap().len(), 2);
-    assert_eq!(e.wait, Some(std::time::Duration::from_secs(5)));
+    assert_eq!(e.wait, Some(std::time::Duration::from_secs(7)));
     assert_eq!(call(&["run", "dut", "uname -a"]).method, "uart.run");
 }
 

@@ -9,23 +9,26 @@ publish.workspace = true
 [dependencies]
 loom-proto.workspace = true
 loom-domain-api.workspace = true
-loom-worker-sdk.workspace = true
-loom-cli-kit.workspace = true
+loom-worker-sdk = { workspace = true, optional = true }
+loom-cli-kit = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
-clap.workspace = true
+clap = { workspace = true, optional = true }
 thiserror.workspace = true
 loom-can-frame = { path = "../loom-can-frame" }
-loom-can-sim = { path = "../loom-can-sim" }
-loom-can-dbc = { path = "../loom-can-dbc" }
+loom-can-sim = { path = "../loom-can-sim", optional = true }
+loom-can-dbc = { path = "../loom-can-dbc", optional = true }
 loom-can-isotp = { path = "../loom-can-isotp" }
-loom-can-periodic = { path = "../loom-can-periodic" }
+loom-can-periodic = { path = "../loom-can-periodic", optional = true }
 # UDS virtual ECU as an ISO-TP server model (sim only).
 loom-uds-sim = { path = "../loom-uds-sim", optional = true }
 
 [features]
-default = ["uds-sim"]
+default = ["runtime", "cli", "uds-sim"]
+cli = ["dep:loom-cli-kit", "dep:clap"]
+runtime = ["dep:loom-worker-sdk", "dep:loom-can-sim", "dep:loom-can-dbc", "dep:loom-can-periodic"]
+
 uds-sim = ["dep:loom-uds-sim"]
 
 [dev-dependencies]

@@ -288,7 +288,7 @@ impl DomainCli for EthCli {
                     )
                     .arg(ch_arg())
                     .arg(Arg::new("dry-run").long("dry-run").action(ArgAction::SetTrue))
-                    .arg(Arg::new("idempotency-key").long("idempotency-key")),
+                    .arg(Arg::new("idempotency_key").long("idempotency-key")),
             )
             .subcommand(
                 Command::new("export")
@@ -336,7 +336,7 @@ impl DomainCli for EthCli {
                            "max": s.get_one::<u32>("max").copied().unwrap_or(QUERY_DEFAULT_ROWS),
                            "detail": s.get_flag("detail"), "wait_ms": wait.map(ms)}),
                 );
-                call.wait = wait;
+                call.wait = wait.map(|d| d + Duration::from_secs(2));
                 Ok(call)
             }
             Some(("last", s)) => Ok(RpcCall::new(
@@ -377,7 +377,7 @@ impl DomainCli for EthCli {
                            "within_ms": within.map(ms), "anchor": opt_str(s, "anchor"), "timeout_ms": ms(timeout),
                            "include_own": s.get_flag("include-own")}),
                 );
-                call.wait = Some(timeout);
+                call.wait = Some(timeout + Duration::from_secs(2));
                 Ok(call)
             }
             Some(("stats", s)) => Ok(RpcCall::new(
@@ -494,7 +494,7 @@ fn send_call(s: &ArgMatches) -> Result<RpcCall, UsageError> {
         params["keep_open"] = json!(true);
     }
     let mut call = RpcCall::new("eth.send", params);
-    call.idempotency_key = opt_str(s, "idempotency-key");
+    call.idempotency_key = opt_str(s, "idempotency_key");
     Ok(call)
 }
 

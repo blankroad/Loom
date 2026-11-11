@@ -998,6 +998,7 @@ dependencies = [
  "loom-psu",
  "loom-test",
  "loom-uart",
+ "loom-uds",
  "serde",
  "serde_json",
  "tempfile",
@@ -1292,7 +1293,9 @@ dependencies = [
 name = "loom-uds"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "hex",
+ "loom-cli-kit",
  "loom-domain-api",
  "loom-proto",
  "loom-testkit",

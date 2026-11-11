@@ -53,7 +53,7 @@ pub const MAX_REPLIES_PER_PDU: usize = 8;
 /// Longest model reply delay (longer delays are clamped).
 pub const MAX_REPLY_DELAY: Duration = Duration::from_secs(60);
 /// Longest N_Bs / N_Cr accepted from `can.isotp.open`.
-pub const MAX_TIMEOUT_MS: u32 = 60_000;
+pub use crate::pdu::MAX_TIMEOUT_MS;
 /// Completed PDU retention per endpoint; overflow evicts the oldest and increments `dropped`.
 pub const MAX_COMPLETED_PDUS: usize = 32;
 /// Maximum PDUs returned by one nonblocking recv call.
@@ -312,19 +312,7 @@ pub struct SendOp {
 }
 
 /// Hex → bytes (spaces, `.` and `:` ignored).
-pub fn parse_pdu(s: &str) -> Result<Vec<u8>, String> {
-    let clean: String = s.chars().filter(|c| !matches!(c, ' ' | '.' | ':')).collect();
-    if clean.is_empty() || !clean.len().is_multiple_of(2) || clean.len() > 2 * loom_can_isotp::MAX_PDU {
-        return Err(format!(
-            "pdu must be 1..={} bytes of hex",
-            loom_can_isotp::MAX_PDU
-        ));
-    }
-    (0..clean.len())
-        .step_by(2)
-        .map(|i| u8::from_str_radix(&clean[i..i + 2], 16).map_err(|_| format!("bad hex in pdu: {s:?}")))
-        .collect()
-}
+pub use crate::pdu::parse_pdu;
 
 // ---------------------------------------------------------------------------------------------
 // Endpoint

@@ -281,7 +281,7 @@ impl DomainCli for PsuCli {
                     }
                 }
                 let mut c = RpcCall::new("psu.wait_for", p);
-                c.wait = Some(timeout);
+                c.wait = Some(timeout + Duration::from_secs(2));
                 Ok(c)
             }
             Some(("set", s)) => Ok(RpcCall::new(

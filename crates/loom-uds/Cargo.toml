@@ -10,15 +10,23 @@ publish = false
 loom-proto = { workspace = true }
 loom-domain-api = { workspace = true }
 loom-uds-codec = { path = "../loom-uds-codec" }
-loom-uds-sim = { path = "../loom-uds-sim" }
-loom-uds-doip = { path = "../loom-uds-doip" }
-loom-uds-runner = { path = "../loom-uds-runner" }
-tokio = { workspace = true }
-tracing = { workspace = true }
+loom-uds-sim = { path = "../loom-uds-sim", optional = true }
+loom-uds-doip = { path = "../loom-uds-doip", optional = true }
+loom-uds-runner = { path = "../loom-uds-runner", optional = true }
+tokio = { workspace = true, optional = true }
+tracing = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 schemars = { workspace = true }
 hex = { workspace = true }
+
+loom-cli-kit = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+
+[features]
+default = ["runtime", "cli"]
+runtime = ["dep:loom-uds-sim", "dep:loom-uds-doip", "dep:loom-uds-runner", "dep:tokio", "dep:tracing"]
+cli = ["dep:loom-cli-kit", "dep:clap"]
 
 [dev-dependencies]
 loom-testkit = { workspace = true }

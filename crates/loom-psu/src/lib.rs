@@ -5,10 +5,14 @@
 //! runs in `loomd`), [`worker`] (owns the supply — runs in the psu worker process) and [`cli`]
 //! (`loom psu …`). The event shapes follow the UI agreement (`ui-explore.md`, `## explore 답변`).
 
+#[cfg(feature = "cli")]
 pub mod cli;
+#[cfg(feature = "runtime")]
 pub mod gateway;
 pub mod model;
+#[cfg(feature = "runtime")]
 pub mod sim;
+#[cfg(feature = "runtime")]
 pub mod worker;
 
 /// Domain name (RPC prefix, CLI group, event `domain`).

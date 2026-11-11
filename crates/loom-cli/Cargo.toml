@@ -19,23 +19,22 @@ clap.workspace = true
 tungstenite.workspace = true
 # Domain CLI fragments only (I1): path dependency so `default-features = false` takes effect.
 loom-echo = { path = "../loom-echo", default-features = false, features = ["cli"], optional = true }
-# can/eth/psu keep worker code (loom-worker-sdk → tokio, loom-journal) in the same crate as their
-# CLI piece, which the I1 boundary check (loom-xtask) refuses for the `loom` binary. They stay
-# opt-in until those crates offer a `cli` feature like loom-echo; uart already splits its worker.
 loom-uart = { path = "../loom-uart", default-features = false, features = ["cli"], optional = true }
-loom-can = { path = "../loom-can", optional = true }
-loom-eth = { path = "../loom-eth", optional = true }
-loom-psu = { path = "../loom-psu", optional = true }
+loom-can = { path = "../loom-can", default-features = false, features = ["cli"], optional = true }
+loom-eth = { path = "../loom-eth", default-features = false, features = ["cli"], optional = true }
+loom-psu = { path = "../loom-psu", default-features = false, features = ["cli"], optional = true }
 
-loom-test = { path = "../loom-test", optional = true }
+loom-uds = { path = "../loom-uds", default-features = false, features = ["cli"], optional = true }
+loom-test = { path = "../loom-test", default-features = false, features = ["cli"], optional = true }
 
 [features]
-default = ["echo", "uart"]
+default = ["echo", "uart", "can", "uds", "eth", "psu", "test"]
 echo = ["dep:loom-echo"]
 uart = ["dep:loom-uart"]
 can = ["dep:loom-can"]
 eth = ["dep:loom-eth"]
 psu = ["dep:loom-psu"]
+uds = ["dep:loom-uds"]
 test = ["dep:loom-test"]
 
 [dev-dependencies]

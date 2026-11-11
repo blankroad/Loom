@@ -7,16 +7,26 @@
 //! * [`session::TargetSession`] — what Loom believes about one ECU; source of `uds.state`.
 //! * [`payload`] — `uds.tx` / `uds.rx` / `uds.result` / `uds.state` payload types.
 //! * [`text`] — request text parser (UI console line, `loom uds raw`).
+//! * [`cli`] — the `loom uds …` fragment (feature `cli`; no runtime deps, invariant I1).
+//!
+//! Feature `runtime` (default) gates the gateway pieces (module, handlers, hooks, manager, lanes).
 //!
 //! Everything an agent sends to an ECU goes through `loomd` and is published before the reply,
 //! so the user sees the same rows in the Loom UI at the same time (02 core principle).
 
+#[cfg(feature = "cli")]
+pub mod cli;
 pub mod events;
 pub mod evidence;
+#[cfg(feature = "runtime")]
 pub mod handlers;
+#[cfg(feature = "runtime")]
 pub mod hooks;
+#[cfg(feature = "runtime")]
 pub mod lanes;
+#[cfg(feature = "runtime")]
 pub mod manager;
+#[cfg(feature = "runtime")]
 pub mod module;
 pub mod payload;
 pub mod policy;
@@ -24,6 +34,7 @@ pub mod risk;
 pub mod session;
 pub mod text;
 
+#[cfg(feature = "runtime")]
 pub use module::UdsModule;
 
 /// Domain name.
@@ -42,6 +53,7 @@ pub const KIND_STATE: &str = "uds.state";
 /// The DoIP entity and virtual-ECU crates behind `connect --sim`, re-exported so gateway
 /// integration tests can put a slow or faulty ECU behind a real loopback DoIP entity (reached
 /// with `uds.connect {host, port}`) without a manifest change. Not an API for domain code.
+#[cfg(feature = "runtime")]
 #[doc(hidden)]
 pub mod sim_support {
     pub use loom_uds_doip;
