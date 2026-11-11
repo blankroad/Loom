@@ -520,7 +520,9 @@ fn observer_overflow_is_a_source_gap() {
     );
     let mut evs = h.events();
     assert_eq!(frames(&evs).len(), 2);
-    // Next record (BCM reply) reveals the hole before it is emitted.
+    // The tail is reported immediately, without waiting for a BCM reply.
+    assert!(evs.iter().any(|e| e.kind == kinds::SOURCE_GAP));
+    // Replies may overflow too; their tail must also be reported, exactly once.
     h.step_ms(5);
     evs.extend(h.events());
     let gap = evs
@@ -535,7 +537,13 @@ fn observer_overflow_is_a_source_gap() {
     assert_no_gap_lies(&evs);
     let ch = &h.status()["channels"][0];
     assert!(ch["observer"]["drops"].as_u64().unwrap() >= 8);
-    assert_eq!(ch["source_gap_frames"], json!(8));
+    assert_eq!(ch["source_gap_frames"], ch["observer"]["drops"]);
+    let gaps: u64 = evs
+        .iter()
+        .filter(|e| e.kind == kinds::SOURCE_GAP)
+        .map(|e| e.payload["count"].as_str().unwrap().parse::<u64>().unwrap())
+        .sum();
+    assert_eq!(gaps, ch["observer"]["drops"].as_u64().unwrap());
 }
 
 #[test]

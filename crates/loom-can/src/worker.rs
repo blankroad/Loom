@@ -827,6 +827,24 @@ impl Channel {
         None
     }
 
+    fn flush_source_gap(&mut self) {
+        let lost = std::mem::take(&mut self.c.source_gap_pending);
+        if lost == 0 {
+            return;
+        }
+        // Full may mean journal acceptance followed by display rejection. Never publish the
+        // same exact loss again: the failed source seq/emit_failed exposes incomplete coverage.
+        if self
+            .emitter
+            .source_gap(GAP_CAUSE_OBSERVER, GapCount::Exact(U64(lost)))
+            .is_ok()
+        {
+            self.c.source_gaps_reported += 1;
+        } else {
+            self.c.emit_failed += 1;
+        }
+    }
+
     /// Emits one bus record as `can.frame` (after any pending `source.gap`); returns the event's
     /// `source_seq` (ISO-TP `first_seq`/`last_seq` refer to it).
     fn emit_record(&mut self, rec: &SimRecord, hub_now: u64, annot: Option<IsoTpTag>) -> Option<u64> {
@@ -837,16 +855,7 @@ impl Channel {
             self.c.source_gap_pending += lost;
         }
         self.last_seq = self.last_seq.max(rec.source_seq);
-        if self.c.source_gap_pending > 0 {
-            let n = GapCount::Exact(U64(self.c.source_gap_pending));
-            if self.emitter.source_gap(GAP_CAUSE_OBSERVER, n).is_ok() {
-                self.c.source_gap_pending = 0;
-                self.c.source_gaps_reported += 1;
-            } else {
-                // Retried before the next record; the seq hole shows the failed emit.
-                self.c.emit_failed += 1;
-            }
-        }
+        self.flush_source_gap();
         let mut payload = FramePayload::from_frame(&rec.frame.frame, rec.frame.device_ts);
         let ts = ts_at(
             &self.emitter,
@@ -1064,6 +1073,25 @@ impl Core {
                     ts_at(&ch.emitter, now, rec.frame.ingest_mono_ns, TsSource::Synthetic)
                         .mono_ns
                         .get();
+            }
+            // With a finite capture there may never be another frame to reveal a dropped tail.
+            // Only advance past the bus high-water once the observer queue is empty, so queued
+            // records still expose their holes in order and loss is counted exactly once.
+            if ch.rx.is_empty() {
+                if let Some(stats) = self.hub.bus_stats(&ch.bus)
+                    && let Some(observer) = stats.endpoints.iter().find(|e| e.id == ch.observer)
+                {
+                    let tail = observer.drops.total.saturating_sub(ch.c.source_gap_frames);
+                    ch.c.source_gap_frames += tail;
+                    ch.c.source_gap_pending += tail;
+                    if tail > 0 {
+                        ch.last_seq = ch.last_seq.max(stats.last_seq);
+                        for ep in endpoints.values_mut().filter(|e| e.channel == ch.name) {
+                            ep.note_ingress_loss();
+                        }
+                    }
+                }
+                ch.flush_source_gap();
             }
             frames += (ch.c.frames - before) as usize;
             more |= n >= max && !ch.rx.is_empty();
@@ -1420,6 +1448,23 @@ impl Core {
                 format!("at most {} channels per can_sim worker", self.limits.max_channels),
             ));
         }
+        // A fresh IPC worker has a new producer epoch. Reserve 16 bits for opens in that
+        // lifetime, retaining 1,2,... in the first epoch and never recycling stale generations.
+        // Exhaustion is explicit; wrapping would make an old action look current again.
+        let epoch = cx.emitter(&channel).producer_epoch().0;
+        let generation = epoch
+            .checked_sub(1)
+            .filter(|e| *e < 65_536)
+            .and_then(|e| e.checked_mul(65_536))
+            .filter(|_| self.next_generation < 65_536)
+            .and_then(|base| base.checked_add(u64::from(self.next_generation)))
+            .and_then(|g| u32::try_from(g).ok())
+            .ok_or_else(|| {
+                err(
+                    ErrorCode::Busy,
+                    "CAN generation space exhausted; start a new gateway session".into(),
+                )
+            })?;
         let configs = resolve_nodes(args.get("nodes"), &bus)?;
         self.latch.get_or_insert_with(|| cx.latch().clone());
 
@@ -1439,8 +1484,7 @@ impl Core {
             }
         };
         let senders = [attached[1], attached[2], attached[3]];
-        let generation = self.next_generation;
-        self.next_generation = self.next_generation.wrapping_add(1).max(1);
+        self.next_generation += 1;
         let latched = self.latched() || cx.latch().is_on();
         let _ = if latched {
             self.hub

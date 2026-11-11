@@ -260,3 +260,56 @@ fn eth_sim_live_send_and_stop_smoke() {
     drop((a, v));
     d.shutdown();
 }
+
+/// Recreate the actual IPC process: its producer epoch changes and stale channel generations
+/// must not be reused. This only terminates the disposable worker started by this test.
+#[test]
+fn can_generation_survives_actual_worker_recreation() {
+    let d = D::start(Duration::from_secs(2));
+    let mut a = d.agent("can-restart-smoke");
+    let opened = a.request("can.open", json!({"channel":"ch0","nodes":"none"}));
+    assert_eq!(opened["result"]["ok"], true, "{opened}");
+    let old_generation = opened["result"]["data"]["generation"].as_u64().unwrap();
+    let status = a.request("core.status", json!({}));
+    let worker = status["result"]["workers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["kind"] == loom_can::WORKER_KIND_SIM)
+        .unwrap();
+    let pid = worker["pid"].as_u64().unwrap();
+    let epoch = worker["producer_epoch"].as_str().unwrap().parse::<u64>().unwrap();
+    assert!(
+        std::process::Command::new("kill")
+            .args(["-KILL", &pid.to_string()])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let until = Instant::now() + Duration::from_secs(8);
+    let mut ready = false;
+    while Instant::now() < until {
+        let status = a.request("core.status", json!({}));
+        ready = status["result"]["workers"].as_array().unwrap().iter().any(|w| {
+            w["kind"] == loom_can::WORKER_KIND_SIM
+                && w["state"] == "ready"
+                && w["producer_epoch"]
+                    .as_str()
+                    .and_then(|x| x.parse::<u64>().ok())
+                    .is_some_and(|e| e > epoch)
+        });
+        if ready {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(30));
+    }
+    assert!(ready, "CAN worker failed to restart");
+    let reopened = a.request("can.open", json!({"channel":"ch0","nodes":"none"}));
+    assert_eq!(reopened["result"]["ok"], true, "{reopened}");
+    assert!(
+        reopened["result"]["data"]["generation"].as_u64().unwrap() > old_generation,
+        "{opened} -> {reopened}"
+    );
+    drop(a);
+    d.shutdown();
+}
