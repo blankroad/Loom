@@ -676,6 +676,9 @@ impl IpcHost {
     /// State for `core.status`.
     pub fn state(&self) -> Value {
         let s = lock(&self.inner.status).clone();
+        let health_age_ms = lock(&self.inner.conn).as_ref().map(|conn| {
+            u64::try_from(lock(&conn.last_health).elapsed().as_millis()).unwrap_or(u64::MAX)
+        });
         json!({
             "kind": self.inner.kind,
             "instance": self.inner.cfg.instance,
@@ -686,6 +689,9 @@ impl IpcHost {
             "starts": s.starts,
             "last_exit": s.last_exit,
             "rss_bytes": s.last_rss.to_string(),
+            "rss_available": s.last_rss > 0 && health_age_ms.is_some(),
+            "rss_source": "worker_health",
+            "health_age_ms": health_age_ms,
             "mem_pressure": s.mem_pressure,
             "journal": s.journal.map(|j| json!({
                 "health": j.health,
@@ -891,6 +897,7 @@ async fn run_session(inner: &Arc<Inner>, epoch: u64) -> SessionEnd {
     {
         let mut s = lock(&inner.status);
         s.producer_epoch = epoch;
+        s.last_rss = 0;
         s.pid = None;
         s.starts += 1;
         s.mem_pressure = false;

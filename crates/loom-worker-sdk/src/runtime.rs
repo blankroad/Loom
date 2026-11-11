@@ -530,18 +530,7 @@ fn run_driver<D: Driver>(worker: D, args: WorkerArgs, hooks: RunHooks) -> ! {
 }
 
 fn rss_default() -> Option<u64> {
-    #[cfg(target_os = "linux")]
-    {
-        let s = std::fs::read_to_string("/proc/self/status").ok()?;
-        let line = s.lines().find(|l| l.starts_with("VmRSS:"))?;
-        let kb: u64 = line.split_whitespace().nth(1)?.parse().ok()?;
-        Some(kb * 1024)
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        // macOS `task_info` / Windows `GetProcessMemoryInfo` need FFI (`unsafe`): P2.
-        None
-    }
+    crate::memory::process_rss_bytes()
 }
 
 fn threads_default() -> u32 {

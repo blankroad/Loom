@@ -30,6 +30,7 @@ use serde_json::Value;
 pub mod clock;
 pub mod codec;
 pub mod emit;
+pub mod memory;
 pub mod runtime;
 pub mod transport;
 
