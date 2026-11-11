@@ -67,3 +67,7 @@ Other checks: `cargo clippy -p loom-gateway --test tc1_live_smoke --locked --off
 - Do not run this test in IPC placement (`fence_unflushed` by design). Formal 30-minute RSS and the browser check are separate tracks.
 - Pending: commit by main (index belongs to main), integration check with other owners' WIP. `crates/loom-gateway/tests/uds_tc1_smoke.rs` is shown modified by someone else (not mine).
 - After this return, the role is released; the session/pane is kept.
+
+## 실제 브라우저 후속: 환경 배지 정합
+
+실제 Ego TC-1 화면은 plan.env=sim인데 fixture daemon의 기본값 bench로 표시됐다. 모든 DUT 백엔드가 sim인 이 시험의 Config.env를 명시적으로 Env::Sim으로 맞췄다. 제품 환경 정책이나 실장비 설정은 바꾸지 않았다. 변경된 실제 TC-1 저널 판정 1 PASS(11.53초), `/private/tmp/loom-tc1-sim-env-test.log`. 최종 브라우저 검증은 재빌드된 test exe와 새 dist를 사용한다.

@@ -103,6 +103,8 @@ impl D {
             .unwrap();
         let mut cfg = Config::new(Home::at(home.path()));
         cfg.port = Some(0);
+        // All fixture devices are simulated; keep the daemon badge and plan environment aligned.
+        cfg.env = Some(loom_proto::event::Env::Sim);
         cfg.worker_program = Some(env!("CARGO_BIN_EXE_loomd").into());
         cfg.worker_orphan = Some(Duration::from_secs(2));
         cfg.workers = Some(WorkersMode::Inproc);
