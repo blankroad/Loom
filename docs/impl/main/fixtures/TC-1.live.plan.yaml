@@ -1,0 +1,53 @@
+# TC-1 (crates/loom-test-format/tests/fixtures/TC-1.tc.md) as the agent reads it, written with
+# the commands/arguments the domains register today. Run by crates/loom-gateway/tests/
+# tc1_live_smoke.rs against a powered virtual DUT (PSU bench → UART dut / CAN ch0 / UDS bcm).
+#
+# - No `finally`: the TC text has no final power-off, and the registered PSU safe state
+#   (`psu.out off`) is R3 while the format allows R0–R1 in finally. The risk is not lowered here.
+# - S3's db_sha256 pins crates/loom-gateway/tests/fixtures/tc1_dut.dbc (loaded on ch0).
+# - Timing (TC text): login ≤ 30 s after power ON (anchor: the supply's own psu.state change to
+#   out=true during S1; `anchor.where` fields are checked against every domain's pointers, so
+#   psu.write's `/payload/state` would collide with UART's `/payload/state` enum),
+#   PowerMode = 2 ≤ 5 s after boot (anchor: S2's matched uart.expect_result).
+loom_tc_plan: 1
+tc: TC-1@sha256:a90459bf525f151d0bb158d9bc5b346a7b61871ffffc519d788afaddaa22cf04
+env: sim
+steps:
+  - id: S1
+    tc_step: 1
+    do: [{psu.out: {ch: bench, state: "off"}}, {sleep: 2s}, {psu.out: {ch: bench, state: "on"}}]
+  - id: S2
+    tc_step: 2
+    uart.expect: {channel: dut, patterns: [{kind: literal, pattern: "login:"}], timeout_ms: 30000}
+    expect:
+      - filter: {domain: uart, channel: dut, kinds: [uart.data], origins: [device]}
+        pred: {op: uart.text_contains, pattern: "login:"}
+        anchor: {step: S1, kind: psu.state, where: {field: /payload/out, op: "==", value: true}}
+        within_ms: 30000
+  - id: S3
+    tc_step: 3
+    can.sig.wait_for: {channel: ch0, expr: "VehState.PowerMode == 2", within_ms: 5000}
+    expect:
+      - filter: {domain: can, channel: ch0, kinds: [can.frame], origins: [device]}
+        pred:
+          op: can.signal_range
+          signal: VehState.PowerMode
+          between: [2, 2]
+          origin: device
+          db_sha256: ec6c18ea48b749dc60ac63352d7483fb044da9da4468ccc69bb9f3f56a3387bf
+        anchor: {step: S2, kind: uart.expect_result, where: {field: /payload/matched, op: "==", value: true}}
+        within_ms: 5000
+  - id: S4
+    tc_step: 4
+    uds.dtc.list: {target: bcm, mask: 0x09}
+    expect:
+      - filter: {domain: uds, channel: bcm, kinds: [uds.rx], origins: [device]}
+        pred: {op: uds.dtc_absent, mask: 0x09}
+    on_fail: {goto: S5}
+  - id: S5
+    tc_step: 4
+    when: {step: S4, verdict: fail}
+    do: [{uds.request: {target: bcm, bytes_hex: "14FFFFFF"}}, {uds.dtc.list: {target: bcm, mask: 0x09}}]
+    expect:
+      - filter: {domain: uds, channel: bcm, kinds: [uds.rx], origins: [device]}
+        pred: {op: uds.dtc_absent, mask: 0x09}

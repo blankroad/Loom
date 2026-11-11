@@ -9,8 +9,8 @@
 use std::io;
 use std::os::fd::{AsFd, OwnedFd};
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, PoisonError};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
@@ -28,6 +28,22 @@ const PTY_LOOP_MAX_WAIT: Duration = Duration::from_millis(10);
 const PTY_READ_BUF: usize = 4096;
 /// Most bytes read from the master per loop iteration before output gets a turn.
 const PTY_READ_BUDGET: usize = 64 * 1024;
+
+/// Slave paths of the pty devices this process is running right now (bounded, see
+/// [`crate::worker::MAX_SIM_PTYS`]). Only [`PtyDevice::spawn`] adds to it and [`PtyHandle`]'s
+/// drop removes from it, so a path here was issued by Loom's own sim harness in this process.
+static LIVE_SIM_PTYS: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+/// Is `path` the slave of a pty device spawned by this process and still running? Lets an
+/// in-process `UartWorker` open it as a sim pty (`OpenOpts::sim_pty`, DR-V18) without a
+/// per-worker [`crate::worker::UartWorker::register_sim_pty`] call. Never true for a real port.
+pub fn is_live_sim_pty(path: &str) -> bool {
+    LIVE_SIM_PTYS
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .iter()
+        .any(|p| p == path)
+}
 
 /// Spawns fake devices on pty pairs.
 #[derive(Debug)]
@@ -49,6 +65,15 @@ impl PtyDevice {
             tcsetattr(fd, SetArg::TCSANOW, &t).map_err(io::Error::from)?;
         }
         let slave_path = nix::unistd::ttyname(&pty.slave).map_err(io::Error::from)?;
+        let live = slave_path.to_string_lossy().into_owned();
+        {
+            let mut v = LIVE_SIM_PTYS.lock().unwrap_or_else(PoisonError::into_inner);
+            if v.len() >= crate::worker::MAX_SIM_PTYS {
+                return Err(io::Error::other("too many live sim ptys"));
+            }
+            v.push(live.clone());
+        }
+        let guard = LiveGuard(live);
         let flags =
             OFlag::from_bits_truncate(fcntl(&pty.master, FcntlArg::F_GETFL).map_err(io::Error::from)?);
         fcntl(&pty.master, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).map_err(io::Error::from)?;
@@ -63,6 +88,7 @@ impl PtyDevice {
             slave_path,
             stop,
             thread: Some(thread),
+            _live: guard,
             _slave: pty.slave,
         })
     }
@@ -75,7 +101,21 @@ pub struct PtyHandle {
     pub slave_path: PathBuf,
     stop: Arc<AtomicBool>,
     thread: Option<JoinHandle<io::Result<()>>>,
+    _live: LiveGuard,
     _slave: OwnedFd,
+}
+
+/// Removes a slave path from [`LIVE_SIM_PTYS`] when its device goes away.
+#[derive(Debug)]
+struct LiveGuard(String);
+
+impl Drop for LiveGuard {
+    fn drop(&mut self) {
+        let mut v = LIVE_SIM_PTYS.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(i) = v.iter().position(|p| *p == self.0) {
+            v.swap_remove(i);
+        }
+    }
 }
 
 impl PtyHandle {

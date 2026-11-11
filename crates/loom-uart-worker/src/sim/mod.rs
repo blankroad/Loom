@@ -23,7 +23,7 @@ pub use ansi::{ANSI_DONE_MARKER, Ansi, QUERY_SEQUENCES, QuerySeq, ansi_corpus};
 pub use bootshell::{BOOT_LOG_LINES, Bootshell, LOGIN_PROMPT, PASSWORD_PROMPT, SHELL_PROMPT};
 pub use flood::{Binary, DEFAULT_FLOOD_RATE, Flood, Fnv64, binary_frames, flood_bytes, flood_digest};
 #[cfg(unix)]
-pub use pty::{PtyDevice, PtyHandle};
+pub use pty::{PtyDevice, PtyHandle, is_live_sim_pty};
 
 /// Modem/line signal delivered to a device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

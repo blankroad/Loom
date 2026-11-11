@@ -663,7 +663,14 @@ struct RangeArgs {
 }
 
 fn condition_from_args(args: &Value) -> Result<(Condition, String, Option<Origin>), String> {
-    let a: RangeArgs = serde_json::from_value(args.clone()).map_err(|e| e.to_string())?;
+    // TEST hands every domain predicate its plan `filter` (and `ch` when the filter names a
+    // channel) next to the predicate's own keys; those are not range arguments.
+    let mut args = args.clone();
+    if let Some(o) = args.as_object_mut() {
+        o.remove("filter");
+        o.remove("ch");
+    }
+    let a: RangeArgs = serde_json::from_value(args).map_err(|e| e.to_string())?;
     let tol = a.tol.unwrap_or(0.0);
     if !tol.is_finite() || tol < 0.0 {
         return Err("tol must be a number ≥ 0".into());

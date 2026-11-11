@@ -1,0 +1,18 @@
+// TC-1 virtual DUT (tests/tc1_live_smoke.rs). The DUT body controller broadcasts VehState every
+// 100 ms once its application runs; PowerMode 2 = RUN.
+VERSION ""
+
+NS_ :
+	CM_
+	VAL_
+
+BS_:
+
+BU_: DUT TESTER
+
+BO_ 928 VehState: 8 DUT
+ SG_ PowerMode : 0|4@1+ (1,0) [0|15] "" TESTER
+ SG_ AliveCounter : 8|8@1+ (1,0) [0|255] "" TESTER
+
+CM_ BO_ 928 "Vehicle power state (virtual DUT)";
+VAL_ 928 PowerMode 0 "OFF" 1 "ACC" 2 "RUN" 3 "CRANK";
