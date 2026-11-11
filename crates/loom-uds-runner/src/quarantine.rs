@@ -102,6 +102,21 @@ impl Unresolved {
         true
     }
 
+    /// Disarm a reservation after definitive completion or proof of no hand-off.
+    pub(crate) fn remove_sid(&mut self, sid: u8) {
+        self.entries.retain(|entry| entry.sid != sid);
+    }
+
+    /// Convert the active reservation into unresolved state without duplicating its SID.
+    pub(crate) fn touch_or_insert(&mut self, pdu: &[u8], now: Instant) -> bool {
+        if let Some(entry) = self.entries.iter_mut().find(|e| pdu.first() == Some(&e.sid)) {
+            entry.since = now;
+            true
+        } else {
+            self.insert(pdu, now)
+        }
+    }
+
     /// Release the oldest entry for which `resp` is a complete final response. Returns its SID.
     /// `7F xx 78` and foreign/malformed responses release nothing.
     pub fn release_by_response(&mut self, resp: &[u8]) -> Option<u8> {

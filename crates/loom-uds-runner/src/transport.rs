@@ -1,17 +1,14 @@
 //! The [`Transport`] trait: one diagnostic target on one link.
 //!
-//! Dyn-compatible without `async-trait`: async methods return [`BoxFuture`] (same shape as
+//! Dyn-compatible without `async-trait`: async methods return [`BoxFuture`] (re-exported
 //! `loom_domain_api::BoxFuture`). A transport is owned by exactly one runner (`&mut self`), so it
 //! needs `Send` but not `Sync`.
-
-use std::future::Future;
-use std::pin::Pin;
 
 use thiserror::Error;
 use tokio::time::Instant;
 
-/// Boxed `Send` future.
-pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+/// Boxed `Send` future (the CORE domain API alias).
+pub use loom_domain_api::BoxFuture;
 
 /// Something received from the target.
 #[derive(Debug, Clone, PartialEq, Eq)]

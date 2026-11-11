@@ -5,33 +5,39 @@
 //! LA, never blocks on consumers) and one writer (control frames first). Every queue is bounded;
 //! see the `CAP_*`/`MAX_*` constants for the overflow policy.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
 use thiserror::Error;
-use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::tcp::OwnedReadHalf;
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio::task::JoinHandle;
 use tokio::time::{Instant, timeout, timeout_at};
 
 use crate::frame::{ActivationCode, ActivationType, EncodeError, MAX_UDS_PDU, Message, ProtocolVersion};
-use crate::io::{ReadError, read_message};
+use crate::io::{MAX_FRAME_WRITE_TIME, ReadError, read_message, write_bounded};
 
 /// Most target logical addresses one connection serves. Beyond: [`DoipError::TooManyTargets`].
 pub const MAX_TARGETS_PER_CONNECTION: usize = 64;
 /// Responses buffered per target before the consumer reads them. Full: the response is dropped,
 /// counted, and [`LinkEvent::RxOverflow`] is emitted (the reader never waits on a consumer).
 pub const CAP_RX_PER_TARGET: usize = 32;
+/// PDU bytes queued for one target. Full: drop/count, RxOverflow + sticky degraded health.
+pub const MAX_RX_BYTES_PER_TARGET: usize = 32 * 1024;
+/// PDU bytes queued across all LAs on one connection. Same overflow policy; never block reader.
+pub const MAX_RX_BYTES_PER_CONNECTION: usize = 64 * 1024;
+/// Uncertain ACK tombstones survive target drop/reopen. Exhaustion closes the connection;
+/// entries are never evicted to permit ambiguous ACK reuse.
+pub const MAX_POISONED_LAS: usize = MAX_TARGETS_PER_CONNECTION;
 /// Diagnostic/activation frames waiting for the writer. Full: [`DoipError::TxFull`] (new request
 /// refused before it is sent).
 pub const CAP_TX_FRAMES: usize = 32;
 /// Control frames (alive check response, generic NACK) waiting for the writer; served before data.
-/// Full: the frame is dropped with a warning (only possible if the socket is stuck).
+/// Full: the frame is dropped with a warning. Fatal header NACKs use a separate single slot.
 pub const CAP_CONTROL_FRAMES: usize = 8;
 /// Link events waiting for the owner. Full: the event is dropped and counted in
 /// [`ClientStats::dropped_link_events`]; [`DoipClient::link_state`] always has the current state.
@@ -81,6 +87,13 @@ pub enum LinkState {
     Activating,
     Active,
     Closed,
+}
+
+/// Sticky receive health, independent of the bounded link-event queue. Reconnect resets it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClientHealth {
+    Healthy,
+    RxOverflowed,
 }
 
 /// Link events (bounded channel, see [`CAP_LINK_EVENTS`]).
@@ -168,31 +181,127 @@ pub struct ClientStats {
     pub dropped_link_events: u64,
     pub unrouted: u64,
     pub alive_checks_answered: u64,
+    pub rx_buffered_bytes: usize,
+    pub rx_dropped_total: u64,
 }
 
 #[derive(Debug)]
 enum AckOutcome {
     Ack(Instant),
-    Nack(u8),
+    Nack(u8, Instant),
 }
 
 #[derive(Debug)]
 struct TxItem {
     frame: Vec<u8>,
-    handed: Option<oneshot::Sender<Instant>>,
+    deadline: Instant,
+    control: Arc<TxControl>,
+    handed: Option<oneshot::Sender<Result<Instant, DoipError>>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TxPhase {
+    Queued,
+    Writing,
+    Handed,
+    Cancelled,
+}
+
+#[derive(Debug)]
+struct TxControl {
+    phase: watch::Sender<TxPhase>,
+    reply_received: AtomicBool,
+}
+
+impl TxControl {
+    fn new() -> Arc<Self> {
+        Arc::new(Self {
+            phase: watch::Sender::new(TxPhase::Queued),
+            reply_received: AtomicBool::new(false),
+        })
+    }
+
+    fn begin(&self) -> bool {
+        self.phase.send_if_modified(|phase| {
+            if *phase != TxPhase::Queued {
+                return false;
+            }
+            *phase = TxPhase::Writing;
+            true
+        })
+    }
+
+    fn handed(&self) -> bool {
+        self.phase.send_if_modified(|phase| {
+            if *phase != TxPhase::Writing {
+                return false;
+            }
+            *phase = TxPhase::Handed;
+            true
+        })
+    }
+
+    fn cancel(&self) -> TxPhase {
+        self.phase.send_replace(TxPhase::Cancelled)
+    }
+
+    async fn cancelled(&self) {
+        let mut rx = self.phase.subscribe();
+        let _ = rx.wait_for(|phase| *phase == TxPhase::Cancelled).await;
+    }
+}
+
+#[derive(Debug)]
+struct PendingAck {
+    id: u64,
+    control: Arc<TxControl>,
+    reply: oneshot::Sender<AckOutcome>,
+}
+
+#[derive(Debug)]
+struct PendingActivation {
+    id: u64,
+    deadline: Instant,
+    control: Arc<TxControl>,
+    reply: oneshot::Sender<(u16, ActivationCode)>,
+}
+
+#[derive(Debug)]
+struct RxReservation {
+    total: Arc<Mutex<usize>>,
+    target: Arc<AtomicUsize>,
+    bytes: usize,
+}
+
+impl Drop for RxReservation {
+    fn drop(&mut self) {
+        let mut total = self.total.lock().unwrap_or_else(|p| p.into_inner());
+        *total -= self.bytes;
+        self.target.fetch_sub(self.bytes, Ordering::Relaxed);
+    }
+}
+
+#[derive(Debug)]
+struct QueuedIncoming {
+    incoming: Incoming,
+    _reservation: RxReservation,
 }
 
 #[derive(Debug)]
 struct TargetSlot {
-    rx: mpsc::Sender<Incoming>,
-    ack: Option<oneshot::Sender<AckOutcome>>,
+    rx: mpsc::Sender<QueuedIncoming>,
+    rx_bytes: Arc<AtomicUsize>,
+    ack: Option<PendingAck>,
     dropped: u64,
 }
 
 #[derive(Debug, Default)]
 struct State {
     targets: HashMap<u16, TargetSlot>,
-    activation: Option<oneshot::Sender<(u16, ActivationCode)>>,
+    activation: Option<PendingActivation>,
+    /// At most MAX_POISONED_LAS; exhaustion closes instead of evicting.
+    poisoned: HashSet<u16>,
+    next_attempt_id: u64,
     activated: bool,
     entity_la: Option<u16>,
 }
@@ -211,13 +320,128 @@ struct Shared {
     ctrl_tx: mpsc::Sender<Vec<u8>>,
     link_tx: mpsc::Sender<LinkEvent>,
     link_state: watch::Sender<LinkState>,
+    health: watch::Sender<ClientHealth>,
+    rx_bytes: Arc<Mutex<usize>>,
+    rx_dropped: AtomicU64,
+    /// One fatal header NACK (9 bytes), drained on idle writer close; never appended after a
+    /// partial failed write. Replaces a slot, never accumulates a control backlog.
+    fatal_nack: Mutex<Option<Vec<u8>>>,
     closed: AtomicBool,
     dropped_link_events: AtomicU64,
     unrouted: AtomicU64,
     alive_answered: AtomicU64,
 }
 
+#[derive(Debug, Clone, Copy)]
+enum WaitKind {
+    Activation,
+    Ack(u16),
+}
+
+/// Owned across every await, then transferred into AckWait. The ID prevents old cleanup from
+/// removing a new attempt. RA has no wire request ID: cancellation after start closes its socket.
+#[derive(Debug)]
+struct RequestGuard {
+    shared: Arc<Shared>,
+    control: Arc<TxControl>,
+    id: u64,
+    kind: WaitKind,
+    armed: bool,
+    force_poison: bool,
+}
+
+impl RequestGuard {
+    fn finish(&mut self) {
+        self.armed = false;
+    }
+}
+
+impl Drop for RequestGuard {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let phase = self.control.cancel();
+        let started = matches!(phase, TxPhase::Writing | TxPhase::Handed);
+        let mut close = phase == TxPhase::Writing;
+        {
+            let mut state = self.shared.lock();
+            match self.kind {
+                WaitKind::Activation => {
+                    if state.activation.as_ref().is_some_and(|a| a.id == self.id) {
+                        state.activation = None;
+                    }
+                    close |= started;
+                }
+                WaitKind::Ack(la) => {
+                    if let Some(slot) = state.targets.get_mut(&la)
+                        && slot.ack.as_ref().is_some_and(|a| a.id == self.id)
+                    {
+                        slot.ack = None;
+                    }
+                    if self.force_poison || (started && !self.control.reply_received.load(Ordering::Acquire))
+                    {
+                        close |= !poison(&mut state, la);
+                    }
+                }
+            }
+        }
+        if close {
+            self.shared.close(LinkEvent::Closed {
+                reason: "cancelled/uncertain in-progress frame or routing activation".into(),
+            });
+        }
+    }
+}
+
+fn poison(state: &mut State, la: u16) -> bool {
+    if state.poisoned.contains(&la) {
+        return true;
+    }
+    if state.poisoned.len() >= MAX_POISONED_LAS {
+        return false;
+    }
+    state.poisoned.insert(la);
+    true
+}
+
+fn next_id(state: &mut State) -> Result<u64, DoipError> {
+    state.next_attempt_id = state.next_attempt_id.checked_add(1).ok_or(DoipError::Closed)?;
+    Ok(state.next_attempt_id)
+}
+
 impl Shared {
+    fn new(
+        cfg: &ClientConfig,
+        data_tx: mpsc::Sender<TxItem>,
+        ctrl_tx: mpsc::Sender<Vec<u8>>,
+        link_tx: mpsc::Sender<LinkEvent>,
+        state_tx: watch::Sender<LinkState>,
+    ) -> Arc<Self> {
+        Arc::new(Self {
+            tester_la: cfg.tester_la,
+            version: cfg.version,
+            activation_type: cfg.activation_type,
+            oem: cfg.oem,
+            activation_timeout: cfg.activation_timeout,
+            ack_timeout: cfg.ack_timeout,
+            generation: cfg.generation,
+            state: Mutex::new(State::default()),
+            data_tx,
+            ctrl_tx,
+            link_tx,
+            link_state: state_tx,
+            health: watch::Sender::new(ClientHealth::Healthy),
+            rx_bytes: Arc::new(Mutex::new(0)),
+            rx_dropped: AtomicU64::new(0),
+            fatal_nack: Mutex::new(None),
+            closed: AtomicBool::new(false),
+            dropped_link_events: AtomicU64::new(0),
+            unrouted: AtomicU64::new(0),
+            alive_answered: AtomicU64::new(0),
+        })
+    }
+
     fn lock(&self) -> MutexGuard<'_, State> {
         self.state.lock().unwrap_or_else(|p| p.into_inner())
     }
@@ -258,6 +482,28 @@ impl Shared {
         self.closed.load(Ordering::Acquire)
     }
 
+    async fn closed(&self) {
+        let mut state = self.link_state.subscribe();
+        let _ = state.wait_for(|s| *s == LinkState::Closed).await;
+    }
+
+    fn reserve_rx(&self, slot: &TargetSlot, bytes: usize) -> Option<RxReservation> {
+        let mut total = self.rx_bytes.lock().unwrap_or_else(|p| p.into_inner());
+        let target_bytes = slot.rx_bytes.load(Ordering::Relaxed);
+        if bytes > MAX_RX_BYTES_PER_TARGET.saturating_sub(target_bytes)
+            || bytes > MAX_RX_BYTES_PER_CONNECTION.saturating_sub(*total)
+        {
+            return None;
+        }
+        *total += bytes;
+        slot.rx_bytes.fetch_add(bytes, Ordering::Relaxed);
+        Some(RxReservation {
+            total: Arc::clone(&self.rx_bytes),
+            target: Arc::clone(&slot.rx_bytes),
+            bytes,
+        })
+    }
+
     fn dispatch(&self, msg: Message) {
         let now = Instant::now();
         match msg {
@@ -267,11 +513,31 @@ impl Shared {
                 });
                 self.alive_answered.fetch_add(1, Ordering::Relaxed);
             }
-            Message::RoutingActivationResponse { entity, code, .. } => {
+            Message::RoutingActivationResponse {
+                tester, entity, code, ..
+            } => {
+                if tester != self.tester_la {
+                    self.close(LinkEvent::Error {
+                        reason: "routing activation tester address mismatch".into(),
+                    });
+                    return;
+                }
                 let waiter = self.lock().activation.take();
                 match waiter {
                     Some(w) => {
-                        if w.send((entity, code)).is_err() {
+                        if now > w.deadline {
+                            self.close(LinkEvent::Error {
+                                reason: "routing activation response after deadline".into(),
+                            });
+                            return;
+                        }
+                        if w.control.phase.borrow().eq(&TxPhase::Cancelled) {
+                            self.close(LinkEvent::Error {
+                                reason: "late cancelled routing activation".into(),
+                            });
+                            return;
+                        }
+                        if w.reply.send((entity, code)).is_err() {
                             tracing::debug!("activation waiter gone");
                         }
                     }
@@ -285,7 +551,9 @@ impl Shared {
                 tracing::debug!("ACK/NACK from 0x{source:04X} for another tester 0x{target:04X}");
             }
             Message::DiagnosticAck { source, .. } => self.resolve_ack(source, AckOutcome::Ack(now)),
-            Message::DiagnosticNack { source, code, .. } => self.resolve_ack(source, AckOutcome::Nack(code)),
+            Message::DiagnosticNack { source, code, .. } => {
+                self.resolve_ack(source, AckOutcome::Nack(code, now))
+            }
             Message::DiagnosticMessage { source, target, data } => {
                 if target != self.tester_la {
                     self.unrouted.fetch_add(1, Ordering::Relaxed);
@@ -296,9 +564,18 @@ impl Shared {
                     let mut st = self.lock();
                     match st.targets.get_mut(&source) {
                         Some(slot) => {
-                            if let Err(mpsc::error::TrySendError::Full(_)) =
-                                slot.rx.try_send(Incoming { data, at: now })
-                            {
+                            let reservation = self.reserve_rx(slot, data.len());
+                            let delivered = match reservation {
+                                Some(reservation) => slot
+                                    .rx
+                                    .try_send(QueuedIncoming {
+                                        incoming: Incoming { data, at: now },
+                                        _reservation: reservation,
+                                    })
+                                    .is_ok(),
+                                None => false,
+                            };
+                            if !delivered {
                                 slot.dropped += 1;
                                 overflow = Some(slot.dropped);
                             }
@@ -308,6 +585,8 @@ impl Shared {
                     }
                 };
                 if let Some(dropped_total) = overflow {
+                    self.rx_dropped.fetch_add(1, Ordering::Relaxed);
+                    self.health.send_replace(ClientHealth::RxOverflowed);
                     self.emit(LinkEvent::RxOverflow {
                         target_la: source,
                         dropped_total,
@@ -324,10 +603,17 @@ impl Shared {
     }
 
     fn resolve_ack(&self, source: u16, outcome: AckOutcome) {
-        let waiter = self.lock().targets.get_mut(&source).and_then(|s| s.ack.take());
+        let waiter = {
+            let mut state = self.lock();
+            if state.poisoned.contains(&source) {
+                return;
+            }
+            state.targets.get_mut(&source).and_then(|s| s.ack.take())
+        };
         match waiter {
             Some(w) => {
-                if w.send(outcome).is_err() {
+                w.control.reply_received.store(true, Ordering::Release);
+                if w.reply.send(outcome).is_err() {
                     tracing::debug!("ACK waiter for 0x{source:04X} gone");
                 }
             }
@@ -335,46 +621,82 @@ impl Shared {
         }
     }
 
-    async fn activate(&self) -> Result<ActivationCode, DoipError> {
+    async fn activate(self: &Arc<Self>) -> Result<ActivationCode, DoipError> {
         if self.is_closed() {
             return Err(DoipError::Closed);
         }
         let (tx, rx) = oneshot::channel();
-        {
+        let now = Instant::now();
+        let deadline = now
+            .checked_add(self.activation_timeout)
+            .unwrap_or(now + MAX_FRAME_WRITE_TIME);
+        let control = TxControl::new();
+        let id = {
             let mut st = self.lock();
+            if self.is_closed() {
+                return Err(DoipError::Closed);
+            }
             if st.activation.is_some() {
                 return Err(DoipError::ActivationBusy);
             }
-            st.activation = Some(tx);
-        }
+            let id = next_id(&mut st)?;
+            st.activation = Some(PendingActivation {
+                id,
+                deadline,
+                control: Arc::clone(&control),
+                reply: tx,
+            });
+            id
+        };
+        let mut guard = RequestGuard {
+            shared: Arc::clone(self),
+            control: Arc::clone(&control),
+            id,
+            kind: WaitKind::Activation,
+            armed: true,
+            force_poison: false,
+        };
         let frame = Message::RoutingActivationRequest {
             source: self.tester_la,
             activation_type: self.activation_type,
             oem: self.oem,
         }
         .encode(self.version)?;
-        if self.data_tx.try_send(TxItem { frame, handed: None }).is_err() {
-            self.lock().activation = None;
+        if self
+            .data_tx
+            .try_send(TxItem {
+                frame,
+                deadline,
+                control,
+                handed: None,
+            })
+            .is_err()
+        {
             return Err(DoipError::TxFull);
         }
-        let (entity_la, code) = match timeout(self.activation_timeout, rx).await {
+        let (entity_la, code) = match timeout_at(deadline, rx).await {
             Err(_) => {
-                self.lock().activation = None;
                 return Err(DoipError::ActivationTimeout);
             }
             Ok(Err(_)) => return Err(DoipError::Closed),
             Ok(Ok(v)) => v,
         };
+        guard.finish();
         if !code.is_success() {
             self.emit(LinkEvent::ActivationDenied { code });
             return Err(DoipError::ActivationDenied(code));
         }
         let was_active = {
             let mut st = self.lock();
+            if self.is_closed() {
+                return Err(DoipError::Closed);
+            }
             st.entity_la = Some(entity_la);
+            // Serialize publication with close(): never overwrite Closed after its socket
+            // was already discarded. close() takes this same lock before publishing Closed.
+            self.link_state.send_replace(LinkState::Active);
             std::mem::replace(&mut st.activated, true)
         };
-        self.link_state.send_replace(LinkState::Active);
         self.emit(if was_active {
             LinkEvent::Reactivated { entity_la, code }
         } else {
@@ -386,11 +708,18 @@ impl Shared {
 
 async fn reader_task(mut rd: OwnedReadHalf, shared: Arc<Shared>) {
     loop {
-        match read_message(&mut rd).await {
+        let message = tokio::select! {
+            biased;
+            _ = shared.closed() => break,
+            message = read_message(&mut rd) => message,
+        };
+        match message {
             Ok(msg) => shared.dispatch(msg),
             Err(ReadError::Discarded(e)) => shared.send_ctrl(&Message::GenericNack { code: e.nack_code() }),
             Err(ReadError::Fatal(e)) => {
-                shared.send_ctrl(&Message::GenericNack { code: e.nack_code() });
+                if let Ok(frame) = (Message::GenericNack { code: e.nack_code() }).encode(shared.version) {
+                    *shared.fatal_nack.lock().unwrap_or_else(|p| p.into_inner()) = Some(frame);
+                }
                 shared.close(LinkEvent::Error {
                     reason: e.to_string(),
                 });
@@ -406,36 +735,73 @@ async fn reader_task(mut rd: OwnedReadHalf, shared: Arc<Shared>) {
     }
 }
 
-async fn writer_task(
-    mut wr: OwnedWriteHalf,
+async fn writer_task<W: tokio::io::AsyncWrite + Unpin>(
+    mut wr: W,
     mut ctrl: mpsc::Receiver<Vec<u8>>,
     mut data: mpsc::Receiver<TxItem>,
     mut state: watch::Receiver<LinkState>,
     shared: Arc<Shared>,
 ) {
     loop {
-        let (frame, handed) = tokio::select! {
+        let (frame, handed, control, deadline) = tokio::select! {
             biased;
-            Some(f) = ctrl.recv() => (f, None),
-            _ = state.wait_for(|s| *s == LinkState::Closed) => break,
-            Some(item) = data.recv() => (item.frame, item.handed),
+            _ = async { let _ = state.wait_for(|s| *s == LinkState::Closed).await; } => {
+                let frame = shared.fatal_nack.lock().unwrap_or_else(|p| p.into_inner()).take();
+                if let Some(frame) = frame {
+                    let _ = write_bounded(&mut wr, &frame, Instant::now() + MAX_FRAME_WRITE_TIME,
+                        std::future::pending()).await;
+                }
+                break;
+            },
+            Some(f) = ctrl.recv() => (f, None, None, Instant::now() + MAX_FRAME_WRITE_TIME),
+            Some(item) = data.recv() => (item.frame, item.handed, Some(item.control), item.deadline),
             else => break,
         };
-        if let Err(e) = wr.write_all(&frame).await {
+        if Instant::now() >= deadline {
+            if let Some(h) = handed {
+                let _ = h.send(Err(DoipError::TxTimeout));
+            }
+            continue;
+        }
+        if let Some(control) = &control
+            && !control.begin()
+        {
+            continue;
+        }
+        let cancel_or_close = async {
+            match &control {
+                Some(control) => tokio::select! {
+                    _ = shared.closed() => {},
+                    _ = control.cancelled() => {},
+                },
+                None => shared.closed().await,
+            }
+        };
+        let until = deadline.min(Instant::now() + MAX_FRAME_WRITE_TIME);
+        if let Err(e) = write_bounded(&mut wr, &frame, until, cancel_or_close).await {
+            if let Some(h) = handed {
+                let _ = h.send(Err(DoipError::TxTimeout));
+            }
             shared.close(LinkEvent::Closed {
                 reason: format!("write: {e}"),
             });
             break;
         }
+        if let Some(control) = &control
+            && !control.handed()
+        {
+            shared.close(LinkEvent::Closed {
+                reason: "write cancelled at handoff".into(),
+            });
+            break;
+        }
         if let Some(h) = handed
-            && h.send(Instant::now()).is_err()
+            && h.send(Ok(Instant::now())).is_err()
         {
             tracing::debug!("submit caller gone before handoff");
         }
     }
-    if let Err(e) = wr.shutdown().await {
-        tracing::debug!("doip shutdown: {e}");
-    }
+    // Drop both socket halves on close. Never wait unboundedly on a graceful shutdown.
 }
 
 /// A connected, routing-activated DoIP connection.
@@ -459,24 +825,7 @@ impl DoipClient {
         let (ctrl_tx, ctrl_rx) = mpsc::channel(CAP_CONTROL_FRAMES);
         let (link_tx, link_rx) = mpsc::channel(CAP_LINK_EVENTS);
         let (state_tx, state_rx) = watch::channel(LinkState::Activating);
-        let shared = Arc::new(Shared {
-            tester_la: cfg.tester_la,
-            version: cfg.version,
-            activation_type: cfg.activation_type,
-            oem: cfg.oem,
-            activation_timeout: cfg.activation_timeout,
-            ack_timeout: cfg.ack_timeout,
-            generation: cfg.generation,
-            state: Mutex::new(State::default()),
-            data_tx,
-            ctrl_tx,
-            link_tx,
-            link_state: state_tx,
-            closed: AtomicBool::new(false),
-            dropped_link_events: AtomicU64::new(0),
-            unrouted: AtomicU64::new(0),
-            alive_answered: AtomicU64::new(0),
-        });
+        let shared = Shared::new(&cfg, data_tx, ctrl_tx, link_tx, state_tx);
         let reader = tokio::spawn(reader_task(rd, Arc::clone(&shared)));
         let writer = tokio::spawn(writer_task(wr, ctrl_rx, data_rx, state_rx, Arc::clone(&shared)));
         let client = DoipClient {
@@ -499,7 +848,14 @@ impl DoipClient {
             return Err(DoipError::Closed);
         }
         let (tx, rx) = mpsc::channel(CAP_RX_PER_TARGET);
+        let rx_bytes = Arc::new(AtomicUsize::new(0));
         let mut st = self.shared.lock();
+        if st.poisoned.contains(&target_la) {
+            return Err(DoipError::AckPending(target_la));
+        }
+        if self.shared.is_closed() {
+            return Err(DoipError::Closed);
+        }
         if st.targets.contains_key(&target_la) {
             return Err(DoipError::TargetInUse(target_la));
         }
@@ -510,6 +866,7 @@ impl DoipClient {
             target_la,
             TargetSlot {
                 rx: tx,
+                rx_bytes: Arc::clone(&rx_bytes),
                 ack: None,
                 dropped: 0,
             },
@@ -518,6 +875,7 @@ impl DoipClient {
             la: target_la,
             shared: Arc::clone(&self.shared),
             rx,
+            rx_bytes,
         })
     }
 
@@ -543,7 +901,14 @@ impl DoipClient {
             dropped_link_events: self.shared.dropped_link_events.load(Ordering::Relaxed),
             unrouted: self.shared.unrouted.load(Ordering::Relaxed),
             alive_checks_answered: self.shared.alive_answered.load(Ordering::Relaxed),
+            rx_buffered_bytes: *self.shared.rx_bytes.lock().unwrap_or_else(|p| p.into_inner()),
+            rx_dropped_total: self.shared.rx_dropped.load(Ordering::Relaxed),
         }
+    }
+
+    /// Sticky health survives link-event overflow; reconnect starts a healthy connection.
+    pub fn health(&self) -> watch::Receiver<ClientHealth> {
+        self.shared.health.subscribe()
     }
 
     /// Close the connection. Pending requests see [`DoipError::Closed`].
@@ -565,10 +930,9 @@ impl Drop for DoipClient {
 /// Pending diagnostic ACK for one submitted message.
 #[derive(Debug)]
 pub struct AckWait {
-    la: u16,
     handed_at: Instant,
-    rx: oneshot::Receiver<AckOutcome>,
-    shared: Arc<Shared>,
+    rx: Option<oneshot::Receiver<AckOutcome>>,
+    guard: RequestGuard,
 }
 
 impl AckWait {
@@ -578,18 +942,38 @@ impl AckWait {
     }
 
     /// Wait for the ACK until `min(until, handed_at + ack_timeout)`. Returns the ACK time.
-    pub async fn wait(self, until: Instant) -> Result<Instant, DoipError> {
-        let limit = until.min(self.handed_at + self.shared.ack_timeout);
-        match timeout_at(limit, self.rx).await {
+    /// Timeout/drop with an uncertain ACK poisons this LA until a new connection is activated.
+    pub async fn wait(mut self, until: Instant) -> Result<Instant, DoipError> {
+        let ack_deadline = self
+            .handed_at
+            .checked_add(self.guard.shared.ack_timeout)
+            .unwrap_or(until);
+        let limit = until.min(ack_deadline);
+        let Some(rx) = self.rx.take() else {
+            return Err(DoipError::Closed);
+        };
+        match timeout_at(limit, rx).await {
             Err(_) => {
-                if let Some(slot) = self.shared.lock().targets.get_mut(&self.la) {
-                    slot.ack = None;
-                }
+                self.guard.force_poison = true;
                 Err(DoipError::AckTimeout)
             }
             Ok(Err(_)) => Err(DoipError::Closed),
-            Ok(Ok(AckOutcome::Ack(at))) => Ok(at),
-            Ok(Ok(AckOutcome::Nack(code))) => Err(DoipError::Nack(code)),
+            Ok(Ok(AckOutcome::Ack(at))) if at <= limit => {
+                self.guard.finish();
+                Ok(at)
+            }
+            Ok(Ok(AckOutcome::Ack(_))) => {
+                self.guard.force_poison = true;
+                Err(DoipError::AckTimeout)
+            }
+            Ok(Ok(AckOutcome::Nack(code, at))) if at <= limit => {
+                self.guard.finish();
+                Err(DoipError::Nack(code))
+            }
+            Ok(Ok(AckOutcome::Nack(_, _))) => {
+                self.guard.force_poison = true;
+                Err(DoipError::AckTimeout)
+            }
         }
     }
 }
@@ -608,10 +992,15 @@ pub enum RecvError {
 pub struct DoipTarget {
     la: u16,
     shared: Arc<Shared>,
-    rx: mpsc::Receiver<Incoming>,
+    rx: mpsc::Receiver<QueuedIncoming>,
+    rx_bytes: Arc<AtomicUsize>,
 }
 
 impl DoipTarget {
+    /// PDU bytes currently queued, released on receive/drop even after link close.
+    pub fn buffered_bytes(&self) -> usize {
+        self.rx_bytes.load(Ordering::Relaxed)
+    }
     pub fn target_la(&self) -> u16 {
         self.la
     }
@@ -630,12 +1019,17 @@ impl DoipTarget {
 
     /// Queue a diagnostic message and wait until the writer has handed it to the socket (bounded by
     /// `until`). The ACK is awaited separately with [`AckWait::wait`].
+    /// Drop cancels queued data; cancelling a partial write discards the socket. Once handed,
+    /// an uncertain ACK poisons the LA across target drop/reopen until a fresh connection.
     pub async fn submit(&self, pdu: &[u8], until: Instant) -> Result<AckWait, DoipError> {
         if pdu.is_empty() || pdu.len() > MAX_UDS_PDU {
             return Err(DoipError::InvalidPdu(pdu.len()));
         }
         if self.shared.is_closed() {
             return Err(DoipError::Closed);
+        }
+        if Instant::now() >= until {
+            return Err(DoipError::TxTimeout);
         }
         let frame = Message::DiagnosticMessage {
             source: self.shared.tester_la,
@@ -644,24 +1038,41 @@ impl DoipTarget {
         }
         .encode(self.shared.version)?;
         let (ack_tx, ack_rx) = oneshot::channel();
-        {
+        let control = TxControl::new();
+        let id = {
             let mut st = self.shared.lock();
+            if st.poisoned.contains(&self.la) {
+                return Err(DoipError::AckPending(self.la));
+            }
+            let id = next_id(&mut st)?;
             let Some(slot) = st.targets.get_mut(&self.la) else {
                 return Err(DoipError::Closed);
             };
-            if slot.ack.as_ref().is_some_and(|s| !s.is_closed()) {
+            if slot.ack.is_some() {
                 return Err(DoipError::AckPending(self.la));
             }
-            slot.ack = Some(ack_tx);
-        }
+            slot.ack = Some(PendingAck {
+                id,
+                control: Arc::clone(&control),
+                reply: ack_tx,
+            });
+            id
+        };
+        let guard = RequestGuard {
+            shared: Arc::clone(&self.shared),
+            control: Arc::clone(&control),
+            id,
+            kind: WaitKind::Ack(self.la),
+            armed: true,
+            force_poison: false,
+        };
         let (h_tx, h_rx) = oneshot::channel();
         if let Err(e) = self.shared.data_tx.try_send(TxItem {
             frame,
+            deadline: until,
+            control,
             handed: Some(h_tx),
         }) {
-            if let Some(slot) = self.shared.lock().targets.get_mut(&self.la) {
-                slot.ack = None;
-            }
             return Err(match e {
                 mpsc::error::TrySendError::Full(_) => DoipError::TxFull,
                 mpsc::error::TrySendError::Closed(_) => DoipError::Closed,
@@ -670,13 +1081,14 @@ impl DoipTarget {
         let handed_at = match timeout_at(until, h_rx).await {
             Err(_) => return Err(DoipError::TxTimeout),
             Ok(Err(_)) => return Err(DoipError::Closed),
-            Ok(Ok(at)) => at,
+            Ok(Ok(Ok(at))) if at <= until => at,
+            Ok(Ok(Ok(_))) => return Err(DoipError::TxTimeout),
+            Ok(Ok(Err(error))) => return Err(error),
         };
         Ok(AckWait {
-            la: self.la,
             handed_at,
-            rx: ack_rx,
-            shared: Arc::clone(&self.shared),
+            rx: Some(ack_rx),
+            guard,
         })
     }
 
@@ -690,7 +1102,7 @@ impl DoipTarget {
 
     /// Next response, or `None` once the connection closed and the queue is drained.
     pub async fn recv(&mut self) -> Option<Incoming> {
-        self.rx.recv().await
+        self.rx.recv().await.map(|queued| queued.incoming)
     }
 
     /// Next response before `until`.
@@ -698,18 +1110,134 @@ impl DoipTarget {
         match timeout_at(until, self.rx.recv()).await {
             Err(_) => Err(RecvError::Timeout),
             Ok(None) => Err(RecvError::Closed),
-            Ok(Some(x)) => Ok(x),
+            Ok(Some(x)) => Ok(x.incoming),
         }
     }
 
     /// A queued response, if any.
     pub fn try_recv(&mut self) -> Option<Incoming> {
-        self.rx.try_recv().ok()
+        self.rx.try_recv().ok().map(|queued| queued.incoming)
     }
 }
 
 impl Drop for DoipTarget {
     fn drop(&mut self) {
-        self.shared.lock().targets.remove(&self.la);
+        let close = {
+            let mut state = self.shared.lock();
+            let slot = state.targets.remove(&self.la);
+            if let Some(ack) = slot.and_then(|slot| slot.ack) {
+                let phase = ack.control.cancel();
+                if matches!(phase, TxPhase::Writing | TxPhase::Handed)
+                    && !ack.control.reply_received.load(Ordering::Acquire)
+                {
+                    phase == TxPhase::Writing || !poison(&mut state, self.la)
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        };
+        if close {
+            self.shared.close(LinkEvent::Closed {
+                reason: "target dropped during ambiguous transmit".into(),
+            });
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::future::{Future, poll_fn};
+    use std::task::Poll;
+    use tokio::io::{AsyncReadExt, DuplexStream};
+
+    fn blocked_writer_client() -> (DoipClient, DuplexStream) {
+        let cfg = ClientConfig::new(SocketAddr::from(([127, 0, 0, 1], 0)), 0x0e80);
+        let (data_tx, data_rx) = mpsc::channel(CAP_TX_FRAMES);
+        let (ctrl_tx, ctrl_rx) = mpsc::channel(CAP_CONTROL_FRAMES);
+        let (link_tx, _link_rx) = mpsc::channel(CAP_LINK_EVENTS);
+        let (state_tx, state_rx) = watch::channel(LinkState::Active);
+        let shared = Shared::new(&cfg, data_tx, ctrl_tx, link_tx, state_tx);
+        shared.lock().activated = true;
+        let (socket, peer) = tokio::io::duplex(1);
+        let writer = tokio::spawn(writer_task(
+            socket,
+            ctrl_rx,
+            data_rx,
+            state_rx,
+            Arc::clone(&shared),
+        ));
+        // A bounded placeholder reader: this unit fixture drives ACKs/state explicitly.
+        let reader = tokio::spawn(tokio::time::sleep(MAX_FRAME_WRITE_TIME * 4));
+        (
+            DoipClient {
+                shared,
+                reader,
+                writer,
+            },
+            peer,
+        )
+    }
+
+    async fn assert_prefix_and_eof(peer: &mut DuplexStream) {
+        let mut bytes = [0; 16];
+        assert_eq!(peer.read(&mut bytes).await.expect("prefix"), 1);
+        assert_eq!(peer.read(&mut bytes).await.expect("discarded partial stream"), 0);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancelled_partial_client_write_closes_connection_and_never_appends_next_frame() {
+        let (mut client, mut peer) = blocked_writer_client();
+        let target = client.open_target(0x1001).expect("target");
+        let mut submit =
+            Box::pin(target.submit(&[0x22, 0xf1, 0x90], Instant::now() + MAX_FRAME_WRITE_TIME * 2));
+        assert!(poll_fn(|cx| Poll::Ready(submit.as_mut().poll(cx).is_pending())).await);
+        tokio::task::yield_now().await;
+        drop(submit);
+        assert!(client.is_closed());
+        timeout(Duration::from_millis(10), &mut client.writer)
+            .await
+            .expect("writer observes cancel")
+            .expect("writer");
+        assert!(matches!(
+            target
+                .submit(&[0x3e, 0], Instant::now() + MAX_FRAME_WRITE_TIME)
+                .await,
+            Err(DoipError::Closed)
+        ));
+        assert_prefix_and_eof(&mut peer).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn client_close_interrupts_in_progress_write() {
+        let (mut client, mut peer) = blocked_writer_client();
+        let target = client.open_target(0x1001).expect("target");
+        let mut submit =
+            Box::pin(target.submit(&[0x22, 0xf1, 0x90], Instant::now() + MAX_FRAME_WRITE_TIME * 2));
+        assert!(poll_fn(|cx| Poll::Ready(submit.as_mut().poll(cx).is_pending())).await);
+        tokio::task::yield_now().await;
+        client.close();
+        timeout(Duration::from_millis(10), &mut client.writer)
+            .await
+            .expect("writer observes close")
+            .expect("writer");
+        assert!(submit.await.is_err());
+        assert_prefix_and_eof(&mut peer).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn client_stalled_write_has_independent_socket_timeout() {
+        let (client, mut peer) = blocked_writer_client();
+        let target = client.open_target(0x1001).expect("target");
+        let start = Instant::now();
+        let result = target
+            .submit(&[0x22, 0xf1, 0x90], start + MAX_FRAME_WRITE_TIME * 2)
+            .await;
+        assert!(matches!(result, Err(DoipError::TxTimeout)));
+        assert_eq!(start.elapsed(), MAX_FRAME_WRITE_TIME);
+        assert!(client.is_closed());
+        assert_prefix_and_eof(&mut peer).await;
     }
 }

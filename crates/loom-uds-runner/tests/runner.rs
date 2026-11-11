@@ -292,8 +292,11 @@ async fn link_loss_mid_write_is_outcome_unknown() {
     let res = r.execute(write(WRITE_DID, 2000)).await;
     assert_eq!(
         res.status,
-        TxnStatus::Rejected(RejectReason::NotSent(TransportError::Closed))
+        TxnStatus::Rejected(RejectReason::Quarantine { sid: 0x2e })
     );
+    // Uncertain in-flight work now keeps its reservation, including terminal link loss.
+    // Reconnection with a proven new generation is required before this SID can be reused.
+    assert!(r.unresolved().overlaps(0x2e));
     assert_eq!(res.write_state, WriteState::Failed);
     assert_eq!(ctl.sent().len(), 1);
 }

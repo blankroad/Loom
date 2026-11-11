@@ -1326,6 +1326,7 @@ dependencies = [
 name = "loom-uds-runner"
 version = "0.1.0"
 dependencies = [
+ "loom-domain-api",
  "loom-proto",
  "loom-uds-codec",
  "loom-uds-doip",

@@ -15,7 +15,7 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use thiserror::Error;
-use tokio::io::AsyncWriteExt;
+use tokio::io::AsyncWrite;
 use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::{TcpListener, TcpStream, UdpSocket};
 use tokio::sync::{mpsc, watch};
@@ -26,7 +26,7 @@ use crate::frame::{
     ActivationCode, MAX_DOIP_FRAME, MAX_DOIP_PAYLOAD, MAX_UDS_PDU, Message, ProtocolVersion,
     VehicleAnnouncement, decode_frame, diag_code, header_nack,
 };
-use crate::io::{ReadError, read_message};
+use crate::io::{MAX_FRAME_WRITE_TIME, ReadError, read_message, write_bounded};
 
 /// Most simultaneous TCP connections; further connections are accepted and closed at once.
 pub const MAX_ENTITY_CONNECTIONS: usize = 32;
@@ -42,6 +42,9 @@ pub const MAX_QUEUED_FAULTS: usize = 16;
 pub const CAP_ENTITY_RX_FRAMES: usize = 16;
 /// Longest reply delay honoured; longer delays are clamped.
 pub const MAX_REPLY_DELAY: Duration = Duration::from_secs(600);
+/// ISO 13400-2 `T_TCP_General_Inactivity` default (5 min). The entity applies it only when set with
+/// [`DoipEntity::set_tcp_general_inactivity`] (sim default: off).
+pub const DEFAULT_T_TCP_GENERAL_INACTIVITY: Duration = Duration::from_secs(300);
 
 /// Request handler. Same shape as `loom-uds-sim`: given the target LA, the monotonic time since
 /// the entity started and the UDS request, return `(delay, response bytes)` pairs (empty = no
@@ -129,6 +132,8 @@ pub struct EntityStats {
     pub alive_check_responses: u64,
     pub replies_dropped: u64,
     pub header_nacks: u64,
+    /// Connections closed by the `T_TCP_General_Inactivity` timer.
+    pub inactivity_closes: u64,
 }
 
 #[derive(Debug, Default)]
@@ -140,6 +145,7 @@ struct Counters {
     alive: AtomicU64,
     dropped: AtomicU64,
     nacks: AtomicU64,
+    inactivity: AtomicU64,
 }
 
 struct EntityShared {
@@ -154,6 +160,8 @@ struct EntityShared {
     kick: watch::Sender<u64>,
     alive: watch::Sender<u64>,
     shutdown: watch::Sender<bool>,
+    /// `T_TCP_General_Inactivity` (`None` = off).
+    general_inactivity: watch::Sender<Option<Duration>>,
 }
 
 impl std::fmt::Debug for EntityShared {
@@ -251,6 +259,7 @@ impl DoipEntity {
             kick: watch::Sender::new(0),
             alive: watch::Sender::new(0),
             shutdown: watch::Sender::new(false),
+            general_inactivity: watch::Sender::new(None),
         });
         let accept_task = tokio::spawn(accept_loop(listener, Arc::clone(&shared)));
         let udp_task = udp
@@ -293,6 +302,15 @@ impl DoipEntity {
         self.shared.kick.send_modify(|k| *k = k.wrapping_add(1));
     }
 
+    /// Set the `T_TCP_General_Inactivity` timer (ISO 13400-2, default
+    /// [`DEFAULT_T_TCP_GENERAL_INACTIVITY`]) for every connection, open or future; `None` turns it
+    /// off (the default). A connection with no DoIP message **received** from the tester for this
+    /// long is closed. Any received message resets it — including an alive check response, so a
+    /// tester that only answers alive checks stays connected only while the entity sends them.
+    pub fn set_tcp_general_inactivity(&self, timeout: Option<Duration>) {
+        self.shared.general_inactivity.send_replace(timeout);
+    }
+
     /// Send an alive check request on every open connection.
     pub fn send_alive_check(&self) {
         self.shared.alive.send_modify(|k| *k = k.wrapping_add(1));
@@ -312,6 +330,7 @@ impl DoipEntity {
             alive_check_responses: c.alive.load(Ordering::Relaxed),
             replies_dropped: c.dropped.load(Ordering::Relaxed),
             header_nacks: c.nacks.load(Ordering::Relaxed),
+            inactivity_closes: c.inactivity.load(Ordering::Relaxed),
         }
     }
 
@@ -369,9 +388,43 @@ async fn accept_loop(listener: TcpListener, sh: Arc<EntityShared>) {
     }
 }
 
-async fn write_msg(wr: &mut OwnedWriteHalf, msg: &Message, version: ProtocolVersion) -> bool {
+/// All entity writes, including ACK/alive and scheduled replies, observe shutdown/kick while
+/// waiting for the socket. A failed/partial write terminates the owning connection loop.
+struct EntityWriter<W = OwnedWriteHalf> {
+    socket: W,
+    shutdown: watch::Receiver<bool>,
+    kick: watch::Receiver<u64>,
+}
+
+impl<W: AsyncWrite + Unpin> EntityWriter<W> {
+    async fn write_frame(&mut self, frame: &[u8]) -> bool {
+        let Self {
+            socket,
+            shutdown,
+            kick,
+        } = self;
+        let closed = async {
+            if *shutdown.borrow() || kick.has_changed().unwrap_or(true) {
+                return;
+            }
+            tokio::select! {
+                _ = shutdown.wait_for(|s| *s) => {},
+                _ = kick.changed() => {},
+            }
+        };
+        write_bounded(socket, frame, Instant::now() + MAX_FRAME_WRITE_TIME, closed)
+            .await
+            .is_ok()
+    }
+}
+
+async fn write_msg<W: AsyncWrite + Unpin>(
+    wr: &mut EntityWriter<W>,
+    msg: &Message,
+    version: ProtocolVersion,
+) -> bool {
     match msg.encode(version) {
-        Ok(frame) => wr.write_all(&frame).await.is_ok(),
+        Ok(frame) => wr.write_frame(&frame).await,
         Err(e) => {
             tracing::warn!("entity frame not encodable: {e}");
             true
@@ -397,7 +450,12 @@ async fn connection(stream: TcpStream, id: u64, sh: Arc<EntityShared>) {
     if let Err(e) = stream.set_nodelay(true) {
         tracing::debug!("entity nodelay: {e}");
     }
-    let (mut rd, mut wr) = stream.into_split();
+    let (mut rd, wr) = stream.into_split();
+    let mut wr = EntityWriter {
+        socket: wr,
+        shutdown: sh.shutdown.subscribe(),
+        kick: sh.kick.subscribe(),
+    };
     let (ftx, mut frx) = mpsc::channel(CAP_ENTITY_RX_FRAMES);
     let reader = tokio::spawn(async move {
         loop {
@@ -411,6 +469,8 @@ async fn connection(stream: TcpStream, id: u64, sh: Arc<EntityShared>) {
     let mut kick = sh.kick.subscribe();
     let mut alive = sh.alive.subscribe();
     let mut shutdown = sh.shutdown.subscribe();
+    let mut inactivity = sh.general_inactivity.subscribe();
+    let mut last_rx = Instant::now();
     kick.borrow_and_update();
     alive.borrow_and_update();
     let version = sh.cfg.version;
@@ -423,6 +483,8 @@ async fn connection(stream: TcpStream, id: u64, sh: Arc<EntityShared>) {
     loop {
         let next_due = conn.sched.peek().map(|Reverse((due, _, _))| *due);
         let far = Instant::now() + MAX_REPLY_DELAY;
+        let idle_limit = *inactivity.borrow_and_update();
+        let idle_due = idle_limit.map(|t| last_rx + t);
         let step = tokio::select! {
             biased;
             _ = shutdown.changed() => Step::Close,
@@ -434,12 +496,21 @@ async fn connection(stream: TcpStream, id: u64, sh: Arc<EntityShared>) {
                     Step::Continue
                 }
             }
+            _ = inactivity.changed() => Step::Continue,
             r = frx.recv() => match r {
-                Some(frame) => on_frame(frame, &mut conn, &mut wr, &sh).await,
+                Some(frame) => {
+                    last_rx = Instant::now();
+                    on_frame(frame, &mut conn, &mut wr, &sh).await
+                }
                 None => Step::Close,
             },
             _ = sleep_until(next_due.unwrap_or(far)), if next_due.is_some() => {
                 flush_due(&mut conn, &mut wr).await
+            }
+            _ = sleep_until(idle_due.unwrap_or(far)), if idle_due.is_some() => {
+                sh.counters.inactivity.fetch_add(1, Ordering::Relaxed);
+                tracing::debug!("entity: T_TCP_General_Inactivity elapsed, closing connection {id}");
+                Step::Close
             }
         };
         if matches!(step, Step::Close) {
@@ -449,16 +520,14 @@ async fn connection(stream: TcpStream, id: u64, sh: Arc<EntityShared>) {
     reader.abort();
     lock(&sh.registered).remove(&id);
     sh.open.fetch_sub(1, Ordering::AcqRel);
-    if let Err(e) = wr.shutdown().await {
-        tracing::debug!("entity shutdown: {e}");
-    }
+    // Drop the socket on partial write, timeout or shutdown; no graceful I/O wait here.
 }
 
-async fn flush_due(conn: &mut Conn, wr: &mut OwnedWriteHalf) -> Step {
+async fn flush_due(conn: &mut Conn, wr: &mut EntityWriter) -> Step {
     let now = Instant::now();
     while conn.sched.peek().is_some_and(|Reverse((due, _, _))| *due <= now) {
         if let Some(Reverse((_, _, frame))) = conn.sched.pop()
-            && wr.write_all(&frame).await.is_err()
+            && !wr.write_frame(&frame).await
         {
             return Step::Close;
         }
@@ -469,7 +538,7 @@ async fn flush_due(conn: &mut Conn, wr: &mut OwnedWriteHalf) -> Step {
 async fn on_frame(
     frame: Result<Message, ReadError>,
     conn: &mut Conn,
-    wr: &mut OwnedWriteHalf,
+    wr: &mut EntityWriter,
     sh: &EntityShared,
 ) -> Step {
     let version = sh.cfg.version;
@@ -553,7 +622,7 @@ async fn on_diag(
     target: u16,
     data: &[u8],
     conn: &mut Conn,
-    wr: &mut OwnedWriteHalf,
+    wr: &mut EntityWriter,
     sh: &EntityShared,
 ) -> Step {
     let version = sh.cfg.version;
@@ -668,5 +737,60 @@ async fn udp_loop(sock: Arc<UdpSocket>, sh: Arc<EntityShared>) {
         {
             tracing::debug!("entity udp send: {e}");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::AsyncReadExt;
+
+    #[tokio::test(start_paused = true)]
+    async fn entity_stalled_reply_is_bounded_and_partial_stream_is_discarded() {
+        let (socket, mut peer) = tokio::io::duplex(1);
+        let (_stop, shutdown) = watch::channel(false);
+        let (_kick, kick) = watch::channel(0);
+        let task = tokio::spawn(async move {
+            let mut writer = EntityWriter {
+                socket,
+                shutdown,
+                kick,
+            };
+            write_msg(&mut writer, &Message::AliveCheckRequest, ProtocolVersion::Iso2012).await
+        });
+        let ok = tokio::time::timeout(MAX_FRAME_WRITE_TIME + Duration::from_millis(10), task)
+            .await
+            .expect("entity write bound")
+            .expect("task");
+        assert!(!ok, "a partial frame cannot be reported complete");
+        let mut bytes = [0; 16];
+        assert_eq!(peer.read(&mut bytes).await.expect("prefix"), 1);
+        assert_eq!(peer.read(&mut bytes).await.expect("EOF"), 0);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn entity_close_interrupts_stalled_write() {
+        let (socket, mut peer) = tokio::io::duplex(1);
+        let (_stop, shutdown) = watch::channel(false);
+        let (close, kick) = watch::channel(0);
+        let task = tokio::spawn(async move {
+            let mut writer = EntityWriter {
+                socket,
+                shutdown,
+                kick,
+            };
+            writer.write_frame(&[1, 2, 3]).await
+        });
+        tokio::task::yield_now().await;
+        close.send_replace(1);
+        assert!(
+            !tokio::time::timeout(Duration::from_millis(10), task)
+                .await
+                .expect("kick promptly")
+                .expect("task")
+        );
+        let mut bytes = [0; 8];
+        assert_eq!(peer.read(&mut bytes).await.expect("prefix"), 1);
+        assert_eq!(peer.read(&mut bytes).await.expect("EOF"), 0);
     }
 }

@@ -9,10 +9,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use loom_proto::error::ErrorCode;
-use loom_proto::event::WriteState;
+use loom_proto::event::{Origin, WriteState};
 use loom_uds_codec::{MAX_PDU_LEN, ResponseKind, SPRMIB, classify_response, service};
 use tokio::time::Instant;
 
+use crate::abort::{AbortKind, AbortSignal, Priority};
 use crate::quarantine::{ReleaseCause, Unresolved};
 use crate::transport::{Incoming, RecvError, Transport, TransportError};
 
@@ -30,6 +31,10 @@ pub const DEFAULT_QUARANTINE_QUIET: Duration = Duration::from_secs(1);
 pub const DEFAULT_COMPLETION_LIMIT: Duration = Duration::from_secs(1);
 /// Most probe candidates kept from the configuration; extra candidates are ignored.
 pub const MAX_PROBE_CANDIDATES: usize = 8;
+/// Maximum UTF-8 bytes of request metadata retained by the runner. Oversize is refused.
+pub const MAX_REQUEST_ID_BYTES: usize = 128;
+/// Wait before the single read retry after NRC `0x21` busyRepeatRequest (bounded by the deadline).
+pub const READ_RETRY_BUSY_DELAY: Duration = Duration::from_millis(50);
 
 /// Runner timing and quarantine configuration.
 #[derive(Debug, Clone)]
@@ -46,6 +51,19 @@ pub struct RunnerConfig {
     pub late_response_max: Option<Duration>,
     /// Liveness probe requests in preference order (R0, unique SIDs; default `3E 00`, `22 F186`).
     pub probe_candidates: Vec<Vec<u8>>,
+    /// Policy "read retry once" (plan §3.4): a **read** answered with NRC `0x21`
+    /// busyRepeatRequest is sent once more after [`READ_RETRY_BUSY_DELAY`]. Default `false`.
+    /// Writes are never re-sent; a timed-out read is never retried (it joined U, so a same-SID
+    /// retry would be indistinguishable from its late answer — D19).
+    pub read_retry: bool,
+}
+
+impl RunnerConfig {
+    /// Builder for [`RunnerConfig::read_retry`].
+    pub fn with_read_retry(mut self, on: bool) -> Self {
+        self.read_retry = on;
+        self
+    }
 }
 
 impl Default for RunnerConfig {
@@ -58,6 +76,7 @@ impl Default for RunnerConfig {
             completion_limit: DEFAULT_COMPLETION_LIMIT,
             late_response_max: None,
             probe_candidates: vec![vec![0x3E, 0x00], vec![0x22, 0xF1, 0x86]],
+            read_retry: false,
         }
     }
 }
@@ -103,9 +122,34 @@ pub struct TxnRequest {
     pub access: Access,
     /// When the RPC was received.
     pub received_at: Instant,
+    /// Queue priority (default [`Priority::Agent`]). Set with [`TxnRequest::with_priority`].
+    pub priority: Priority,
+    /// Who asked (default [`Origin::Agent`]); used by [`crate::AbortScope::Origin`].
+    pub origin: Origin,
+    /// Contract `request_id`, if any; used by [`crate::AbortScope::Request`].
+    pub request_id: Option<String>,
 }
 
 impl TxnRequest {
+    /// Validate before queueing or cloning any caller-controlled payload/metadata.
+    pub(crate) fn admission_error(&self) -> Option<RejectReason> {
+        if self.pdu.is_empty() || self.pdu.len() > MAX_PDU_LEN {
+            Some(RejectReason::InvalidPdu)
+        } else if self
+            .request_id
+            .as_ref()
+            .is_some_and(|id| id.len() > MAX_REQUEST_ID_BYTES)
+        {
+            Some(RejectReason::InvalidRequestId)
+        } else {
+            None
+        }
+    }
+
+    pub(crate) fn retained_bytes(&self) -> usize {
+        self.pdu.len() + self.request_id.as_ref().map_or(0, String::len)
+    }
+
     pub fn new(pdu: Vec<u8>, access: Access, timeout: Duration) -> Self {
         let now = Instant::now();
         TxnRequest {
@@ -113,7 +157,28 @@ impl TxnRequest {
             deadline: now + timeout,
             access,
             received_at: now,
+            priority: Priority::Agent,
+            origin: Origin::Agent,
+            request_id: None,
         }
+    }
+
+    /// Queue priority (abort > user > agent). Does not change `origin`.
+    pub fn with_priority(mut self, priority: Priority) -> Self {
+        self.priority = priority;
+        self
+    }
+
+    /// Origin for abort scoping. Does not change `priority`.
+    pub fn with_origin(mut self, origin: Origin) -> Self {
+        self.origin = origin;
+        self
+    }
+
+    /// Request id for abort scoping.
+    pub fn with_request_id(mut self, id: impl Into<String>) -> Self {
+        self.request_id = Some(id.into());
+        self
     }
 
     pub fn read(pdu: Vec<u8>, timeout: Duration) -> Self {
@@ -160,6 +225,7 @@ pub enum RejectReason {
     /// Deadline passed before the request could be sent.
     Expired,
     InvalidPdu,
+    InvalidRequestId,
     /// Transport refused before hand-off (closed, queue full, busy).
     NotSent(TransportError),
     /// The runner task has stopped.
@@ -185,6 +251,12 @@ pub enum TxnStatus {
     LinkLost,
     GenerationChanged,
     Rejected(RejectReason),
+    /// Aborted by the user or the STOP latch. Not sent: `failed`. Sent: the wait for the response
+    /// stopped — reads `failed`, writes `outcome_unknown` — and the request joined U, so its
+    /// response is quarantined as late (D19).
+    Aborted {
+        kind: AbortKind,
+    },
 }
 
 /// Monotonic timestamps (gateway `mono_ns`) for the UI to compare against `core.time`.
@@ -227,6 +299,14 @@ impl TxnResult {
         let mut t = Txn::new(req, clock);
         t.generation = generation;
         t.finish(TxnStatus::Rejected(reason), clock)
+    }
+
+    /// Result for a request aborted before it was sent (`failed` + `E_INTERRUPTED_BY_USER` /
+    /// `E_STOPPED`).
+    pub fn aborted(req: &TxnRequest, kind: AbortKind, clock: &MonoClock, generation: u64) -> TxnResult {
+        let mut t = Txn::new(req, clock);
+        t.generation = generation;
+        t.finish(TxnStatus::Aborted { kind }, clock)
     }
 }
 
@@ -331,13 +411,21 @@ impl Txn {
             }
             TxnStatus::LinkLost => lost(ErrorCode::Disconnected),
             TxnStatus::GenerationChanged => lost(ErrorCode::ConnectionChanged),
+            TxnStatus::Aborted { kind } => {
+                let ws = if sent && write {
+                    WriteState::OutcomeUnknown
+                } else {
+                    WriteState::Failed
+                };
+                (ws, false, sent, Some(kind.error_code()))
+            }
             TxnStatus::Rejected(reason) => {
                 let e = match reason {
                     RejectReason::QueueFull | RejectReason::Expired => ErrorCode::Busy,
                     RejectReason::Quarantine { .. }
                     | RejectReason::QuarantineCapacity
                     | RejectReason::QuarantineQuiet => ErrorCode::Quarantine,
-                    RejectReason::InvalidPdu => ErrorCode::Usage,
+                    RejectReason::InvalidPdu | RejectReason::InvalidRequestId => ErrorCode::Usage,
                     RejectReason::NotSent(TransportError::Closed) => ErrorCode::Disconnected,
                     RejectReason::NotSent(TransportError::TxFull | TransportError::Busy) => ErrorCode::Busy,
                     RejectReason::NotSent(_) | RejectReason::RunnerStopped => ErrorCode::NotOpen,
@@ -375,7 +463,9 @@ impl Txn {
 /// `0x11` ECUReset positive response confirms a reset.
 const ECU_RESET_SID: u8 = 0x11;
 
-/// Runner for one target. Use directly (`execute`) or through [`crate::RunnerHandle`].
+/// Runner for one target. Prefer [`crate::RunnerHandle`] for caller cancellation isolation.
+/// Direct execution is also drop safe: U is reserved before polling transport submission and
+/// survives a dropped future. Only a definitive final result or proof of no send disarms it.
 pub struct Runner {
     transport: Box<dyn Transport>,
     cfg: RunnerConfig,
@@ -383,6 +473,7 @@ pub struct Runner {
     observer: Arc<dyn RunnerObserver>,
     unresolved: Unresolved,
     last_generation: u64,
+    active_sid: Option<u8>,
 }
 
 impl std::fmt::Debug for Runner {
@@ -404,6 +495,12 @@ impl Runner {
     ) -> Runner {
         cfg.max_response_pending = cfg.max_response_pending.min(MAX_RESPONSE_PENDING_HARD);
         cfg.probe_candidates.truncate(MAX_PROBE_CANDIDATES);
+        cfg.probe_candidates
+            .retain(|pdu| !pdu.is_empty() && pdu.len() <= MAX_PDU_LEN);
+        for pdu in &mut cfg.probe_candidates {
+            pdu.shrink_to_fit();
+        }
+        cfg.probe_candidates.shrink_to_fit();
         let last_generation = transport.generation();
         Runner {
             transport,
@@ -412,6 +509,7 @@ impl Runner {
             observer,
             unresolved: Unresolved::default(),
             last_generation,
+            active_sid: None,
         }
     }
 
@@ -458,6 +556,9 @@ impl Runner {
     }
 
     fn sync_generation(&mut self) {
+        // Recovery contract: generation means old response source discarded + new activation
+        // (DoIP reconnect). A CAN channel reopen alone is NOT this evidence; a future CAN
+        // adapter must provide a separate proven epoch before using this release path (U-13).
         let g = self.transport.generation();
         if g != self.last_generation {
             self.last_generation = g;
@@ -503,9 +604,18 @@ impl Runner {
 
     /// Wait out the quiet period, treating everything received as late. `Err` ends the request.
     /// Ends early once every unresolved request has been released.
-    async fn wait_quiet(&mut self, until: Instant, txn: &mut Txn) -> Result<(), TxnStatus> {
+    async fn wait_quiet(
+        &mut self,
+        until: Instant,
+        txn: &mut Txn,
+        abort: Option<&AbortSignal>,
+    ) -> Result<(), TxnStatus> {
         loop {
-            match self.transport.recv(until).await {
+            let got = match guard(abort, self.transport.recv(until)).await {
+                Ok(r) => r,
+                Err(kind) => return Err(TxnStatus::Aborted { kind }),
+            };
+            match got {
                 Ok(Incoming::Pdu { data, at }) => {
                     self.on_late(&data, at, txn);
                     if self.unresolved.is_empty() {
@@ -526,15 +636,80 @@ impl Runner {
     }
 
     fn timed_out(&mut self, pdu: &[u8], phase: TimeoutPhase, txn: Txn) -> TxnResult {
-        if !self.unresolved.insert(pdu, Instant::now()) {
+        if !self.unresolved.touch_or_insert(pdu, Instant::now()) {
             tracing::warn!("unresolved set full; timed-out request not recorded");
         }
         txn.finish(TxnStatus::Timeout { phase }, &self.clock)
     }
 
+    /// Abort: a request already handed to the link joins U, so its response is quarantined as late.
+    fn aborted(&mut self, pdu: &[u8], kind: AbortKind, txn: Txn) -> TxnResult {
+        if txn.sent_at.is_some() && !self.unresolved.touch_or_insert(pdu, Instant::now()) {
+            tracing::warn!("unresolved set full; aborted request not recorded");
+        }
+        txn.finish(TxnStatus::Aborted { kind }, &self.clock)
+    }
+
     /// Run one request to completion.
     pub async fn execute(&mut self, req: TxnRequest) -> TxnResult {
-        let mut txn = Txn::new(&req, &self.clock);
+        self.run(req, None).await
+    }
+
+    /// [`Runner::execute`] that `abort` can stop at any await point. Before hand-off: nothing is
+    /// sent, `failed` + the abort error. After hand-off: the wait stops (reads `failed`, writes
+    /// `outcome_unknown`) and the request joins U, so its response is quarantined as late (D19).
+    /// The hand-off itself (`Transport::submit`) is not interrupted.
+    pub async fn execute_abortable(&mut self, req: TxnRequest, abort: &AbortSignal) -> TxnResult {
+        self.run(req, Some(abort)).await
+    }
+
+    async fn run(&mut self, req: TxnRequest, abort: Option<&AbortSignal>) -> TxnResult {
+        let first = self.attempt(&req, abort).await;
+        let busy = first.status
+            == TxnStatus::Negative {
+                nrc: NRC_BUSY_REPEAT_REQUEST,
+            };
+        if !(busy && self.cfg.read_retry && req.access == Access::Read) {
+            return first;
+        }
+        let at = Instant::now() + READ_RETRY_BUSY_DELAY;
+        if at >= req.deadline {
+            return first;
+        }
+        // An abort during the delay leaves the completed first attempt as the result.
+        if guard(abort, tokio::time::sleep_until(at)).await.is_err() {
+            return first;
+        }
+        let mut second = self.attempt(&req, abort).await;
+        second.pending_count = second.pending_count.saturating_add(first.pending_count);
+        second.late_count = second.late_count.saturating_add(first.late_count);
+        second
+    }
+
+    async fn attempt(&mut self, req: &TxnRequest, abort: Option<&AbortSignal>) -> TxnResult {
+        // A previous future may have been dropped. Its reservation remains in U.
+        self.active_sid = None;
+        let result = self.attempt_inner(req, abort).await;
+        if let Some(sid) = self.active_sid.take() {
+            let definitive = matches!(
+                &result.status,
+                TxnStatus::Positive
+                    | TxnStatus::Negative { .. }
+                    | TxnStatus::TransportNack { .. }
+                    | TxnStatus::OkSuppressed
+            ) || matches!(&result.status, TxnStatus::Rejected(RejectReason::NotSent(e)) if e.nothing_sent());
+            if definitive {
+                self.unresolved.remove_sid(sid);
+            }
+        }
+        result
+    }
+
+    async fn attempt_inner(&mut self, req: &TxnRequest, abort: Option<&AbortSignal>) -> TxnResult {
+        let mut txn = Txn::new(req, &self.clock);
+        if let Some(reason) = req.admission_error() {
+            return txn.finish(TxnStatus::Rejected(reason), &self.clock);
+        }
         let pdu = req.pdu.as_slice();
         let Some(&sid) = pdu.first() else {
             return txn.finish(TxnStatus::Rejected(RejectReason::InvalidPdu), &self.clock);
@@ -562,14 +737,24 @@ impl Runner {
             if quiet_until > req.deadline {
                 return txn.finish(TxnStatus::Rejected(RejectReason::QuarantineQuiet), &self.clock);
             }
-            if let Err(status) = self.wait_quiet(quiet_until, &mut txn).await {
+            if let Err(status) = self.wait_quiet(quiet_until, &mut txn, abort).await {
                 return txn.finish(status, &self.clock);
             }
             txn.generation = self.transport.generation();
         }
 
+        if let Some(kind) = abort.and_then(AbortSignal::kind) {
+            return txn.finish(TxnStatus::Aborted { kind }, &self.clock);
+        }
+
         // Send.
         let generation = self.transport.generation();
+        // Reserve synchronously before submit can hand off bytes. A future drop at ANY await
+        // keeps U; no Drop implementation needs to re-enter or lock the runner.
+        if !self.unresolved.insert(pdu, Instant::now()) {
+            return txn.finish(TxnStatus::Rejected(RejectReason::QuarantineCapacity), &self.clock);
+        }
+        self.active_sid = Some(sid);
         let sent_at = match self.transport.submit(pdu, req.deadline).await {
             Ok(at) => at,
             Err(TransportError::TxTimeout) => return self.timed_out(pdu, TimeoutPhase::Handoff, txn),
@@ -579,13 +764,20 @@ impl Runner {
             Err(e) => return txn.finish(TxnStatus::Rejected(RejectReason::NotSent(e)), &self.clock),
         };
         txn.sent_at = Some(sent_at);
+        if sent_at > req.deadline {
+            return self.timed_out(pdu, TimeoutPhase::Handoff, txn);
+        }
         self.observer.on_event(&RunnerEvent::Sent {
             pdu,
             mono_ns: self.clock.ns(sent_at),
             generation,
         });
 
-        let p2_start = match self.transport.confirm(req.deadline).await {
+        let confirmed = match guard(abort, self.transport.confirm(req.deadline)).await {
+            Ok(r) => r,
+            Err(kind) => return self.aborted(pdu, kind, txn),
+        };
+        let p2_start = match confirmed {
             Ok(at) => at,
             Err(TransportError::Nack(code)) => {
                 return txn.finish(TxnStatus::TransportNack { code }, &self.clock);
@@ -602,6 +794,9 @@ impl Runner {
             }
         };
         txn.p2_start = Some(p2_start);
+        if p2_start > req.deadline {
+            return self.timed_out(pdu, TimeoutPhase::Deadline, txn);
+        }
 
         // Responses.
         let suppress =
@@ -610,7 +805,30 @@ impl Runner {
         let mut timer = p2_start + self.cfg.p2;
         loop {
             let until = timer.min(req.deadline);
-            match self.transport.recv(until).await {
+            let got = match guard(abort, self.transport.recv(until)).await {
+                Ok(r) => r,
+                Err(kind) => return self.aborted(pdu, kind, txn),
+            };
+            // A ready receive can win over an elapsed tokio timer after executor starvation.
+            // Decide using the transport's arrival stamp, never the scheduler's wake time.
+            if let Ok(ref item) = got {
+                let at = match item {
+                    Incoming::RxStart { at } | Incoming::Pdu { at, .. } => *at,
+                };
+                if at > until {
+                    let hit = if req.deadline < timer {
+                        TimeoutPhase::Deadline
+                    } else {
+                        phase
+                    };
+                    self.unresolved.touch_or_insert(pdu, Instant::now());
+                    if let Incoming::Pdu { data, at } = item {
+                        self.on_late(data, *at, &mut txn);
+                    }
+                    return txn.finish(TxnStatus::Timeout { phase: hit }, &self.clock);
+                }
+            }
+            match got {
                 Ok(Incoming::RxStart { at }) => {
                     txn.first_rx.get_or_insert(at);
                     if phase != TimeoutPhase::Completion {
@@ -628,6 +846,7 @@ impl Runner {
                             txn.final_rx = Some(at);
                             txn.response = Some(data);
                             if sid == ECU_RESET_SID {
+                                self.unresolved.remove_sid(sid);
                                 self.release_all(ReleaseCause::EcuReset);
                             }
                             return txn.finish(TxnStatus::Positive, &self.clock);
@@ -688,5 +907,22 @@ impl Runner {
             .find(|c| c.first().is_some_and(|s| !self.unresolved.overlaps(*s)))?
             .clone();
         Some(self.execute(TxnRequest::read(candidate, timeout)).await)
+    }
+}
+
+/// NRC `0x21` busyRepeatRequest.
+const NRC_BUSY_REPEAT_REQUEST: u8 = 0x21;
+
+/// Await `fut` unless `abort` fires first (abort wins ties).
+async fn guard<F: std::future::Future>(abort: Option<&AbortSignal>, fut: F) -> Result<F::Output, AbortKind> {
+    match abort {
+        None => Ok(fut.await),
+        Some(sig) => {
+            tokio::select! {
+                biased;
+                kind = sig.fired() => Err(kind),
+                out = fut => Ok(out),
+            }
+        }
     }
 }

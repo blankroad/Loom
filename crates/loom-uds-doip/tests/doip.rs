@@ -391,7 +391,7 @@ async fn nack_and_missing_ack() {
     let mut c = cfg(&e);
     c.ack_timeout = Duration::from_millis(150);
     let (client, _ev) = DoipClient::connect(c).await.expect("connect");
-    let mut t = client.open_target(ECU_A).expect("open");
+    let t = client.open_target(ECU_A).expect("open");
     e.inject(EntityFault::NackNextDiag(diag_code::TARGET_UNREACHABLE))
         .expect("inject");
     assert!(matches!(
@@ -403,7 +403,24 @@ async fn nack_and_missing_ack() {
         t.send(&[0x3E, 0x00], soon(1000)).await,
         Err(DoipError::AckTimeout)
     ));
-    // The connection and the ACK slot recover.
+    // An uncertain ACK has no SID/request ID: reuse requires a fresh activated connection.
+    assert!(matches!(
+        t.send(&[0x3E, 0x00], soon(1000)).await,
+        Err(DoipError::AckPending(_))
+    ));
+    drop(t);
+    drop(client);
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while e.open_connections() != 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("old socket closed");
+    let (client, _ev) = DoipClient::connect(cfg(&e))
+        .await
+        .expect("reconnect and reactivate");
+    let mut t = client.open_target(ECU_A).expect("new target");
     t.send(&[0x3E, 0x00], soon(1000)).await.expect("normal send");
     assert_eq!(t.recv_until(soon(1000)).await.expect("rx").data[0], 0x7E);
 }
@@ -543,4 +560,56 @@ fn every_message_roundtrips() {
         data: vec![0; loom_uds_doip::MAX_UDS_PDU + 1],
     };
     assert!(too_big.encode(ProtocolVersion::Iso2012).is_err());
+}
+
+// ---- T_TCP_General_Inactivity (ISO 13400-2, entity side) ----
+
+#[tokio::test]
+async fn t_tcp_inactivity_closes_idle_connection() {
+    let e = entity().await;
+    e.set_tcp_general_inactivity(Some(Duration::from_millis(200)));
+    let (client, mut events) = DoipClient::connect(cfg(&e)).await.expect("connect");
+    let start = Instant::now();
+    assert!(matches!(events.recv().await, Some(LinkEvent::Activated { .. })));
+    let ev = tokio::time::timeout(Duration::from_secs(2), events.recv())
+        .await
+        .expect("closed in time");
+    assert!(matches!(ev, Some(LinkEvent::Closed { .. })), "{ev:?}");
+    assert!(
+        start.elapsed() >= Duration::from_millis(150),
+        "{:?}",
+        start.elapsed()
+    );
+    assert!(client.is_closed());
+    assert_eq!(e.stats().inactivity_closes, 1);
+}
+
+#[tokio::test]
+async fn alive_check_responses_alone_keep_the_connection_only_while_the_entity_asks() {
+    let e = entity().await;
+    e.set_tcp_general_inactivity(Some(Duration::from_millis(300)));
+    let (client, mut events) = DoipClient::connect(cfg(&e)).await.expect("connect");
+    assert!(matches!(events.recv().await, Some(LinkEvent::Activated { .. })));
+    // No diagnostics: the entity asks every 100 ms, the client answers → well past 300 ms open.
+    for _ in 0..8 {
+        sleep(Duration::from_millis(100)).await;
+        e.send_alive_check();
+    }
+    assert!(!client.is_closed(), "alive check responses reset the timer");
+    assert_eq!(e.stats().inactivity_closes, 0);
+    assert!(client.stats().alive_checks_answered >= 7);
+    // Diagnostic traffic resets it too.
+    let mut t = client.open_target(ECU_A).expect("open");
+    for _ in 0..4 {
+        sleep(Duration::from_millis(150)).await;
+        t.send(&[0x3E, 0x00], soon(1000)).await.expect("send");
+        t.recv_until(soon(1000)).await.expect("response");
+    }
+    assert!(!client.is_closed());
+    // The entity stops asking and the tester sends nothing: closed after the timer.
+    let ev = tokio::time::timeout(Duration::from_secs(2), events.recv())
+        .await
+        .expect("closed in time");
+    assert!(matches!(ev, Some(LinkEvent::Closed { .. })), "{ev:?}");
+    assert_eq!(e.stats().inactivity_closes, 1);
 }

@@ -17,12 +17,16 @@ pub mod frame;
 mod io;
 
 pub use client::{
-    AckWait, ClientConfig, ClientStats, DoipClient, DoipError, DoipTarget, Incoming, LinkEvent, LinkState,
-    RecvError,
+    AckWait, ClientConfig, ClientHealth, ClientStats, DoipClient, DoipError, DoipTarget, Incoming, LinkEvent,
+    LinkState, RecvError,
 };
 pub use discovery::{Discovered, DiscoveryRequest, VehicleIdFilter, collect_announcements, discover};
-pub use entity::{DoipEntity, EntityConfig, EntityError, EntityFault, EntityHandler, EntityStats};
+pub use entity::{
+    DEFAULT_T_TCP_GENERAL_INACTIVITY, DoipEntity, EntityConfig, EntityError, EntityFault, EntityHandler,
+    EntityStats,
+};
 pub use frame::{
     ActivationCode, ActivationType, DOIP_PORT, HEADER_LEN, Header, HeaderError, MAX_DOIP_FRAME,
     MAX_DOIP_PAYLOAD, MAX_UDS_PDU, Message, ProtocolVersion, VehicleAnnouncement, decode_frame, parse_header,
 };
+pub use io::MAX_FRAME_WRITE_TIME;
