@@ -17,10 +17,16 @@ import {
   type RowLike,
 } from '../../sdk';
 import {
+  bytesText,
+  dtcText,
+  emptyTarget,
+  hexByte,
   isTesterPresent,
   leaseText,
   needsSecondEnter,
   normalizeHex,
+  nrcText,
+  previewText,
   reduceTarget,
   resultSymbol,
   targetLine,
@@ -42,6 +48,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : v === undefined || v === null ? '' : String(v));
+/** service name, else the SID in hex (canonical `sid` is a number: 34 → "SID 0x22") */
+const serviceText = (p: Readonly<Record<string, unknown>>): string => {
+  const svc = str(p.service);
+  if (svc) return svc;
+  const sid = p.sid === undefined || p.sid === null ? null : hexByte(p.sid);
+  return sid ? `SID 0x${sid}` : '';
+};
 
 export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const mirror = ctx.store('uds');
@@ -96,20 +109,31 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const table = createRowTable(tableHost, {
     columns: [
       { key: 'target', header: '대상', width: '5em', cell: (r) => str(r.payload.target) || (r.channel ?? '') },
-      { key: 'service', header: '서비스', width: '13em', cell: (r) => str(r.payload.service) || str(r.payload.sid) },
+      { key: 'service', header: '서비스', width: '13em', cell: (r) => serviceText(r.payload) },
       { key: 'summary', header: '요약', width: '1fr', cell: (r) => str(r.payload.summary) },
       { key: 'result', header: '결과', width: '10em', cell: (r) => resultSymbol(r) },
       { key: 'timing', header: 'p2/rtt', width: '7em', cell: (r, now) => timingText(r, now) },
     ],
-    detail: (r: RowLike) => [
-      ['request_id', r.requestId],
-      ['요청', str(r.payload.req_hex)],
-      ['응답', str(r.payload.resp_hex) || '—'],
-      ['NRC', r.payload.nrc !== undefined ? `${str(r.payload.nrc)} ${str(r.payload.nrc_name)}` : '—'],
-      ['출처', `${r.origin}${r.clientId ? ` ${r.clientId}` : ''}`],
-      ['등급', r.risk ?? 'R?'],
-      ['갱신', `${r.updates}회 · ${r.state}`],
-    ],
+    detail: (r: RowLike) => {
+      const p = r.payload;
+      const lines: [string, string][] = [
+        ['request_id', r.requestId],
+        // canonical bytes{encoding,data} / resp_bytes first, legacy req_hex / resp_hex second
+        ['요청', bytesText(p.bytes) ?? bytesText(p.req_hex) ?? '—'],
+        ['응답', bytesText(p.resp_bytes) ?? bytesText(p.resp_hex) ?? '—'],
+        ['NRC', nrcText(p) ?? '—'],
+      ];
+      const dtcs = dtcText(p);
+      if (dtcs !== null) lines.push(['DTC', dtcs]);
+      const block = p.block && typeof p.block === 'object' ? (p.block as Record<string, unknown>) : null;
+      if (block) lines.push(['차단', `${str(block.class)} ${str(block.reason)}`.trim()]);
+      lines.push(
+        ['출처', `${r.origin}${r.clientId ? ` ${r.clientId}` : ''}`],
+        ['등급', r.risk ?? (typeof p.risk === 'string' ? p.risk : 'R?')],
+        ['갱신', `${r.updates}회 · ${r.state}`],
+      );
+      return lines;
+    },
     onNeedRender: () => ctx.scheduler.invalidate(),
     ariaLabel: 'UDS 트랜잭션',
     emptyText: '요청 없음',
@@ -147,10 +171,9 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       .query<Record<string, unknown>>('uds.request', { target: t, bytes_hex: hex, dry_run: true }, ac.signal)
       .then((res) => {
         if (ac.signal.aborted) return;
-        previewRisk = res?.risk ?? null;
-        preview.textContent = [str(res?.service), str(res?.did_name), res?.risk ? `· ${str(res.risk)}` : '', str(res?.reason)]
-          .filter(Boolean)
-          .join(' ');
+        const pv = previewText(res);
+        previewRisk = pv.risk;
+        preview.textContent = pv.text;
       })
       .catch(() => {
         if (!ac.signal.aborted) preview.textContent = '미리보기 실패';
@@ -232,10 +255,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       targetsOverflow++;
       return;
     }
-    targets.set(name, {
-      target: name, link: '?', backend: '?', addr: null, session: '?', sessionConfidence: null, security: '?',
-      tpOn: false, tpOk: 0, p2: null, p2Star: null, leaseOrigin: null, leaseActor: null,
-    });
+    targets.set(name, emptyTarget(name));
   };
 
   const renderTargets = () => {

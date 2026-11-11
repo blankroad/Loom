@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { LoomEvent } from '../../proto/provisional';
 import { ev, mountPanel, writeEv, type Harness } from '../../sdk/testing/harness';
 import { PREVIEW_DEBOUNCE_MS } from './consolePanel';
-import { normalizeHex, resultSymbol, timingText } from './udsModel';
+import { normalizeHex, previewText, resultSymbol, timingText } from './udsModel';
 
 let h: Harness | null = null;
 afterEach(() => {
@@ -156,5 +160,162 @@ describe('U-3: STALLED', () => {
     h.shell.tick(5_000);
     h.frame();
     expect(input.disabled).toBe(true);
+  });
+});
+
+// ---- canonical backend payloads: the Rust serde fixtures themselves (crates/loom-uds/fixtures,
+// generated from crates/loom-uds/src/payload.rs by tests/fixtures.rs) — not a UI-side mock shape.
+const FIXTURES = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../crates/loom-uds/fixtures');
+type FixtureEvent = { kind: string; request_id: string | null; payload: Record<string, unknown> };
+const fixture = <T = FixtureEvent[]>(name: string): T =>
+  JSON.parse(readFileSync(resolve(FIXTURES, `${name}.json`), 'utf8')) as T;
+/** wrap a fixture entry in the envelope the gateway adds (crates/loom-uds/src/events.rs) */
+const envelope = (f: FixtureEvent): LoomEvent =>
+  ev({
+    kind: f.kind,
+    channel: String(f.payload.target),
+    origin: f.kind === 'uds.state' || f.kind === 'uds.rx' ? 'device' : 'agent',
+    ...(f.request_id !== null ? { request_id: f.request_id } : {}),
+    ...(typeof f.payload.write_state === 'string' ? { risk: f.payload.risk as LoomEvent['risk'] } : {}),
+    payload: f.payload,
+  });
+const barText = (host: HTMLElement) => host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+const rowEl = (host: HTMLElement, id: string) => rowsIn(host).find((r) => r.dataset.requestId === id)!;
+const detailOf = (hh: Harness, id: string): Record<string, string> => {
+  rowEl(hh.host, id).click();
+  hh.frame();
+  const out: Record<string, string> = {};
+  for (const d of hh.host.querySelectorAll('.vt-detail .disp-row')) out[d.querySelector('dt')!.textContent!] = d.querySelector('dd')!.textContent!;
+  rowEl(hh.host, id).click(); // deselect
+  hh.frame();
+  return out;
+};
+
+describe('uds.console — canonical uds.state (fixtures/state.json)', () => {
+  const [connected, extended] = fixture('state') as [FixtureEvent, FixtureEvent];
+
+  it('shows link/session/security/TP/lease from the real payload, honest about assumed state', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(connected)]);
+    let bar = barText(h.host);
+    expect(bar).toContain('ecu1 ● sim DoIP 0x1001 sess=default? sec=🔒? TP off P2 50/5000');
+    expect(bar).toContain('제어: 비어 있음');
+
+    h.batch([envelope(extended)]);
+    bar = barText(h.host);
+    expect(bar).toContain('sess=extended✓ sec=🔒✓ TP ✓×1 P2 50/5000');
+    expect(bar).toContain('제어: USR viewer:alice');
+    expect(bar).not.toContain('sess=?');
+  });
+
+  it('lease held by this connection (lease.client_id = conn_id) is shown as 나', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' }, { hello: { conn_id: 'conn-2' } });
+    h.batch([envelope(extended)]);
+    expect(barText(h.host)).toContain('제어: 나');
+  });
+
+  it('link down + unlocked numeric security level from the canonical shape', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    const p = extended.payload;
+    h.batch([
+      envelope({
+        ...extended,
+        payload: { ...p, link: { state: 'down', cause: 'tcp reset' }, security: { level: 1, confidence: 'confirmed' }, tester_present: null, lease: null },
+      }),
+    ]);
+    const bar = barText(h.host);
+    expect(bar).toContain('ecu1 ○ down(tcp reset) sim');
+    expect(bar).toContain('sec=L1🔓✓ TP off');
+    expect(bar).toContain('제어: 비어 있음');
+  });
+
+  it('a target seen only in rows (no uds.state yet) is not painted as linked/locked', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(fixture('read_ok')[0]!)]);
+    expect(barText(h.host)).toContain('ecu1 ? ? sess=? sec=? TP off');
+  });
+});
+
+describe('uds.console — canonical row events (fixtures/*.json)', () => {
+  const ALL = ['read_ok', 'pending_then_positive', 'nrc', 'read_timeout', 'write_outcome_unknown', 'sprmib', 'blocked_2a', 'dtc_list', 'late_response'];
+
+  const mountAll = () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch(ALL.flatMap((n) => fixture(n)).map(envelope));
+    return h;
+  };
+
+  it('one row per request; result never paints a failure as success', () => {
+    const hh = mountAll();
+    // r-6 (3E 80 TesterPresent) folds into the bar; late_response (uds.rx only) creates no row
+    expect(rowsIn(hh.host).map((r) => r.dataset.requestId)).toEqual(['r-1', 'r-2', 'r-3', 'r-4', 'r-5', 'r-7', 'r-8']);
+    const res = (id: string) => rowEl(hh.host, id).textContent!;
+    expect(res('r-1')).toContain('✓');
+    expect(res('r-3')).toContain('✗ 0x31 requestOutOfRange');
+    expect(res('r-3')).toContain('50/0.9ms');
+    expect(res('r-4')).toContain('⌛ timeout');
+    expect(res('r-5')).toContain('⌛? 불확정');
+    expect(res('r-7')).toContain('⛔ 거부');
+    for (const id of ['r-3', 'r-4', 'r-5', 'r-7']) expect(res(id)).not.toMatch(/✓/);
+    expect(res('r-1')).toContain('ReadDataByIdentifier');
+    expect(hh.host.querySelector('[data-testid="uds-last-values"]')!.textContent).toContain('ecu1:F190 VIN=LOOMSIM0000000001');
+  });
+
+  it('detail shows the real request/response bytes, hex NRC, DTCs and block reason', () => {
+    const hh = mountAll();
+    const nrc = detailOf(hh, 'r-3');
+    expect(nrc['요청']).toBe('22 F1 A1');
+    expect(nrc['응답']).toBe('7F 22 31');
+    expect(nrc['NRC']).toBe('0x31 requestOutOfRange');
+    expect(nrc['등급']).toBe('R0');
+
+    const ok = detailOf(hh, 'r-2');
+    expect(ok['요청']).toBe('22 F1 90');
+    expect(ok['응답']).toBe('62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31');
+    expect(ok['NRC']).toBe('—'); // the 0x78 pendings are not a final NRC
+
+    const unknown = detailOf(hh, 'r-5');
+    expect(unknown['요청']).toBe('2E F1 A0 02');
+    expect(unknown['응답']).toBe('—'); // nothing received: no invented response
+    expect(unknown['등급']).toBe('R2');
+
+    expect(detailOf(hh, 'r-8')['DTC']).toBe('923400 st=0x09 · C10000 st=0x2F');
+    expect(detailOf(hh, 'r-7')['차단']).toContain('immutable_deny');
+  });
+
+  it('legacy req_hex/resp_hex rows still show their bytes', () => {
+    h = mountPanel('uds.console', { targets: 'bcm' });
+    h.batch([writeEv('l1', 'failed', { seq: 1, payload: { target: 'bcm', sid: '22', req_hex: '22F190', resp_hex: '7F2231', nrc: '0x31', nrc_name: 'requestOutOfRange' } })]);
+    const d = detailOf(h, 'l1');
+    expect(d['요청']).toBe('22 F1 90');
+    expect(d['응답']).toBe('7F 22 31');
+    expect(d['NRC']).toBe('0x31 requestOutOfRange');
+  });
+});
+
+describe('uds.console — canonical dry-run preview (fixtures/dry_run.json)', () => {
+  const [read, write, blocked, parseErr] = fixture<Record<string, unknown>[]>('dry_run');
+
+  it('previewText reads the DryRunResult honestly', () => {
+    expect(previewText(read)).toEqual({ text: 'ReadDataByIdentifier VIN · R0 UDS 0x22 ReadDataByIdentifier', risk: 'R0' });
+    expect(previewText(write).risk).toBe('R2');
+    expect(previewText(blocked).text).toMatch(/^⛔ 거부 ReadDataByPeriodicIdentifier · R1/);
+    expect(previewText(parseErr)).toEqual({ text: '구문 오류: odd number of hex digits (위치 7)', risk: null });
+    expect(previewText({ data: read }).text).toContain('VIN'); // D5 envelope
+  });
+
+  it('a real R2 dry-run result arms the second Enter', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? write : { request_id: 'r-9' }));
+    h.batch([envelope(fixture('state')[0]!)]);
+    const input = h.host.querySelector('input')!;
+    input.value = '2E F1A0 02';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
+    expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('WriteDataByIdentifier · R2');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(h.net.calls.filter((c) => !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
+    expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
 });
