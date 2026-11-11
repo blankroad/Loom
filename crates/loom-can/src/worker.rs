@@ -290,6 +290,35 @@ impl CanSimWorker {
     /// Synchronous body of `on_write`: `op` = [`SendParams`] (`can.send`) or
     /// `{"method": "can.isotp.send", endpoint, pdu}`.
     pub fn write(&mut self, cx: &WorkerCtx, w: Write) -> WriteOutcome {
+        if let Some(method @ (CALL_OPEN | CALL_CLOSE)) = w.op.get("method").and_then(Value::as_str) {
+            if w.origin != Origin::User && (cx.latch().is_on() || lock(&self.core).latched()) {
+                return failed(ErrorCode::Stopped, "STOP is latched".into(), 0);
+            }
+            let call = Call {
+                conn_id: None,
+                call_id: w.call_id,
+                method: method.into(),
+                args: w.op.clone(),
+                origin: w.origin,
+                client_id: w.client_id,
+                actor_id: None,
+                request_id: Some(w.request_id),
+                deadline_mono_ns: w.deadline_mono_ns,
+                approval_ref: w.approval_ref,
+            };
+            return match self.call(cx, &call) {
+                Ok(detail) => WriteOutcome {
+                    state: WriteState::Sent,
+                    detail,
+                    error: None,
+                },
+                Err(error) => WriteOutcome {
+                    state: WriteState::Failed,
+                    detail: Value::Null,
+                    error: Some(error),
+                },
+            };
+        }
         if w.op
             .get("method")
             .and_then(Value::as_str)

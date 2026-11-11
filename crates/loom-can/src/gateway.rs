@@ -1237,6 +1237,25 @@ impl Handler for StatusH {
 // can.isotp.* (K10 minimal): the worker owns the engines; the gateway checks and forwards.
 // ---------------------------------------------------------------------------------------------
 
+/// Lifecycle uses the Request write path so STOP, recording and audit gates apply.
+#[derive(Debug)]
+struct LifecycleH(&'static str);
+impl Handler for LifecycleH {
+    fn call<'a>(
+        &'a self,
+        ctx: &'a mut CallCtx,
+        mut params: Value,
+    ) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            params["method"] = json!(self.0);
+            let rid = ctx.request_id().unwrap_or(self.0).to_owned();
+            ctx.worker(WORKER_KIND_SIM)?
+                .write(&rid, params, ctx.deadline())
+                .await
+        })
+    }
+}
+
 /// Forwards a worker call unchanged (`can.isotp.close|abort|list`).
 #[derive(Debug)]
 struct WorkerCallH {
@@ -1995,7 +2014,11 @@ pub struct CanHooks {
 impl WriteHooks for CanHooks {
     fn classify(&self, req: &WriteRequest<'_>) -> Classification {
         // Periodic `count` is a job length, not a burst: classify by method first.
-        let (risk, reason) = if req.method == RPC_ISOTP_CANCEL {
+        let (risk, reason) = if req.method == crate::worker::CALL_OPEN {
+            (Risk::R1, "open simulated CAN channel and nodes".to_owned())
+        } else if req.method == crate::worker::CALL_CLOSE {
+            (Risk::R0, "close simulated CAN channel".to_owned())
+        } else if req.method == RPC_ISOTP_CANCEL {
             // Stop control: only removes traffic (never latched or approval-gated as a new send).
             (Risk::R0, "stops an ISO-TP transfer".to_owned())
         } else if is_periodic_write(req.method) {
@@ -2012,6 +2035,9 @@ impl WriteHooks for CanHooks {
     }
 
     fn presend_check(&self, req: &WriteRequest<'_>, _grant: Option<&Grant>) -> Result<(), PresendError> {
+        if req.method == crate::worker::CALL_OPEN {
+            return Ok(());
+        }
         if req.target.generation == Some(0) {
             return Err(PresendError::EpochChanged("channel not open".into()));
         }
@@ -2424,6 +2450,18 @@ impl DomainModule for Can {
         .risk_table(RiskTable {
             rows: vec![
                 RiskRow {
+                    method: crate::worker::CALL_OPEN.into(),
+                    selector: None,
+                    risk: Risk::R1,
+                    reason: "open sim channel and nodes".into(),
+                },
+                RiskRow {
+                    method: crate::worker::CALL_CLOSE.into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "close sim channel".into(),
+                },
+                RiskRow {
                     method: RPC_SEND.into(),
                     selector: None,
                     risk: Risk::R1,
@@ -2507,6 +2545,28 @@ impl DomainModule for Can {
         .evidence_verifier(Arc::new(CanVerifier { dbs: dbs.clone() }))?
         .capability("sim")?
         .help(help())?;
+        // Lifecycle calls already exist in the sim worker; expose them over the gateway too.
+        // Restrict to agents / operate viewers: opening a sim also starts its nodes.
+        for method in [crate::worker::CALL_OPEN, crate::worker::CALL_CLOSE] {
+            reg.command(CommandSpec {
+                method: method.into(),
+                write_class: Some(WriteClass::Request),
+                params: json_schema!({"type":"object", "required":["channel"], "properties": {
+                    "channel":{"type":"string"}, "bus":{"type":"string"},
+                    "nodes":{"type":"string"}
+                }}),
+                result: json_schema!({"type":"object"}),
+                roles: RoleSet::WRITE,
+                handler: Arc::new(LifecycleH(method)),
+                bounds: Bounds {
+                    max_wait: Duration::from_secs(5),
+                    default_rows: DEFAULT_ROWS,
+                    max_rows: MAX_ROWS,
+                },
+                default_action: None,
+            })?;
+            reg.success_terminal(method, WriteState::Sent)?;
+        }
         register_isotp(reg, &table)?;
         register_periodic(reg, &table, &dbs)?;
         crate::signals::register(reg, &table, &dbs)

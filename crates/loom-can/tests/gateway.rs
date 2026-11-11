@@ -35,6 +35,8 @@ fn registry_probe_passes() {
             RPC_LAST,
             RPC_EXPECT,
             RPC_STATUS,
+            "can.open",
+            "can.close",
             "can.isotp.open",
             "can.isotp.send",
             "can.isotp.cancel",
@@ -64,6 +66,8 @@ fn registry_probe_passes() {
         report.write_commands,
         [
             RPC_SEND,
+            "can.open",
+            "can.close",
             "can.isotp.send",
             "can.isotp.cancel",
             "can.periodic.start",
