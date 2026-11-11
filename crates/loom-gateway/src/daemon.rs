@@ -199,15 +199,30 @@ impl DomainEntry {
 struct NotableItem {
     seq: u64,
     origin: Origin,
-    client_id: Option<String>,
-    kind: String,
-    key: String,
+    client_id: Option<Arc<str>>,
+    kind: Arc<str>,
+    key: Arc<str>,
 }
 
 #[derive(Debug, Default)]
 struct Notable {
     hw: u64,
     items: VecDeque<NotableItem>,
+    strings: BTreeMap<String, Arc<str>>,
+}
+
+impl Notable {
+    fn shared(&mut self, text: &str) -> Arc<str> {
+        if let Some(s) = self.strings.get(text) {
+            return s.clone();
+        }
+        let s: Arc<str> = Arc::from(text);
+        // Bound the optional interning cache even when client/channel identities churn.
+        if self.strings.len() < 4096 {
+            self.strings.insert(text.to_owned(), s.clone());
+        }
+        s
+    }
 }
 
 /// Counted by `others_since_last` (contract 03 §3.2): user actions, other clients' and scripts'
@@ -353,15 +368,18 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
                 if n.items.len() == NOTABLE_CAP {
                     n.items.pop_front();
                 }
+                let client_id = r.client_id.as_deref().map(|s| n.shared(s));
+                let kind = n.shared(&r.kind);
+                let key = n.shared(&match &r.channel {
+                    Some(c) => format!("{}:{c}", r.domain),
+                    None => r.domain.clone(),
+                });
                 n.items.push_back(NotableItem {
                     seq: r.seq.get(),
                     origin: r.origin,
-                    client_id: r.client_id.clone(),
-                    kind: r.kind.clone(),
-                    key: match &r.channel {
-                        Some(c) => format!("{}:{c}", r.domain),
-                        None => r.domain.clone(),
-                    },
+                    client_id,
+                    kind,
+                    key,
                 });
             }
         }));
@@ -1151,9 +1169,9 @@ impl Daemon {
             }
             count += 1;
             origins.insert(it.origin);
-            let k = o.kinds.entry(it.kind.clone()).or_insert(U64(0));
+            let k = o.kinds.entry(it.kind.to_string()).or_insert(U64(0));
             *k = U64(k.get() + 1);
-            let b = o.by_channel.entry(it.key.clone()).or_insert(U64(0));
+            let b = o.by_channel.entry(it.key.to_string()).or_insert(U64(0));
             *b = U64(b.get() + 1);
         }
         drop(n);
@@ -1515,6 +1533,8 @@ impl Daemon {
             "pid": std::process::id(),
             "port": self.port(),
             "uptime_ms": u64::try_from(self.started.elapsed().as_millis()).unwrap_or(u64::MAX),
+            "process_rss_bytes": loom_worker_sdk::memory::process_rss_bytes().map(U64),
+            "process_rss_source": "self_rss",
             "stream_epoch": U64(self.hub.epoch),
             "stream_seq_hw": U64(hub.as_ref().map_or(0, |h| h.hw)),
             "latch": self.latched(),
@@ -1523,6 +1543,7 @@ impl Daemon {
             "viewers": self.viewers(),
             "connections": hub.as_ref().map_or(0, |h| h.conns),
             "subscriptions": hub.as_ref().map_or(0, |h| h.subs),
+            "hub_cache": hub.as_ref().map(|h| json!({"records": h.ring_events, "order_entries": h.ring_order_entries, "json_bytes": h.ring_json_bytes, "cost_bytes": h.ring_cost_bytes})),
             "domains": self.domains.iter().map(|(n, d)| json!({"name": n, "commands": d.commands.keys().collect::<BTreeSet<_>>()})).collect::<Vec<_>>(),
             "workers": self.workers().iter().map(|w| w.state()).collect::<Vec<_>>(),
             "policy": policy,

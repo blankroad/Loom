@@ -194,3 +194,45 @@ async fn resume_and_epoch_change() {
         SubStart::Resume { .. } => panic!("expected snapshot"),
     }
 }
+
+/// A cold retained channel must not pin every obsolete order entry of a hot channel. The
+/// previous key-only VecDeque grew per publish even after the per-channel byte ring filled.
+#[tokio::test]
+async fn hot_channel_eviction_also_releases_global_order_metadata() {
+    let hub = HubBuilder::new(900).start().unwrap();
+    let mut cold = data(&hub, 0);
+    cold.channel = Some("cold".into());
+    hub.publish(vec![cold]).await.unwrap();
+    for n in 1..=1000 {
+        let mut hot = data(&hub, n);
+        hot.payload["pad"] = json!("x".repeat(32 * 1024));
+        hub.publish(vec![hot]).await.unwrap();
+    }
+    let status = hub.status().await.unwrap();
+    assert!(
+        status.ring_events < 130,
+        "hot payload must obey the per-channel ring cap"
+    );
+    assert_eq!(
+        status.ring_order_entries, status.ring_events,
+        "evicted payloads must not retain order metadata"
+    );
+    assert!(status.ring_json_bytes <= loom_gateway::hub::RING_BYTES);
+    assert!(status.ring_cost_bytes <= loom_gateway::hub::RING_CHANNEL_BYTES + 4096);
+    assert!(
+        status.ring_cost_bytes > status.ring_json_bytes,
+        "owned record trees and metadata must be budgeted too"
+    );
+    let cold = hub
+        .range(loom_gateway::hub::RangeQuery {
+            filter: SubFilter {
+                channels: vec!["cold".into()],
+                ..Default::default()
+            },
+            max: 10,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+    assert_eq!(cold.events.len(), 1, "unrelated cold record stays retained");
+}

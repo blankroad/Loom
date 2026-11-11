@@ -42,9 +42,9 @@ pub const DATA_CAP_EVENTS: usize = 16_384;
 pub const DATA_CAP_BYTES: usize = 8 * 1024 * 1024;
 /// Extra channel slots reserved for priority publishes and control commands.
 pub const PRIO_RESERVE: usize = 4096;
-/// Ring: total bytes.
+/// Ring: total conservative retained-heap charge (JSON, parsed records and index ownership).
 pub const RING_BYTES: usize = 32 * 1024 * 1024;
-/// Ring: bytes per channel.
+/// Ring: conservative retained-heap charge per channel; original records remain in the journal.
 pub const RING_CHANNEL_BYTES: usize = 4 * 1024 * 1024;
 /// Control queue per viewer connection (events).
 pub const PRIO_CAP_EVENTS: usize = 256;
@@ -122,6 +122,86 @@ pub struct Published {
     pub prio: bool,
     /// When the hub published it.
     pub at: Instant,
+    /// Conservative retained-heap charge (record tree, JSON, and eviction-index ownership).
+    pub cache_cost: usize,
+}
+
+// Payload JSON is also retained as a parsed Value tree. Budget both representations and
+// owned metadata; counting only wire bytes lets small structured records retain several
+// times the advertised memory. These are conservative logical charges, not allocator RSS.
+fn string_charge(s: &String) -> usize {
+    if s.capacity() == 0 {
+        0
+    } else {
+        s.capacity().saturating_add(16)
+    }
+}
+fn value_heap(v: &Value, depth: usize) -> usize {
+    if depth > 64 {
+        return RING_BYTES + 1;
+    }
+    match v {
+        Value::String(s) => string_charge(s),
+        Value::Array(a) => a.iter().fold(
+            a.capacity()
+                .saturating_mul(std::mem::size_of::<Value>())
+                .saturating_add(16),
+            |sum, v| sum.saturating_add(value_heap(v, depth + 1)),
+        ),
+        Value::Object(m) => m.iter().fold(0usize, |sum, (key, value)| {
+            // Spare BTreeMap node slots + allocator bookkeeping, in addition to each pair.
+            sum.saturating_add(std::mem::size_of::<(String, Value)>() + 96)
+                .saturating_add(string_charge(key))
+                .saturating_add(value_heap(value, depth + 1))
+        }),
+        _ => 0,
+    }
+}
+fn cache_charge(r: &PublishedRecord, json_bytes: usize) -> usize {
+    let mut n = std::mem::size_of::<Published>() + 64 + json_bytes;
+    for s in [&r.session_id, &r.domain, &r.kind, &r.producer_id, &r.ts.clock_id] {
+        n = n.saturating_add(string_charge(s));
+    }
+    for s in [
+        &r.channel,
+        &r.ts.quality,
+        &r.client_id,
+        &r.actor_id,
+        &r.external_actor,
+        &r.request_id,
+        &r.job_id,
+        &r.purpose,
+        &r.test_session,
+        &r.test_step,
+    ]
+    .into_iter()
+    .flatten()
+    {
+        n = n.saturating_add(string_charge(s));
+    }
+    n = n.saturating_add(value_heap(&r.payload, 0));
+    n = n.saturating_add(
+        r.metrics
+            .capacity()
+            .saturating_mul(std::mem::size_of::<loom_proto::event::Metric>())
+            + 16,
+    );
+    for metric in &r.metrics {
+        n = n.saturating_add(string_charge(&metric.name));
+        if let Some(unit) = &metric.unit {
+            n = n.saturating_add(string_charge(unit));
+        }
+    }
+    n = n.saturating_add(r.quality.capacity().saturating_mul(std::mem::size_of::<String>()) + 16);
+    for s in &r.quality {
+        n = n.saturating_add(string_charge(s));
+    }
+    // The sequence index owns a cloned ring key; VecDeque slots and tree nodes have overhead.
+    n = n.saturating_add(std::mem::size_of::<(u64, ChannelKey)>() + 96 + string_charge(&r.domain));
+    if let Some(ch) = &r.channel {
+        n = n.saturating_add(string_charge(ch));
+    }
+    n.min(RING_BYTES + 1)
 }
 
 /// One data subscription.
@@ -362,6 +442,12 @@ pub struct HubStatus {
     pub subs: usize,
     /// Ring events.
     pub ring_events: usize,
+    /// Entries in the global eviction index (one per retained record).
+    pub ring_order_entries: usize,
+    /// Serialized JSON bytes retained by the ring (bounded by RING_BYTES).
+    pub ring_json_bytes: usize,
+    /// Retained-heap charge, bounded independently from the serialized wire size.
+    pub ring_cost_bytes: usize,
     /// Open channels (`core.channels` reducer).
     pub channels: Vec<Value>,
 }
@@ -518,8 +604,9 @@ impl HubBuilder {
             next_seq: 1,
             rings: HashMap::new(),
             evicted: Evictions::default(),
-            ring_order: VecDeque::new(),
+            ring_order: BTreeMap::new(),
             ring_bytes: 0,
+            ring_json_bytes: 0,
             conns: Vec::new(),
             reducers: self.reducers,
             core: CoreState::default(),
@@ -770,8 +857,9 @@ struct Sequencer {
     rings: HashMap<ChannelKey, (VecDeque<Arc<Published>>, usize)>,
     /// Per ring: newest evicted `(stream seq, publish instant)` (bounded by the ring keys).
     evicted: Evictions,
-    ring_order: VecDeque<ChannelKey>,
+    ring_order: BTreeMap<u64, ChannelKey>,
     ring_bytes: usize,
+    ring_json_bytes: usize,
     conns: Vec<Arc<ConnShared>>,
     reducers: Vec<(String, Box<dyn Reducer>)>,
     core: CoreState,
@@ -891,6 +979,9 @@ impl Sequencer {
                     conns: self.conns.len(),
                     subs: self.subs_total,
                     ring_events: self.rings.values().map(|(q, _)| q.len()).sum(),
+                    ring_order_entries: self.ring_order.len(),
+                    ring_json_bytes: self.ring_json_bytes,
+                    ring_cost_bytes: self.ring_bytes,
                     channels: self.core.channel_list(),
                 });
             }
@@ -989,20 +1080,23 @@ impl Sequencer {
 
     fn ring_push(&mut self, p: &Arc<Published>) {
         let key = (p.rec.domain.clone(), p.rec.channel.clone());
-        let n = p.json.len();
+        let n = p.cache_cost;
         let entry = self
             .rings
             .entry(key.clone())
             .or_insert_with(|| (VecDeque::new(), 0));
         entry.0.push_back(p.clone());
         entry.1 += n;
-        self.ring_order.push_back(key.clone());
+        self.ring_order.insert(p.rec.seq.get(), key.clone());
         self.ring_bytes += n;
+        self.ring_json_bytes += p.json.len();
         let mut evicted = None;
         while entry.1 > RING_CHANNEL_BYTES {
             if let Some(old) = entry.0.pop_front() {
-                entry.1 -= old.json.len();
-                self.ring_bytes -= old.json.len();
+                entry.1 -= old.cache_cost;
+                self.ring_bytes -= old.cache_cost;
+                self.ring_json_bytes -= old.json.len();
+                self.ring_order.remove(&old.rec.seq.get());
                 evicted = Some((old.rec.seq.get(), old.at));
             } else {
                 break;
@@ -1013,22 +1107,18 @@ impl Sequencer {
         }
         // Global cap: evict the oldest event across channels.
         while self.ring_bytes > RING_BYTES {
-            let Some(k) = self.ring_order.pop_front() else {
+            let Some((seq, k)) = self.ring_order.pop_first() else {
                 break;
             };
             if let Some((q, b)) = self.rings.get_mut(&k)
                 && let Some(old) = q.pop_front()
             {
-                *b -= old.json.len();
-                self.ring_bytes -= old.json.len();
+                debug_assert_eq!(seq, old.rec.seq.get());
+                *b -= old.cache_cost;
+                self.ring_bytes -= old.cache_cost;
+                self.ring_json_bytes -= old.json.len();
                 self.evicted.note(k, (old.rec.seq.get(), old.at));
             }
-        }
-        if self.ring_order.len() > 4 * 1024 * 1024 {
-            // Compact the order queue (entries for already-evicted events).
-            let rings = &self.rings;
-            self.ring_order
-                .retain(|k| rings.get(k).is_some_and(|(q, _)| !q.is_empty()));
         }
     }
 
@@ -1045,11 +1135,13 @@ impl Sequencer {
             self.next_seq += 1;
             let json: Arc<str> = serde_json::to_string(&rec).unwrap_or_default().into();
             let prio = is_priority_kind(&rec.kind, &rec.payload);
+            let cache_cost = cache_charge(&rec, json.len());
             let p = Arc::new(Published {
                 rec,
                 json,
                 prio,
                 at: Instant::now(),
+                cache_cost,
             });
             if only.is_none() {
                 self.ring_push(&p);

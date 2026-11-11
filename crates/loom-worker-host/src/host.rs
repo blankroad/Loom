@@ -676,9 +676,9 @@ impl IpcHost {
     /// State for `core.status`.
     pub fn state(&self) -> Value {
         let s = lock(&self.inner.status).clone();
-        let health_age_ms = lock(&self.inner.conn).as_ref().map(|conn| {
-            u64::try_from(lock(&conn.last_health).elapsed().as_millis()).unwrap_or(u64::MAX)
-        });
+        let health_age_ms = lock(&self.inner.conn)
+            .as_ref()
+            .map(|conn| u64::try_from(lock(&conn.last_health).elapsed().as_millis()).unwrap_or(u64::MAX));
         json!({
             "kind": self.inner.kind,
             "instance": self.inner.cfg.instance,
