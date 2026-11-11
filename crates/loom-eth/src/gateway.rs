@@ -408,6 +408,7 @@ impl DomainModule for Eth {
         for c in commands {
             reg.command(c)?;
         }
+        reg.dry_run_preview("eth.send", RoleSet::READ)?;
         for k in event_kinds() {
             reg.event_kind(k)?;
         }

@@ -43,7 +43,7 @@ export function Banners() {
     out.push(
       shell.automationCapped
         ? { key: 'automation', cls: 'banner-warn', text: '자동화 브라우저 — 보기 전용 (쓰기 버튼 비활성, STOP·비상 OFF는 가능)' }
-        : { key: 'automation', cls: 'banner-warn', text: '자동화 브라우저 — mock 서버라 쓰기 허용 (실제 데몬에서는 보기 전용)' },
+        : { key: 'automation', cls: 'banner-warn', text: shell.mockServer ? '자동화 브라우저 — mock 서버라 쓰기 허용' : '자동화 브라우저 — 자동 실행 정책에서 쓰기 허용' },
     );
   }
   if (rows.rejected > 0) {

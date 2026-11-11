@@ -203,8 +203,9 @@ export class ShellControlStore extends Emitter {
   errors: ShellErrorView[] = [];
   epochChange: { atMs: number } | null = null;
   overflow = { approvals: 0, workers: 0, channels: 0 };
-  /** navigator.webdriver: automation browser (V5) — capped to watch unless the server is a mock */
+  /** navigator.webdriver: V5 watch cap unless the server explicitly declares F1 Auto (or mock) */
   automation = false;
+  private automationPolicyStale = false;
   private openedListeners = new Set<(o: ChannelOpened) => void>();
   /** client ms the connection last opened (join grace for the new-channel toast) */
   private connOpenedMs: number | null = null;
@@ -229,9 +230,9 @@ export class ShellControlStore extends Emitter {
   get mockServer(): boolean {
     return this.hello?.capabilities?.includes('mock') === true;
   }
-  /** automation browser against a real daemon → this tab acts as watch (safety direction stays) */
+  /** Automation without a current F1 Auto declaration acts as watch (V5). */
   get automationCapped(): boolean {
-    return this.automation && !this.mockServer;
+    return this.automation && !this.mockServer && (this.automationPolicyStale || this.hello?.capabilities?.includes('policy/auto') !== true);
   }
   get rights(): ReadonlySet<Right> {
     const r = this.hello?.rights; // v1: single ordered level
@@ -256,6 +257,7 @@ export class ShellControlStore extends Emitter {
     this.conn = s;
     if (s.status === 'open' && !wasOpen) this.connOpenedMs = nowMs;
     if (s.status === 'open') {
+      if (!wasOpen || this.hello?.conn_id !== s.hello.conn_id || this.hello?.stream_epoch !== s.hello.stream_epoch) this.automationPolicyStale = false;
       this.hello = s.hello;
       // a fresh connection counts as a heartbeat; the 1 s heartbeat follows
       this.lastHeartbeatMs = nowMs;
@@ -281,6 +283,9 @@ export class ShellControlStore extends Emitter {
       const hb = readHeartbeat(ev);
       if (hb.recordHealth) this.recordHealth = hb.recordHealth;
       if (hb.latch === false && this.latch.on) this.latch = NO_LATCH;
+    } else if (k === 'core.policy_changed') {
+      // A fresh hello is required before trusting an earlier Auto declaration again.
+      this.automationPolicyStale = true;
     } else if (k === 'core.latch') {
       const l = readLatch(ev);
       this.latch = l.on ? l : NO_LATCH;

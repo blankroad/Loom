@@ -115,7 +115,7 @@ impl Conn {
             env: self.d.env(),
             latch: self.d.latched(),
             viewers: self.d.viewers(),
-            capabilities: vec!["core/1".into()],
+            capabilities: self.d.hello_capabilities(),
         };
         serde_json::to_value(res).map_err(|e| rpc_error(INTERNAL_ERROR, e.to_string()))
     }

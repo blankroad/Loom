@@ -797,6 +797,21 @@ impl Daemon {
         self.refresh_record(why);
     }
 
+    /// F1: automation has its granted rights when no confirmation/approval rules are configured.
+    /// Send-time policy, STOP and interlocks remain authoritative for every request.
+    pub(crate) fn hello_capabilities(&self) -> Vec<String> {
+        let mut capabilities = vec!["core/1".to_owned()];
+        if !lock(&self.policy).current.actions.iter().any(|(_, action)| {
+            matches!(
+                action,
+                crate::policy::Action::Confirm | crate::policy::Action::Approve
+            )
+        }) {
+            capabilities.push("policy/auto".to_owned());
+        }
+        capabilities
+    }
+
     /// Effective environment badge.
     pub fn env(&self) -> Env {
         *lock(&self.env)

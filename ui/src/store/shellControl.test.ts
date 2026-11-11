@@ -117,3 +117,26 @@ describe('contract v1 alignment', () => {
     expect(s.gaps[0]).toMatchObject({ kind: 'source.gap', firstSeq: null, lastSeq: null, count: 'unknown', producerOnly: true });
   });
 });
+
+describe('F1 automation rights', () => {
+  it('uses granted operate only with an explicit current Auto policy declaration', () => {
+    const s = new ShellControlStore();
+    s.setAutomation(true);
+    s.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+    expect(s.can('operate')).toBe(false);
+    s.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'auto', capabilities: ['core/1', 'policy/auto'] } }, 1);
+    expect(s.can('operate')).toBe(true);
+    s.applyControl(ev({ kind: 'core.policy_changed' }), 2);
+    expect(s.can('operate')).toBe(false);
+    s.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'auto', capabilities: ['policy/auto'] } }, 3);
+    expect(s.can('operate')).toBe(false);
+    s.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'fresh', capabilities: ['policy/auto'] } }, 4);
+    expect(s.can('operate')).toBe(true);
+  });
+  it('never upgrades an Auto-policy watch viewer', () => {
+    const s = new ShellControlStore();
+    s.setAutomation(true);
+    s.setConn({ status: 'open', hello: { ...TEST_HELLO, rights: 'watch', capabilities: ['policy/auto'] } }, 0);
+    expect(s.can('operate')).toBe(false);
+  });
+});

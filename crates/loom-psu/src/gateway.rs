@@ -346,6 +346,9 @@ impl DomainModule for Psu {
         for c in commands {
             reg.command(c)?;
         }
+        for method in ["psu.set", "psu.out", "psu.cycle"] {
+            reg.dry_run_preview(method, RoleSet::READ)?;
+        }
         for k in event_kinds() {
             reg.event_kind(k)?;
         }
