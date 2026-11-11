@@ -122,13 +122,13 @@ pub struct Published {
     pub prio: bool,
     /// When the hub published it.
     pub at: Instant,
-    /// Conservative retained-heap charge (record tree, JSON, and eviction-index ownership).
+    /// Approximate retained-heap charge (record tree, JSON, and eviction-index ownership).
     pub cache_cost: usize,
 }
 
 // Payload JSON is also retained as a parsed Value tree. Budget both representations and
 // owned metadata; counting only wire bytes lets small structured records retain several
-// times the advertised memory. These are conservative logical charges, not allocator RSS.
+// times the advertised memory. These are approximate logical charges, not allocator RSS.
 fn string_charge(s: &String) -> usize {
     if s.capacity() == 0 {
         0
@@ -1081,6 +1081,12 @@ impl Sequencer {
     fn ring_push(&mut self, p: &Arc<Published>) {
         let key = (p.rec.domain.clone(), p.rec.channel.clone());
         let n = p.cache_cost;
+        // An individually uncacheable record must not flush unrelated retained history.
+        // The original is still journaled/delivered; its absence from the ring is explicit.
+        if n > RING_CHANNEL_BYTES {
+            self.evicted.note(key, (p.rec.seq.get(), p.at));
+            return;
+        }
         let entry = self
             .rings
             .entry(key.clone())

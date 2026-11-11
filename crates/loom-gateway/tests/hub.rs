@@ -236,3 +236,74 @@ async fn hot_channel_eviction_also_releases_global_order_metadata() {
         .unwrap();
     assert_eq!(cold.events.len(), 1, "unrelated cold record stays retained");
 }
+
+#[tokio::test]
+async fn uncacheable_deep_record_does_not_flush_prior_channel_history() {
+    let hub = HubBuilder::new(901).start().unwrap();
+    for n in 0..10 {
+        let mut r = data(&hub, n);
+        r.channel = None;
+        hub.publish(vec![r]).await.unwrap();
+    }
+    let mut deep = json!("leaf");
+    for _ in 0..68 {
+        deep = json!([deep]);
+    }
+    let mut r = data(&hub, 10);
+    r.channel = None;
+    r.payload = json!({"deep":deep});
+    hub.publish(vec![r]).await.unwrap();
+    let rows = hub
+        .range(loom_gateway::hub::RangeQuery {
+            max: 100,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        rows.events.len(),
+        10,
+        "a record exceeding its own budget must preserve existing history"
+    );
+    assert_eq!(
+        rows.evicted_through,
+        Some(11),
+        "the uncacheable record must still make coverage incomplete"
+    );
+    let status = hub.status().await.unwrap();
+    assert_eq!(status.ring_order_entries, status.ring_events);
+}
+
+#[tokio::test]
+async fn global_heap_budget_evicts_the_oldest_channel_and_preserves_index_coverage() {
+    let hub = HubBuilder::new(902).start().unwrap();
+    for channel in 0..9 {
+        for n in 0..100 {
+            let mut r = data(&hub, n);
+            r.channel = Some(format!("channel{channel}"));
+            r.payload["pad"] = json!("x".repeat(32 * 1024));
+            hub.publish(vec![r]).await.unwrap();
+        }
+    }
+    let status = hub.status().await.unwrap();
+    assert!(status.ring_cost_bytes <= loom_gateway::hub::RING_BYTES);
+    assert_eq!(status.ring_order_entries, status.ring_events);
+    let query = |ch: &str| loom_gateway::hub::RangeQuery {
+        filter: SubFilter {
+            channels: vec![ch.into()],
+            ..Default::default()
+        },
+        max: 200,
+        ..Default::default()
+    };
+    let first = hub.range(query("channel0")).await.unwrap();
+    let last = hub.range(query("channel8")).await.unwrap();
+    assert!(
+        first.events.len() < last.events.len(),
+        "global pressure must remove the oldest retained events first"
+    );
+    assert!(
+        first.evicted_through.is_some(),
+        "evicted history must be reported for source coverage"
+    );
+}
