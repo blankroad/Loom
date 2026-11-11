@@ -65,6 +65,9 @@ pub const CAUSE_REF_UNCHECKED: &str = "ref_unchecked_incomplete_scan";
 pub struct PredicateEngine {
     domain: Vec<Arc<dyn EvidenceVerifier>>,
     common: CommonVerifier,
+    /// Pointer specs per registered event kind; `where` clauses are type-checked against the
+    /// kinds they can match, not against the first spec with the same path.
+    kinds: Vec<(String, Vec<PointerSpec>)>,
 }
 
 impl std::fmt::Debug for PredicateEngine {
@@ -72,6 +75,7 @@ impl std::fmt::Debug for PredicateEngine {
         f.debug_struct("PredicateEngine")
             .field("domain_verifiers", &self.domain.len())
             .field("specs", &self.common.specs.len())
+            .field("kinds", &self.kinds.len())
             .finish()
     }
 }
@@ -82,7 +86,16 @@ impl PredicateEngine {
         Self {
             domain,
             common: CommonVerifier { specs },
+            kinds: Vec::new(),
         }
+    }
+
+    /// Adds the pointer specs per event kind (`(kind, pointers)`), so `anchor.where` and filter
+    /// conditions are type-checked against the schema of the kinds they can match.
+    #[must_use]
+    pub fn with_kinds(mut self, kinds: Vec<(String, Vec<PointerSpec>)>) -> Self {
+        self.kinds = kinds;
+        self
     }
 
     /// Collects verifiers and pointer specs from the domain registries (CORE wiring).
@@ -95,7 +108,87 @@ impl PredicateEngine {
             .iter()
             .flat_map(|r| r.event_kinds().iter().flat_map(|k| k.pointers.iter().cloned()))
             .collect();
-        Self::new(domain, specs)
+        let kinds = regs
+            .iter()
+            .flat_map(|r| {
+                r.event_kinds()
+                    .iter()
+                    .map(|k| (k.kind.clone(), k.pointers.clone()))
+            })
+            .collect();
+        Self::new(domain, specs).with_kinds(kinds)
+    }
+
+    /// Pointer specs valid for records of `kinds` (empty = every kind of `domain`, or every
+    /// kind). A path two candidate kinds register with different types/units is left out and
+    /// returned as ambiguous: a condition on it fails closed instead of taking either schema.
+    /// Without per-kind specs (`new` only) the flat list is used with the same ambiguity rule.
+    fn scoped_specs(
+        &self,
+        kinds: &[String],
+        domain: Option<&str>,
+    ) -> (Vec<PointerSpec>, Vec<(String, Vec<String>)>) {
+        let groups: Vec<(&str, &[PointerSpec])> = if self.kinds.is_empty() {
+            vec![("*", self.common.specs.as_slice())]
+        } else if kinds.is_empty() {
+            self.kinds
+                .iter()
+                .filter(|(k, _)| domain.is_none_or(|d| k.split_once('.').is_some_and(|(kd, _)| kd == d)))
+                .map(|(k, p)| (k.as_str(), p.as_slice()))
+                .collect()
+        } else {
+            self.kinds
+                .iter()
+                .filter(|(k, _)| kinds.contains(k))
+                .map(|(k, p)| (k.as_str(), p.as_slice()))
+                .collect()
+        };
+        let mut out: Vec<(PointerSpec, Vec<String>)> = Vec::new();
+        let mut ambiguous: Vec<(String, Vec<String>)> = Vec::new();
+        for (k, specs) in groups {
+            for s in specs {
+                if let Some(a) = ambiguous.iter_mut().find(|(p, _)| *p == s.path) {
+                    if !a.1.iter().any(|x| x == k) {
+                        a.1.push(k.to_owned());
+                    }
+                } else if let Some(i) = out.iter().position(|(o, _)| o.path == s.path) {
+                    if out[i].0 == *s {
+                        if !out[i].1.iter().any(|x| x == k) {
+                            out[i].1.push(k.to_owned());
+                        }
+                    } else {
+                        let (_, mut ks) = out.remove(i);
+                        if !ks.iter().any(|x| x == k) {
+                            ks.push(k.to_owned());
+                        }
+                        ambiguous.push((s.path.clone(), ks));
+                    }
+                } else {
+                    out.push((s.clone(), vec![k.to_owned()]));
+                }
+            }
+        }
+        (out.into_iter().map(|(s, _)| s).collect(), ambiguous)
+    }
+
+    /// Type-checks `x` against the schema of the kinds it can match (see [`Self::scoped_specs`]).
+    fn check_scoped(
+        &self,
+        x: &mut Expr,
+        kinds: &[String],
+        domain: Option<&str>,
+        path: &str,
+    ) -> Result<(), String> {
+        let (specs, ambiguous) = self.scoped_specs(kinds, domain);
+        for f in x.fields() {
+            if let Some((p, ks)) = ambiguous.iter().find(|(p, _)| p == f) {
+                return Err(format!(
+                    "{path}: field {p} has different schemas in kinds {} — name one kind so the condition has one schema",
+                    ks.join(", ")
+                ));
+            }
+        }
+        x.check(&specs, path).map_err(|e| e.to_string())
     }
 
     fn verifier_for(&self, name: &str) -> Option<&Arc<dyn EvidenceVerifier>> {
@@ -336,8 +429,8 @@ impl PredicateEngine {
         let cond = match &a.where_clause {
             Some(w) => {
                 let mut x = Expr::parse(w, "anchor.where").map_err(|e| e.to_string())?;
-                x.check(&self.common.specs, "anchor.where")
-                    .map_err(|e| e.to_string())?;
+                let kinds: Vec<String> = a.kind.iter().cloned().collect();
+                self.check_scoped(&mut x, &kinds, None, "anchor.where")?;
                 Some(x)
             }
             None => None,
@@ -597,8 +690,19 @@ impl PredicateEngine {
             Ok(c) => c,
             Err(err) => return check_row(sid, i, EvidenceStatus::Error, Some(err.to_string()), json!({})),
         };
-        if let Err(err) = c.check(&self.common.specs, &path) {
-            return check_row(sid, i, EvidenceStatus::Error, Some(err.to_string()), json!({}));
+        // Same schema scoping as `anchor.where`: the filter's kinds (or its domain), not the
+        // first spec any domain registered for the path.
+        let (specs, ambiguous) = self.scoped_specs(&e.filter.kinds, Some(&e.filter.domain));
+        if let Err(err) = c.check(&specs, &path) {
+            let base = err.to_string();
+            let mut msg = base.clone();
+            for (p, ks) in ambiguous.iter().filter(|(p, _)| base.contains(p.as_str())) {
+                msg.push_str(&format!(
+                    "; field {p} has different schemas in kinds {} — name one kind",
+                    ks.join(", ")
+                ));
+            }
+            return check_row(sid, i, EvidenceStatus::Error, Some(msg), json!({}));
         }
         let k = c.evaluate(window, cov, &mut ctx.budget);
         let status = match k.status {

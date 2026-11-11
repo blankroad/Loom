@@ -298,10 +298,15 @@ struct H {
 
 impl H {
     fn new() -> H {
+        H::with_engine(PredicateEngine::new(
+            vec![Arc::new(UartFake), Arc::new(UdsFake)],
+            specs(),
+        ))
+    }
+    fn with_engine(engine: PredicateEngine) -> H {
         let svc = Arc::new(Services::default());
         let hooks = Arc::new(Hooks::default());
         *hooks.journal.lock().unwrap() = Some(svc.clone());
-        let engine = PredicateEngine::new(vec![Arc::new(UartFake), Arc::new(UdsFake)], specs());
         let module = TestModule::with_services(
             SessionConfig::default(),
             Some(Arc::new(Commands)),
@@ -336,12 +341,12 @@ impl H {
         j.push(serde_json::from_value(r).expect("record"));
     }
     async fn start(&self) -> String {
-        self.call(
-            "test.start",
-            json!({"tc": {"text": TC1}, "plan": {"text": PLAN1}}),
-        )
-        .await
-        .expect("start")["session_id"]
+        self.start_plan(PLAN1).await
+    }
+    async fn start_plan(&self, plan: &str) -> String {
+        self.call("test.start", json!({"tc": {"text": TC1}, "plan": {"text": plan}}))
+            .await
+            .expect("start")["session_id"]
             .as_str()
             .expect("id")
             .into()
@@ -1077,4 +1082,180 @@ async fn transition_with_an_older_fence_is_refused() {
     assert_eq!(e.code, ErrorCode::Locked, "{e:?}");
     // State unchanged: S1 still running, S2 can begin with a current fence.
     h.step(&id, "S2", 1_200).await;
+}
+
+// --- anchor.where schema per kind (TC1 live finding 3) -------------------------------------------
+
+/// Kinds as the real gateways register them: UART's port state enum and PSU's output state enum
+/// share `/payload/state`. UART comes first, so a flat "first spec with this path" lookup would
+/// type-check a `psu.write` anchor against the UART enum.
+fn kind_specs() -> Vec<(String, Vec<PointerSpec>)> {
+    let p = |path: &str, ty: ValueType| PointerSpec {
+        path: path.into(),
+        unit: None,
+        ty,
+    };
+    let en = |v: &[&str]| ValueType::Enum(v.iter().map(|s| (*s).to_owned()).collect());
+    vec![
+        (
+            "uart.port_state".into(),
+            vec![p(
+                "/payload/state",
+                en(&[
+                    "closed",
+                    "opening",
+                    "open",
+                    "released",
+                    "disconnected",
+                    "closing",
+                    "error",
+                ]),
+            )],
+        ),
+        (
+            "psu.write".into(),
+            vec![
+                p("/payload/state_out", ValueType::String),
+                p("/payload/state", en(&["on", "off"])),
+            ],
+        ),
+        ("uart.data".into(), vec![p("/payload/text", ValueType::String)]),
+        (
+            "can.signal".into(),
+            vec![
+                p("/payload/name", ValueType::String),
+                p("/payload/value", ValueType::F64),
+            ],
+        ),
+        ("uds.rx".into(), vec![]),
+    ]
+}
+
+fn kind_engine() -> PredicateEngine {
+    let kinds = kind_specs();
+    let flat = kinds.iter().flat_map(|(_, p)| p.iter().cloned()).collect();
+    PredicateEngine::new(vec![Arc::new(UartFake), Arc::new(UdsFake)], flat).with_kinds(kinds)
+}
+
+/// PLAN1 with S2's anchor replaced.
+fn plan_with_anchor(anchor: &str) -> String {
+    let old =
+        r#"anchor: {step: S1, kind: psu.write, where: {field: /payload/state_out, op: "==", value: "on"}}"#;
+    assert!(PLAN1.contains(old));
+    PLAN1.replace(old, anchor)
+}
+
+/// S1 writes `psu.write {state: on}`, S2 sees the login line. Returns the S2 verdict.
+async fn s2_with_anchor(h: &H, anchor: &str) -> Result<Value, DomainError> {
+    let id = h.start_plan(&plan_with_anchor(anchor)).await;
+    h.step(&id, "S1", 1_000).await;
+    h.push(tagged(
+        rec(
+            1_100,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state": "on"}),
+        ),
+        "S1",
+    )); // seq 1
+    h.verdict(&id, "S1", "done", &["psu:bench@e1:seq:1"])
+        .await
+        .expect("S1 done");
+    h.step(&id, "S2", 1_200).await;
+    h.push(rec(
+        5_000,
+        "uart",
+        "dut",
+        "uart.data",
+        "device",
+        json!({"text": "bench login: "}),
+    )); // seq 2
+    h.verdict(&id, "S2", "pass", &["uart:dut@e1:seq:2"]).await
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn anchor_where_uses_the_schema_of_the_anchor_kind() {
+    let h = H::with_engine(kind_engine());
+    let ok = s2_with_anchor(
+        &h,
+        r#"anchor: {step: S1, kind: psu.write, where: {field: /payload/state, op: "==", value: "on"}}"#,
+    )
+    .await;
+    assert!(
+        ok.is_ok(),
+        "psu.write state=on must type-check against PSU's enum: {ok:?}"
+    );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn anchor_where_value_from_another_kinds_enum_is_rejected() {
+    let h = H::with_engine(kind_engine());
+    // `opening` is valid for uart.port_state, not for psu.write.
+    let e = s2_with_anchor(
+        &h,
+        r#"anchor: {step: S1, kind: psu.write, where: {field: /payload/state, op: "==", value: "opening"}}"#,
+    )
+    .await
+    .expect_err("UART enum value on a PSU anchor");
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "error", "{c} / {}", e.message);
+    let cause = c["cause"].as_str().unwrap_or_default();
+    assert!(cause.contains("on|off"), "{cause}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn anchor_where_without_kind_on_a_conflicting_field_fails_closed() {
+    let h = H::with_engine(kind_engine());
+    let e = s2_with_anchor(
+        &h,
+        r#"anchor: {step: S1, where: {field: /payload/state, op: "==", value: "on"}}"#,
+    )
+    .await
+    .expect_err("ambiguous schema");
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "error", "{c} / {}", e.message);
+    let cause = c["cause"].as_str().unwrap_or_default();
+    assert!(cause.contains("different schemas"), "{cause}");
+    assert!(
+        cause.contains("uart.port_state") && cause.contains("psu.write"),
+        "{cause}"
+    );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn anchor_where_unknown_field_or_kind_is_still_rejected() {
+    // Field the anchor kind does not register (it exists only on uart.data).
+    let h = H::with_engine(kind_engine());
+    s2_with_anchor(
+        &h,
+        r#"anchor: {step: S1, kind: psu.write, where: {field: /payload/text, op: "==", value: "x"}}"#,
+    )
+    .await
+    .expect_err("field of another kind");
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "error", "{c}");
+    assert!(
+        c["cause"].as_str().unwrap_or_default().contains("unknown field"),
+        "{c}"
+    );
+    // Unregistered kind: no payload fields, so a payload condition cannot type-check.
+    let h = H::with_engine(kind_engine());
+    s2_with_anchor(
+        &h,
+        r#"anchor: {step: S1, kind: psu.nope, where: {field: /payload/state, op: "==", value: "on"}}"#,
+    )
+    .await
+    .expect_err("unregistered kind");
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "error", "{c}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn tc1_still_passes_with_per_kind_schemas() {
+    // Expect filter conditions (S3 `can.signal`) are scoped the same way and still pass.
+    let h = H::with_engine(kind_engine());
+    let id = through_s2(&h).await;
+    s3_pass(&h, &id).await;
 }
