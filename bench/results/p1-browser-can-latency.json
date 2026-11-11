@@ -1,0 +1,27 @@
+{
+  "samples": [
+    61.15433299999995,
+    83.40124999999989,
+    82.34695899999997,
+    82.40012500000012,
+    82.54354200000034,
+    81.52883299999985,
+    83.60816599999998,
+    82.30541600000015,
+    82.54958299999998,
+    82.13079100000004,
+    81.8345419999996,
+    80.37750000000005,
+    82.67437500000005,
+    82.353208,
+    81.52408400000013,
+    82.79137499999979,
+    82.71112500000027,
+    82.45220900000004,
+    82.56962499999918,
+    82.2138329999998
+  ],
+  "p95_ms": 83.40124999999989,
+  "method": "agent command start through matching device RX DOM and two RAFs; includes device response time and test transport overhead",
+  "measure": "conservative end-to-end upper bound using the documented next-RAF paint proxy"
+}

@@ -1,3 +1,11 @@
+# 최신 판정 — 실제 브라우저 수용 PASS
+
+2026-11-12: 사용자 요청에 따라 Herdr foreground Claude Opus5.5의 정상 승인된 Ego CLI에서 실제 검증이 가능했다. UART/UDS/TC-1과 CAN 사용자 개입/STOP, SDK 수정 후 ETH Ego 검사가 통과했다. Ego의 RAF 약1초 정지로 지연관문은 실패했고, 이미 허용된 Playwright fallback에서 실제5개 전체 PASS(18.5초), CAN p95 83.401ms<150ms를 확인했다. 권한/보안 설정 변경이나 sandbox 해제는 없었다.
+
+최종 결과는 [통합 수용](p1-acceptance.md), [실제 브라우저 실행·SHA·캡처](p1-browser-final.md)를 본다. 아래는 Codex 경로의 실패 진단과 준비 기록이며 전역 차단 또는 최종 미완료 상태로 해석하지 않는다.
+
+---
+
 docs/plan/02-core-principle.md 준수
 # 실제 브라우저 스모크 — 실행 환경 차단
 
@@ -126,3 +134,33 @@ LOOMD_BIN="$HOME/.cache/loom-main-target/debug/loomd" LOOM_REAL_SMOKE=1 pnpm exe
 ```
 
 `LOOM_REAL_SMOKE=1`에서 TC-1 바이너리를 지정하지 않으면 다섯째 검사는 실패한다(필수 시나리오를 skip해서 전체 PASS로 오인하지 않도록 함). 실제 실행 시 5개 모두 통과·스크린샷·CAN 시간 증거를 확인해야 브라우저 축 완료다. Ego Lite가 우선이며 Playwright는 사용자가 명시 허용한 fallback이다. 이 명령을 Herdr 다른 담당에게 넘겨 현재 샌드박스/앱 접근 거부를 우회 실행하지 않는다.
+
+## 해결 절차 구체화 — 2026-11-12 후속
+
+추가 읽기전용 확인: `~/.codex/config.toml`에는 computer_use/approval_policy/sandbox_mode/default_permissions의 명시 설정이 없었다. `~/.codex/requirements.toml`, `/etc/codex/requirements.toml`도 없었다. 앱/세션/관리형 서버 정책까지 없다는 의미는 아니다. 현재 task에 적용된 workspace-write/approval_policy=never는 그대로다. 자동 승인 검토의 내부 거부 원인은 노출되지 않았다.
+
+권장 해결 순서:
+1. ChatGPT 데스크톱 Settings → Computer use → Control에서 Any App 설치/켜기 상태를 확인하고, Ego Lite 접근 승인 요청을 Allow로 처리한다. 지원 UI에서 Always allow를 선택하면 같은 앱 승인을 저장할 수 있다. Any App이 없거나 컨트롤이 잠겨 있으면 관리자에게 해당 앱 접근 허용을 요청한다.
+2. macOS 시스템 설정 → 개인정보 보호 및 보안 → 화면 기록 및 손쉬운 사용에서 Codex Computer Use 권한을 확인한다. 이는 ChatGPT의 개별 앱 승인과 별개의 설정이다.
+3. 설정 변경 사실이 확인된 뒤에만 Ego Lite 접근을 재시도한다. 성공 판정은 실제 Loom 화면 읽기 및 해당 테스트 세션의 입력/STOP 상호작용이다. 성공하면 준비된 5개 시나리오를 실행한다.
+4. Ego 경로가 여전히 실패하면 정확한 오류로 분기한다. 자동 승인 거부가 계속되면 앱/워크스페이스 정책 승인 문제, GUI는 되는데 ego CLI XPC만 실패하면 CLI 연결 문제다. 후자는 승인된 GUI 경로로 검증을 진행하면서 CLI는 별도 고장으로 추적한다.
+5. Playwright fallback은 현재 세션의 명령 실행 sandbox 문제다. 사용자/관리자가 Chromium 실행에 필요한 승인을 요청할 수 있는 세션 정책을 적용한 뒤 해당 명령에 한정한 정상 승인을 받아 최소 launch probe부터 확인한다. 승인 정책 변경 자체가 Mach 권한 문제를 반드시 해소한다고 단정하지 않는다. 현재 `never` 정책에서 agent가 이를 변경하거나 Herdr로 우회하지 않는다.
+
+근거(official OpenAI documentation):
+- https://learn.chatgpt.com/docs/computer-use — 앱 승인 및 macOS 권한의 분리, Settings 경로.
+- https://learn.chatgpt.com/docs/config-file/config-reference — computer_use.macos.bundle_ids의 allow는 일반 승인 흐름을 대신하지 않으며 managed deny를 완화하지 않음.
+- https://learn.chatgpt.com/docs/permissions — 명령 실행 권한과 Computer Use가 별도 제어를 사용함.
+
+이 절은 해결 경로다. 설정 변경/접근 성공을 관측한 결과가 아니므로 아직 해결 완료라고 기록하지 않는다.
+
+## 오류 문구 웹 검색 결과 — 후속 정정
+
+공식 권한 문서 외에 오류 자체를 검색하여 다음 upstream 1차 자료를 확인했다.
+
+- https://github.com/openai/codex/issues/21292 : 동일한 Chromium `MachPortRendezvousServer Permission denied(1100)` 재현 보고. 보고자는 같은 스크립트가 승인된 sandbox 밖 실행에서는 성공했고 여러 Chromium 플래그/채널 변경은 해결하지 못했다고 기록했다. 해당 호스트의 재현 보고이지 우리 호스트에서 A/B 성공을 관측한 것은 아니다. 정상적인 좁은 실행 승인이 다음 검증 경로라는 근거가 강화됐다.
+- https://github.com/citrolabs/ego-lite/issues/188 : GUI가 열려 있어도 agent sandbox에서 CLI bootstrap이 실패하는 사례. 개발자는 CLI 서버 서비스 시작 과정을 설명하고 app 인자 `--startup-ego-browser-service`를 제시했다. 앱 실행과 CLI 서비스 준비는 구분해 진단해야 한다. 기존 사례는0.4.x/다른agent환경이며 현재0.6.2.9에서 동일 결함이라고 확정하지 않는다. 앱 접근이 승인된 정상 경로에서 서비스 준비 상태를 검증하는 것이 후속이다. 이 플래그를 자동 승인 거부 우회로 실행하지 않았다.
+- https://github.com/citrolabs/ego-lite/issues/433 : macOS27에서 AppKit/talagent XPC 대기 관련 별도 사례. maintainer는 sample만으로 entitlement/sandbox원인을 확정할 수 없다고 정정했다. 우리 오류와 같은 원인이라고 단정하지 않는다.
+
+읽기전용 로컬 버전 확인: macOS27.0.1(build26A434), EgoLite0.6.2.9(bundle6.2.9). `ego-browser --help`는 정상 반환하며 named service 연결 옵션도 제공하지만 실행 중인 서비스 이름을 확인하지 않고 임의 지정하지 않는다.
+
+정정: Ego CLI XPC 실패/Playwright Mach 실패/ComputerUse 자동승인 거부를 한 가지 권한 스위치로 해결할 수 있다고 보지 않는다. GUI 앱 접근 승인, Ego CLI 서버 서비스 bootstrap, Chromium 외부 sandbox 경계를 각기 검증해야 한다. 실제 해결 성공은 여전히 미관측이다.

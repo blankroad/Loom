@@ -43,7 +43,8 @@ test('real UART agent trace, browser input and STOP', async ({ page }, info) => 
     await open(page, server, '/p/uart/trace?channel=dut');
     const t = performance.now();
     expect(await server.call('uart.open', { target: 'sim://bootshell?split=0', alias: 'dut', profile: 'linux-shell' })).toMatchObject({ ok: true });
-    await expect(page.locator('.uart-trace')).toContainText('U-Boot');
+    // Early boot lines (U-Boot) scroll out of the virtualized list; assert the live tail.
+    await expect(page.locator('.uart-trace')).toContainText('Loom sim 1.0');
     await evidence(page, info, 'uart-agent-live', performance.now() - t);
     await expect(page.locator('.uart-trace')).toContainText('login:');
     expect(await server.call('uart.send', { channel: 'dut', data: Buffer.from('root').toString('hex'), eol: 'cr' })).toMatchObject({ ok: true });
@@ -55,8 +56,10 @@ test('real UART agent trace, browser input and STOP', async ({ page }, info) => 
     await terminal.focus();
     await page.keyboard.type('secret'); await page.keyboard.press('Enter');
     expect(await server.call('uart.expect', { channel: 'dut', patterns: [{ kind: 'literal', pattern: 'root@sim:~# ' }], timeout_ms: 3000 })).toMatchObject({ ok: true });
+    // The input lease is held only while my line is unfinished; Enter releases it.
+    await page.keyboard.type('echo browser-p1');
     await expect(page.getByTestId('input-chip')).toContainText('나');
-    await page.keyboard.type('echo browser-p1'); await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
     expect(await server.call('uart.expect', { channel: 'dut', patterns: [{ kind: 'literal', pattern: 'browser-p1' }], timeout_ms: 3000 })).toMatchObject({ ok: true });
     await page.getByTestId('stop-button').click();
     await expect(page.getByTestId('stop-panel')).toBeVisible();
@@ -137,7 +140,8 @@ test('real Ethernet packet list, detail, browser send and STOP', async ({ page }
     expect(await server.call('eth.capture.start', { iface: 'sim0', ch: 'cap', backend: 'sim' })).toMatchObject({ ok: true });
     const t = performance.now();
     expect(await server.call('eth.send', { ch: 'cap', kind: 'raw', hex })).toMatchObject({ ok: true });
-    const packet = page.locator('.eth-list [data-seq]').first();
+    // Device DoIP/SOME-IP announcements also arrive; pick the agent's own ARP frame.
+    const packet = page.locator('.eth-list [data-seq]').filter({ hasText: 'Who has' }).first();
     await expect(packet).toBeVisible();
     await evidence(page, info, 'eth-agent-live', performance.now() - t);
     await packet.click();
@@ -169,8 +173,9 @@ test('actual powered TC-1 appears live with journal verdicts', async ({ page }, 
     // browser joined the live stream before the agent starts the TC.
     await expect(page.getByText(/보는 중:\s*\d+\/(?:[2-9]|\d{2,})\b/)).toBeVisible();
     await fixture.begin();
-    await expect(page.getByTestId('test-screen')).toContainText('TC-1');
-    await expect(page.getByTestId('test-steps')).toContainText('S2');
+    // The screen shows the TC-1 title and step names, not the id/step labels.
+    await expect(page.getByTestId('test-screen')).toContainText('콜드 부팅 스모크');
+    await expect(page.getByTestId('test-steps')).toContainText('콘솔 관찰');
     expect(await fixture.result()).toMatchObject({ result: 'passed' });
     await expect(page.getByTestId('test-result')).toContainText('passed');
     await expect(page.getByTestId('test-state')).toContainText('DONE');

@@ -7,3 +7,7 @@ Opus foreground의 실제 Ego Lite 검증에서 부팅 DEV trace는 보이지만
 검사: UART10 tests PASS (새 2개는 분할 login prompt→TX 개입→LF 완결의 stable row 및 같은batch gap전후 미결합), UI 전체387 PASS/schema/type/lint, build PASS. 로그 `/private/tmp/loom-uart-partial-{test,types,lint,build,ui-check}.log`. 실제 Ego UART 재검증은 Opus 진행 중이며 결과는 p1-opus-browser.md에 기록한다.
 
 소유 ui/src/panels/uart/{tracePanel.ts,uart.test.ts}, 메인 직접 구현·자체 리뷰. Opus는 ui/e2e만 소유. 이 변경은 frontend만이며 통과한 native 30분 RSS binary의 알고리즘을 변경하지 않는다.
+
+## 메인 최종 통합 확인
+
+새 dist `index-BExAuFCo.js`로 실제 브라우저 재검증 완료. Ego UART/ETH 기능 검사와 Playwright 실제5개 전체 PASS(18.5초,skipped0), CAN20샘플 p95 83.40125ms<150ms. 최종 UI393/schema/type/lint/build PASS. 실행 구성/캡처/정리: [최종 브라우저 보고](p1-browser-final.md). 미완료였던 실제 화면 검증을 이 결과로 갱신한다.

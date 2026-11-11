@@ -1,0 +1,402 @@
+{
+ "env": {
+  "vis": "visible",
+  "focus": false,
+  "rafIntervalsMs": [
+   16.7,
+   33,
+   33.4,
+   1016.5,
+   17.1,
+   33.3,
+   33.3,
+   1000,
+   15.7,
+   1001.1,
+   16.5,
+   33.4,
+   33.3,
+   1000.1,
+   16.6,
+   32.8,
+   33.1,
+   34.1,
+   1016.7,
+   16.6,
+   33.4,
+   1000,
+   33.3,
+   33.4,
+   33.3,
+   1016.7,
+   33.3,
+   33.4,
+   32.3
+  ],
+  "clockSkewMs": -0.800048828125
+ },
+ "samples": [
+  {
+   "marker": "A0",
+   "cmdStart": 1794428203040,
+   "seq": "113",
+   "dom": 1794428204092.8,
+   "paint": 1794428204155.5,
+   "vis": "visible",
+   "wall_ns": "1794428203047157417"
+  },
+  {
+   "marker": "A1",
+   "cmdStart": 1794428204156,
+   "seq": "133",
+   "dom": 1794428205208.1,
+   "paint": 1794428205274.5,
+   "vis": "visible",
+   "wall_ns": "1794428204163484042"
+  },
+  {
+   "marker": "A2",
+   "cmdStart": 1794428205279,
+   "seq": "152",
+   "dom": 1794428205308.2,
+   "paint": 1794428206355.8,
+   "vis": "visible",
+   "wall_ns": "1794428205287764291"
+  },
+  {
+   "marker": "A3",
+   "cmdStart": 1794428206368,
+   "seq": "171",
+   "dom": 1794428206458.2,
+   "paint": 1794428206521.2,
+   "vis": "visible",
+   "wall_ns": "1794428206390354292"
+  },
+  {
+   "marker": "A4",
+   "cmdStart": 1794428206523,
+   "seq": "179",
+   "dom": 1794428207574.8,
+   "paint": 1794428207639,
+   "vis": "visible",
+   "wall_ns": "1794428206531331917"
+  },
+  {
+   "marker": "A5",
+   "cmdStart": 1794428207641,
+   "seq": "198",
+   "dom": 1794428208692.8,
+   "paint": 1794428208755.5,
+   "vis": "visible",
+   "wall_ns": "1794428207649886959"
+  },
+  {
+   "marker": "A6",
+   "cmdStart": 1794428208756,
+   "seq": "218",
+   "dom": 1794428209773.5,
+   "paint": 1794428209839,
+   "vis": "visible",
+   "wall_ns": "1794428208763116459"
+  },
+  {
+   "marker": "A7",
+   "cmdStart": 1794428209841,
+   "seq": "236",
+   "dom": 1794428210857,
+   "paint": 1794428210922.4001,
+   "vis": "visible",
+   "wall_ns": "1794428209847914167"
+  },
+  {
+   "marker": "A8",
+   "cmdStart": 1794428210924,
+   "seq": "255",
+   "dom": 1794428211976.1,
+   "paint": 1794428212039.1,
+   "vis": "visible",
+   "wall_ns": "1794428210931960625"
+  },
+  {
+   "marker": "A9",
+   "cmdStart": 1794428212041,
+   "seq": "274",
+   "dom": 1794428213091.6,
+   "paint": 1794428213155.7,
+   "vis": "visible",
+   "wall_ns": "1794428212050571584"
+  },
+  {
+   "marker": "AA",
+   "cmdStart": 1794428213158,
+   "seq": "294",
+   "dom": 1794428214207.1,
+   "paint": 1794428215255.7,
+   "vis": "visible",
+   "wall_ns": "1794428213165909292"
+  },
+  {
+   "marker": "AB",
+   "cmdStart": 1794428215266,
+   "seq": "323",
+   "dom": 1794428215357.8,
+   "paint": 1794428215422.4001,
+   "vis": "visible",
+   "wall_ns": "1794428215273807500"
+  },
+  {
+   "marker": "AC",
+   "cmdStart": 1794428215424,
+   "seq": "331",
+   "dom": 1794428216493.6,
+   "paint": 1794428216555.7,
+   "vis": "visible",
+   "wall_ns": "1794428215431298625"
+  },
+  {
+   "marker": "AD",
+   "cmdStart": 1794428216558,
+   "seq": "351",
+   "dom": 1794428217591.4001,
+   "paint": 1794428217655.6,
+   "vis": "visible",
+   "wall_ns": "1794428216565750250"
+  },
+  {
+   "marker": "AE",
+   "cmdStart": 1794428217658,
+   "seq": "370",
+   "dom": 1794428218708.3,
+   "paint": 1794428219755.8,
+   "vis": "visible",
+   "wall_ns": "1794428217668753125"
+  },
+  {
+   "marker": "AF",
+   "cmdStart": 1794428219767,
+   "seq": "399",
+   "dom": 1794428219856.8,
+   "paint": 1794428219922.2,
+   "vis": "visible",
+   "wall_ns": "1794428219776933458"
+  },
+  {
+   "marker": "B0",
+   "cmdStart": 1794428219925,
+   "seq": "407",
+   "dom": 1794428220975.3,
+   "paint": 1794428221038.9001,
+   "vis": "visible",
+   "wall_ns": "1794428219933024750"
+  },
+  {
+   "marker": "B1",
+   "cmdStart": 1794428221039,
+   "seq": "426",
+   "dom": 1794428222092.2,
+   "paint": 1794428222155.6,
+   "vis": "visible",
+   "wall_ns": "1794428221046521333"
+  },
+  {
+   "marker": "B2",
+   "cmdStart": 1794428222157,
+   "seq": "446",
+   "dom": 1794428223208.4001,
+   "paint": 1794428223275.3,
+   "vis": "visible",
+   "wall_ns": "1794428222165447875"
+  },
+  {
+   "marker": "B3",
+   "cmdStart": 1794428223278,
+   "seq": "465",
+   "dom": 1794428223306.8,
+   "paint": 1794428224339.1,
+   "vis": "visible",
+   "wall_ns": "1794428223296107250"
+  }
+ ],
+ "rows": [
+  {
+   "m": "A0",
+   "seq": "113",
+   "vis": "visible",
+   "cmd_to_paint": 1115.5,
+   "dev_to_dom": 1045.6,
+   "dev_to_paint": 1108.3,
+   "dom_to_paint": 62.7
+  },
+  {
+   "m": "A1",
+   "seq": "133",
+   "vis": "visible",
+   "cmd_to_paint": 1118.5,
+   "dev_to_dom": 1044.6,
+   "dev_to_paint": 1111,
+   "dom_to_paint": 66.4
+  },
+  {
+   "m": "A2",
+   "seq": "152",
+   "vis": "visible",
+   "cmd_to_paint": 1076.8,
+   "dev_to_dom": 20.4,
+   "dev_to_paint": 1068,
+   "dom_to_paint": 1047.6
+  },
+  {
+   "m": "A3",
+   "seq": "171",
+   "vis": "visible",
+   "cmd_to_paint": 153.2,
+   "dev_to_dom": 67.8,
+   "dev_to_paint": 130.8,
+   "dom_to_paint": 63
+  },
+  {
+   "m": "A4",
+   "seq": "179",
+   "vis": "visible",
+   "cmd_to_paint": 1116,
+   "dev_to_dom": 1043.5,
+   "dev_to_paint": 1107.7,
+   "dom_to_paint": 64.2
+  },
+  {
+   "m": "A5",
+   "seq": "198",
+   "vis": "visible",
+   "cmd_to_paint": 1114.5,
+   "dev_to_dom": 1042.9,
+   "dev_to_paint": 1105.6,
+   "dom_to_paint": 62.7
+  },
+  {
+   "m": "A6",
+   "seq": "218",
+   "vis": "visible",
+   "cmd_to_paint": 1083,
+   "dev_to_dom": 1010.4,
+   "dev_to_paint": 1075.9,
+   "dom_to_paint": 65.5
+  },
+  {
+   "m": "A7",
+   "seq": "236",
+   "vis": "visible",
+   "cmd_to_paint": 1081.4,
+   "dev_to_dom": 1009.1,
+   "dev_to_paint": 1074.5,
+   "dom_to_paint": 65.4
+  },
+  {
+   "m": "A8",
+   "seq": "255",
+   "vis": "visible",
+   "cmd_to_paint": 1115.1,
+   "dev_to_dom": 1044.1,
+   "dev_to_paint": 1107.1,
+   "dom_to_paint": 63
+  },
+  {
+   "m": "A9",
+   "seq": "274",
+   "vis": "visible",
+   "cmd_to_paint": 1114.7,
+   "dev_to_dom": 1041,
+   "dev_to_paint": 1105.1,
+   "dom_to_paint": 64.1
+  },
+  {
+   "m": "AA",
+   "seq": "294",
+   "vis": "visible",
+   "cmd_to_paint": 2097.7,
+   "dev_to_dom": 1041.2,
+   "dev_to_paint": 2089.8,
+   "dom_to_paint": 1048.6
+  },
+  {
+   "m": "AB",
+   "seq": "323",
+   "vis": "visible",
+   "cmd_to_paint": 156.4,
+   "dev_to_dom": 84,
+   "dev_to_paint": 148.6,
+   "dom_to_paint": 64.6
+  },
+  {
+   "m": "AC",
+   "seq": "331",
+   "vis": "visible",
+   "cmd_to_paint": 1131.7,
+   "dev_to_dom": 1062.3,
+   "dev_to_paint": 1124.4,
+   "dom_to_paint": 62.1
+  },
+  {
+   "m": "AD",
+   "seq": "351",
+   "vis": "visible",
+   "cmd_to_paint": 1097.6,
+   "dev_to_dom": 1025.7,
+   "dev_to_paint": 1089.9,
+   "dom_to_paint": 64.2
+  },
+  {
+   "m": "AE",
+   "seq": "370",
+   "vis": "visible",
+   "cmd_to_paint": 2097.8,
+   "dev_to_dom": 1039.5,
+   "dev_to_paint": 2087,
+   "dom_to_paint": 1047.5
+  },
+  {
+   "m": "AF",
+   "seq": "399",
+   "vis": "visible",
+   "cmd_to_paint": 155.2,
+   "dev_to_dom": 79.9,
+   "dev_to_paint": 145.3,
+   "dom_to_paint": 65.4
+  },
+  {
+   "m": "B0",
+   "seq": "407",
+   "vis": "visible",
+   "cmd_to_paint": 1113.9,
+   "dev_to_dom": 1042.3,
+   "dev_to_paint": 1105.9,
+   "dom_to_paint": 63.6
+  },
+  {
+   "m": "B1",
+   "seq": "426",
+   "vis": "visible",
+   "cmd_to_paint": 1116.6,
+   "dev_to_dom": 1045.7,
+   "dev_to_paint": 1109.1,
+   "dom_to_paint": 63.4
+  },
+  {
+   "m": "B2",
+   "seq": "446",
+   "vis": "visible",
+   "cmd_to_paint": 1118.3,
+   "dev_to_dom": 1043,
+   "dev_to_paint": 1109.9,
+   "dom_to_paint": 66.9
+  },
+  {
+   "m": "B3",
+   "seq": "465",
+   "vis": "visible",
+   "cmd_to_paint": 1061.1,
+   "dev_to_dom": 10.7,
+   "dev_to_paint": 1043,
+   "dom_to_paint": 1032.3
+  }
+ ]
+}

@@ -48,3 +48,7 @@ docs/plan/02-core-principle.md 준수. 기준 main 26f3053 + 브라우저 WIP. �
 
 ## 변경 파일
 `ui/src/sdk/{context.ts,actionGate.ts,rpcEnvelope.ts(신규),sdk.test.ts}`, 본 보고서.
+
+## 메인 최종 통합 확인
+
+새 dist `index-BExAuFCo.js`로 실제 브라우저 재검증 완료. Ego UART/ETH 기능 검사와 Playwright 실제5개 전체 PASS(18.5초,skipped0), CAN20샘플 p95 83.40125ms<150ms. 최종 UI393/schema/type/lint/build PASS. 실행 구성/캡처/정리: [최종 브라우저 보고](p1-browser-final.md). 미완료였던 실제 화면 검증을 이 결과로 갱신한다.
