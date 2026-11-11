@@ -155,11 +155,12 @@ describe('eth.packets', () => {
 
   it('select → detail query → tree/hex; retransmit sends the exact bytes', async () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
-    h.net.responders.set('eth.query', (p) => fixtureDetail((p as { ref: string }).ref));
+    h.net.responders.set('eth.show', (p) => fixtureDetail((p as { ref: string }).ref));
     h.batch(fixtureEvents());
     pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();
     await flush(h);
-    expect(h.net.calls.find((c) => c.method === 'eth.query')!.params).toEqual({ ref: 'eth:lan1@seq:41240', detail: true });
+    expect(h.net.calls.find((c) => c.method === 'eth.show')!.params).toEqual({ ref: 'eth:lan1@seq:41240' });
+    expect(h.net.calls.filter((c) => c.method === 'eth.query')).toHaveLength(0);
     expect(h.host.querySelectorAll('.th-b')).toHaveLength(69);
     expect(h.host.querySelector('[data-testid="eth-detail-info"]')!.textContent).toContain('상세');
     const resend = [...h.host.querySelectorAll('button')].find((b) => b.textContent === '재전송')!;
@@ -171,7 +172,7 @@ describe('eth.packets', () => {
 
   it('watch: capture stop works (safety direction), retransmit / capture start are not available', async () => {
     h = mountPanel('eth.packets', { channel: 'lan1' }, { hello: { rights: 'watch' } });
-    h.net.responders.set('eth.query', (p) => fixtureDetail((p as { ref: string }).ref));
+    h.net.responders.set('eth.show', (p) => fixtureDetail((p as { ref: string }).ref));
     h.batch(fixtureEvents());
     pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();
     await flush(h);
@@ -187,7 +188,7 @@ describe('eth.packets', () => {
   it('edit-and-send preview queries eth.send with dry_run:true only', async () => {
     vi.useFakeTimers();
     h = mountPanel('eth.packets', { channel: 'lan1' });
-    h.net.responders.set('eth.query', (p) => fixtureDetail((p as { ref: string }).ref));
+    h.net.responders.set('eth.show', (p) => fixtureDetail((p as { ref: string }).ref));
     h.net.responders.set('eth.send', (p) => ((p as { dry_run?: boolean }).dry_run ? { proto: 'DoIP/UDS', info: '22 F1 8C', risk: 'R1' } : { request_id: 'tx9' }));
     h.batch(fixtureEvents());
     pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();

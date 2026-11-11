@@ -152,6 +152,8 @@ export async function startMock(o: MockOptions = {}): Promise<MockServer> {
         return eth.send(a, p);
       case 'eth.query':
         return eth.query(p);
+      case 'eth.show':
+        return eth.query({ ...p, detail: true });
       case 'eth.filter.check':
         return eth.checkFilterRpc(String(p.expr ?? ''));
       case 'eth.ifaces':

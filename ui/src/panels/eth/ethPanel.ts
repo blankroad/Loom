@@ -335,7 +335,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     const t0 = performance.now();
     treeHex.clear('불러오는 중…');
     ctx
-      .query<Record<string, unknown>>('eth.query', { ref: selected.ref, detail: true }, ac.signal)
+      .query<Record<string, unknown>>('eth.show', { ref: selected.ref }, ac.signal)
       .then((res) => {
         if (ac.signal.aborted) return;
         detailMs = Math.round(performance.now() - t0);
@@ -617,7 +617,7 @@ registerPanel(
       },
     ],
     // eth.send is also an action: the context allows it as a query only with dry_run:true
-    queries: ['eth.query', 'eth.filter.check', 'eth.ifaces', 'eth.send'],
+    queries: ['eth.query', 'eth.show', 'eth.filter.check', 'eth.ifaces', 'eth.send'],
     actions: [
       { id: 'send', rpc: 'eth.send', class: 'request', right: 'operate', confirm: 'none', label: '이더넷 송신' },
       { id: 'captureStart', rpc: 'eth.capture.start', class: 'job', right: 'operate', confirm: 'none', label: '캡처 시작' },
