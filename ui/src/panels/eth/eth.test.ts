@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TreeHex } from '../../sdk';
 import { ev, mountPanel, writeEv, type Harness } from '../../sdk/testing/harness';
 import './ethPanel';
-import { gapRow, MAX_BYTES, MAX_ROWS, PacketStore, readPkt, samplingText } from './ethModel';
+import { EMPTY_STATS, fmtCount, fmtRate, gapRow, gapRowText, MAX_BYTES, MAX_ROWS, PacketStore, readCaptureState, readPkt, readStats, samplingText } from './ethModel';
 import { DIAG_REQ_HEX, DIAG_REQ_TREE, fixtureDetail, fixtureEvents, fixtureQueryRows, fixtureRecord } from './fixtures';
 
 const hexBytes = (h: string) => new Uint8Array(h.match(/../g)!.map((x) => parseInt(x, 16)));
@@ -205,6 +205,141 @@ describe('eth.packets', () => {
   });
 });
 
+// Field-for-field mirrors of crates/loom-eth/src/model.rs serde output
+// (CaptureStatePayload / StatsPayload): U64 → decimal string, Option::None → field absent.
+const U64_MAX = '18446744073709551615';
+const canonCapture = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+  ch: 'lan1',
+  state: 'live',
+  backend: 'sim',
+  iface: 'lo',
+  bpf: 'port 13400',
+  snaplen: 262144,
+  promisc: false,
+  buffer_bytes_requested: '4194304',
+  buffer_bytes_actual: '2097152',
+  ts_precision: 'micro',
+  drop_stats: 'available',
+  linktype: 1,
+  started_mono_ns: '12000000000',
+  ...over,
+});
+const canonStats = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+  ch: 'lan1',
+  pps: '1234',
+  bps: '9876543',
+  kernel_drop: '2',
+  if_drop: '1',
+  decode_lag_ms: '7',
+  shown: '100',
+  total: '1000',
+  ...over,
+});
+/** serde `skip_serializing_if = Option::is_none` → field absent */
+const omit = (o: Record<string, unknown>, ...keys: string[]) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k)));
+const statusText = (hh: Harness) => hh.host.querySelector('[data-testid="eth-status"]')!.textContent ?? '';
+
+describe('eth.packets — canonical capture_state / stats payloads', () => {
+  it('U64-string stats drive pps/bps/drops/sampling; backend:"sim" shows the SIM tag', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([fixtureRecord('eth.capture_state', 1, canonCapture()), fixtureRecord('eth.stats', 2, canonStats())]);
+    const t = statusText(h);
+    expect(t).toContain('LIVE [SIM tap]');
+    expect(t).toContain('pps 1,234');
+    expect(t).toContain('bps 9.8M');
+    expect(t).toContain('커널 드롭 3');
+    expect(t).not.toContain('pps ?');
+    // stats shown/total (same 1 s window) → sampling badge agrees with the status bar
+    expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toContain('표시 1/10 샘플링');
+  });
+
+  it('backend live → no SIM tag even if a legacy sim flag were absent', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([fixtureRecord('eth.capture_state', 1, canonCapture({ backend: 'live' }))]);
+    expect(statusText(h)).toContain('● LIVE');
+    expect(statusText(h)).not.toContain('SIM');
+  });
+
+  it('stats with kernel_drop/if_drop absent (None) → unknown, never a false "0"', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const noDrops = omit(canonStats(), 'kernel_drop', 'if_drop');
+    h.batch([fixtureRecord('eth.capture_state', 1, canonCapture()), fixtureRecord('eth.stats', 2, noDrops)]);
+    expect(statusText(h)).toContain('커널 드롭: 알 수 없음');
+    expect(statusText(h)).not.toMatch(/커널 드롭 0/);
+  });
+
+  it('known drops then an unknown second → lower bound "≥N"', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const noDrops = omit(canonStats(), 'kernel_drop', 'if_drop');
+    h.batch([
+      fixtureRecord('eth.capture_state', 1, canonCapture()),
+      fixtureRecord('eth.stats', 2, canonStats({ kernel_drop: '4', if_drop: '1' })),
+      fixtureRecord('eth.stats', 3, noDrops),
+    ]);
+    expect(statusText(h)).toContain('커널 드롭 ≥5');
+  });
+
+  it('unknown interval stays a lower bound after drop counters recover', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([
+      fixtureRecord('eth.capture_state', 1, canonCapture()),
+      fixtureRecord('eth.stats', 2, omit(canonStats(), 'kernel_drop', 'if_drop')),
+      fixtureRecord('eth.stats', 3, canonStats({ kernel_drop: '4', if_drop: '0' })),
+    ]);
+    expect(statusText(h)).toContain('커널 드롭 ≥4');
+  });
+
+  it('drop totals: gap counts and stats describe the same counters → larger shown, not summed', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([
+      fixtureRecord('eth.capture_state', 1, canonCapture()),
+      fixtureRecord('eth.stats', 2, canonStats({ kernel_drop: '5', if_drop: '0' })),
+      ev({ kind: 'source.gap', domain: 'eth', channel: 'lan1', payload: { count: '5', cause: 'kernel_drop' } }),
+    ]);
+    expect(statusText(h)).toContain('커널 드롭 5');
+    expect(statusText(h)).not.toContain('커널 드롭 10');
+  });
+
+  it('no capture_state yet → drops unknown (not 0)', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([fixtureRecord('eth.stats', 2, canonStats({ kernel_drop: '0', if_drop: '0' }))]);
+    expect(statusText(h)).toContain('커널 드롭: 알 수 없음');
+  });
+
+  it('source.gap stats_unavailable → drops unknown', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([
+      fixtureRecord('eth.capture_state', 1, canonCapture()),
+      ev({ kind: 'source.gap', domain: 'eth', channel: 'lan1', payload: { count: 'unknown', cause: 'stats_unavailable' } }),
+    ]);
+    expect(statusText(h)).toContain('커널 드롭: 알 수 없음');
+  });
+
+  it('state permission_denied → permission banner; state error → its error text', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([fixtureRecord('eth.capture_state', 1, canonCapture({ state: 'permission_denied', backend: 'live' }))]);
+    const perm = h.host.querySelector<HTMLElement>('.eth-perm')!;
+    expect(perm.hidden).toBe(false);
+    expect(h.host.querySelector<HTMLElement>('[data-testid="eth-status"]')!.dataset.state).toBe('PERMISSION');
+    h.batch([fixtureRecord('eth.capture_state', 2, canonCapture({ state: 'error', error: 'interface lo went down' }))]);
+    expect(perm.hidden).toBe(true);
+    expect(statusText(h)).toContain('오류: interface lo went down');
+  });
+
+  it('U64 values above 2^53 stay exact (pps, gap count)', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.batch([
+      fixtureRecord('eth.capture_state', 1, canonCapture()),
+      fixtureRecord('eth.stats', 2, canonStats({ pps: U64_MAX })),
+      ev({ kind: 'source.gap', domain: 'eth', channel: 'lan1', payload: { count: '9007199254740993', cause: 'kernel_drop' } }),
+    ]);
+    expect(statusText(h)).toContain('pps 18,446,744,073,709,551,615');
+    expect(statusText(h)).toContain('커널 드롭 9,007,199,254,740,993');
+    const gap = h.host.querySelector('.eth-list .vt-row[data-gap="source.gap"]')!;
+    expect(gap.textContent).toContain('9,007,199,254,740,993');
+  });
+});
+
 describe('ethModel', () => {
   it('PacketStore evicts oldest rows past 20,000 and counts them', () => {
     const s = new PacketStore();
@@ -221,6 +356,47 @@ describe('ethModel', () => {
     for (let i = 0; i < 2_000; i++) s.push(readPkt({ seq: String(i), proto: 'UDP', len: 60, info }, 'lan1')!);
     expect(s.bytes).toBeLessThanOrEqual(MAX_BYTES);
     expect(s.evicted).toBeGreaterThan(0);
+  });
+
+  it('readCaptureState: canonical U64 buffers exact; actual absent → null (not = requested)', () => {
+    const c = readCaptureState(canonCapture({ buffer_bytes_requested: U64_MAX }), null);
+    expect(c.backend).toBe('sim');
+    expect(c.sim).toBe(true);
+    expect(c.bufferBytesRequested).toBe(18446744073709551615n);
+    expect(c.bufferBytesActual).toBe(2097152n);
+    const noActual = omit(canonCapture(), 'buffer_bytes_actual');
+    const c2 = readCaptureState(noActual, c);
+    expect(c2.bufferBytesActual).toBeNull();
+    expect(c2.bufferBytesRequested).toBe(4194304n);
+  });
+
+  it('readCaptureState: legacy mock shape (sim flag, buffer_bytes number, upper-case state) still read', () => {
+    const c = readCaptureState({ state: 'PERMISSION', iface: 'lo', buffer_bytes: 4194304, sim: true, drop_stats: 'partial' }, null);
+    expect(c.state).toBe('permission_denied');
+    expect(c.sim).toBe(true);
+    expect(c.backend).toBeNull();
+    expect(c.bufferBytesRequested).toBe(4194304n);
+    expect(readCaptureState({ state: 'LIVE' }, null).state).toBe('live');
+  });
+
+  it('readStats: U64 strings and legacy safe numbers; unsafe floats/numbers are not guessed', () => {
+    const st = readStats(canonStats(), EMPTY_STATS);
+    expect(st).toEqual({ pps: 1234n, bps: 9876543n, decodeLagMs: 7n, kernelDrop: 2n, ifDrop: 1n, shown: 100n, total: 1000n });
+    const legacy = readStats({ pps: 10, bps: 8000, decode_lag_ms: 3 }, EMPTY_STATS);
+    expect(legacy.pps).toBe(10n);
+    expect(legacy.kernelDrop).toBeNull();
+    expect(readStats({ pps: 2 ** 60, bps: 1.5 }, st).pps).toBe(1234n); // keeps last exact value
+    expect(readStats({ pps: '18446744073709551616' }, EMPTY_STATS).pps).toBeNull(); // > u64::MAX
+  });
+
+  it('fmtCount / fmtRate are exact integer formatting (no float rounding)', () => {
+    expect(fmtCount(18446744073709551615n)).toBe('18,446,744,073,709,551,615');
+    expect(fmtCount(0n)).toBe('0');
+    expect(fmtRate(null)).toBe('?');
+    expect(fmtRate(999n)).toBe('999');
+    expect(fmtRate(1500n)).toBe('1.5k');
+    expect(fmtRate(18446744073709551615n)).toBe('18446744073.7G');
+    expect(gapRowText(gapRow('source.gap', 9007199254740993n, 'kernel_drop', null, null, 1n).gap!)).toContain('9,007,199,254,740,993');
   });
 
   it('sampling text is honest about record health', () => {

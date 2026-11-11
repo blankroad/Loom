@@ -170,7 +170,7 @@ fn event_kinds() -> Vec<EventKindSpec> {
             &["ch", "pps", "bps"],
             vec![
                 ptr("/payload/pps", ValueType::U64String, Some("1/s")),
-                ptr("/payload/bps", ValueType::U64String, Some("B/s")),
+                ptr("/payload/bps", ValueType::U64String, Some("bit/s")),
                 ptr("/payload/kernel_drop", ValueType::U64String, None),
                 ptr("/payload/if_drop", ValueType::U64String, None),
                 ptr("/payload/decode_lag_ms", ValueType::U64String, Some("ms")),

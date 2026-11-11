@@ -11,9 +11,8 @@
 //   eth.batch        {covered_first_seq, covered_last_seq, total, shown}  (UI ask ②)
 //                    or {first_src, last_src, count, by_proto}             (eth/plan §6)
 //   eth.link         {eth_ref, request_id, role, confidence, domain?, target?}
-//   eth.capture_state{state, iface, bpf, snaplen, buffer_bytes, ts_precision, drop_stats,
-//                     sim?, started_mono_ns?}
-//   eth.stats        {pps, bps, decode_lag_ms?}
+//   eth.capture_state / eth.stats: canonical in crates/loom-eth/src/model.rs (see status
+//                     section below; legacy mock shapes still accepted)
 
 import { parseEvidenceRef, type LoomEvent, type Origin } from '../../sdk';
 
@@ -50,7 +49,7 @@ export interface PktRow {
   color: string;
   link: PktLink | null;
   txRequestId: string | null;
-  gap: { kind: string; count: number | 'unknown'; cause: string; firstSeq: bigint | null; lastSeq: bigint | null } | null;
+  gap: { kind: string; count: number | bigint | 'unknown'; cause: string; firstSeq: bigint | null; lastSeq: bigint | null } | null;
   /** rough retained size for the 4 MiB panel budget */
   bytesEst: number;
 }
@@ -132,7 +131,7 @@ export function fromEvent(ev: LoomEvent): PktRow | null {
 }
 
 let gapN = 0;
-export function gapRow(kind: string, count: number | 'unknown', cause: string, firstSeq: bigint | null, lastSeq: bigint | null, afterSeq: bigint): PktRow {
+export function gapRow(kind: string, count: number | bigint | 'unknown', cause: string, firstSeq: bigint | null, lastSeq: bigint | null, afterSeq: bigint): PktRow {
   return {
     key: `g-${++gapN}`,
     kind: 'gap',
@@ -158,7 +157,7 @@ export function gapRow(kind: string, count: number | 'unknown', cause: string, f
 }
 
 export function gapRowText(g: NonNullable<PktRow['gap']>): string {
-  const c = g.count === 'unknown' ? '?' : g.count.toLocaleString('ko-KR');
+  const c = g.count === 'unknown' ? '?' : typeof g.count === 'bigint' ? fmtCount(g.count) : g.count.toLocaleString('ko-KR');
   const r = g.firstSeq !== null && g.lastSeq !== null ? ` (seq ${g.firstSeq}–${g.lastSeq})` : '';
   if (g.kind === 'source.gap') return `⚠ 수신 전 손실 ${c}${r} — ${g.cause}`;
   if (g.kind === 'record.gap') return `⚠ 기록 손실 ${c}${r} — ${g.cause}`;
@@ -194,33 +193,114 @@ export function fmtTime(r: PktRow, mode: TimeMode, base: { startMonoNs: bigint |
 }
 
 // ---- status ----
+// Canonical shapes: crates/loom-eth/src/model.rs (CaptureStatePayload, StatsPayload).
+// 64-bit fields are decimal strings (U64); legacy numeric / `sim` / `buffer_bytes` /
+// upper-case state shapes from the dev mock are still accepted.
+
+/** U64 decimal string (canonical) or non-negative safe integer (legacy) → exact bigint. */
+export function u64(v: unknown): bigint | null {
+  if (typeof v === 'string' && /^\d{1,20}$/.test(v)) {
+    const b = BigInt(v);
+    return b <= 0xffff_ffff_ffff_ffffn ? b : null;
+  }
+  if (typeof v === 'number' && Number.isSafeInteger(v) && v >= 0) return BigInt(v);
+  return null;
+}
 
 export interface CaptureState {
+  /** normalised lower-case state (`permission_denied`, `live`, …) */
   state: string;
+  backend: 'live' | 'replay' | 'sim' | null;
   iface: string | null;
   bpf: string | null;
   snaplen: number | null;
-  bufferBytes: number | null;
+  bufferBytesRequested: bigint | null;
+  /** OS-reported buffer; null = the OS did not report it (never assume = requested) */
+  bufferBytesActual: bigint | null;
   tsPrecision: string | null;
   dropStats: 'available' | 'partial' | 'unavailable';
   sim: boolean;
   startMonoNs: bigint | null;
+  error: string | null;
+}
+
+const LEGACY_STATE: Record<string, string> = { PERMISSION: 'permission_denied' };
+function normState(v: unknown): string | null {
+  const t = s(v);
+  if (!t) return null;
+  return LEGACY_STATE[t] ?? t.toLowerCase();
 }
 
 export function readCaptureState(p: unknown, prev: CaptureState | null): CaptureState {
   const o = obj(p);
   const ds = o.drop_stats;
+  const be = o.backend;
+  const backend = be === 'live' || be === 'replay' || be === 'sim' ? be : (prev?.backend ?? null);
+  const state = normState(o.state) ?? prev?.state ?? '?';
   return {
-    state: s(o.state) ?? prev?.state ?? '?',
+    state,
+    backend,
     iface: s(o.iface) ?? prev?.iface ?? null,
     bpf: s(o.bpf) ?? prev?.bpf ?? null,
     snaplen: n(o.snaplen) ?? prev?.snaplen ?? null,
-    bufferBytes: n(o.buffer_bytes) ?? prev?.bufferBytes ?? null,
+    bufferBytesRequested: u64(o.buffer_bytes_requested) ?? u64(o.buffer_bytes) ?? prev?.bufferBytesRequested ?? null,
+    bufferBytesActual: 'buffer_bytes_requested' in o ? u64(o.buffer_bytes_actual) : (prev?.bufferBytesActual ?? null),
     tsPrecision: s(o.ts_precision) ?? prev?.tsPrecision ?? null,
     dropStats: ds === 'available' || ds === 'partial' || ds === 'unavailable' ? ds : (prev?.dropStats ?? 'unavailable'),
-    sim: typeof o.sim === 'boolean' ? o.sim : (prev?.sim ?? false),
+    sim: typeof be === 'string' ? be === 'sim' : typeof o.sim === 'boolean' ? o.sim : (prev?.sim ?? false),
     startMonoNs: big(o.started_mono_ns) ?? prev?.startMonoNs ?? null,
+    // error belongs to the state it came with; a new state without one clears it
+    error: o.state !== undefined ? s(o.error) : (s(o.error) ?? prev?.error ?? null),
   };
+}
+
+export interface CaptureStats {
+  pps: bigint | null;
+  bps: bigint | null;
+  decodeLagMs: bigint | null;
+  /** drops in the last second; null = unknown (field absent), never read as 0 */
+  kernelDrop: bigint | null;
+  ifDrop: bigint | null;
+  shown: bigint | null;
+  total: bigint | null;
+}
+
+export const EMPTY_STATS: CaptureStats = { pps: null, bps: null, decodeLagMs: null, kernelDrop: null, ifDrop: null, shown: null, total: null };
+
+/** eth.stats (1 s window). Each message is a full snapshot: an absent drop field means unknown for that second. */
+export function readStats(p: unknown, prev: CaptureStats): CaptureStats {
+  const o = obj(p);
+  return {
+    pps: u64(o.pps) ?? prev.pps,
+    bps: u64(o.bps) ?? prev.bps,
+    decodeLagMs: u64(o.decode_lag_ms) ?? prev.decodeLagMs,
+    kernelDrop: u64(o.kernel_drop),
+    ifDrop: u64(o.if_drop),
+    shown: u64(o.shown),
+    total: u64(o.total),
+  };
+}
+
+/** exact integer with ko-KR grouping, no float rounding (U64-safe) */
+export function fmtCount(v: bigint): string {
+  return v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/** bits/s → short text; scaled values are approximate by design (one decimal) */
+export function fmtRate(v: bigint | null): string {
+  if (v === null) return '?';
+  const scale = (d: bigint, u: string) => `${v / d}.${(v % d) / (d / 10n)}${u}`;
+  if (v >= 1_000_000_000n) return scale(1_000_000_000n, 'G');
+  if (v >= 1_000_000n) return scale(1_000_000n, 'M');
+  if (v >= 1_000n) return scale(1_000n, 'k');
+  return v.toString();
+}
+
+/** stats shown/total → coverage (same window as pps), when no batch summary has arrived */
+export function statsCoverage(st: CaptureStats): BatchCoverage | null {
+  if (st.total === null || st.shown === null) return null;
+  const big2n = (b: bigint) => (b > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(b));
+  return { total: big2n(st.total), shown: big2n(st.shown) };
 }
 
 export interface BatchCoverage {

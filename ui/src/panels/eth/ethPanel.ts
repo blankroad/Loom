@@ -38,6 +38,13 @@ import {
   PacketStore,
   readBatch,
   readCaptureState,
+  readStats,
+  statsCoverage,
+  EMPTY_STATS,
+  fmtCount,
+  fmtRate,
+  u64,
+  type CaptureStats,
   readLinkEvent,
   readPkt,
   samplingText,
@@ -68,13 +75,6 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 const obj = (v: unknown): Record<string, unknown> => (typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {});
 const big = (v: unknown): bigint | null => (typeof v === 'string' && /^\d{1,20}$/.test(v) ? BigInt(v) : null);
 
-function fmtRate(bps: number | null): string {
-  if (bps === null) return '?';
-  if (bps >= 1e6) return `${(bps / 1e6).toFixed(1)}M`;
-  if (bps >= 1e3) return `${(bps / 1e3).toFixed(1)}k`;
-  return String(Math.round(bps));
-}
-
 export function createEthPackets(ctx: PanelContext): PanelInstance {
   const ch = typeof ctx.props.channel === 'string' ? ctx.props.channel : 'lan1';
   const canOperate = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
@@ -85,10 +85,15 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   const pendingLinks = new Map<string, PktLink>();
   const nicObserved = new Set<string>();
   let capture: CaptureState | null = null;
-  let stats: { pps: number | null; bps: number | null; decodeLagMs: number | null } = { pps: null, bps: null, decodeLagMs: null };
+  let stats: CaptureStats = EMPTY_STATS;
+  let statsSeen = false;
   let coverage: BatchCoverage | null = null;
-  let kernelDrop = 0;
-  let kernelDropUnknown = false;
+  // drop totals since the panel opened: from source.gap counts and from per-second stats.
+  // Both describe the same driver counters; the larger one is shown (a lower bound, never a false 0).
+  let gapDrop = 0n;
+  let statsDrop = 0n;
+  /** some drop amount was not reported (unknown count / stats unavailable) → total is only a lower bound */
+  let dropLowerBound = false;
   let lastTsSource = '?';
 
   let mode: 'live' | 'complete' = 'live';
@@ -435,11 +440,13 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         capture = readCaptureState(p, capture);
         return;
       case 'eth.stats':
-        stats = {
-          pps: typeof p.pps === 'number' ? p.pps : stats.pps,
-          bps: typeof p.bps === 'number' ? p.bps : stats.bps,
-          decodeLagMs: typeof p.decode_lag_ms === 'number' ? p.decode_lag_ms : stats.decodeLagMs,
-        };
+        stats = readStats(p, stats);
+        statsSeen = true;
+        if (stats.kernelDrop !== null) statsDrop += stats.kernelDrop;
+        if (stats.ifDrop !== null) statsDrop += stats.ifDrop;
+        // Any unreported interval stays unknown even after later counters recover.
+        if (stats.kernelDrop === null || stats.ifDrop === null) dropLowerBound = true;
+        coverage = statsCoverage(stats) ?? coverage;
         return;
       case 'source.gap':
       case 'record.gap':
@@ -448,13 +455,14 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         const sr = obj(p.seq_range);
         const first = big(sr.from) ?? big(sr.first);
         const last = big(sr.to) ?? big(sr.last);
-        const c = p.count;
-        const count: number | 'unknown' = typeof c === 'string' && /^\d+$/.test(c) ? Number(c) : typeof c === 'number' ? c : 'unknown';
+        const exact = u64(p.count);
+        const count: bigint | 'unknown' = exact ?? 'unknown';
         const cause = typeof p.cause === 'string' ? p.cause : '?';
         if (ev.kind === 'source.gap' && (cause === 'kernel_drop' || cause === 'if_drop')) {
-          if (count === 'unknown') kernelDropUnknown = true;
-          else kernelDrop += count;
+          if (exact === null) dropLowerBound = true;
+          else gapDrop += exact;
         }
+        if (ev.kind === 'source.gap' && cause === 'stats_unavailable') dropLowerBound = true;
         live.push(gapRow(ev.kind, count, cause, first, last, BigInt(ev.seq)));
         itemsDirty = true;
         return;
@@ -509,19 +517,28 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
 
     // status bar
     const st = capture?.state ?? '?';
-    const drop = capture?.dropStats === 'unavailable' || kernelDropUnknown ? '커널 드롭: 알 수 없음' : `커널 드롭 ${kernelDrop.toLocaleString('ko-KR')}`;
-    status.dataset.state = st;
+    const perm = st === 'permission_denied';
+    const dropTotal = gapDrop > statsDrop ? gapDrop : statsDrop;
+    // unknown now: no capture state yet, driver reports no drop counters, or the latest second had none
+    const dropUnknownNow = !capture || capture.dropStats === 'unavailable' || (statsSeen && stats.kernelDrop === null && stats.ifDrop === null);
+    const dropPartial = dropUnknownNow || dropLowerBound || capture?.dropStats === 'partial';
+    const drop =
+      dropTotal === 0n && (dropUnknownNow || dropLowerBound)
+        ? '커널 드롭: 알 수 없음'
+        : `커널 드롭 ${dropPartial ? '≥' : ''}${fmtCount(dropTotal)}`;
+    status.dataset.state = perm ? 'PERMISSION' : st;
     statusText.textContent = [
-      `eth.packets ─ ${ch} ● ${st}${capture?.sim ? ' [SIM tap]' : ''}`,
-      `pps ${stats.pps ?? '?'}`,
+      `eth.packets ─ ${ch} ● ${st.toUpperCase()}${capture?.sim ? ' [SIM tap]' : ''}`,
+      ...(st === 'error' && capture?.error ? [`오류: ${capture.error}`] : []),
+      `pps ${stats.pps === null ? '?' : fmtCount(stats.pps)}`,
       `bps ${fmtRate(stats.bps)}`,
       drop,
       `기록 ${ctx.recordHealth}`,
       `ts ${lastTsSource}${capture?.tsPrecision ? ` (${capture.tsPrecision})` : ''}`,
       ...(capture?.bpf ? [`캡처 필터: ${capture.bpf}`] : []),
     ].join('  ');
-    status.classList.toggle('has-drop', kernelDrop > 0);
-    permEl.hidden = st !== 'PERMISSION';
+    status.classList.toggle('has-drop', dropTotal > 0n);
+    permEl.hidden = !perm;
     permEl.textContent = '캡처 불가(권한) — 벤치 터미널에서 `loom doctor`. DoIP 진단 연결은 영향 없음.';
 
     // mode bar
