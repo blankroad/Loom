@@ -6,6 +6,9 @@ use serde_json::Value;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecordingHealth {
     Healthy,
+    /// Recording is backlogged or intentionally off: nothing is claimed as lost, but PASS/done
+    /// cannot rely on it either.
+    Degraded,
     Failed,
     Unknown,
 }
@@ -17,7 +20,8 @@ pub struct CheckCtx {
     pub revision: U64,
     pub plan_hash: Option<String>,
     pub window: AttemptWindow,
-    /// Module clock at the time of the check (same clock as `AttemptWindow::host_started_ns`).
+    /// CORE clock (`CallCtx::now_mono_ns`) at the check; same base as `AttemptWindow::host_started_ns`
+    /// and the gateway clock domain of `Fence::captured_mono_ns`.
     pub now_ns: U64,
     pub budget: EvalBudget,
     pub auto: bool,
@@ -113,8 +117,21 @@ impl VerifierEngine for NotWired {
 }
 /// CORE owns source fences, recording state, STOP and real domain dispatch; no hidden device path.
 pub trait SessionHooks: Send + Sync {
+    /// Synchronous fence for simple fakes. The engine only calls [`SessionHooks::fence_async`].
     fn fence(&self, _session: &str, _step: &str, _attempt: u32) -> Result<Option<Fence>, DomainError> {
         Ok(None)
+    }
+    /// Source fence taken before a step transition (`attempt` = new attempt, 0 = end/check) or
+    /// before a verification of an open window. CORE waits for its commit barrier here; the
+    /// engine never holds its state lock across this call. `Ok(None)` = no fence (not wired);
+    /// `Err` refuses the transition (fail closed). Default: [`SessionHooks::fence`].
+    fn fence_async<'a>(
+        &'a self,
+        session: &'a str,
+        step: &'a str,
+        attempt: u32,
+    ) -> BoxFuture<'a, Result<Option<Fence>, DomainError>> {
+        Box::pin(async move { self.fence(session, step, attempt) })
     }
     fn recording_health(&self) -> RecordingHealth {
         RecordingHealth::Unknown

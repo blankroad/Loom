@@ -1,19 +1,23 @@
 //! `PredicateEngine`: the production `VerifierEngine` (TEST plan §3.1, contract 07 §7.3–7.4).
 //!
 //! For every `expect` of the registered plan step (not only what the agent cited):
-//! 1. resolve the anchor event (read separately — it may be an earlier step's) to `mono_ns`;
-//! 2. window = attempt fences ∩ `[anchor, anchor + within_ms]`;
+//! 1. attempt window = CORE **source fences**: per producer `(start, end]` of committed
+//!    `producer_epoch/source_seq`, same stream epoch (an open attempt is checked up to a fresh
+//!    fence). Domains the fence names as unflushed are `uncertain`;
+//! 2. time constraint = `[anchor, anchor + within_ms]` (or start fence + `within_ms`), compared
+//!    only inside one clock domain (`ts.clock_id`) — a different clock is `uncertain`;
 //! 3. **re-read the whole window** from the journal (`ctx.journal().scan`, bounded: 64 MiB,
-//!    2 s, 200k events) — gap events of the channel come with it (gap channel = affected stream);
+//!    2 s, 200k events) — `source.gap`/`record.gap`/`display.gap` come with it (any gap in the
+//!    window makes coverage incomplete; no end fence also does);
 //! 4. build `Coverage` (scan complete, gaps, scan limit) and evaluate: common predicates
 //!    (`exists`, `hold` …) with `loom-test-predicate`, domain predicates (`uart.text_contains`,
 //!    `eth.match` …) with the domain's registered `EvidenceVerifier`;
 //! 5. check the agent's REFs only as witness candidates: unknown seq → refused, seq outside the
 //!    window → `E_OUT_OF_WINDOW`. The verdict comes from the re-read only.
 //!
-//! Limits until CORE R1 (`core-answers-p1.md`): no `CallCtx::wait`, no journal pin (results carry
-//! `observed.pinned:false` — verified evidence is not yet protected from retention), no worker
-//! fence of our own: without the engine's source fences the window is unknown → `uncertain`.
+//! Limits: no journal pin (results carry `observed.pinned:false` — verified evidence is not yet
+//! protected from retention). Without a start source fence the window is unknown → `uncertain`.
+//! A stimulus (`done`) citation must be a confirmed write inside the attempt's fences.
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -53,6 +57,8 @@ pub const ANCHOR_LOOKBACK_MS: u64 = 30 * 60 * 1000;
 pub const CAUSE_OUT_OF_WINDOW: &str = "out_of_window";
 /// A cited REF that is not in the journal (invented or wrong filter).
 pub const CAUSE_REF_UNKNOWN: &str = "ref_not_in_journal";
+/// A cited REF not found while the re-read was incomplete (gap/eviction/scan limit).
+pub const CAUSE_REF_UNCHECKED: &str = "ref_unchecked_incomplete_scan";
 
 /// The production verifier engine.
 #[derive(Clone, Default)]
@@ -107,16 +113,59 @@ fn block<F: std::future::Future>(f: F) -> F::Output {
     }
 }
 
-/// Attempt window in the hub's monotonic clock (from the engine's source fences).
+/// `r` was committed after fence `f` (per producer: newest epoch + highest committed source_seq).
+fn after_fence(f: &Fence, r: &PublishedRecord) -> bool {
+    let mut newer_epoch = false;
+    for s in f.source_refs.iter().filter(|s| s.producer_id == r.producer_id) {
+        if s.producer_epoch == r.producer_epoch {
+            return r.source_seq.get() > s.source_seq.get();
+        }
+        newer_epoch |= s.producer_epoch.get() > r.producer_epoch.get();
+    }
+    // A newer epoch at the fence means this epoch had ended before it; an unknown producer
+    // (or an older epoch at the fence) committed nothing of this epoch before the fence.
+    !newer_epoch
+}
+
+/// Attempt window from CORE source fences: `(start, end]` per producer, same stream epoch.
 #[derive(Debug, Clone, Copy)]
-struct Win {
+struct Attempt<'a> {
+    start: &'a Fence,
+    end: Option<&'a Fence>,
+}
+
+impl Attempt<'_> {
+    fn contains(&self, r: &PublishedRecord) -> bool {
+        r.epoch == self.start.stream_epoch
+            && after_fence(self.start, r)
+            && self.end.is_none_or(|e| !after_fence(e, r))
+    }
+    /// Not after the end fence (anchors of earlier steps may be before the start).
+    fn not_after_end(&self, r: &PublishedRecord) -> bool {
+        r.epoch == self.start.stream_epoch && self.end.is_none_or(|e| !after_fence(e, r))
+    }
+    fn unflushed(&self, domain: &str) -> bool {
+        let named = |f: &Fence| f.unflushed_domains.iter().any(|d| d == domain);
+        named(self.start) || self.end.is_some_and(named)
+    }
+}
+
+/// Time constraint from `anchor`/`within_ms`, valid only inside one clock domain (`Ts::clock_id`).
+#[derive(Debug, Clone)]
+struct TimeWin {
+    clock_id: String,
     lo: u64,
     hi: Option<u64>,
 }
 
-impl Win {
-    fn contains(&self, t: u64) -> bool {
-        t >= self.lo && self.hi.is_none_or(|h| t <= h)
+impl TimeWin {
+    /// `Some(true/false)` when comparable, `None` when `r` uses another clock domain.
+    fn contains(&self, r: &PublishedRecord) -> Option<bool> {
+        if r.ts.clock_id != self.clock_id || self.clock_id.is_empty() {
+            return None;
+        }
+        let t = r.ts.mono_ns.get();
+        Some(t >= self.lo && self.hi.is_none_or(|h| t <= h))
     }
 }
 
@@ -210,8 +259,15 @@ fn role(r: &PublishedRecord) -> Origin {
     }
 }
 
+/// Losses that make a re-read incomplete. `display.gap` counts too: the gateway's live scan reads
+/// the hub ring, so records the hub (or an IPC screen mirror) dropped are missing from the scan.
 fn is_gap(r: &PublishedRecord) -> bool {
-    matches!(r.kind.as_str(), "source.gap" | "record.gap")
+    matches!(r.kind.as_str(), "source.gap" | "record.gap" | "display.gap")
+}
+
+/// Domains a re-read asks for: the expectation's domain plus every gap reporter.
+fn scan_domains(domain: &str) -> Vec<String> {
+    vec![domain.into(), "source".into(), "record".into(), "display".into()]
 }
 
 fn with_pinned(observed: Value) -> Value {
@@ -266,15 +322,16 @@ fn filter_json(f: &loom_test_format::Filter) -> Value {
 }
 
 impl PredicateEngine {
-    /// Mono time of the anchor event: the latest match (kind, step tag, where) at or before `until`.
-    fn anchor_ns(
+    /// Anchor event: the latest match (kind, step tag, where) not after the attempt's end fence.
+    /// Returns its timestamp `(clock_id, mono_ns)`.
+    fn anchor_ts(
         &self,
         e: &Expectation,
         ctx: &CheckCtx,
-        until: Option<u64>,
+        att: Attempt<'_>,
         count: &mut usize,
         started: Instant,
-    ) -> Result<Option<u64>, String> {
+    ) -> Result<Option<(String, u64)>, String> {
         let Some(a) = &e.anchor else { return Ok(None) };
         let cond = match &a.where_clause {
             Some(w) => {
@@ -298,8 +355,7 @@ impl PredicateEngine {
         let s = scan(ctx, filter, ms_cursor(ANCHOR_LOOKBACK_MS), count, started).map_err(|e| e.message)?;
         let mut best = None;
         for r in &s.events {
-            let t = r.ts.mono_ns.get();
-            if until.is_some_and(|u| t > u) {
+            if !att.not_after_end(r) {
                 continue;
             }
             if r.test_session.as_deref().is_some_and(|x| x != ctx.session_id)
@@ -315,7 +371,7 @@ impl PredicateEngine {
                     Err(e) => return Err(format!("anchor seq={}: {e}", r.seq.get())),
                 }
             }
-            best = Some(t);
+            best = Some((r.ts.clock_id.clone(), r.ts.mono_ns.get()));
         }
         Ok(best)
     }
@@ -341,22 +397,35 @@ impl PredicateEngine {
                 json!({}),
             );
         }
-        // 1. attempt window from the engine's fences (CORE R1 owns real fences).
+        // 1. attempt window from CORE source fences (per-producer commit coverage).
         let Some(start) = &step.window.start else {
             return check_row(
                 sid,
                 i,
                 EvidenceStatus::Uncertain,
-                Some("window_unknown: CORE source fence not wired (R1)".into()),
+                Some("window_unknown: no CORE source fence for this attempt".into()),
                 json!({}),
             );
         };
-        let mut win = Win {
-            lo: start.captured_mono_ns.get(),
-            hi: step.window.end.as_ref().map(|f| f.captured_mono_ns.get()),
+        let att = Attempt {
+            start,
+            end: step.window.end.as_ref(),
         };
-        // 2. anchor (read on its own: it may be an earlier step's event outside this window).
-        match self.anchor_ns(e, ctx, win.hi, count, started) {
+        if att.unflushed(&e.filter.domain) {
+            return check_row(
+                sid,
+                i,
+                EvidenceStatus::Uncertain,
+                Some(format!(
+                    "fence_unflushed({}): producer records may be in flight at the fence; attribution unknown",
+                    e.filter.domain
+                )),
+                json!({}),
+            );
+        }
+        // 2. time constraint (anchor/within) in one clock domain; the anchor may be an earlier
+        //    step's event outside this attempt.
+        let time = match self.anchor_ts(e, ctx, att, count, started) {
             Err(why) => return check_row(sid, i, EvidenceStatus::Error, Some(why), json!({})),
             Ok(None) if e.anchor.is_some() => {
                 return check_row(
@@ -367,30 +436,26 @@ impl PredicateEngine {
                     json!({}),
                 );
             }
-            Ok(Some(t)) => {
-                win.lo = win.lo.max(t);
-                if let Some(w) = e.within_ms {
-                    let end = t.saturating_add(w.saturating_mul(1_000_000));
-                    win.hi = Some(win.hi.map_or(end, |h| h.min(end)));
+            Ok(Some((clock_id, t))) => Some(TimeWin {
+                clock_id,
+                lo: t,
+                hi: e.within_ms.map(|w| t.saturating_add(w.saturating_mul(1_000_000))),
+            }),
+            Ok(None) => e.within_ms.map(|w| {
+                let t = start.captured_mono_ns.get();
+                TimeWin {
+                    clock_id: start.clock_id.clone(),
+                    lo: t,
+                    hi: Some(t.saturating_add(w.saturating_mul(1_000_000))),
                 }
-            }
-            Ok(None) => {
-                if let Some(w) = e.within_ms {
-                    let end = win.lo.saturating_add(w.saturating_mul(1_000_000));
-                    win.hi = Some(win.hi.map_or(end, |h| h.min(end)));
-                }
-            }
-        }
-        // 3. re-read everything of the channel from just before the attempt start.
+            }),
+        };
+        // 3. re-read everything of the domain (and every gap reporter) from just before the
+        //    attempt start; channel is filtered here so gap events (no channel) stay visible.
         let back_ms =
             ctx.now_ns.get().saturating_sub(step.window.host_started_ns.get()) / 1_000_000 + SCAN_SLACK_MS;
         let sub = SubFilter {
-            channels: e.filter.channel.iter().cloned().collect(),
-            domains: if e.filter.channel.is_some() {
-                Vec::new()
-            } else {
-                vec![e.filter.domain.clone(), "source".into(), "record".into()]
-            },
+            domains: scan_domains(&e.filter.domain),
             ..SubFilter::default()
         };
         let s = match scan(ctx, sub, ms_cursor(back_ms), count, started) {
@@ -405,12 +470,50 @@ impl PredicateEngine {
                 );
             }
         };
+        let relevant = |r: &PublishedRecord| {
+            is_gap(r)
+                || (r.domain == e.filter.domain
+                    && e.filter
+                        .channel
+                        .as_ref()
+                        .is_none_or(|c| r.channel.as_ref() == Some(c)))
+        };
+        let in_window = |r: &PublishedRecord| -> Option<bool> {
+            if !att.contains(r) {
+                return Some(false);
+            }
+            match &time {
+                None => Some(true),
+                Some(t) if is_gap(r) => Some(t.contains(r).unwrap_or(true)),
+                Some(t) => t.contains(r),
+            }
+        };
+        let mut clock_mismatch = false;
         let window: Vec<PublishedRecord> = s
             .events
             .iter()
-            .filter(|r| win.contains(r.ts.mono_ns.get()) && (r.domain == e.filter.domain || is_gap(r)))
+            .filter(|r| relevant(r))
+            .filter(|r| match in_window(r) {
+                Some(b) => b,
+                None => {
+                    clock_mismatch = true;
+                    false
+                }
+            })
             .cloned()
             .collect();
+        if clock_mismatch {
+            return check_row(
+                sid,
+                i,
+                EvidenceStatus::Uncertain,
+                Some(
+                    "clock_domain_mismatch: anchor/within time cannot be compared with the evidence clock"
+                        .into(),
+                ),
+                json!({"time_clock": time.as_ref().map(|t| t.clock_id.clone())}),
+            );
+        }
         let gap_in_window = window.iter().any(is_gap);
         let (lo_seq, hi_seq) = (
             window.first().map_or(0, |r| r.seq.get()),
@@ -420,12 +523,15 @@ impl PredicateEngine {
         if gap_in_window {
             causes.push("gap_in_window".into());
         }
+        if att.end.is_none() {
+            causes.push("window_open_no_end_fence".into());
+        }
         let cov = Coverage {
             window: SeqRange {
                 from: U64(lo_seq),
                 to: U64(hi_seq),
             },
-            complete: s.complete && !gap_in_window,
+            complete: s.complete && !gap_in_window && att.end.is_some(),
             causes,
         };
         // 4. evaluate.
@@ -437,7 +543,7 @@ impl PredicateEngine {
             self.domain_check(sid, i, &name, &fj, e, &window, &cov, ctx)
         };
         row.gap_in_window = gap_in_window;
-        row.complete = row.complete && s.complete && !gap_in_window;
+        row.complete = row.complete && cov.complete;
         // 5. the agent's REFs: witness candidates only.
         for c in refs {
             let Some(r) = &c.reference else { continue };
@@ -453,13 +559,21 @@ impl PredicateEngine {
                 .events
                 .iter()
                 .filter(|x| {
-                    (rs.from..=rs.to).contains(&x.seq.get()) && rs.epoch.is_none_or(|ep| ep == x.epoch.get())
+                    (rs.from..=rs.to).contains(&x.seq.get())
+                        && rs.epoch.is_none_or(|ep| ep == x.epoch.get())
+                        && rs.domain == x.domain
                 })
                 .collect();
-            if found.is_empty() {
+            if found.is_empty() && s.complete {
                 row.status = EvidenceStatus::Mismatch;
                 row.cause = Some(CAUSE_REF_UNKNOWN.into());
-            } else if found.iter().any(|x| !win.contains(x.ts.mono_ns.get())) {
+            } else if found.is_empty() {
+                // The re-read lost part of the range: the REF may be real but cannot be checked.
+                if row.status != EvidenceStatus::Mismatch {
+                    row.status = EvidenceStatus::Uncertain;
+                    row.cause = Some(CAUSE_REF_UNCHECKED.into());
+                }
+            } else if found.iter().any(|x| in_window(x) != Some(true)) {
                 row.status = EvidenceStatus::Mismatch;
                 row.cause = Some(CAUSE_OUT_OF_WINDOW.into());
             }
@@ -668,34 +782,53 @@ impl PredicateEngine {
             let rows_of: Vec<&PublishedRecord> = s
                 .events
                 .iter()
-                .filter(|r| (rs.from..=rs.to).contains(&r.seq.get()))
+                .filter(|r| {
+                    (rs.from..=rs.to).contains(&r.seq.get()) && rs.epoch.is_none_or(|ep| ep == r.epoch.get())
+                })
                 .collect();
-            let ok = rows_of.iter().any(|r| {
+            // The confirmed write must belong to this attempt (CORE source fences), not to an
+            // earlier attempt/step or another stream epoch.
+            let att = step.window.start.as_ref().map(|start| Attempt {
+                start,
+                end: step.window.end.as_ref(),
+            });
+            let in_attempt =
+                |r: &PublishedRecord| att.is_some_and(|a| a.contains(r) && !a.unflushed(&r.domain));
+            let confirmed_row = |r: &PublishedRecord| {
                 matches!(
                     r.write_state().ok().flatten(),
                     Some(
                         WriteState::Confirmed | WriteState::EffectiveVerified | WriteState::EffectUnverified
                     )
                 )
-            });
+            };
+            let ok = rows_of.iter().any(|r| confirmed_row(r) && in_attempt(r));
             confirmed |= ok;
-            let mut row = check_row(
-                sid,
-                i,
-                if ok {
-                    EvidenceStatus::Verified
-                } else {
-                    EvidenceStatus::NotFound
-                },
-                (!ok).then(|| {
-                    if rows_of.is_empty() {
-                        CAUSE_REF_UNKNOWN.into()
-                    } else {
-                        "write_not_confirmed".into()
-                    }
-                }),
-                json!({"rows": rows_of.len()}),
-            );
+            let cause = if ok {
+                None
+            } else if rows_of.is_empty() {
+                Some(CAUSE_REF_UNKNOWN.to_owned())
+            } else if att.is_none() {
+                Some("window_unknown: no CORE source fence for this attempt".to_owned())
+            } else if att.is_some_and(|a| a.unflushed(&rs.domain)) {
+                Some(format!(
+                    "fence_unflushed({}): producer records may be in flight at the fence; attribution unknown",
+                    rs.domain
+                ))
+            } else if rows_of.iter().any(|r| confirmed_row(r)) {
+                Some(CAUSE_OUT_OF_WINDOW.to_owned())
+            } else {
+                Some("write_not_confirmed".to_owned())
+            };
+            let status = match cause.as_deref() {
+                None => EvidenceStatus::Verified,
+                Some(CAUSE_OUT_OF_WINDOW) => EvidenceStatus::Mismatch,
+                Some(c) if c.starts_with("window_unknown") || c.starts_with("fence_unflushed") => {
+                    EvidenceStatus::Uncertain
+                }
+                _ => EvidenceStatus::NotFound,
+            };
+            let mut row = check_row(sid, i, status, cause, json!({"rows": rows_of.len()}));
             row.reference = c.reference.clone().unwrap_or_default();
             row.matched_refs = rows_of.iter().take(4).map(|r| ref_of(r)).collect();
             row.witness = Witness::OwnTxOnly;

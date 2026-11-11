@@ -146,6 +146,9 @@ pub struct JournalRead {
     pub scan_limited: bool,
     /// No mapping covers the start (deleted by retention or never recorded).
     pub out_of_retention: bool,
+    /// Mapped stream ranges `(first, last)` whose producer journal is missing (not recorded or
+    /// deleted): their events cannot be read, so the read is not complete.
+    pub unreadable: Vec<(u64, u64)>,
     /// Bytes scanned.
     pub scanned_bytes: u64,
 }
@@ -423,7 +426,13 @@ impl Journal {
             let src_to = base + (sl - m.seq_first.get());
             let dir = producer_dir(&root, &m.producer_id, m.producer_epoch.get());
             if !dir.is_dir() {
-                continue; // producer not recorded (or deleted)
+                // Producer not recorded (or deleted): report the loss instead of skipping it.
+                match out.unreadable.last_mut() {
+                    Some(last) if last.1 + 1 >= sf => last.1 = last.1.max(sl),
+                    _ => out.unreadable.push((sf, sl)),
+                }
+                out.scanned_through = out.scanned_through.max(sl);
+                continue;
             }
             let left = ScanLimits {
                 scan_bytes: lim.scan_bytes.saturating_sub(scanned),

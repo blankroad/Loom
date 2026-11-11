@@ -42,6 +42,9 @@ pub struct Loaded {
     pub registry: Registry,
     /// Worker kinds.
     pub workers: Vec<WorkerDecl>,
+    /// TEST only: the session module and its CORE runtime hooks (bound to the daemon at start).
+    #[cfg(feature = "test")]
+    pub test: Option<crate::test_services::TestWiring>,
 }
 
 impl std::fmt::Debug for Loaded {
@@ -106,7 +109,12 @@ fn load<M: DomainModule>(out: &mut Vec<Loaded>, m: &M, table: &[(&str, InprocFn,
                     );
                 }
             }
-            out.push(Loaded { registry, workers });
+            out.push(Loaded {
+                registry,
+                workers,
+                #[cfg(feature = "test")]
+                test: None,
+            });
         }
         Err(e) => tracing::error!("domain {} disabled: {e}", M::NAME),
     }
@@ -180,8 +188,15 @@ pub fn builtin() -> Vec<Loaded> {
     #[cfg(feature = "test")]
     {
         let regs: Vec<&Registry> = out.iter().map(|l: &Loaded| &l.registry).collect();
-        match crate::test_services::test_module(&regs) {
-            Ok(test) => load(&mut out, &test, &[]),
+        match crate::test_services::test_wiring(&regs) {
+            Ok(wiring) => match register(&wiring.module) {
+                Ok(registry) => out.push(Loaded {
+                    registry,
+                    workers: Vec::new(),
+                    test: Some(wiring),
+                }),
+                Err(e) => tracing::error!("domain test disabled: {e}"),
+            },
             Err(e) => tracing::error!("domain test disabled: {e}"),
         }
     }

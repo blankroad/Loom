@@ -9,14 +9,19 @@ publish.workspace = true
 [dependencies]
 loom-domain-api.workspace = true
 loom-proto.workspace = true
-loom-cli-kit.workspace = true
+loom-cli-kit = { workspace = true, optional = true }
 loom-test-format = { path = "../loom-test-format" }
 loom-test-predicate = { path = "../loom-test-predicate" }
 serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
-clap.workspace = true
-tokio.workspace = true
+clap = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+
+[features]
+default = ["runtime", "cli"]
+runtime = ["dep:tokio"]
+cli = ["dep:clap", "dep:loom-cli-kit"]
 
 [dev-dependencies]
 loom-testkit.workspace = true

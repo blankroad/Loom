@@ -65,11 +65,25 @@ pub struct StepDefinition {
     pub domains: Vec<StepDomain>,
     pub timeout_ms: Option<U64>,
 }
+/// CORE source fence (contract 07): the commit coverage of every producer at one instant.
+///
+/// `source_refs` holds, per producer id, the newest producer epoch and the highest `source_seq`
+/// the gateway had committed (journaled and given a stream seq) when the fence was taken. Every
+/// record of that producer emitted before `captured_mono_ns` is covered, unless its domain is in
+/// `unflushed_domains`. A producer missing here had committed nothing in this stream epoch.
+/// Window membership is decided from these refs, never from stream seq or cross-clock times.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Fence {
     pub stream_epoch: U64,
     pub source_refs: Vec<SourceRef>,
     pub captured_mono_ns: U64,
+    /// Clock domain of `captured_mono_ns` (`Ts::clock_id`); empty = unknown (no time baseline).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub clock_id: String,
+    /// Domains with producers CORE could not flush at the fence (e.g. IPC workers without a
+    /// worker-level fence): records may still be in flight, so attribution there is uncertain.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unflushed_domains: Vec<String>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AttemptWindow {

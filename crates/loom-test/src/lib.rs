@@ -1,16 +1,26 @@
 //! TEST session module. CORE owns registration, journal/fences, policy and all device dispatch.
+#[cfg(feature = "cli")]
 pub mod cli;
+#[cfg(feature = "runtime")]
 mod engine;
+#[cfg(feature = "runtime")]
 pub mod gateway;
 pub mod model;
+#[cfg(feature = "runtime")]
 pub mod seams;
+#[cfg(feature = "runtime")]
 mod snapshot;
 mod source;
+#[cfg(feature = "runtime")]
 pub mod wire;
+#[cfg(feature = "runtime")]
 pub use engine::{SessionConfig, TestModule};
 pub use model::*;
+#[cfg(feature = "runtime")]
 pub use seams::*;
+#[cfg(feature = "runtime")]
 pub use snapshot::TestReducer;
+#[cfg(feature = "runtime")]
 pub use wire::PredicateEngine;
 pub const DOMAIN: &str = "test";
 /// Concurrent sessions default 1, configurable up to 4; reject new starts rather than evict active sessions.
@@ -23,6 +33,11 @@ pub const MAX_CONTROL_REQUESTS: usize = 1024;
 pub const MAX_CHECKS: usize = 2;
 /// Evidence citations per verdict/check/step; reject excess before cloning.
 pub const MAX_CITATIONS: usize = 64;
+/// Producers in one CORE source fence; a larger fence is refused (`E_PARTIAL`), never truncated.
+/// Two fences per retained attempt × 500 steps stay inside `CAP_SESSION_BASE_BYTES`.
+pub const MAX_FENCE_SOURCES: usize = 128;
+/// Unflushed domains named by one fence.
+pub const MAX_FENCE_DOMAINS: usize = 64;
 /// Retained evidence rows per session; oldest display row is evicted, journal remains authoritative.
 pub const MAX_RECENT_EVIDENCE: usize = 200;
 /// Session notes/questions/answer text bytes; reject oversized prose, never silently truncate it.
@@ -60,7 +75,9 @@ pub const MAX_SESSION_MUTATIONS: usize = 16_384;
 use loom_domain_api::DomainError;
 use loom_proto::error::ErrorCode;
 use serde_json::Value;
+#[cfg(feature = "runtime")]
 use std::sync::{Mutex, MutexGuard};
+#[cfg(feature = "runtime")]
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     m.lock().unwrap_or_else(|e| e.into_inner())
 }
@@ -70,11 +87,13 @@ fn err(code: ErrorCode, msg: impl Into<String>) -> DomainError {
 fn usage(msg: impl Into<String>) -> DomainError {
     err(ErrorCode::Usage, msg)
 }
+#[cfg(feature = "runtime")]
 #[derive(Debug)]
 struct LimitedJson {
     bytes: Vec<u8>,
     limit: usize,
 }
+#[cfg(feature = "runtime")]
 impl std::io::Write for LimitedJson {
     fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
         if b.len() > self.limit.saturating_sub(self.bytes.len()) {
@@ -87,6 +106,7 @@ impl std::io::Write for LimitedJson {
         Ok(())
     }
 }
+#[cfg(feature = "runtime")]
 fn json_len(v: &Value, limit: usize) -> Result<usize, DomainError> {
     validate_json(v)?;
     let mut out = LimitedJson {
@@ -102,12 +122,14 @@ fn text<'a>(v: &'a Value, key: &str, max: usize) -> Result<&'a str, DomainError>
         .filter(|s| !s.is_empty() && s.len() <= max)
         .ok_or_else(|| usage(format!("{key} must be a nonempty string of at most {max} bytes")))
 }
+#[cfg(feature = "runtime")]
 fn optional_text<'a>(v: &'a Value, key: &str, max: usize) -> Result<Option<&'a str>, DomainError> {
     v.get(key)
         .filter(|v| !v.is_null())
         .map(|_| text(v, key, max))
         .transpose()
 }
+#[cfg(feature = "runtime")]
 fn bool_arg(v: &Value, key: &str, default: bool) -> Result<bool, DomainError> {
     match v.get(key) {
         None => Ok(default),
@@ -115,6 +137,7 @@ fn bool_arg(v: &Value, key: &str, default: bool) -> Result<bool, DomainError> {
         _ => Err(usage(format!("{key} must be boolean"))),
     }
 }
+#[cfg(feature = "runtime")]
 fn u64_arg(v: &Value, key: &str, default: Option<u64>) -> Result<u64, DomainError> {
     let n = match v.get(key) {
         Some(Value::String(s)) => loom_proto::num::parse_u64_canonical(s).ok(),
@@ -136,6 +159,7 @@ fn preview(s: &str) -> String {
     }
 }
 /// Iterative JSON preflight prevents recursion/huge DTOs before serialization or serde cloning.
+#[cfg(feature = "runtime")]
 fn validate_json(value: &Value) -> Result<(), DomainError> {
     let mut stack = vec![(value, 0usize)];
     let mut nodes = 0usize;

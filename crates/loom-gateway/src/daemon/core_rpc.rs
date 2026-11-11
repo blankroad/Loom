@@ -413,7 +413,12 @@ fn journal_result(epoch: u64, mut events: Vec<Value>, jr: JournalRead, hw: Optio
     );
     let seq = |e: &Value| e["seq"].as_str().and_then(|s| s.parse::<u64>().ok());
     let (first, last) = (events.first().and_then(seq), events.last().and_then(seq));
-    json!({
+    let unreadable: Vec<Value> = jr
+        .unreadable
+        .iter()
+        .map(|(a, b)| json!({"from": U64(*a), "to": U64(*b), "cause": "producer_not_recorded"}))
+        .collect();
+    let mut out = json!({
         "events": events,
         "count": events.len(),
         "truncated": jr.next_seq.is_some(),
@@ -422,7 +427,12 @@ fn journal_result(epoch: u64, mut events: Vec<Value>, jr: JournalRead, hw: Optio
         "stream_seq_hw": hw.map(U64),
         "stream_epoch": U64(epoch),
         "source": "journal",
-    })
+    });
+    // Mapped ranges whose producer journal is missing: say so instead of a silent hole.
+    if !unreadable.is_empty() {
+        out["unreadable"] = json!(unreadable);
+    }
+    out
 }
 
 fn core_help() -> Value {

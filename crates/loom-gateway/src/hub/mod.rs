@@ -442,6 +442,11 @@ pub struct RangeResult {
     pub hw: u64,
     /// Oldest seq still in the ring (any channel).
     pub oldest: Option<u64>,
+    /// Highest stream seq evicted from any ring the filter can select (domain/channel). A read
+    /// starting at or below it is missing events in the ring and must use the journal.
+    pub evicted_through: Option<u64>,
+    /// Publish instant of that evicted event (time-cursor reads compare against it).
+    pub evicted_at: Option<Instant>,
 }
 
 /// Called on the hub thread for every published (non-private) record, in seq order. Must be quick.
@@ -512,6 +517,7 @@ impl HubBuilder {
             counters: shared.clone(),
             next_seq: 1,
             rings: HashMap::new(),
+            evicted: Evictions::default(),
             ring_order: VecDeque::new(),
             ring_bytes: 0,
             conns: Vec::new(),
@@ -762,6 +768,8 @@ struct Sequencer {
     counters: Arc<Counters>,
     next_seq: u64,
     rings: HashMap<ChannelKey, (VecDeque<Arc<Published>>, usize)>,
+    /// Per ring: newest evicted `(stream seq, publish instant)` (bounded by the ring keys).
+    evicted: Evictions,
     ring_order: VecDeque<ChannelKey>,
     ring_bytes: usize,
     conns: Vec<Arc<ConnShared>>,
@@ -771,6 +779,38 @@ struct Sequencer {
     observers: Vec<Observer>,
     pre: Vec<PrePublish>,
     subs_total: usize,
+}
+
+/// Churn may leave empty ring keys behind. Bound the new coverage index independently;
+/// overflow retains a global watermark, conservatively marking any older read incomplete.
+const MAX_EVICTION_KEYS: usize = 4096;
+#[derive(Default)]
+struct Evictions {
+    by_ring: HashMap<ChannelKey, (u64, Instant)>,
+    overflow: Option<(u64, Instant)>,
+}
+impl Evictions {
+    fn note(&mut self, key: ChannelKey, value: (u64, Instant)) {
+        if self.by_ring.contains_key(&key) || self.by_ring.len() < MAX_EVICTION_KEYS {
+            self.by_ring.insert(key, value);
+        } else if self.overflow.is_none_or(|v| value.0 > v.0) {
+            self.overflow = Some(value);
+        }
+    }
+    fn selected(&self, filter: &SubFilter) -> Option<(u64, Instant)> {
+        self.by_ring
+            .iter()
+            .filter(|(key, _)| ring_selectable(filter, key))
+            .map(|(_, value)| *value)
+            .chain(self.overflow)
+            .max_by_key(|v| v.0)
+    }
+}
+
+/// Can `f` select any record of ring `(domain, channel)`? (kinds/origins are not ring keys.)
+fn ring_selectable(f: &SubFilter, (domain, channel): &ChannelKey) -> bool {
+    (f.domains.is_empty() || f.domains.contains(domain))
+        && (f.channels.is_empty() || channel.as_ref().is_some_and(|c| f.channels.contains(c)))
 }
 
 /// Does `f` select `r`? (`ext` is a domain push-down filter; the hub ignores it in M1.)
@@ -902,11 +942,14 @@ impl Sequencer {
                     .filter_map(|(r, _)| r.front())
                     .map(|p| p.rec.seq.get())
                     .min();
+                let evicted = self.evicted.selected(&q.filter);
                 let _ = ack.send(RangeResult {
                     events,
                     more,
                     hw: self.next_seq - 1,
                     oldest,
+                    evicted_through: evicted.map(|e| e.0),
+                    evicted_at: evicted.map(|e| e.1),
                 });
             }
         }
@@ -955,13 +998,18 @@ impl Sequencer {
         entry.1 += n;
         self.ring_order.push_back(key.clone());
         self.ring_bytes += n;
+        let mut evicted = None;
         while entry.1 > RING_CHANNEL_BYTES {
             if let Some(old) = entry.0.pop_front() {
                 entry.1 -= old.json.len();
                 self.ring_bytes -= old.json.len();
+                evicted = Some((old.rec.seq.get(), old.at));
             } else {
                 break;
             }
+        }
+        if let Some(e) = evicted {
+            self.evicted.note(key.clone(), e);
         }
         // Global cap: evict the oldest event across channels.
         while self.ring_bytes > RING_BYTES {
@@ -973,6 +1021,7 @@ impl Sequencer {
             {
                 *b -= old.json.len();
                 self.ring_bytes -= old.json.len();
+                self.evicted.note(k, (old.rec.seq.get(), old.at));
             }
         }
         if self.ring_order.len() > 4 * 1024 * 1024 {
@@ -1213,5 +1262,27 @@ pub fn core_source(clock: &HubClock, domain: &str, kind: &str, payload: Value) -
         payload,
         metrics: Vec::new(),
         quality: Vec::new(),
+    }
+}
+
+#[cfg(test)]
+mod eviction_coverage_tests {
+    use super::*;
+    #[test]
+    fn coverage_index_is_bounded_and_overflow_is_conservative() {
+        let mut e = Evictions::default();
+        let now = Instant::now();
+        for i in 0..=MAX_EVICTION_KEYS {
+            e.note(("can".into(), Some(format!("channel{i}"))), (i as u64 + 1, now));
+        }
+        assert_eq!(e.by_ring.len(), MAX_EVICTION_KEYS);
+        let unrelated = SubFilter {
+            domains: vec!["uart".into()],
+            ..Default::default()
+        };
+        assert_eq!(
+            e.selected(&unrelated).map(|v| v.0),
+            Some(MAX_EVICTION_KEYS as u64 + 1)
+        );
     }
 }

@@ -256,10 +256,10 @@ fn registered_plan_starts_but_cannot_claim_pass() {
     // Ordered plan: S2 cannot start before S1.
     let early = a.request("test.step", json!({"session_id": session, "id": "S2"}));
     assert_eq!(code(&early), "E_DENIED", "{early}");
-    // S1 begins without a CORE source fence (NotWiredHooks).
+    // S1 begins with a CORE source fence (IPC worker domains are named unflushed in it).
     let s1 = a.request("test.step", json!({"session_id": session, "id": "S1"}));
     assert!(code(&s1).is_null(), "{s1}");
-    assert_eq!(s1["result"]["data"]["source_fence_available"], false, "{s1}");
+    assert_eq!(s1["result"]["data"]["source_fence_available"], true, "{s1}");
     let done = a.request(
         "test.verdict",
         json!({"session_id": session, "step": "S1", "verdict": "done"}),

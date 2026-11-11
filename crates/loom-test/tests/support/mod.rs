@@ -105,6 +105,8 @@ impl SessionHooks for Hooks {
                 source_seq: U64(seq),
             }],
             captured_mono_ns: U64(seq),
+            clock_id: String::new(),
+            unflushed_domains: Vec::new(),
         }))
     }
     fn recording_health(&self) -> RecordingHealth {

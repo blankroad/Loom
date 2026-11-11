@@ -6,22 +6,32 @@
 //! * **risk** — the domain's own `WriteHooks::classify` (the same hook the gateway write pipeline
 //!   calls), blocks from that hook, and `safe_state` only from a registered `SafeStateSpec`.
 //!
-//! What this does **not** provide stays unavailable (see [`test_module`]): source fences, recording
-//! health, STOP from CORE, plan approval and the `finally` dispatcher. Plan-time risk is a preview;
-//! the gateway classifies every real write again when it is dispatched.
+//! [`TestRuntime`] is the CORE side of the session hooks: source fences from the hub's commit
+//! coverage, recording health, the STOP latch, and the `finally` dispatcher through the normal
+//! write pipeline. Plan approval stays an explicit `E_NOT_IMPLEMENTED` (loomd is F1 automatic).
+//! Plan-time risk is a preview; the gateway classifies every real write again when dispatched.
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, OnceLock, Weak};
+use std::time::{Duration, Instant};
 
 use loom_domain_api::{
-    Classification, DomainError, Registry, RoleSet, SafeStateSpec, TargetRef, WriteHooks, WriteRequest,
+    BoxFuture, CallCtx, Classification, DomainError, Registry, RoleSet, SafeStateSpec, TargetRef, WriteHooks,
+    WriteRequest,
 };
+use loom_proto::envelope::RecordHealth;
+use loom_proto::error::ErrorCode;
 use loom_proto::event::{Env, Origin, Risk as ProtoRisk};
+use loom_proto::num::U64;
 use loom_proto::policy::{BlockClass, WriteClass};
-use loom_test::{NotWiredHooks, PredicateEngine, SessionConfig, TestModule};
-use loom_test_format::{CommandSpec, CommandTable, Risk, RiskLevel, RiskProvider};
-use serde_json::{Map, Value};
+use loom_proto::rpc::Role;
+use loom_test::{
+    ApprovalStatus, Fence, PredicateEngine, RecordingHealth, SessionConfig, SessionHooks, TestModule,
+};
+use loom_test_format::{CommandSpec, CommandTable, Risk, RiskLevel, RiskProvider, Step};
+use serde_json::{Map, Value, json};
+
+use crate::daemon::{Caller, Daemon};
 
 /// Client id used when a plan action is classified (no connection exists at plan time).
 pub const PLAN_CLIENT_ID: &str = "test.plan-check";
@@ -184,16 +194,218 @@ impl CommandTable for RegistryCommands {
     }
 }
 
-/// TEST module wired to the real command/risk table and domain evidence verifiers. Session hooks
-/// stay [`NotWiredHooks`]: no source fence, recording health `Unknown`, approval/finally
-/// `E_NOT_IMPLEMENTED` — so no automatic PASS can be confirmed until CORE wires them.
-pub fn test_module(regs: &[&Registry]) -> Result<TestModule, DomainError> {
-    TestModule::with_services(
+/// The TEST module and its CORE runtime, created with the domains and bound to the daemon at start.
+pub struct TestWiring {
+    /// Session module registered as the `test` domain.
+    pub module: TestModule,
+    /// CORE hooks the module calls (fences, recording health, STOP, finally).
+    pub runtime: Arc<TestRuntime>,
+}
+
+impl std::fmt::Debug for TestWiring {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TestWiring")
+            .field("bound", &self.runtime.daemon().is_some())
+            .finish_non_exhaustive()
+    }
+}
+
+/// TEST module wired to the real command/risk table, domain evidence verifiers and the CORE
+/// runtime hooks below. Until [`TestRuntime::bind`] runs, every hook fails closed (no fence,
+/// recording `Unknown`, STOP assumed latched, no finally dispatch).
+pub fn test_wiring(regs: &[&Registry]) -> Result<TestWiring, DomainError> {
+    let commands = Arc::new(RegistryCommands::from_registries(regs));
+    let runtime = Arc::new(TestRuntime {
+        daemon: OnceLock::new(),
+        commands: commands.clone(),
+    });
+    let module = TestModule::with_services(
         SessionConfig::default(),
-        Some(Arc::new(RegistryCommands::from_registries(regs))),
+        Some(commands),
         Arc::new(PredicateEngine::from_registries(regs)),
-        Arc::new(NotWiredHooks),
-    )
+        runtime.clone(),
+    )?;
+    Ok(TestWiring { module, runtime })
+}
+
+/// CORE side of the TEST session hooks. Holds the daemon weakly (the daemon owns the module).
+///
+/// * **fence** — [`Daemon::source_fence`]: gateway clock, hub barrier, committed
+///   `producer_epoch/source_seq` per producer; IPC worker domains are named unflushed.
+/// * **recording health** — the daemon's overall health (`ok` → healthy, `degraded`/`disabled` →
+///   degraded, `failed` → failed): PASS/done needs `ok`.
+/// * **STOP** — the daemon's memory latch (read on every gate); [`TestRuntime::on_latch`] moves
+///   running sessions to STOPPED when CORE latches.
+/// * **approval** — loomd runs F1 (automatic) and has no approval queue; TEST sessions are
+///   configured `ApprovalMode::Auto`, so this seam stays an explicit `E_NOT_IMPLEMENTED`.
+/// * **finally** — each planned safe-state action goes through the normal [`Daemon::call`] write
+///   pipeline (STOP, record, classify, policy, presend) as a script client of this session, with
+///   the same `rpc_params` the plan check validated.
+pub struct TestRuntime {
+    daemon: OnceLock<Weak<Daemon>>,
+    commands: Arc<RegistryCommands>,
+}
+
+impl std::fmt::Debug for TestRuntime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TestRuntime")
+            .field("bound", &self.daemon().is_some())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Client id suffix of `finally` writes (not bound to the session, which is paused meanwhile).
+pub const FINALLY_CLIENT_SUFFIX: &str = "#test-finally";
+
+impl TestRuntime {
+    /// Bind to the started daemon (once).
+    pub fn bind(&self, daemon: Weak<Daemon>) {
+        if self.daemon.set(daemon).is_err() {
+            tracing::warn!("TEST runtime was already bound to a daemon");
+        }
+    }
+
+    fn daemon(&self) -> Option<Arc<Daemon>> {
+        self.daemon.get()?.upgrade()
+    }
+
+    /// CORE STOP latch changed (called by `Daemon::stop` after the memory latch is set).
+    pub fn on_latch(&self, c: &Caller, on: bool, module: &TestModule) {
+        let Some(d) = self.daemon() else { return };
+        let method = if on { "core.stop" } else { "core.stop.release" };
+        let ctx = d.domain_ctx(c, loom_test::DOMAIN, method);
+        if let Err(e) = module.set_stop(&ctx, on) {
+            // Gates still read the latch; only the STOPPED event could not be published.
+            tracing::error!("TEST sessions could not record STOP: {e}");
+        }
+    }
+}
+
+fn finally_error(code: ErrorCode, message: impl Into<String>, done: &[Value]) -> DomainError {
+    DomainError::new(code, message).with_detail(json!({"dispatched": done, "outcome": "unknown"}))
+}
+
+impl SessionHooks for TestRuntime {
+    fn fence_async<'a>(
+        &'a self,
+        _session: &'a str,
+        _step: &'a str,
+        _attempt: u32,
+    ) -> BoxFuture<'a, Result<Option<Fence>, DomainError>> {
+        Box::pin(async move {
+            let Some(d) = self.daemon() else {
+                return Ok(None);
+            };
+            let f = d.source_fence().await?;
+            Ok(Some(Fence {
+                stream_epoch: U64(f.stream_epoch),
+                source_refs: f.source_refs,
+                captured_mono_ns: U64(f.captured_mono_ns),
+                clock_id: f.clock_id,
+                unflushed_domains: f.unflushed_domains,
+            }))
+        })
+    }
+
+    fn recording_health(&self) -> RecordingHealth {
+        match self.daemon().map(|d| d.record_health()) {
+            Some(RecordHealth::Ok) => RecordingHealth::Healthy,
+            Some(RecordHealth::Failed) => RecordingHealth::Failed,
+            Some(RecordHealth::Degraded | RecordHealth::Disabled) => RecordingHealth::Degraded,
+            None => RecordingHealth::Unknown,
+        }
+    }
+
+    fn stop_latched(&self) -> bool {
+        self.daemon().is_none_or(|d| d.latched())
+    }
+
+    fn approval(&self, _: &str, _: U64, _: Option<&str>) -> Result<ApprovalStatus, DomainError> {
+        Err(DomainError::not_implemented(
+            "CORE plan approval queue: loomd runs F1 (automatic); TEST sessions use ApprovalMode::Auto",
+        ))
+    }
+
+    fn finally<'a>(
+        &'a self,
+        ctx: &'a mut CallCtx,
+        _session: &'a str,
+        steps: Vec<Step>,
+    ) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            let Some(d) = self.daemon() else {
+                return Err(DomainError::not_implemented(
+                    "TEST runtime is not bound to a daemon",
+                ));
+            };
+            let caller = Caller {
+                role: Role::Script,
+                rights: None,
+                client_id: format!("{}{FINALLY_CLIENT_SUFFIX}", ctx.client_id()),
+                conn_id: 0,
+            };
+            let deadline = ctx.deadline();
+            let mut done: Vec<Value> = Vec::new();
+            for action in steps.iter().flat_map(|s| s.actions.iter()) {
+                let left = deadline.saturating_duration_since(Instant::now());
+                if left.is_zero() {
+                    return Err(finally_error(
+                        ErrorCode::Timeout,
+                        "finally deadline reached",
+                        &done,
+                    ));
+                }
+                if let Some(ms) = action.delay_ms {
+                    let wait = Duration::from_millis(ms);
+                    if wait > left {
+                        return Err(finally_error(
+                            ErrorCode::Timeout,
+                            "finally delay exceeds the end deadline",
+                            &done,
+                        ));
+                    }
+                    tokio::time::sleep(wait).await;
+                    done.push(json!({"method": action.method, "delay_ms": ms}));
+                    continue;
+                }
+                let params = self
+                    .commands
+                    .rpc_params(&action.method, &action.args)
+                    .map_err(|e| finally_error(ErrorCode::Usage, e, &done))?;
+                let env =
+                    match tokio::time::timeout(left, d.call(&caller, &action.method, Some(params))).await {
+                        Err(_) => {
+                            return Err(finally_error(
+                                ErrorCode::Timeout,
+                                format!("finally {} exceeded the end deadline", action.method),
+                                &done,
+                            ));
+                        }
+                        Ok(Err(rpc)) => {
+                            return Err(finally_error(
+                                ErrorCode::Internal,
+                                format!("finally {}: {}", action.method, rpc.message),
+                                &done,
+                            ));
+                        }
+                        Ok(Ok(env)) => env,
+                    };
+                if let Some(e) = env.get("error").filter(|e| !e.is_null()) {
+                    let code = serde_json::from_value(e["code"].clone()).unwrap_or(ErrorCode::Internal);
+                    let msg = e["message"].as_str().unwrap_or("finally action failed");
+                    let mut err = finally_error(code, format!("finally {}: {msg}", action.method), &done);
+                    err.detail["failed"] = json!({"method": action.method, "error": e});
+                    return Err(err);
+                }
+                done.push(json!({
+                    "method": action.method,
+                    "request_id": env["data"]["request_id"],
+                    "state": env["data"]["state"],
+                }));
+            }
+            Ok(json!({"complete": true, "actions": done}))
+        })
+    }
 }
 
 fn required(schema: &Value) -> impl Iterator<Item = &str> {
@@ -823,17 +1035,22 @@ steps:
     }
 
     #[test]
-    fn module_keeps_session_hooks_unwired() {
+    fn unbound_runtime_fails_closed() {
         let loaded = crate::domains::builtin();
-        let regs: Vec<&Registry> = loaded.iter().map(|l| &l.registry).collect();
-        let m = test_module(&regs).unwrap();
-        // Registers as the TEST domain; hooks are the explicit NotWired seam.
-        let r = crate::domains::register(&m).unwrap();
+        let regs: Vec<&Registry> = loaded
+            .iter()
+            .filter(|l| l.registry.domain() != loom_test::DOMAIN)
+            .map(|l| &l.registry)
+            .collect();
+        let w = test_wiring(&regs).unwrap();
+        let r = crate::domains::register(&w.module).unwrap();
         assert_eq!(r.domain(), loom_test::DOMAIN);
-        let hooks = NotWiredHooks;
-        use loom_test::SessionHooks;
-        assert_eq!(hooks.recording_health(), loom_test::RecordingHealth::Unknown);
+        let hooks = &w.runtime;
+        assert_eq!(hooks.recording_health(), RecordingHealth::Unknown);
+        assert!(hooks.stop_latched(), "unbound runtime must assume STOP");
         assert!(hooks.fence("s", "S1", 1).unwrap().is_none());
-        assert!(hooks.approval("s", loom_proto::num::U64(1), None).is_err());
+        let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
+        assert!(rt.block_on(hooks.fence_async("s", "S1", 1)).unwrap().is_none());
+        assert!(hooks.approval("s", U64(1), None).is_err());
     }
 }

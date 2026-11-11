@@ -116,23 +116,37 @@ impl CtxServices for Services {
     }
 }
 
-/// Fences from a test clock (ms → hub mono ns), healthy recording, finally wired.
+/// CORE-like fences: per producer, the newest committed `source_seq` of the fake journal (every
+/// pushed record is committed at once), plus a test clock in the records' clock domain `c`.
 #[derive(Default)]
 struct Hooks {
     clock_ms: AtomicU64,
+    journal: Mutex<Option<Arc<Services>>>,
+    unflushed: Mutex<Vec<String>>,
 }
 
 impl SessionHooks for Hooks {
     fn fence(&self, _: &str, _: &str, _: u32) -> Result<Option<Fence>, DomainError> {
         let t = self.clock_ms.load(Ordering::Acquire);
+        let mut refs: Vec<SourceRef> = Vec::new();
+        if let Some(svc) = self.journal.lock().unwrap().as_ref() {
+            for r in svc.journal.events.lock().unwrap().iter() {
+                match refs.iter_mut().find(|x| x.producer_id == r.producer_id) {
+                    Some(x) if x.producer_epoch == r.producer_epoch => {
+                        x.source_seq = U64(x.source_seq.get().max(r.source_seq.get()));
+                    }
+                    Some(x) if x.producer_epoch.get() < r.producer_epoch.get() => *x = r.source_ref(),
+                    Some(_) => {}
+                    None => refs.push(r.source_ref()),
+                }
+            }
+        }
         Ok(Some(Fence {
             stream_epoch: U64(1),
-            source_refs: vec![SourceRef {
-                producer_id: "w".into(),
-                producer_epoch: U64(1),
-                source_seq: U64(t),
-            }],
+            source_refs: refs,
             captured_mono_ns: U64(t * 1_000_000),
+            clock_id: "c".into(),
+            unflushed_domains: self.unflushed.lock().unwrap().clone(),
         }))
     }
     fn recording_health(&self) -> RecordingHealth {
@@ -286,6 +300,7 @@ impl H {
     fn new() -> H {
         let svc = Arc::new(Services::default());
         let hooks = Arc::new(Hooks::default());
+        *hooks.journal.lock().unwrap() = Some(svc.clone());
         let engine = PredicateEngine::new(vec![Arc::new(UartFake), Arc::new(UdsFake)], specs());
         let module = TestModule::with_services(
             SessionConfig::default(),
@@ -798,4 +813,268 @@ async fn without_fences_the_window_is_unknown() {
         matches!(e.code, ErrorCode::NotImplemented | ErrorCode::EvidenceMissing),
         "{e:?}"
     );
+}
+
+// --- source-fence counterexamples ----------------------------------------------------------------
+
+fn last_check(h: &H, step: &str) -> Value {
+    h.checks()
+        .into_iter()
+        .rev()
+        .find(|c| c["step_id"] == step)
+        .expect("check")
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn record_committed_before_the_start_fence_is_out_of_window() {
+    // A login line emitted while S1 was running (old attempt/step) cannot pass S2, even though
+    // its timestamp lies inside S2's within_ms window: membership is decided by source fences.
+    let h = H::new();
+    let id = h.start().await;
+    h.step(&id, "S1", 1_000).await;
+    h.push(tagged(
+        rec(
+            1_100,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state_out": "on"}),
+        ),
+        "S1",
+    )); // seq 1
+    h.push(rec(
+        1_150,
+        "uart",
+        "dut",
+        "uart.data",
+        "device",
+        json!({"text": "login:"}),
+    )); // seq 2, before S2
+    h.verdict(&id, "S1", "done", &["psu:bench@e1:seq:1"])
+        .await
+        .expect("done");
+    h.step(&id, "S2", 1_200).await;
+    let e = h
+        .verdict(&id, "S2", "pass", &["uart:dut@e1:seq:2"])
+        .await
+        .expect_err("pre-start line");
+    assert_eq!(e.code, ErrorCode::OutOfWindow, "{e:?}");
+    assert_eq!(last_check(&h, "S2")["cause"], "out_of_window");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn late_response_after_the_end_fence_is_out_of_window() {
+    let h = H::new();
+    let id = through_s2(&h).await;
+    h.step(&id, "S3", 5_100).await;
+    h.call("test.step.end", json!({"session": id, "step": "S3"}))
+        .await
+        .expect("S3 ended");
+    // PowerMode arrives after S3's end fence, still inside the 5 s anchor window by time.
+    h.push(rec(
+        6_000,
+        "can",
+        "ch0",
+        "can.signal",
+        "device",
+        json!({"name": "VehState.PowerMode", "value": 2}),
+    )); // seq 4
+    let e = h
+        .verdict(&id, "S3", "pass", &["can:ch0@e1:seq:4"])
+        .await
+        .expect_err("late");
+    assert_eq!(e.code, ErrorCode::OutOfWindow, "{e:?}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn old_stream_epoch_ref_is_refused() {
+    let h = H::new();
+    let id = through_s2(&h).await;
+    h.step(&id, "S3", 5_100).await;
+    h.push(rec(
+        6_000,
+        "can",
+        "ch0",
+        "can.signal",
+        "device",
+        json!({"name": "VehState.PowerMode", "value": 2}),
+    )); // seq 4
+    let e = h
+        .verdict(&id, "S3", "pass", &["can:ch0@e0:seq:4"])
+        .await
+        .expect_err("old epoch");
+    assert_eq!(e.code, ErrorCode::EvidenceMismatch, "{e:?}");
+    assert!(e.message.contains("ref_not_in_journal"), "{}", e.message);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn done_with_a_write_committed_before_the_attempt_is_refused() {
+    let h = H::new();
+    let id = h.start().await;
+    // A confirmed PSU write that happened before S1 started (e.g. an earlier run/attempt).
+    h.push(tagged(
+        rec(
+            900,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state_out": "on"}),
+        ),
+        "S1",
+    )); // seq 1
+    h.step(&id, "S1", 1_000).await;
+    let e = h
+        .verdict(&id, "S1", "done", &["psu:bench@e1:seq:1"])
+        .await
+        .expect_err("old write");
+    assert_eq!(e.code, ErrorCode::OutOfWindow, "{e:?}");
+    assert_eq!(last_check(&h, "S1")["cause"], "out_of_window");
+    // The same kind of write inside the attempt confirms the stimulus.
+    h.push(tagged(
+        rec(
+            1_100,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state_out": "on"}),
+        ),
+        "S1",
+    )); // seq 2
+    h.verdict(&id, "S1", "done", &["psu:bench@e1:seq:2"])
+        .await
+        .expect("in-attempt write");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn unflushed_domain_cannot_pass() {
+    let h = H::new();
+    let id = h.start().await;
+    h.step(&id, "S1", 1_000).await;
+    h.push(tagged(
+        rec(
+            1_100,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state_out": "on"}),
+        ),
+        "S1",
+    ));
+    h.verdict(&id, "S1", "done", &["psu:bench@e1:seq:1"])
+        .await
+        .expect("done");
+    *h.hooks.unflushed.lock().unwrap() = vec!["uart".into()];
+    h.step(&id, "S2", 1_200).await;
+    h.push(rec(
+        5_000,
+        "uart",
+        "dut",
+        "uart.data",
+        "device",
+        json!({"text": "login:"}),
+    )); // seq 2
+    let e = h
+        .verdict(&id, "S2", "pass", &["uart:dut@e1:seq:2"])
+        .await
+        .expect_err("unflushed");
+    assert_ne!(e.code, ErrorCode::Usage);
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "uncertain", "{c}");
+    assert!(
+        c["cause"].as_str().unwrap().starts_with("fence_unflushed(uart)"),
+        "{c}"
+    );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn evidence_in_another_clock_domain_is_uncertain() {
+    let h = H::new();
+    let id = h.start().await;
+    h.step(&id, "S1", 1_000).await;
+    h.push(tagged(
+        rec(
+            1_100,
+            "psu",
+            "bench",
+            "psu.write",
+            "agent",
+            json!({"write_state": "confirmed", "state_out": "on"}),
+        ),
+        "S1",
+    ));
+    h.verdict(&id, "S1", "done", &["psu:bench@e1:seq:1"])
+        .await
+        .expect("done");
+    h.step(&id, "S2", 1_200).await;
+    let mut r = rec(
+        5_000,
+        "uart",
+        "dut",
+        "uart.data",
+        "device",
+        json!({"text": "login:"}),
+    );
+    r["ts"]["clock_id"] = json!("proc-other");
+    h.push(r); // seq 2
+    let e = h
+        .verdict(&id, "S2", "pass", &["uart:dut@e1:seq:2"])
+        .await
+        .expect_err("clock mismatch");
+    assert_ne!(e.code, ErrorCode::Usage);
+    let c = last_check(&h, "S2");
+    assert_eq!(c["status"], "uncertain", "{c}");
+    assert!(
+        c["cause"].as_str().unwrap().starts_with("clock_domain_mismatch"),
+        "{c}"
+    );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn display_gap_in_window_blocks_complete_absence() {
+    let h = H::new();
+    let id = through_s2(&h).await;
+    s3_pass(&h, &id).await;
+    h.step(&id, "S4", 7_000).await;
+    h.push(rec(
+        7_400,
+        "display",
+        "",
+        "display.gap",
+        "device",
+        json!({"cause": "hub_overload"}),
+    ));
+    h.push(rec(
+        7_500,
+        "uds",
+        "bcm",
+        "uds.rx",
+        "device",
+        json!({"complete": true, "dtcs": []}),
+    ));
+    let e = h
+        .verdict(&id, "S4", "pass", &["uds:bcm@e1:seq:6"])
+        .await
+        .expect_err("display gap");
+    assert_eq!(e.code, ErrorCode::EvidenceMissing, "{e:?}");
+    assert_eq!(last_check(&h, "S4")["gap_in_window"], true);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn transition_with_an_older_fence_is_refused() {
+    // A transition whose (pre-lock) fence is older than the running attempt's start lost a race.
+    let h = H::new();
+    let id = h.start().await;
+    h.step(&id, "S1", 1_000).await;
+    h.at(500);
+    let e = h
+        .call("test.step", json!({"session": id, "id": "S2"}))
+        .await
+        .expect_err("stale fence");
+    assert_eq!(e.code, ErrorCode::Locked, "{e:?}");
+    // State unchanged: S1 still running, S2 can begin with a current fence.
+    h.step(&id, "S2", 1_200).await;
 }

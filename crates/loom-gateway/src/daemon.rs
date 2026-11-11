@@ -30,7 +30,7 @@ use loom_proto::num::U64;
 use loom_proto::policy::WriteClass;
 use loom_proto::rpc::{METHOD_NOT_FOUND, Rights, Role, RpcError, SubFilter};
 use loom_proto::worker::{Call, Input, InputLeaseEnd, InputLeaseEndCause, Latch, Write};
-use loom_worker_sdk::{Clock, EmitSink, SystemClock, WriteOutcome};
+use loom_worker_sdk::{Clock, EmitSink, WriteOutcome};
 use serde_json::{Value, json};
 
 use crate::audit::Audit;
@@ -46,6 +46,7 @@ use crate::state::{Idempotency, Reserve, load_latch, persist_latch};
 use crate::worker_host::{HubSink, PendingWrites, WorkerHost};
 
 mod core_rpc;
+pub mod fence;
 
 /// Default port (contract: fixed default, OS-assigned if taken).
 pub const DEFAULT_PORT: u16 = 47123;
@@ -74,7 +75,7 @@ pub struct Config {
     pub env: Option<Env>,
     /// Project policy file (`--config`); default `$LOOM_HOME/loom.toml`.
     pub config_path: Option<PathBuf>,
-    /// Clock stamping in-process worker events (default `SystemClock`; benches inject theirs).
+    /// Clock stamping in-process worker events (default: the gateway clock; benches inject theirs).
     pub clock: Option<Arc<dyn Clock>>,
     /// Journal scan budget per query (bytes).
     pub scan_bytes: u64,
@@ -275,6 +276,11 @@ pub struct Daemon {
     viewer_conns: AtomicUsize,
     port: AtomicU16,
     started: Instant,
+    /// Per-producer commit coverage for CORE source fences (hub observer).
+    commits: Arc<Mutex<fence::Commits>>,
+    /// TEST session module and its CORE runtime hooks (fences, STOP, write gate, finally).
+    #[cfg(feature = "test")]
+    test: Option<crate::test_services::TestWiring>,
 }
 
 impl std::fmt::Debug for Daemon {
@@ -329,6 +335,8 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
     let (journal, crash_gaps) = Journal::open(&cfg.home, epoch, cfg.journal_fault.clone())?;
     let notable = Arc::new(Mutex::new(Notable::default()));
     let n2 = notable.clone();
+    let commits = Arc::new(Mutex::new(fence::Commits::default()));
+    let c2 = commits.clone();
     let (hw_tx, hw_rx) = tokio::sync::watch::channel(0u64);
     let j2 = journal.clone();
     let mut hb = HubBuilder::new(epoch)
@@ -337,6 +345,7 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
             j2.stamp_and_append_gateway(s)
         }))
         .observer(Box::new(move |r: &PublishedRecord| {
+            lock(&c2).observe(r);
             let mut n = lock(&n2);
             n.hw = r.seq.get();
             hw_tx.send_replace(n.hw);
@@ -360,7 +369,6 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
     // Domains need the hub for their workers' sink, and the hub needs their reducers: build the
     // hub with a sink placeholder by registering domains against a deferred hub handle.
     let pending = Arc::new(PendingWrites::default());
-    let clock: Arc<dyn Clock> = cfg.clock.clone().unwrap_or_else(|| Arc::new(SystemClock::new()));
     // Placement: `Config.workers` > `[workers] mode` > in-process when a clock is injected (it only
     // reaches in-process workers) > IPC.
     let mode = cfg
@@ -375,7 +383,13 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
     type Extra = (Option<String>, Option<Duration>);
     let mut decls: Vec<(String, Vec<domains::WorkerDecl>, Vec<Extra>)> = Vec::new();
     let mut entries = BTreeMap::new();
+    #[cfg(feature = "test")]
+    let mut test_wiring = None;
     for mut l in loaded {
+        #[cfg(feature = "test")]
+        if let Some(t) = l.test.take() {
+            test_wiring = Some(t);
+        }
         let name = l.registry.domain().to_owned();
         for r in l.registry.take_reducers() {
             hb = hb.reducer(&name, r);
@@ -446,6 +460,12 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
         decls.push((name, std::mem::take(&mut l.workers), extra));
     }
     let hub = hb.start()?;
+    // In-process workers stamp `ts` with the gateway clock (one clock domain with gateway events and
+    // source fences) unless a test injects its own clock.
+    let clock: Arc<dyn Clock> = cfg
+        .clock
+        .clone()
+        .unwrap_or_else(|| Arc::new(fence::HubClockSource(hub.clock.clone())));
     // Workers start once the hub exists. In-process: the gateway journals their events. IPC: the
     // worker journals itself into this session (`WorkerHost::journals_itself`).
     let inproc_sink: Arc<dyn EmitSink> = HubSink::new(hub.clone(), pending.clone(), Some(journal.clone()));
@@ -533,8 +553,15 @@ pub async fn start(cfg: Config) -> std::io::Result<Running> {
         viewer_conns: AtomicUsize::new(0),
         port: AtomicU16::new(0),
         started: Instant::now(),
+        commits,
+        #[cfg(feature = "test")]
+        test: test_wiring,
         cfg,
     });
+    #[cfg(feature = "test")]
+    if let Some(t) = &daemon.test {
+        t.runtime.bind(Arc::downgrade(&daemon));
+    }
 
     // Restart with on/unknown latch → latched everywhere, and say so.
     if latched {
@@ -764,6 +791,51 @@ impl Daemon {
     /// Bound port.
     pub fn port(&self) -> u16 {
         self.port.load(Ordering::Acquire)
+    }
+
+    /// CORE source fence: gateway clock, then a hub barrier, then the committed watermark of every
+    /// producer (see [`fence`]). Fails closed when the hub cannot confirm coverage.
+    pub async fn source_fence(&self) -> Result<fence::SourceFence, DomainError> {
+        let captured_mono_ns = self.hub.clock.mono_ns();
+        if !self.hub.barrier(fence::FENCE_BARRIER).await {
+            return Err(DomainError::new(
+                ErrorCode::Partial,
+                "hub did not confirm commit coverage in time; no source fence",
+            ));
+        }
+        let source_refs = lock(&self.commits).snapshot().ok_or_else(|| {
+            DomainError::new(
+                ErrorCode::Partial,
+                format!("more than {} producers; no source fence", fence::MAX_PRODUCERS),
+            )
+        })?;
+        let unflushed_domains = self
+            .domains
+            .iter()
+            .filter(|(_, d)| d.pools.iter().flat_map(|p| p.all()).any(|w| w.journals_itself()))
+            .map(|(n, _)| n.clone())
+            .collect();
+        Ok(fence::SourceFence {
+            stream_epoch: self.hub.epoch,
+            captured_mono_ns,
+            clock_id: self.hub.clock.clock_id.clone(),
+            source_refs,
+            unflushed_domains,
+        })
+    }
+
+    /// Call context for a gateway-side domain action (TEST runtime: STOP events).
+    #[cfg(feature = "test")]
+    pub(crate) fn domain_ctx(self: &Arc<Self>, c: &Caller, domain: &str, method: &str) -> CallCtx {
+        let svc = self.services(c, domain, None, None, method);
+        CallCtx::new(
+            c.role,
+            c.rights,
+            c.client_id.clone(),
+            None,
+            Instant::now() + LATCH_ACK,
+            svc,
+        )
     }
 
     /// STOP latched.
@@ -1355,7 +1427,9 @@ impl Daemon {
                     )
                     .await)
             }
-            "test.step.begin" | "test.step.end" => {
+            // Legacy step markers; with the TEST module loaded these go to its session engine
+            // (fences, ordering, gates) instead of publishing a free-standing marker.
+            "test.step.begin" | "test.step.end" if !self.domains.contains_key("test") => {
                 let v: Value = params(p)?;
                 let step = v["step"]
                     .as_str()
@@ -1482,6 +1556,12 @@ impl Daemon {
     pub async fn stop(&self, c: &Caller, on: bool, reason: Option<&str>) -> Value {
         let _g = self.latch_lock.lock().await;
         self.latch.store(on, Ordering::Release);
+        // TEST sessions: STOP ends running attempts (no fence, no cleanup) and marks them STOPPED;
+        // their gates already read the memory latch above. Release does not resume them.
+        #[cfg(feature = "test")]
+        if let Some(t) = &self.test {
+            t.runtime.on_latch(c, on, &t.module);
+        }
         let seq = self.latch_seq.fetch_add(1, Ordering::AcqRel) + 1;
         let (mut acked, mut missing) = (Vec::new(), Vec::new());
         let ws = self.workers();
@@ -1847,6 +1927,22 @@ impl Daemon {
                 "STOP is latched — ask the user (only a viewer can release it)".into(),
                 None,
                 Value::Null,
+            )
+            .await;
+        }
+        // Session-bound agent/script clients: a paused/unauthorized/ending TEST session refuses
+        // every domain write of its client (contract 07; viewers keep direct control).
+        #[cfg(feature = "test")]
+        if gated
+            && !recovery
+            && let Some(t) = &self.test
+            && let Err(e) = t.module.check_client_write(&c.client_id, c.role)
+        {
+            return fail(
+                e.code,
+                format!("TEST session gate: {}", e.message),
+                None,
+                json!({"test_session_gate": true}),
             )
             .await;
         }
@@ -2442,20 +2538,24 @@ impl JournalReader for Services {
                 filter.domains = vec![self.domain.clone()];
             }
             let max = usize::try_from(q.max_events).unwrap_or(1000).min(1000);
-            // A seq cursor older than the ring (or from an earlier run) reads the recording.
+            // A seq cursor older than the ring (or from an earlier run), or at/below an event the
+            // ring evicted from a channel this filter selects, reads the recording.
             if let Cursor::Seq { epoch, seq } = &q.from {
                 let e = epoch.unwrap_or(self.d.hub.epoch);
-                let oldest = self
+                let ring = self
                     .d
                     .hub
                     .range(crate::hub::RangeQuery {
+                        filter: filter.clone(),
                         max: 0,
                         ..Default::default()
                     })
                     .await
-                    .map_err(|_| DomainError::new(ErrorCode::Daemon, "hub stopped"))?
-                    .oldest;
-                if e != self.d.hub.epoch || oldest.is_none_or(|o| *seq < o) {
+                    .map_err(|_| DomainError::new(ErrorCode::Daemon, "hub stopped"))?;
+                if e != self.d.hub.epoch
+                    || ring.oldest.is_none_or(|o| *seq < o)
+                    || ring.evicted_through.is_some_and(|ev| *seq <= ev)
+                {
                     let to = match &q.until {
                         Some(Cursor::Seq { seq, .. }) => *seq,
                         _ => u64::MAX,
@@ -2472,10 +2572,15 @@ impl JournalReader for Services {
                     if let Some(rid) = &q.request_id {
                         events.retain(|e| e.request_id.as_ref() == Some(rid));
                     }
+                    let gaps: Vec<loom_proto::event::GapData> = jr
+                        .unreadable
+                        .iter()
+                        .map(|(a, b)| ring_gap(*a, *b, "producer_not_recorded"))
+                        .collect();
                     return Ok(ScanResult {
                         events,
-                        complete: jr.next_seq.is_none(),
-                        gaps: Vec::new(),
+                        complete: jr.next_seq.is_none() && gaps.is_empty(),
+                        gaps,
                         resume_from: jr.next_seq.map(|n| Cursor::Seq {
                             epoch: Some(e),
                             seq: n,
@@ -2539,6 +2644,7 @@ impl JournalReader for Services {
             }
             let upper = range.until.unwrap_or(hw).min(hw);
             let mut scanned_through = range.after.unwrap_or(0);
+            let (after, since_at) = (range.after, range.since_at);
             let rows = self
                 .d
                 .hub
@@ -2575,15 +2681,50 @@ impl JournalReader for Services {
             if resume_from.is_none() {
                 scanned_through = upper;
             }
+            // The live ring evicted events of a selected channel inside the requested range: the
+            // read is missing them. Say so (gap + incomplete) instead of claiming a full window.
+            let lost = match (rows.evicted_through, rows.evicted_at) {
+                (Some(ev), Some(at)) => {
+                    after.is_some_and(|a| ev > a)
+                        || since_at.is_some_and(|t| at >= t)
+                        || (after.is_none() && since_at.is_none())
+                }
+                _ => false,
+            };
+            let gaps = if lost {
+                let from = after.map_or(0, |a| a.saturating_add(1));
+                vec![ring_gap(
+                    from,
+                    rows.evicted_through.unwrap_or(from),
+                    "ring_evicted",
+                )]
+            } else {
+                Vec::new()
+            };
             Ok(ScanResult {
                 events: out,
-                complete: resume_from.is_none(),
-                gaps: Vec::new(),
+                complete: resume_from.is_none() && gaps.is_empty(),
+                gaps,
                 resume_from,
                 scanned_bytes: bytes,
                 scanned_through,
             })
         })
+    }
+}
+
+/// A scan loss over stream seqs `from..=to` (count unknown).
+fn ring_gap(from: u64, to: u64, cause: &str) -> loom_proto::event::GapData {
+    loom_proto::event::GapData {
+        seq_range: Some(loom_proto::event::SeqRange {
+            from: U64(from),
+            to: U64(to.max(from)),
+        }),
+        producer_range: None,
+        count: loom_proto::event::GapCount::Unknown,
+        cause: cause.into(),
+        bytes: None,
+        detail: Value::Null,
     }
 }
 
@@ -2598,6 +2739,158 @@ impl ApprovalHandle for Services {
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod r1_scan_tests {
     use super::*;
+
+    fn scan_caller() -> Caller {
+        Caller {
+            role: Role::Agent,
+            rights: None,
+            client_id: "scan-evict".into(),
+            conn_id: 0,
+        }
+    }
+
+    /// Publish `n` ~8 KiB gateway records on `echo/<channel>`; returns the first stream seq.
+    async fn flood(d: &Daemon, channel: &str, n: usize) -> u64 {
+        let mut first = None;
+        for i in 0..n {
+            let mut s = core_source(
+                &d.hub.clock,
+                "echo",
+                "echo.evict",
+                json!({"n": i, "pad": "x".repeat(8192)}),
+            );
+            s.channel = Some(channel.into());
+            let p = d.hub.publish(vec![s]).await.unwrap();
+            first.get_or_insert(p[0].rec.seq.get());
+        }
+        assert!(d.hub.barrier(Duration::from_secs(5)).await);
+        first.unwrap()
+    }
+
+    fn evict_query(from: Cursor, channel: &str) -> JournalQuery {
+        JournalQuery {
+            from,
+            until: None,
+            filter: SubFilter {
+                domains: vec!["echo".into()],
+                channels: vec![channel.into()],
+                kinds: vec!["echo.evict".into()],
+                ..Default::default()
+            },
+            request_id: None,
+            max_events: 10_000,
+        }
+    }
+
+    /// Per-channel ring eviction (4 MiB) inside a requested range is never reported as a
+    /// complete live read: seq cursors read the recording, time cursors report `ring_evicted`.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn live_scan_reports_ring_eviction() {
+        let home = tempfile::tempdir().unwrap();
+        let mut cfg = Config::new(Home::at(home.path()));
+        cfg.port = Some(0);
+        cfg.workers = Some(WorkersMode::Inproc);
+        let running = start(cfg).await.unwrap();
+        let d = &running.daemon;
+        let small = flood(d, "small", 1).await;
+        let first = flood(d, "big", 700).await; // ~5.6 MiB > RING_CHANNEL_BYTES
+        let ring = d
+            .hub
+            .range(crate::hub::RangeQuery {
+                filter: evict_query(Cursor::Now, "big").filter,
+                max: 0,
+                ..Default::default()
+            })
+            .await
+            .unwrap();
+        assert!(
+            ring.evicted_through.is_some_and(|e| e >= first),
+            "{:?}",
+            ring.evicted_through
+        );
+        d.journal.flush(Duration::from_secs(5));
+        let svc = d.services(&scan_caller(), "echo", None, None, "echo.scan");
+
+        // Seq cursor at the evicted start: served by the durable journal, complete.
+        let mut q = evict_query(
+            Cursor::Seq {
+                epoch: Some(d.hub.epoch),
+                seq: first,
+            },
+            "big",
+        );
+        q.until = Some(Cursor::Seq {
+            epoch: Some(d.hub.epoch),
+            seq: first,
+        });
+        let r = svc.scan(&q, 64 << 20).await.unwrap();
+        assert_eq!(r.events.len(), 1, "{r:?}");
+        assert_eq!(r.events[0].seq.get(), first);
+        assert!(r.complete && r.gaps.is_empty());
+
+        // Time cursor over the evicted range: explicit gap, not complete.
+        let rel = Cursor::Relative {
+            amount: 60_000,
+            unit: loom_proto::cursor::TimeUnit::Millis,
+        };
+        let r = svc
+            .scan(&evict_query(rel.clone(), "big"), 64 << 20)
+            .await
+            .unwrap();
+        assert!(!r.complete, "evicted window must not be complete");
+        assert_eq!(r.gaps.len(), 1, "{:?}", r.gaps);
+        assert_eq!(r.gaps[0].cause, "ring_evicted");
+
+        // An unrelated channel's ring was not evicted: its live read stays complete.
+        let r = svc.scan(&evict_query(rel, "small"), 64 << 20).await.unwrap();
+        assert!(r.complete && r.gaps.is_empty(), "{r:?}");
+        assert_eq!(r.events.len(), 1);
+        assert_eq!(r.events[0].seq.get(), small);
+    }
+
+    /// A mapped range whose producer journal is gone is reported, never skipped silently: both
+    /// in the journal read and in `Services::scan` (durable path for an evicted range).
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn missing_producer_journal_is_unreadable_not_empty() {
+        let home = tempfile::tempdir().unwrap();
+        let mut cfg = Config::new(Home::at(home.path()));
+        cfg.port = Some(0);
+        cfg.workers = Some(WorkersMode::Inproc);
+        let running = start(cfg).await.unwrap();
+        let d = &running.daemon;
+        let first = flood(d, "gone", 700).await; // evicted from the live ring
+        d.journal.flush(Duration::from_secs(5));
+        let filter = evict_query(Cursor::Now, "gone").filter;
+        let rec = d
+            .journal_read_bounded(d.hub.epoch, first, first, &filter, 10, 1 << 20)
+            .await
+            .unwrap();
+        assert_eq!(rec.events.len(), 1);
+        assert!(rec.unreadable.is_empty());
+        let epoch = rec.events[0].producer_epoch.get();
+        let dir = loom_journal::producer_dir(&d.journal.root, "gateway", epoch);
+        std::fs::remove_dir_all(&dir).unwrap();
+
+        let rec = d
+            .journal_read_bounded(d.hub.epoch, first, first, &filter, 10, 1 << 20)
+            .await
+            .unwrap();
+        assert!(rec.events.is_empty());
+        assert_eq!(rec.unreadable, vec![(first, first)]);
+
+        let svc = d.services(&scan_caller(), "echo", None, None, "echo.scan");
+        let at = Cursor::Seq {
+            epoch: Some(d.hub.epoch),
+            seq: first,
+        };
+        let mut q = evict_query(at.clone(), "gone");
+        q.until = Some(at);
+        let r = svc.scan(&q, 64 << 20).await.unwrap();
+        assert!(r.events.is_empty());
+        assert!(!r.complete, "unreadable producer range must not be complete");
+        assert_eq!(r.gaps.len(), 1, "{:?}", r.gaps);
+        assert_eq!(r.gaps[0].cause, "producer_not_recorded");
+    }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn journal_scan_honors_inclusive_range_and_byte_budget() {

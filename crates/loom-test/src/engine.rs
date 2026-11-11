@@ -167,7 +167,6 @@ struct Shared {
     used: Arc<AtomicUsize>,
     notify: Notify,
     stopped: AtomicBool,
-    origin: Instant,
 }
 impl std::fmt::Debug for Shared {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -219,12 +218,13 @@ impl TestModule {
                 used: Arc::new(AtomicUsize::new(0)),
                 notify: Notify::new(),
                 stopped: AtomicBool::new(false),
-                origin: Instant::now(),
             }),
         })
     }
-    fn now(&self) -> U64 {
-        U64(u64::try_from(self.shared.origin.elapsed().as_nanos()).unwrap_or(u64::MAX))
+    /// Session times use the CORE time base (`CallCtx::now_mono_ns`, the hub clock that also
+    /// stamps gateway events and source fences), not a module-private origin.
+    fn now(ctx: &CallCtx) -> U64 {
+        U64(ctx.now_mono_ns())
     }
     fn stopped(&self) -> bool {
         self.shared.stopped.load(Ordering::Acquire) || self.shared.hooks.stop_latched()
@@ -263,7 +263,7 @@ impl TestModule {
         if on {
             let mut state = lock(&self.shared.state);
             for s in state.sessions.values_mut().filter(|s| s.state.active()) {
-                self.step_end(s, ctx)?;
+                self.step_end(s, ctx, None)?;
                 self.emit(
                     ctx,
                     s,
@@ -371,20 +371,48 @@ impl TestModule {
             _ => Err(usage("multiple sessions; specify session id")),
         }
     }
-    fn step_end(&self, s: &mut Session, ctx: &CallCtx) -> Result<(), DomainError> {
+    /// Close the current attempt with `end`, the fence the caller took before locking (`None` =
+    /// no fence, e.g. global STOP: the session becomes immutable and is never verified again).
+    fn step_end(&self, s: &mut Session, ctx: &CallCtx, end: Option<Fence>) -> Result<(), DomainError> {
         if let Some(i) = s.current {
-            let end =
-                self.shared
-                    .hooks
-                    .fence(&s.id, &s.steps[i].definition.step_id, s.steps[i].window.attempt)?;
             check_fence(&end)?;
+            // Fences are taken before the state lock: a transition that raced a newer one must not
+            // close the attempt before it opened.
+            if let (Some(e), Some(st)) = (&end, &s.steps[i].window.start)
+                && (e.stream_epoch != st.stream_epoch || e.captured_mono_ns.get() < st.captured_mono_ns.get())
+            {
+                return Err(err(
+                    ErrorCode::Locked,
+                    "a newer step transition raced this one; retry",
+                ));
+            }
             self.emit(ctx,s,"test.step_ended",json!({"step_id":s.steps[i].definition.step_id,"attempt":s.steps[i].window.attempt,"fence_available":end.is_some()}))?;
             s.steps[i].status = StepStatus::Ended;
             s.steps[i].window.end = end;
-            s.steps[i].window.host_ended_ns = Some(self.now());
+            s.steps[i].window.host_ended_ns = Some(Self::now(ctx));
             s.current = None;
         }
         Ok(())
+    }
+    /// Take a CORE source fence without holding the state lock. Unknown session/step ids are left
+    /// to the caller's own validation (the fence is then simply unused).
+    async fn transition_fence(&self, p: &Value, attempt: u32) -> Result<Option<Fence>, DomainError> {
+        let id = {
+            let state = lock(&self.shared.state);
+            match Self::get_id(&state, p) {
+                Ok(id) => id,
+                Err(_) => return Ok(None),
+            }
+        };
+        let step = p
+            .get("id")
+            .or_else(|| p.get("step"))
+            .and_then(Value::as_str)
+            .filter(|s| s.len() <= MAX_ID_BYTES)
+            .unwrap_or("");
+        let fence = self.shared.hooks.fence_async(&id, step, attempt).await?;
+        check_fence(&fence)?;
+        Ok(fence)
     }
     fn session_state(
         &self,
@@ -434,7 +462,11 @@ impl TestModule {
             "test.import" | "test.report" | "test.freeze" => {
                 Err(DomainError::not_implemented("TEST P2 import/report/freeze"))
             }
-            _ => self.control(ctx, method, &params),
+            m if transition(m) => match self.transition_fence(&params, 1).await {
+                Ok(fence) => self.control(ctx, method, &params, fence),
+                Err(e) => Err(e),
+            },
+            _ => self.control(ctx, method, &params, None),
         };
         drop(ctl);
         drop(memory);
@@ -470,10 +502,23 @@ impl DomainModule for TestModule {
     }
 }
 fn check_fence(f: &Option<Fence>) -> Result<(), DomainError> {
-    if f.as_ref().is_some_and(|f| f.source_refs.len() > MAX_CITATIONS) {
+    if let Some(f) = f
+        && (f.source_refs.len() > MAX_FENCE_SOURCES
+            || f.unflushed_domains.len() > MAX_FENCE_DOMAINS
+            || f.clock_id.len() > MAX_ID_BYTES
+            || f.unflushed_domains.iter().any(|d| d.len() > MAX_ID_BYTES)
+            || f.source_refs.iter().any(|r| r.producer_id.len() > MAX_ID_BYTES))
+    {
         return Err(err(ErrorCode::Partial, "CORE fence exceeds worker/source bound"));
     }
     Ok(())
+}
+/// Methods that open or close an attempt window take their source fence before the state lock.
+fn transition(method: &str) -> bool {
+    matches!(
+        method,
+        "test.step" | "test.step.begin" | "test.step.end" | "test.retry" | "test.skip"
+    )
 }
 fn risks(r: &format::Report) -> Value {
     let mut out = serde_json::Map::new();
@@ -869,7 +914,16 @@ impl TestModule {
         }
         Ok(())
     }
-    fn begin(&self, s: &mut Session, ctx: &CallCtx, i: usize, retry: bool) -> Result<Value, DomainError> {
+    /// Start attempt `n+1` of step `i`. `fence` was taken before the lock: it closes the previous
+    /// attempt and opens this one, so consecutive windows share one boundary.
+    fn begin(
+        &self,
+        s: &mut Session,
+        ctx: &CallCtx,
+        i: usize,
+        retry: bool,
+        fence: Option<Fence>,
+    ) -> Result<Value, DomainError> {
         self.writable(s, ctx)?;
         if retry {
             let allowed = s.steps[i].template.as_ref().map_or(0, |t| t.retry_count);
@@ -911,12 +965,8 @@ impl TestModule {
             .attempt
             .checked_add(1)
             .ok_or_else(|| err(ErrorCode::Config, "attempt counter exhausted"))?;
-        let fence = self
-            .shared
-            .hooks
-            .fence(&s.id, &s.steps[i].definition.step_id, attempt)?;
         check_fence(&fence)?;
-        self.step_end(s, ctx)?;
+        self.step_end(s, ctx, fence.clone())?;
         let def = &s.steps[i].definition;
         let mut payload = serde_json::to_value(def).map_err(|e| usage(e.to_string()))?;
         payload["attempt"] = json!(attempt);
@@ -927,7 +977,7 @@ impl TestModule {
         step.status = StepStatus::Running;
         step.window = AttemptWindow {
             attempt,
-            host_started_ns: self.now(),
+            host_started_ns: Self::now(ctx),
             host_ended_ns: None,
             start: fence,
             end: None,
@@ -940,7 +990,13 @@ impl TestModule {
             json!({"session_id":s.id,"step_id":step.definition.step_id,"attempt":attempt,"source_fence_available":step.window.start.is_some()}),
         )
     }
-    fn control(&self, ctx: &CallCtx, method: &str, p: &Value) -> Result<Value, DomainError> {
+    fn control(
+        &self,
+        ctx: &CallCtx,
+        method: &str,
+        p: &Value,
+        fence: Option<Fence>,
+    ) -> Result<Value, DomainError> {
         if method == "test.status" && p.get("session").is_none() && p.get("session_id").is_none() {
             let mut state = lock(&self.shared.state);
             let ids = state.sessions.keys().cloned().collect::<Vec<_>>();
@@ -1002,7 +1058,7 @@ impl TestModule {
                 } else {
                     return Err(err(ErrorCode::NotFound, "step is not registered in the plan"));
                 };
-                let result = self.begin(s, ctx, i, false);
+                let result = self.begin(s, ctx, i, false, fence);
                 if result.is_err() && appended {
                     s.steps.pop();
                 }
@@ -1016,7 +1072,7 @@ impl TestModule {
                 {
                     return Err(usage("step is not the current running step"));
                 }
-                self.step_end(s, ctx)?;
+                self.step_end(s, ctx, fence)?;
                 Ok(s.snapshot())
             }
             "test.pause" => {
@@ -1182,7 +1238,7 @@ impl TestModule {
                     ));
                 }
                 if s.current == Some(i) {
-                    self.step_end(s, ctx)?;
+                    self.step_end(s, ctx, fence)?;
                 }
                 let row = VerdictRecord {
                     proposed: Verdict::Skipped,
@@ -1208,7 +1264,7 @@ impl TestModule {
             "test.retry" => {
                 let id = text(p, "step", MAX_ID_BYTES)?;
                 let i = s.step_index(id)?;
-                self.begin(s, ctx, i, true)
+                self.begin(s, ctx, i, true, fence)
             }
             _ => Err(err(ErrorCode::UnknownMethod, "unknown test method")),
         }
@@ -1451,10 +1507,22 @@ impl TestModule {
             .clone()
             .try_acquire_owned()
             .map_err(|_| err(ErrorCode::Locked, "two verification calls already running"))?;
+        // An open attempt is verified up to a fresh fence: records emitted before it are committed,
+        // later ones are not part of this check. Only the verifier's copy gets it; the session
+        // window stays open, and the commit-time comparison below still uses the original.
+        let mut thread_spec = spec.clone();
+        if thread_spec.window.start.is_some() && thread_spec.window.end.is_none() {
+            let check = self
+                .shared
+                .hooks
+                .fence_async(&id, &spec.definition.step_id, 0)
+                .await?;
+            check_fence(&check)?;
+            thread_spec.window.end = check;
+        }
         let verifier = self.shared.verifier.clone();
         let call = ctx.clone();
-        let now_ns = self.now();
-        let thread_spec = spec.clone();
+        let now_ns = Self::now(ctx);
         let thread_citations = citations.clone();
         let thread_id = id.clone();
         let (mut outcome, mut decision) = tokio::task::spawn_blocking(move || {
@@ -1528,6 +1596,11 @@ impl TestModule {
                 Some((ErrorCode::Stopped, "global STOP"))
             } else if self.shared.hooks.recording_health() == RecordingHealth::Failed {
                 Some((ErrorCode::RecordingFailed, "recording failed during verification"))
+            } else if self.shared.hooks.recording_health() == RecordingHealth::Degraded {
+                Some((
+                    ErrorCode::RecordingFailed,
+                    "recording is degraded or disabled; PASS/done needs healthy recording",
+                ))
             } else if self.shared.hooks.recording_health() != RecordingHealth::Healthy {
                 Some((ErrorCode::NotImplemented, "record health adapter is not wired"))
             } else if !user_assertion {
@@ -1915,6 +1988,8 @@ fn valid_pass(spec: &StepSpec, o: &CheckOutcome, ctx: &CallCtx) -> bool {
 }
 impl TestModule {
     async fn amend(&self, ctx: &CallCtx, p: &Value) -> Result<Value, DomainError> {
+        // A running attempt is closed by the amendment; its end fence is taken before the lock.
+        let fence = self.transition_fence(p, 0).await?;
         let (id, tc, revision) = {
             let state = lock(&self.shared.state);
             let id = Self::get_id(&state, p)?;
@@ -1987,7 +2062,7 @@ impl TestModule {
             .checked_add(1)
             .ok_or_else(|| err(ErrorCode::Config, "revision exhausted"))?;
         let was_paused = s.state == SessionState::Paused;
-        self.step_end(s, ctx)?;
+        self.step_end(s, ctx, fence)?;
         let pending = s.asks.keys().cloned().collect::<Vec<_>>();
         for ask in pending {
             self.emit(
@@ -2037,6 +2112,8 @@ impl TestModule {
         if p.get("run_finally").is_some() {
             bool_arg(p, "run_finally", false)?;
         }
+        // End fence of a still-running step, taken before the lock (finally writes come after it).
+        let fence = self.transition_fence(p, 0).await?;
         let (id, revision, run_finally, actions, stopped) = {
             let mut state = lock(&self.shared.state);
             let id = Self::get_id(&state, p)?;
@@ -2084,7 +2161,7 @@ impl TestModule {
                     "prior finally outcome is unknown; inspect its journal, do not replay automatically",
                 ));
             }
-            self.step_end(s, ctx)?;
+            self.step_end(s, ctx, fence)?;
             if run_finally {
                 self.session_state(s, ctx, SessionState::Paused, "finally_dispatch_pending")?;
                 s.finally_unknown = true;
