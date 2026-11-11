@@ -1,0 +1,2 @@
+schema-probe/out/direct-consumer.ts(1,47): error TS2322: Type '{ seq: string; mono_ns: string; data_hex: string; }' is not assignable to type '{ seq: string; mono_ns: string; data_hex: string; note: string | null; } | { ok: boolean; }'.
+  Property 'note' is missing in type '{ seq: string; mono_ns: string; data_hex: string; }' but required in type '{ seq: string; mono_ns: string; data_hex: string; note: string | null; }'.

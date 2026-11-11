@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApprovalRespond",
+  "description": "`core.approval.respond` params (viewer with approve rights).",
+  "type": "object",
+  "properties": {
+    "approval_id": {
+      "description": "Approval id.",
+      "type": "string"
+    },
+    "decision": {
+      "description": "Decision.",
+      "$ref": "#/$defs/Decision"
+    },
+    "presence": {
+      "description": "Presence proof when required.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Presence"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scope": {
+      "description": "Narrower scope than requested, if any.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ApprovalScope"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "approval_id",
+    "decision"
+  ],
+  "$defs": {
+    "ApprovalScope": {
+      "description": "Scope of an approval (only used when approvals are enabled).",
+      "oneOf": [
+        {
+          "description": "One use.",
+          "type": "string",
+          "const": "once"
+        },
+        {
+          "description": "Several uses until a deadline.",
+          "type": "object",
+          "properties": {
+            "session": {
+              "type": "object",
+              "properties": {
+                "max_uses": {
+                  "description": "Maximum uses.",
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                },
+                "until_mono_ns": {
+                  "description": "Host monotonic deadline (ns).",
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/U64"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "max_uses"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "session"
+          ]
+        },
+        {
+          "description": "Bound to a test session (E4 bundle approval).",
+          "type": "object",
+          "properties": {
+            "test_session": {
+              "type": "object",
+              "properties": {
+                "session_id": {
+                  "description": "Session id.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "session_id"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "test_session"
+          ]
+        },
+        {
+          "description": "Bound to a run (E4).",
+          "type": "object",
+          "properties": {
+            "run": {
+              "type": "object",
+              "properties": {
+                "run_id": {
+                  "description": "Run id.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "run_id"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "run"
+          ]
+        }
+      ]
+    },
+    "Decision": {
+      "description": "Viewer decision.",
+      "oneOf": [
+        {
+          "description": "Approve.",
+          "type": "string",
+          "const": "approve"
+        },
+        {
+          "description": "Deny.",
+          "type": "string",
+          "const": "deny"
+        }
+      ]
+    },
+    "Presence": {
+      "description": "Presence proof attached to an approval response (E9).",
+      "type": "object",
+      "properties": {
+        "method": {
+          "description": "Method.",
+          "$ref": "#/$defs/PresenceMethod"
+        },
+        "proof": {
+          "description": "Proof (code text or WebAuthn assertion, base64url) — viewer serialization only.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method"
+      ]
+    },
+    "PresenceMethod": {
+      "description": "How a human presence check was performed (E9; only when turned on).",
+      "oneOf": [
+        {
+          "description": "Short code shown only to viewers (mis-click guard, not proof of a human).",
+          "type": "string",
+          "const": "code"
+        },
+        {
+          "description": "WebAuthn assertion with a registered credential.",
+          "type": "string",
+          "const": "webauthn"
+        },
+        {
+          "description": "Out-of-band code.",
+          "type": "string",
+          "const": "oob"
+        }
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

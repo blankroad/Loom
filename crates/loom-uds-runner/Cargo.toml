@@ -1,0 +1,21 @@
+[package]
+name = "loom-uds-runner"
+description = "UDS transaction runner: Transport trait (DoIP adapter + fake), per-target serial execution, P2/P2*/0x78/deadline/generation rules, late-response quarantine and write_state mapping."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+loom-proto = { workspace = true }
+loom-uds-codec = { path = "../loom-uds-codec" }
+loom-uds-doip = { path = "../loom-uds-doip" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true

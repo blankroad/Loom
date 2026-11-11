@@ -1,0 +1,50 @@
+{"seq": 1, "mono_ms": 0, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 9.0}}
+{"seq": 2, "mono_ms": 10, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 0"}}
+{"seq": 3, "mono_ms": 20, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 4, "mono_ms": 100, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 13.0}}
+{"seq": 5, "mono_ms": 110, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 1"}}
+{"seq": 6, "mono_ms": 120, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 7, "mono_ms": 200, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 8, "mono_ms": 210, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "READY boot"}}
+{"seq": 9, "mono_ms": 220, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 10, "mono_ms": 300, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 13.0}}
+{"seq": 11, "mono_ms": 310, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 3"}}
+{"seq": 12, "mono_ms": 320, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [98, 241, 144, 65]}}
+{"seq": 13, "mono_ms": 400, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 14, "mono_ms": 410, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 4"}}
+{"seq": 15, "mono_ms": 420, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 16, "mono_ms": 500, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 13.0}}
+{"seq": 17, "mono_ms": 510, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 5"}}
+{"seq": 18, "mono_ms": 520, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 19, "mono_ms": 600, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 20, "mono_ms": 610, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 6"}}
+{"seq": 21, "mono_ms": 620, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 22, "mono_ms": 700, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 13.0}}
+{"seq": 23, "mono_ms": 710, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 7"}}
+{"seq": 24, "mono_ms": 720, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 25, "mono_ms": 800, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 20.0}}
+{"seq": 26, "mono_ms": 810, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 8"}}
+{"seq": 27, "mono_ms": 820, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 28, "mono_ms": 900, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 13.0}}
+{"seq": 29, "mono_ms": 910, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "log 9"}}
+{"seq": 30, "mono_ms": 920, "epoch": 1, "domain": "uds", "kind": "response", "source": "ecu1", "payload": {"bytes": [127, 34, 120]}}
+{"seq": 31, "mono_ms": 1000, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 32, "mono_ms": 1010, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 0"}}
+{"seq": 33, "mono_ms": 1100, "epoch": 1, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 34, "mono_ms": 1110, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 1"}}
+{"seq": 35, "mono_ms": 1200, "epoch": 1, "domain": "can", "kind": "source.gap", "source": "can0", "payload": {"cause": "reconnect"}}
+{"seq": 36, "mono_ms": 1210, "epoch": 1, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 2"}}
+{"seq": 37, "mono_ms": 1300, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 38, "mono_ms": 1310, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 3"}}
+{"seq": 39, "mono_ms": 1400, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 40, "mono_ms": 1410, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 4"}}
+{"seq": 41, "mono_ms": 1500, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 42, "mono_ms": 1510, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 5"}}
+{"seq": 43, "mono_ms": 1600, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": "bad"}}
+{"seq": 44, "mono_ms": 1610, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 6"}}
+{"seq": 45, "mono_ms": 1700, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 46, "mono_ms": 1710, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 7"}}
+{"seq": 47, "mono_ms": 1800, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 48, "mono_ms": 1810, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 8"}}
+{"seq": 49, "mono_ms": 1900, "epoch": 2, "domain": "can", "kind": "signal", "source": "can0", "payload": {"signal": "VehicleSpeed", "value": 12.0}}
+{"seq": 50, "mono_ms": 1910, "epoch": 2, "domain": "uart", "kind": "text", "source": "dut", "payload": {"text": "heartbeat 9"}}

@@ -1,0 +1,698 @@
+{
+  "crate": {
+    "id": "win32job",
+    "name": "win32job",
+    "updated_at": "2025-05-15T10:25:16.092815Z",
+    "versions": [
+      1564753,
+      1454889,
+      1419325,
+      1028650,
+      1028637,
+      1025233,
+      601284,
+      209607,
+      209606
+    ],
+    "keywords": [
+      "win32",
+      "job",
+      "job-object"
+    ],
+    "categories": [
+      "api-bindings",
+      "os::windows-apis"
+    ],
+    "badges": [],
+    "created_at": "2020-02-05T09:06:11.954617Z",
+    "downloads": 1683946,
+    "recent_downloads": 520892,
+    "default_version": "2.0.3",
+    "num_versions": 9,
+    "yanked": false,
+    "max_version": "2.0.3",
+    "newest_version": "2.0.3",
+    "max_stable_version": "2.0.3",
+    "description": "A safe API for Windows' job objects.\n",
+    "homepage": "https://github.com/ohadravid/win32job-rs",
+    "documentation": "https://docs.rs/crate/win32job",
+    "repository": "https://github.com/ohadravid/win32job-rs",
+    "links": {
+      "version_downloads": "/api/v1/crates/win32job/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/win32job/owners",
+      "owner_team": "/api/v1/crates/win32job/owner_team",
+      "owner_user": "/api/v1/crates/win32job/owner_user",
+      "reverse_dependencies": "/api/v1/crates/win32job/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 1564753,
+      "crate": "win32job",
+      "num": "2.0.3",
+      "dl_path": "/api/v1/crates/win32job/2.0.3/download",
+      "readme_path": "/api/v1/crates/win32job/2.0.3/readme",
+      "updated_at": "2025-05-15T10:25:16.092815Z",
+      "created_at": "2025-05-15T10:25:16.092815Z",
+      "downloads": 1055716,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/2.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/2.0.3/downloads",
+        "authors": "/api/v1/crates/win32job/2.0.3/authors"
+      },
+      "crate_size": 14237,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2025-05-15T10:25:16.092815Z"
+        }
+      ],
+      "checksum": "8c6a6724ccfbf34154a8691bd868b0fcd2be2ca3f7b47b32614654f1a01b191c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.\n",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 406,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 406,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 1454889,
+      "crate": "win32job",
+      "num": "2.0.2",
+      "dl_path": "/api/v1/crates/win32job/2.0.2/download",
+      "readme_path": "/api/v1/crates/win32job/2.0.2/readme",
+      "updated_at": "2025-02-21T13:35:02.406147Z",
+      "created_at": "2025-02-21T13:35:02.406147Z",
+      "downloads": 37691,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/2.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/2.0.2/downloads",
+        "authors": "/api/v1/crates/win32job/2.0.2/authors"
+      },
+      "crate_size": 13475,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2025-02-21T13:35:02.406147Z"
+        }
+      ],
+      "checksum": "15165faeb072f2dc68597de0d7d2071fa8ace463ec85b4a86063c0100c33bcc1",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.\n",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 380,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 380,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 1419325,
+      "crate": "win32job",
+      "num": "2.0.1",
+      "dl_path": "/api/v1/crates/win32job/2.0.1/download",
+      "readme_path": "/api/v1/crates/win32job/2.0.1/readme",
+      "updated_at": "2025-01-23T20:49:31.467600Z",
+      "created_at": "2025-01-23T20:49:31.467600Z",
+      "downloads": 18241,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/2.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/2.0.1/downloads",
+        "authors": "/api/v1/crates/win32job/2.0.1/authors"
+      },
+      "crate_size": 13372,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2025-01-23T20:49:31.467600Z"
+        }
+      ],
+      "checksum": "b62a7c19205285f5dd043af30d44d4bba2bd13f86e3073cea859ad519ae34702",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.\n",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 376,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 376,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 1028650,
+      "crate": "win32job",
+      "num": "2.0.0",
+      "dl_path": "/api/v1/crates/win32job/2.0.0/download",
+      "readme_path": "/api/v1/crates/win32job/2.0.0/readme",
+      "updated_at": "2024-01-26T10:19:35.928594Z",
+      "created_at": "2024-01-26T10:19:35.928594Z",
+      "downloads": 448059,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/2.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/2.0.0/downloads",
+        "authors": "/api/v1/crates/win32job/2.0.0/authors"
+      },
+      "crate_size": 10887,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2024-01-26T10:19:35.928594Z"
+        }
+      ],
+      "checksum": "5b2b1bf557d947847a30eb73f79aa6cdb3eaf3ce02f5e9599438f77896a62b3c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 371,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 371,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 1028637,
+      "crate": "win32job",
+      "num": "1.0.4",
+      "dl_path": "/api/v1/crates/win32job/1.0.4/download",
+      "readme_path": "/api/v1/crates/win32job/1.0.4/readme",
+      "updated_at": "2024-01-26T10:12:02.837193Z",
+      "created_at": "2024-01-26T10:12:02.837193Z",
+      "downloads": 33633,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/1.0.4/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/1.0.4/downloads",
+        "authors": "/api/v1/crates/win32job/1.0.4/authors"
+      },
+      "crate_size": 10812,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2024-01-26T10:12:02.837193Z"
+        }
+      ],
+      "checksum": "b1e915da468fb933fad27a318d59e163b1c8ae079be5efc080ff75990d1555dd",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 355,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 355,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 1025233,
+      "crate": "win32job",
+      "num": "1.0.3",
+      "dl_path": "/api/v1/crates/win32job/1.0.3/download",
+      "readme_path": "/api/v1/crates/win32job/1.0.3/readme",
+      "updated_at": "2024-01-25T04:48:26.963798Z",
+      "created_at": "2024-01-24T06:36:56.567983Z",
+      "downloads": 1221,
+      "features": {},
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/1.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/1.0.3/downloads",
+        "authors": "/api/v1/crates/win32job/1.0.3/authors"
+      },
+      "crate_size": 10746,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2024-01-24T06:36:56.567983Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2024-01-25T04:48:26.971974Z"
+        }
+      ],
+      "checksum": "715ddd107e226f84e2125c5b144ffdbc44040879bd42fac39984756a23784f9c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 340,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 340,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 601284,
+      "crate": "win32job",
+      "num": "1.0.2",
+      "dl_path": "/api/v1/crates/win32job/1.0.2/download",
+      "readme_path": "/api/v1/crates/win32job/1.0.2/readme",
+      "updated_at": "2022-08-12T15:59:58.240711Z",
+      "created_at": "2022-08-12T15:59:58.240711Z",
+      "downloads": 75119,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/1.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/1.0.2/downloads",
+        "authors": "/api/v1/crates/win32job/1.0.2/authors"
+      },
+      "crate_size": 10701,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2022-08-12T15:59:58.240711Z"
+        }
+      ],
+      "checksum": "92996dee9c7301aacb631c4487c71b9f385e21e2e1505494ae5b80dd1e097d42",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 347,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 347,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 209607,
+      "crate": "win32job",
+      "num": "1.0.1",
+      "dl_path": "/api/v1/crates/win32job/1.0.1/download",
+      "readme_path": "/api/v1/crates/win32job/1.0.1/readme",
+      "updated_at": "2020-02-05T09:53:10.199016Z",
+      "created_at": "2020-02-05T09:53:10.199016Z",
+      "downloads": 4548,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/1.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/1.0.1/downloads",
+        "authors": "/api/v1/crates/win32job/1.0.1/authors"
+      },
+      "crate_size": 10491,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2020-02-05T09:53:10.199016Z"
+        }
+      ],
+      "checksum": "9b2a14136f6c8be9146ac6345774ab32cb93e7985319b4a1b42abb663bd64235",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 356,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 356,
+        "total_comment_lines": 8
+      }
+    },
+    {
+      "id": 209606,
+      "crate": "win32job",
+      "num": "1.0.0",
+      "dl_path": "/api/v1/crates/win32job/1.0.0/download",
+      "readme_path": "/api/v1/crates/win32job/1.0.0/readme",
+      "updated_at": "2020-02-05T09:06:11.954617Z",
+      "created_at": "2020-02-05T09:06:11.954617Z",
+      "downloads": 6173,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/win32job/1.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/win32job/1.0.0/downloads",
+        "authors": "/api/v1/crates/win32job/1.0.0/authors"
+      },
+      "crate_size": 10486,
+      "published_by": {
+        "id": 39137,
+        "login": "ohadravid",
+        "name": "Ohad Ravid",
+        "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+        "url": "https://github.com/ohadravid",
+        "github_username_matches": true,
+        "created_at": "2012-09-16T20:24:05Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 39137,
+            "login": "ohadravid",
+            "name": "Ohad Ravid",
+            "avatar": "https://avatars.githubusercontent.com/u/2358365?v=4",
+            "url": "https://github.com/ohadravid",
+            "github_username_matches": true,
+            "created_at": "2012-09-16T20:24:05Z"
+          },
+          "time": "2020-02-05T09:06:11.954617Z"
+        }
+      ],
+      "checksum": "2e921375293ade9bc78178dec8b82ef7350fa5bc6a3f3e81278f50825b5693f4",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "A safe API for Windows' job objects.",
+      "homepage": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 356,
+            "comment_lines": 8,
+            "files": 6
+          }
+        },
+        "total_code_lines": 356,
+        "total_comment_lines": 8
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "win32",
+      "keyword": "win32",
+      "created_at": "2014-11-29T13:35:24.425770Z",
+      "crates_cnt": 151
+    },
+    {
+      "id": "job",
+      "keyword": "job",
+      "created_at": "2015-11-15T06:46:08.711148Z",
+      "crates_cnt": 125
+    },
+    {
+      "id": "job-object",
+      "keyword": "job-object",
+      "created_at": "2020-02-05T09:06:11.954617Z",
+      "crates_cnt": 11
+    }
+  ],
+  "categories": [
+    {
+      "id": "api-bindings",
+      "category": "API bindings",
+      "slug": "api-bindings",
+      "description": "Idiomatic wrappers of specific APIs for convenient access from Rust. Includes HTTP API wrappers as well. Non-idiomatic or unsafe bindings can be found in External FFI bindings.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 15692
+    },
+    {
+      "id": "os::windows-apis",
+      "category": "Windows APIs",
+      "slug": "os::windows-apis",
+      "description": "Bindings to Windows-specific APIs.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 795
+    }
+  ]
+}

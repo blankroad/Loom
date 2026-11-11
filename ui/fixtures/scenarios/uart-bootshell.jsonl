@@ -1,0 +1,4 @@
+{"scenario":"uart-bootshell","note":"E-UI-1: sim bootshell on uart/dut; boot log, then the mock agent sends 'uname -a' every 30 s (first at 3 s)"}
+{"t_ms":200,"call":"bootLog","args":["dut"]}
+{"t_ms":3000,"every_ms":30000,"agent":{"method":"uart.send","params":{"channel":"dut","data":"uname -a"}}}
+{"t_ms":18000,"every_ms":30000,"agent":{"method":"uart.send","params":{"channel":"dut","data":"dmesg | tail -2"}}}

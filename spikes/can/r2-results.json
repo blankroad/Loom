@@ -1,0 +1,95 @@
+{
+  "environment": {
+    "python": "3.14.1 (main, Dec 29 2025, 16:04:03) [Clang 21.1.8 ]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python_can": "4.6.1"
+  },
+  "method": "Single run; software send hook, two 10ms tasks; not wire timing or Windows evidence.",
+  "r1_sha256": {
+    "r1-sol.md": "ffa31a61390bcab4928651e3970d85bfe7f6c626502c1a9dcdbd8ac223266e26",
+    "r1-opus.md": "b0b5cf85745e09a854fbcbfd4718d8d4ae8c60f6e0988f92e3c7035b48cb8be5"
+  },
+  "send_idle": {
+    "0x100": {
+      "interval_ms": {
+        "n": 150,
+        "p50": 9.9337705,
+        "p95": 13.35675,
+        "p99": 14.555958,
+        "max": 15.029875
+      },
+      "absolute_interval_error_ms": {
+        "n": 150,
+        "p50": 1.4234374999999995,
+        "p95": 3.6001250000000002,
+        "p99": 4.555958,
+        "max": 5.0298750000000005
+      }
+    },
+    "0x101": {
+      "interval_ms": {
+        "n": 150,
+        "p50": 10.0415,
+        "p95": 13.545708,
+        "p99": 14.758,
+        "max": 16.776625
+      },
+      "absolute_interval_error_ms": {
+        "n": 150,
+        "p50": 1.2582915000000003,
+        "p95": 3.9436669999999996,
+        "p99": 6.776624999999999,
+        "max": 6.964416
+      }
+    }
+  },
+  "send_gil_decode_load": {
+    "0x100": {
+      "interval_ms": {
+        "n": 152,
+        "p50": 8.509917000000002,
+        "p95": 28.016292,
+        "p99": 56.833291,
+        "max": 110.344166
+      },
+      "absolute_interval_error_ms": {
+        "n": 152,
+        "p50": 6.5465624999999985,
+        "p95": 18.016292,
+        "p99": 46.833291,
+        "max": 100.344166
+      }
+    },
+    "0x101": {
+      "interval_ms": {
+        "n": 149,
+        "p50": 8.074583,
+        "p95": 32.861458,
+        "p99": 69.752792,
+        "max": 113.033417
+      },
+      "absolute_interval_error_ms": {
+        "n": 149,
+        "p50": 9.993959,
+        "p95": 22.861458,
+        "p99": 59.752792,
+        "max": 103.033417
+      }
+    }
+  },
+  "blf_closed": {
+    "readable_frames": 100000,
+    "missing_frames": 0,
+    "read_error": null,
+    "bytes": 791158,
+    "write_close_seconds": 0.9881550410063937,
+    "frames_per_second": 101198.69438519918
+  },
+  "blf_abrupt": {
+    "readable_frames": 81920,
+    "missing_frames": 18080,
+    "read_error": null,
+    "bytes": 647272
+  },
+  "blf_limitations": "No fsync/power-loss guarantee; no full receive/IPC/UI pipeline; ordinary disk and zlib; no 10s/4MB explicit flush."
+}

@@ -1,0 +1,428 @@
+{
+  "retrieved_at": "2026-11-09T14:13:41.629265+00:00",
+  "note": "issues API includes pull requests; latest updated item is activity, not maintainer responsiveness",
+  "repos": [
+    {
+      "repo": "pyocd/pyOCD",
+      "url": "https://github.com/pyocd/pyOCD",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "square/pylink",
+      "url": "https://github.com/square/pylink",
+      "commit": [
+        {
+          "sha": "1904c4775d6b5606a21a5d9d975cef2ba78074bc",
+          "node_id": "C_kwDOBkFKwdoAKDE5MDRjNDc3NWQ2YjU2MDZhMjFhNWQ5ZDk3NWNlZjJiYTc4MDc0YmM",
+          "commit": {
+            "author": {
+              "name": "Ford Peprah",
+              "email": "ford@squareup.com",
+              "date": "2026-11-06T17:45:43Z"
+            },
+            "committer": {
+              "name": "Ford Peprah",
+              "email": "ford@squareup.com",
+              "date": "2026-11-06T17:45:43Z"
+            },
+            "message": "Draft 2.1.0 Release",
+            "tree": {
+              "sha": "31f3e8237b20cd45c3045760bad90aaf0bd8a911",
+              "url": "https://api.github.com/repos/square/pylink/git/trees/31f3e8237b20cd45c3045760bad90aaf0bd8a911"
+            },
+            "url": "https://api.github.com/repos/square/pylink/git/commits/1904c4775d6b5606a21a5d9d975cef2ba78074bc",
+            "comment_count": 0,
+            "verification": {
+              "verified": false,
+              "reason": "unsigned",
+              "signature": null,
+              "payload": null,
+              "verified_at": null
+            }
+          },
+          "url": "https://api.github.com/repos/square/pylink/commits/1904c4775d6b5606a21a5d9d975cef2ba78074bc",
+          "html_url": "https://github.com/square/pylink/commit/1904c4775d6b5606a21a5d9d975cef2ba78074bc",
+          "comments_url": "https://api.github.com/repos/square/pylink/commits/1904c4775d6b5606a21a5d9d975cef2ba78074bc/comments",
+          "author": {
+            "login": "hkpeprah",
+            "id": 1425020,
+            "node_id": "MDQ6VXNlcjE0MjUwMjA=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/1425020?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/hkpeprah",
+            "html_url": "https://github.com/hkpeprah",
+            "followers_url": "https://api.github.com/users/hkpeprah/followers",
+            "following_url": "https://api.github.com/users/hkpeprah/following{/other_user}",
+            "gists_url": "https://api.github.com/users/hkpeprah/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/hkpeprah/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/hkpeprah/subscriptions",
+            "organizations_url": "https://api.github.com/users/hkpeprah/orgs",
+            "repos_url": "https://api.github.com/users/hkpeprah/repos",
+            "events_url": "https://api.github.com/users/hkpeprah/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/hkpeprah/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "committer": {
+            "login": "hkpeprah",
+            "id": 1425020,
+            "node_id": "MDQ6VXNlcjE0MjUwMjA=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/1425020?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/hkpeprah",
+            "html_url": "https://github.com/hkpeprah",
+            "followers_url": "https://api.github.com/users/hkpeprah/followers",
+            "following_url": "https://api.github.com/users/hkpeprah/following{/other_user}",
+            "gists_url": "https://api.github.com/users/hkpeprah/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/hkpeprah/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/hkpeprah/subscriptions",
+            "organizations_url": "https://api.github.com/users/hkpeprah/orgs",
+            "repos_url": "https://api.github.com/users/hkpeprah/repos",
+            "events_url": "https://api.github.com/users/hkpeprah/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/hkpeprah/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "parents": [
+            {
+              "sha": "5730eb4b248062523c7b67b780195f078e09ef8a",
+              "url": "https://api.github.com/repos/square/pylink/commits/5730eb4b248062523c7b67b780195f078e09ef8a",
+              "html_url": "https://github.com/square/pylink/commit/5730eb4b248062523c7b67b780195f078e09ef8a"
+            }
+          ]
+        }
+      ],
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "cs01/pygdbmi",
+      "url": "https://github.com/cs01/pygdbmi",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "pyvisa/pyvisa",
+      "url": "https://github.com/pyvisa/pyvisa",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "pyvisa/pyvisa-py",
+      "url": "https://github.com/pyvisa/pyvisa-py",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "pyvisa/pyvisa-sim",
+      "url": "https://github.com/pyvisa/pyvisa-sim",
+      "commit": [
+        {
+          "sha": "a7d335c23236424f6747ed153d8d1efc83fa72b0",
+          "node_id": "C_kwDOAXMCpdoAKGE3ZDMzNWMyMzIzNjQyNGY2NzQ3ZWQxNTNkOGQxZWZjODNmYTcyYjA",
+          "commit": {
+            "author": {
+              "name": "pre-commit-ci[bot]",
+              "email": "66853113+pre-commit-ci[bot]@users.noreply.github.com",
+              "date": "2026-11-02T21:02:55Z"
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "date": "2026-11-02T21:02:55Z"
+            },
+            "message": "[pre-commit.ci] pre-commit autoupdate (#248)\n\nupdates:\n- [github.com/astral-sh/ruff-pre-commit: v0.17.2 → v0.17.3](https://github.com/astral-sh/ruff-pre-commit/compare/v0.17.2...v0.17.3)\n- [github.com/pre-commit/mirrors-mypy: v2.4.0 → v2.4.1](https://github.com/pre-commit/mirrors-mypy/compare/v2.4.0...v2.4.1)\n\nCo-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>",
+            "tree": {
+              "sha": "be199887cc53a1d6ffc5d8ad702dd2d6be92344a",
+              "url": "https://api.github.com/repos/pyvisa/pyvisa-sim/git/trees/be199887cc53a1d6ffc5d8ad702dd2d6be92344a"
+            },
+            "url": "https://api.github.com/repos/pyvisa/pyvisa-sim/git/commits/a7d335c23236424f6747ed153d8d1efc83fa72b0",
+            "comment_count": 0,
+            "verification": {
+              "verified": true,
+              "reason": "valid",
+              "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq6Pp/CRC1aQ7uu5UhlAAANVcQAK+A3TBJU96R2KMAqserw3aY\nilCsZo6oIqPjcPIMJddg3m2wLI6Gg5RF2KzSeQ3nVI5w69Dyn0BFKcX33CkVYJSl\nihWR8jYZD9KxB04Y6k7KhCiJroeNDL9fUUA9S1Z8U9ItVyj3kRlvBZthuEgfolWV\nqf6waYPaLfWBu7s9o5Mo7azxhGKy7yIu/+YFmgQhkrcf7QVI8vvU1lwaTiHBmBmr\nN4C86an0slVRj/LddU6bxpNjD+CrJxR4M65WWxzoFK9Kpa4XGtksOHqmMEQ/CQYC\n2sg5+0uepumHUFcGjlJryOQl4By3BA5fOQcyZjOu8DN/BI1nnLuxypoHx+4cA1Ps\nD/HBdFbTSJchUE8vhfQGvLGdyMsmIl7ZQEGOVF2qDnIj5pQz/ZA3krQIE7c8NrFj\n/VlnFCCWFWpdF7X5OZcX2E6u+0QGPZyaMWV3mBOYqBkh0CyetExNRNbu/dcahQgF\nYBS/5cHeo5MHXwkB+vzvnTjvGXFjPeErjhkOLXPB0mNMNeT0AyAD41LOD/3thNI9\nL4D6kSv2T91CoUgyH8W065uzqyVUNpSkkc7sqVT9kguWjNMs6nacQA2rgjE40/Tv\nu+LQOJN1lZDo0e6B/IVU6oSbgrYR/80gd82WC/gZeGe7nv/vC/EdyF+7Y0Jx1mjf\nNgrvbZQLGkSrdD/o+yFh\n=Jbov\n-----END PGP SIGNATURE-----\n",
+              "payload": "tree be199887cc53a1d6ffc5d8ad702dd2d6be92344a\nparent 2bd727eb04b3defe638de5e9339ce348749e2fd0\nauthor pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com> 1793653375 +0100\ncommitter GitHub <noreply@github.com> 1793653375 +0100\n\n[pre-commit.ci] pre-commit autoupdate (#248)\n\nupdates:\n- [github.com/astral-sh/ruff-pre-commit: v0.17.2 → v0.17.3](https://github.com/astral-sh/ruff-pre-commit/compare/v0.17.2...v0.17.3)\n- [github.com/pre-commit/mirrors-mypy: v2.4.0 → v2.4.1](https://github.com/pre-commit/mirrors-mypy/compare/v2.4.0...v2.4.1)\n\nCo-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>",
+              "verified_at": "2026-11-02T21:02:56Z"
+            }
+          },
+          "url": "https://api.github.com/repos/pyvisa/pyvisa-sim/commits/a7d335c23236424f6747ed153d8d1efc83fa72b0",
+          "html_url": "https://github.com/pyvisa/pyvisa-sim/commit/a7d335c23236424f6747ed153d8d1efc83fa72b0",
+          "comments_url": "https://api.github.com/repos/pyvisa/pyvisa-sim/commits/a7d335c23236424f6747ed153d8d1efc83fa72b0/comments",
+          "author": {
+            "login": "pre-commit-ci[bot]",
+            "id": 66853113,
+            "node_id": "MDM6Qm90NjY4NTMxMTM=",
+            "avatar_url": "https://avatars.githubusercontent.com/in/68672?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D",
+            "html_url": "https://github.com/apps/pre-commit-ci",
+            "followers_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/followers",
+            "following_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/following{/other_user}",
+            "gists_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/subscriptions",
+            "organizations_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/orgs",
+            "repos_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/repos",
+            "events_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/pre-commit-ci%5Bbot%5D/received_events",
+            "type": "Bot",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "committer": {
+            "login": "web-flow",
+            "id": 19864447,
+            "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+            "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/web-flow",
+            "html_url": "https://github.com/web-flow",
+            "followers_url": "https://api.github.com/users/web-flow/followers",
+            "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+            "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+            "organizations_url": "https://api.github.com/users/web-flow/orgs",
+            "repos_url": "https://api.github.com/users/web-flow/repos",
+            "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/web-flow/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "parents": [
+            {
+              "sha": "2bd727eb04b3defe638de5e9339ce348749e2fd0",
+              "url": "https://api.github.com/repos/pyvisa/pyvisa-sim/commits/2bd727eb04b3defe638de5e9339ce348749e2fd0",
+              "html_url": "https://github.com/pyvisa/pyvisa-sim/commit/2bd727eb04b3defe638de5e9339ce348749e2fd0"
+            }
+          ]
+        }
+      ],
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "hardbyte/python-can",
+      "url": "https://github.com/hardbyte/python-can",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "c4deszes/ldfparser",
+      "url": "https://github.com/c4deszes/ldfparser",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "chrizog/someipy",
+      "url": "https://github.com/chrizog/someipy",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "secdev/scapy",
+      "url": "https://github.com/secdev/scapy",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "kbandla/dpkt",
+      "url": "https://github.com/kbandla/dpkt",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "KimiNewt/pyshark",
+      "url": "https://github.com/KimiNewt/pyshark",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "bmwcarit/python-dlt",
+      "url": "https://github.com/bmwcarit/python-dlt",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "COVESA/dlt-daemon",
+      "url": "https://github.com/COVESA/dlt-daemon",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "mikiepure/pydlt",
+      "url": "https://github.com/mikiepure/pydlt",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "christoph2/pyxcp",
+      "url": "https://github.com/christoph2/pyxcp",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "christoph2/pyA2L",
+      "url": "https://github.com/christoph2/pyA2L",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "eblot/pyftdi",
+      "url": "https://github.com/eblot/pyftdi",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "saleae/logic2-automation",
+      "url": "https://github.com/saleae/logic2-automation",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "pymodbus-dev/pymodbus",
+      "url": "https://github.com/pymodbus-dev/pymodbus",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "trezor/cython-hidapi",
+      "url": "https://github.com/trezor/cython-hidapi",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "ronf/asyncssh",
+      "url": "https://github.com/ronf/asyncssh",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "paramiko/paramiko",
+      "url": "https://github.com/paramiko/paramiko",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "openatx/adbutils",
+      "url": "https://github.com/openatx/adbutils",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "willhyper/pyplin",
+      "url": "https://github.com/willhyper/pyplin",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    },
+    {
+      "repo": "richClubb/python-lin",
+      "url": "https://github.com/richClubb/python-lin",
+      "commit": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      },
+      "issue_activity": {
+        "error": "HTTP Error 403: rate limit exceeded"
+      }
+    }
+  ]
+}

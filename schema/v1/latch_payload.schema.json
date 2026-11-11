@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LatchPayload",
+  "description": "`core.latch` payload.",
+  "type": "object",
+  "properties": {
+    "acked": {
+      "description": "Workers that acknowledged.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "approvals_cancelled": {
+      "description": "Approvals cancelled.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "by": {
+      "description": "Who changed it (client id).",
+      "type": "string"
+    },
+    "jobs_stopped": {
+      "description": "Jobs stopped.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "missing": {
+      "description": "Workers that did not acknowledge in time (shown as stalled, never as success).",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "on": {
+      "description": "Latch state.",
+      "type": "boolean"
+    },
+    "origin": {
+      "description": "Origin of the change.",
+      "$ref": "#/$defs/Origin"
+    },
+    "outputs_held": {
+      "description": "Outputs still on.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/OutputHeld"
+      }
+    },
+    "persisted": {
+      "description": "Latch persisted to disk (`false` = valid but not yet durable).",
+      "type": "boolean"
+    },
+    "uncancellable": {
+      "description": "Units the driver already had.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Uncancellable"
+      }
+    }
+  },
+  "required": [
+    "on",
+    "by",
+    "origin",
+    "persisted"
+  ],
+  "$defs": {
+    "Origin": {
+      "description": "Who caused the event (fixed 4 values, D3). Decided by connection credentials, never by\nrequest fields.",
+      "oneOf": [
+        {
+          "description": "AI agent via CLI / agent connection.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Human via a viewer connection.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The device (or external tool on the bus, see `external_actor`).",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Loom runner / test session.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "OutputHeld": {
+      "description": "An output kept on while STOP is latched (STOP never switches outputs off — A3).",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "description": "Channel.",
+          "type": "string"
+        },
+        "description": {
+          "description": "What is held (`PSU out 13.5 V`, `periodic 0x123 stopped, last value held` …).",
+          "type": "string"
+        },
+        "domain": {
+          "description": "Domain.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "channel",
+        "description"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "Uncancellable": {
+      "description": "Driver-queued units that STOP could not cancel, per channel.",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "description": "`<domain>:<channel>`.",
+          "type": "string"
+        },
+        "count": {
+          "description": "Units already handed to the driver.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "channel",
+        "count"
+      ]
+    }
+  }
+}

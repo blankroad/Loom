@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubscribeResult",
+  "description": "`core.subscribe` result.",
+  "type": "object",
+  "properties": {
+    "stream_epoch": {
+      "description": "Stream epoch.",
+      "$ref": "#/$defs/U64"
+    },
+    "sub_id": {
+      "description": "Subscription id.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sub_id",
+    "stream_epoch"
+  ],
+  "$defs": {
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

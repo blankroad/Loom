@@ -1,0 +1,2514 @@
+{
+  "crate": {
+    "id": "libloading",
+    "name": "libloading",
+    "updated_at": "2025-11-05T23:15:12.937093Z",
+    "versions": [
+      1810840,
+      1739489,
+      1580187,
+      1558870,
+      1357427,
+      1209159,
+      1182950,
+      1073853,
+      1069481,
+      911793,
+      773413,
+      658479,
+      483075,
+      453881,
+      435872,
+      336353,
+      327422,
+      311670,
+      298275,
+      292069,
+      275729,
+      238315,
+      231658,
+      228114,
+      161641,
+      153976,
+      77105,
+      73618,
+      66199,
+      63936,
+      51985,
+      48698,
+      48679,
+      45117,
+      34939,
+      30831,
+      29538,
+      29534,
+      26490,
+      20277,
+      17817
+    ],
+    "keywords": [
+      "load",
+      "dlopen",
+      "shared",
+      "dylib"
+    ],
+    "categories": [
+      "api-bindings"
+    ],
+    "badges": [],
+    "created_at": "2015-11-08T12:22:07.864268Z",
+    "downloads": 626481125,
+    "recent_downloads": 154915566,
+    "default_version": "0.9.0",
+    "num_versions": 41,
+    "yanked": false,
+    "max_version": "0.9.0",
+    "newest_version": "0.9.0",
+    "max_stable_version": "0.9.0",
+    "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+    "homepage": null,
+    "documentation": "https://docs.rs/libloading/",
+    "repository": "https://github.com/nagisa/rust_libloading/",
+    "links": {
+      "version_downloads": "/api/v1/crates/libloading/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/libloading/owners",
+      "owner_team": "/api/v1/crates/libloading/owner_team",
+      "owner_user": "/api/v1/crates/libloading/owner_user",
+      "reverse_dependencies": "/api/v1/crates/libloading/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 1810840,
+      "crate": "libloading",
+      "num": "0.9.0",
+      "dl_path": "/api/v1/crates/libloading/0.9.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.9.0/readme",
+      "updated_at": "2025-11-05T23:15:12.937093Z",
+      "created_at": "2025-11-05T23:15:12.937093Z",
+      "downloads": 55893535,
+      "features": {
+        "default": [
+          "std"
+        ],
+        "std": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.9.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.9.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.9.0/authors"
+      },
+      "crate_size": 33816,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2025-11-05T23:15:12.937093Z"
+        }
+      ],
+      "checksum": "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60",
+      "rust_version": "1.88.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1412,
+            "comment_lines": 125,
+            "files": 12
+          }
+        },
+        "total_code_lines": 1412,
+        "total_comment_lines": 125
+      }
+    },
+    {
+      "id": 1739489,
+      "crate": "libloading",
+      "num": "0.8.9",
+      "dl_path": "/api/v1/crates/libloading/0.8.9/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.9/readme",
+      "updated_at": "2025-09-21T10:59:30.598195Z",
+      "created_at": "2025-09-21T10:59:30.598195Z",
+      "downloads": 189193652,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.9/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.9/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.9/authors"
+      },
+      "crate_size": 30222,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2025-09-21T10:59:30.598195Z"
+        }
+      ],
+      "checksum": "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55",
+      "rust_version": "1.71.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2015",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1048,
+            "comment_lines": 128,
+            "files": 10
+          }
+        },
+        "total_code_lines": 1048,
+        "total_comment_lines": 128
+      }
+    },
+    {
+      "id": 1580187,
+      "crate": "libloading",
+      "num": "0.8.8",
+      "dl_path": "/api/v1/crates/libloading/0.8.8/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.8/readme",
+      "updated_at": "2025-05-26T22:17:07.400298Z",
+      "created_at": "2025-05-26T22:17:07.400298Z",
+      "downloads": 47917875,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.8/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.8/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.8/authors"
+      },
+      "crate_size": 31345,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2025-05-26T22:17:07.400298Z"
+        }
+      ],
+      "checksum": "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2015",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1003,
+            "comment_lines": 128,
+            "files": 10
+          }
+        },
+        "total_code_lines": 1003,
+        "total_comment_lines": 128
+      }
+    },
+    {
+      "id": 1558870,
+      "crate": "libloading",
+      "num": "0.8.7",
+      "dl_path": "/api/v1/crates/libloading/0.8.7/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.7/readme",
+      "updated_at": "2025-05-10T21:57:52.755064Z",
+      "created_at": "2025-05-10T21:57:52.755064Z",
+      "downloads": 4777288,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.7/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.7/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.7/authors"
+      },
+      "crate_size": 30374,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2025-05-10T21:57:52.755064Z"
+        }
+      ],
+      "checksum": "6a793df0d7afeac54f95b471d3af7f0d4fb975699f972341a4b76988d49cdf0c",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2015",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 979,
+            "comment_lines": 123,
+            "files": 10
+          }
+        },
+        "total_code_lines": 979,
+        "total_comment_lines": 123
+      }
+    },
+    {
+      "id": 1357427,
+      "crate": "libloading",
+      "num": "0.8.6",
+      "dl_path": "/api/v1/crates/libloading/0.8.6/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.6/readme",
+      "updated_at": "2024-11-29T16:49:13.965316Z",
+      "created_at": "2024-11-29T16:49:13.965316Z",
+      "downloads": 48548526,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.6/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.6/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.6/authors"
+      },
+      "crate_size": 28922,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2024-11-29T16:49:13.965316Z"
+        }
+      ],
+      "checksum": "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2015",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 973,
+            "comment_lines": 123,
+            "files": 10
+          }
+        },
+        "total_code_lines": 973,
+        "total_comment_lines": 123
+      }
+    },
+    {
+      "id": 1209159,
+      "crate": "libloading",
+      "num": "0.8.5",
+      "dl_path": "/api/v1/crates/libloading/0.8.5/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.5/readme",
+      "updated_at": "2024-07-20T10:38:29.952546Z",
+      "created_at": "2024-07-20T10:38:29.952546Z",
+      "downloads": 35874710,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.5/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.5/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.5/authors"
+      },
+      "crate_size": 28902,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2024-07-20T10:38:29.952546Z"
+        }
+      ],
+      "checksum": "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 972,
+            "comment_lines": 123,
+            "files": 10
+          }
+        },
+        "total_code_lines": 972,
+        "total_comment_lines": 123
+      }
+    },
+    {
+      "id": 1182950,
+      "crate": "libloading",
+      "num": "0.8.4",
+      "dl_path": "/api/v1/crates/libloading/0.8.4/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.4/readme",
+      "updated_at": "2024-06-23T13:12:34.740192Z",
+      "created_at": "2024-06-23T13:12:34.740192Z",
+      "downloads": 9314442,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.4/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.4/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.4/authors"
+      },
+      "crate_size": 28636,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2024-06-23T13:12:34.740192Z"
+        }
+      ],
+      "checksum": "e310b3a6b5907f99202fcdb4960ff45b93735d7c7d96b760fcff8db2dc0e103d",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 953,
+            "comment_lines": 122,
+            "files": 10
+          }
+        },
+        "total_code_lines": 953,
+        "total_comment_lines": 122
+      }
+    },
+    {
+      "id": 1073853,
+      "crate": "libloading",
+      "num": "0.8.3",
+      "dl_path": "/api/v1/crates/libloading/0.8.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.3/readme",
+      "updated_at": "2024-03-05T21:55:24.175763Z",
+      "created_at": "2024-03-05T21:55:24.175763Z",
+      "downloads": 13652764,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.3/authors"
+      },
+      "crate_size": 28480,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2024-03-05T21:55:24.175763Z"
+        }
+      ],
+      "checksum": "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 940,
+            "comment_lines": 122,
+            "files": 10
+          }
+        },
+        "total_code_lines": 940,
+        "total_comment_lines": 122
+      }
+    },
+    {
+      "id": 1069481,
+      "crate": "libloading",
+      "num": "0.8.2",
+      "dl_path": "/api/v1/crates/libloading/0.8.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.2/readme",
+      "updated_at": "2024-03-01T17:33:38.160973Z",
+      "created_at": "2024-03-01T17:33:38.160973Z",
+      "downloads": 618507,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.2/authors"
+      },
+      "crate_size": 28422,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2024-03-01T17:33:38.160973Z"
+        }
+      ],
+      "checksum": "2caa5afb8bf9f3a2652760ce7d4f62d21c4d5a423e68466fca30df82f2330164",
+      "rust_version": "1.56.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 939,
+            "comment_lines": 122,
+            "files": 10
+          }
+        },
+        "total_code_lines": 939,
+        "total_comment_lines": 122
+      }
+    },
+    {
+      "id": 911793,
+      "crate": "libloading",
+      "num": "0.8.1",
+      "dl_path": "/api/v1/crates/libloading/0.8.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.1/readme",
+      "updated_at": "2023-09-30T13:18:03.056442Z",
+      "created_at": "2023-09-30T13:18:03.056442Z",
+      "downloads": 16829690,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.1/authors"
+      },
+      "crate_size": 27893,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2023-09-30T13:18:03.056442Z"
+        }
+      ],
+      "checksum": "c571b676ddfc9a8c12f1f3d3085a7b163966a8fd8098a90640953ce5f6170161",
+      "rust_version": "1.48.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 935,
+            "comment_lines": 131,
+            "files": 10
+          }
+        },
+        "total_code_lines": 935,
+        "total_comment_lines": 131
+      }
+    },
+    {
+      "id": 773413,
+      "crate": "libloading",
+      "num": "0.8.0",
+      "dl_path": "/api/v1/crates/libloading/0.8.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.8.0/readme",
+      "updated_at": "2023-04-11T13:06:51.723236Z",
+      "created_at": "2023-04-11T13:06:51.723236Z",
+      "downloads": 4350799,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.8.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.8.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.8.0/authors"
+      },
+      "crate_size": 27845,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2023-04-11T13:06:51.723236Z"
+        }
+      ],
+      "checksum": "d580318f95776505201b28cf98eb1fa5e4be3b689633ba6a3e6cd880ff22d8cb",
+      "rust_version": "1.48.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 931,
+            "comment_lines": 131,
+            "files": 10
+          }
+        },
+        "total_code_lines": 931,
+        "total_comment_lines": 131
+      }
+    },
+    {
+      "id": 658479,
+      "crate": "libloading",
+      "num": "0.7.4",
+      "dl_path": "/api/v1/crates/libloading/0.7.4/download",
+      "readme_path": "/api/v1/crates/libloading/0.7.4/readme",
+      "updated_at": "2022-11-06T23:43:17.252614Z",
+      "created_at": "2022-11-06T23:43:17.252614Z",
+      "downloads": 135188635,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.7.4/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.7.4/downloads",
+        "authors": "/api/v1/crates/libloading/0.7.4/authors"
+      },
+      "crate_size": 27580,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2022-11-06T23:43:17.252614Z"
+        }
+      ],
+      "checksum": "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f",
+      "rust_version": "1.40.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 920,
+            "comment_lines": 132,
+            "files": 10
+          }
+        },
+        "total_code_lines": 920,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 483075,
+      "crate": "libloading",
+      "num": "0.7.3",
+      "dl_path": "/api/v1/crates/libloading/0.7.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.7.3/readme",
+      "updated_at": "2022-01-14T23:35:48.916100Z",
+      "created_at": "2022-01-14T23:35:48.916100Z",
+      "downloads": 20679334,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.7.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.7.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.7.3/authors"
+      },
+      "crate_size": 27378,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2022-01-14T23:35:48.916100Z"
+        }
+      ],
+      "checksum": "efbc0f03f9a775e9f6aed295c6a1ba2253c5757a9e03d55c6caa46a681abcddd",
+      "rust_version": "1.40.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 916,
+            "comment_lines": 132,
+            "files": 10
+          }
+        },
+        "total_code_lines": 916,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 453881,
+      "crate": "libloading",
+      "num": "0.7.2",
+      "dl_path": "/api/v1/crates/libloading/0.7.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.7.2/readme",
+      "updated_at": "2021-11-15T21:05:58.112039Z",
+      "created_at": "2021-11-15T21:05:58.112039Z",
+      "downloads": 2844383,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.7.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.7.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.7.2/authors"
+      },
+      "crate_size": 27229,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2021-11-15T21:05:58.112039Z"
+        }
+      ],
+      "checksum": "afe203d669ec979b7128619bae5a63b7b42e9203c1b29146079ee05e2f604b52",
+      "rust_version": "1.40.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 915,
+            "comment_lines": 132,
+            "files": 10
+          }
+        },
+        "total_code_lines": 915,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 435872,
+      "crate": "libloading",
+      "num": "0.7.1",
+      "dl_path": "/api/v1/crates/libloading/0.7.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.7.1/readme",
+      "updated_at": "2021-10-09T11:02:34.049392Z",
+      "created_at": "2021-10-09T11:02:34.049392Z",
+      "downloads": 2143057,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.7.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.7.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.7.1/authors"
+      },
+      "crate_size": 26336,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2021-10-09T11:02:34.049392Z"
+        }
+      ],
+      "checksum": "c0cf036d15402bea3c5d4de17b3fce76b3e4a56ebc1f577be0e7a72f7c607cf0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 906,
+            "comment_lines": 132,
+            "files": 9
+          }
+        },
+        "total_code_lines": 906,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 336353,
+      "crate": "libloading",
+      "num": "0.7.0",
+      "dl_path": "/api/v1/crates/libloading/0.7.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.7.0/readme",
+      "updated_at": "2021-02-06T18:20:19.737662Z",
+      "created_at": "2021-02-06T18:20:19.737662Z",
+      "downloads": 6465895,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.7.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.7.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.7.0/authors"
+      },
+      "crate_size": 26216,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2021-02-06T18:20:19.737662Z"
+        }
+      ],
+      "checksum": "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 907,
+            "comment_lines": 132,
+            "files": 9
+          }
+        },
+        "total_code_lines": 907,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 327422,
+      "crate": "libloading",
+      "num": "0.6.7",
+      "dl_path": "/api/v1/crates/libloading/0.6.7/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.7/readme",
+      "updated_at": "2021-01-14T14:19:05.389230Z",
+      "created_at": "2021-01-14T14:19:05.389230Z",
+      "downloads": 14645553,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.7/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.7/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.7/authors"
+      },
+      "crate_size": 25037,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2021-01-14T14:19:05.389230Z"
+        }
+      ],
+      "checksum": "351a32417a12d5f7e82c368a66781e307834dae04c6ce0cd4456d52989229883",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 925,
+            "comment_lines": 146,
+            "files": 9
+          }
+        },
+        "total_code_lines": 925,
+        "total_comment_lines": 146
+      }
+    },
+    {
+      "id": 311670,
+      "crate": "libloading",
+      "num": "0.6.6",
+      "dl_path": "/api/v1/crates/libloading/0.6.6/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.6/readme",
+      "updated_at": "2020-12-03T14:54:56.140653Z",
+      "created_at": "2020-12-03T14:54:56.140653Z",
+      "downloads": 582793,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.6/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.6/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.6/authors"
+      },
+      "crate_size": 24527,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-12-03T14:54:56.140653Z"
+        }
+      ],
+      "checksum": "e9367bdfa836b7e3cf895867f7a570283444da90562980ec2263d6e1569b16bc",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 908,
+            "comment_lines": 143,
+            "files": 9
+          }
+        },
+        "total_code_lines": 908,
+        "total_comment_lines": 143
+      }
+    },
+    {
+      "id": 298275,
+      "crate": "libloading",
+      "num": "0.6.5",
+      "dl_path": "/api/v1/crates/libloading/0.6.5/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.5/readme",
+      "updated_at": "2020-10-23T14:23:56.466135Z",
+      "created_at": "2020-10-23T14:23:56.466135Z",
+      "downloads": 570359,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.5/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.5/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.5/authors"
+      },
+      "crate_size": 23998,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-10-23T14:23:56.466135Z"
+        }
+      ],
+      "checksum": "1090080fe06ec2648d0da3881d9453d97e71a45f00eb179af7fdd7e3f686fdb0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 905,
+            "comment_lines": 137,
+            "files": 9
+          }
+        },
+        "total_code_lines": 905,
+        "total_comment_lines": 137
+      }
+    },
+    {
+      "id": 292069,
+      "crate": "libloading",
+      "num": "0.6.4",
+      "dl_path": "/api/v1/crates/libloading/0.6.4/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.4/readme",
+      "updated_at": "2020-10-10T15:59:21.850637Z",
+      "created_at": "2020-10-10T15:59:21.850637Z",
+      "downloads": 164759,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.4/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.4/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.4/authors"
+      },
+      "crate_size": 23964,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-10-10T15:59:21.850637Z"
+        }
+      ],
+      "checksum": "3557c9384f7f757f6d139cd3a4c62ef4e850696c16bf27924a5538c8a09717a1",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 904,
+            "comment_lines": 137,
+            "files": 9
+          }
+        },
+        "total_code_lines": 904,
+        "total_comment_lines": 137
+      }
+    },
+    {
+      "id": 275729,
+      "crate": "libloading",
+      "num": "0.6.3",
+      "dl_path": "/api/v1/crates/libloading/0.6.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.3/readme",
+      "updated_at": "2020-08-24T01:29:41.345408Z",
+      "created_at": "2020-08-24T01:29:41.345408Z",
+      "downloads": 501039,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.3/authors"
+      },
+      "crate_size": 24281,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-08-24T01:29:41.345408Z"
+        }
+      ],
+      "checksum": "2443d8f0478b16759158b2f66d525991a05491138bc05814ef52a250148ef4f9",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 944,
+            "comment_lines": 144,
+            "files": 10
+          }
+        },
+        "total_code_lines": 944,
+        "total_comment_lines": 144
+      }
+    },
+    {
+      "id": 238315,
+      "crate": "libloading",
+      "num": "0.6.2",
+      "dl_path": "/api/v1/crates/libloading/0.6.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.2/readme",
+      "updated_at": "2020-05-06T03:28:39.403331Z",
+      "created_at": "2020-05-06T03:28:39.403331Z",
+      "downloads": 588789,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.2/authors"
+      },
+      "crate_size": 19275,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-05-06T03:28:39.403331Z"
+        }
+      ],
+      "checksum": "2cadb8e769f070c45df05c78c7520eb4cd17061d4ab262e43cfc68b4d00ac71c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 757,
+            "comment_lines": 113,
+            "files": 9
+          }
+        },
+        "total_code_lines": 757,
+        "total_comment_lines": 113
+      }
+    },
+    {
+      "id": 231658,
+      "crate": "libloading",
+      "num": "0.6.1",
+      "dl_path": "/api/v1/crates/libloading/0.6.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.1/readme",
+      "updated_at": "2020-04-15T16:54:47.172942Z",
+      "created_at": "2020-04-15T16:54:47.172942Z",
+      "downloads": 109324,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.1/authors"
+      },
+      "crate_size": 19255,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-04-15T16:54:47.172942Z"
+        }
+      ],
+      "checksum": "3c4f51b790f5bdb65acb4cc94bb81d7b2ee60348a5431ac1467d390b017600b0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 756,
+            "comment_lines": 113,
+            "files": 9
+          }
+        },
+        "total_code_lines": 756,
+        "total_comment_lines": 113
+      }
+    },
+    {
+      "id": 228114,
+      "crate": "libloading",
+      "num": "0.6.0",
+      "dl_path": "/api/v1/crates/libloading/0.6.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.6.0/readme",
+      "updated_at": "2020-04-05T19:52:00.922341Z",
+      "created_at": "2020-04-05T19:52:00.922341Z",
+      "downloads": 73234,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.6.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.6.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.6.0/authors"
+      },
+      "crate_size": 19043,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 726,
+            "login": "nagisa",
+            "name": "Simonas Kazlauskas",
+            "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+            "url": "https://github.com/nagisa",
+            "github_username_matches": true,
+            "created_at": "2011-03-19T20:34:26Z"
+          },
+          "time": "2020-04-05T19:52:00.922341Z"
+        }
+      ],
+      "checksum": "2c979a19ffb457f0273965c333053f3d586bf759bf7b683fbebc37f9a9ebedc4",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 751,
+            "comment_lines": 112,
+            "files": 9
+          }
+        },
+        "total_code_lines": 751,
+        "total_comment_lines": 112
+      }
+    },
+    {
+      "id": 161641,
+      "crate": "libloading",
+      "num": "0.5.2",
+      "dl_path": "/api/v1/crates/libloading/0.5.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.5.2/readme",
+      "updated_at": "2019-07-07T20:31:00.118923Z",
+      "created_at": "2019-07-07T20:31:00.118923Z",
+      "downloads": 11830945,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.5.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.5.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.5.2/authors"
+      },
+      "crate_size": 16420,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [],
+      "checksum": "f2b111a074963af1d37a139918ac6d49ad1d0d5e47f72fd55388619691a7d753",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "C": {
+            "code_lines": 17,
+            "comment_lines": 0,
+            "files": 1
+          },
+          "Rust": {
+            "code_lines": 644,
+            "comment_lines": 89,
+            "files": 8
+          }
+        },
+        "total_code_lines": 661,
+        "total_comment_lines": 89
+      }
+    },
+    {
+      "id": 153976,
+      "crate": "libloading",
+      "num": "0.5.1",
+      "dl_path": "/api/v1/crates/libloading/0.5.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.5.1/readme",
+      "updated_at": "2019-06-01T17:16:26.094984Z",
+      "created_at": "2019-06-01T17:16:26.094984Z",
+      "downloads": 213104,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.5.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.5.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.5.1/authors"
+      },
+      "crate_size": 19502,
+      "published_by": {
+        "id": 726,
+        "login": "nagisa",
+        "name": "Simonas Kazlauskas",
+        "avatar": "https://avatars.githubusercontent.com/u/679122?v=4",
+        "url": "https://github.com/nagisa",
+        "github_username_matches": true,
+        "created_at": "2011-03-19T20:34:26Z"
+      },
+      "audit_actions": [],
+      "checksum": "a5692f82b51823e27c4118b3e5c0d98aee9be90633ebc71ad12afef380b50219",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "C": {
+            "code_lines": 17,
+            "comment_lines": 0,
+            "files": 1
+          },
+          "LLVM": {
+            "code_lines": 36,
+            "comment_lines": 10,
+            "files": 1
+          },
+          "Rust": {
+            "code_lines": 611,
+            "comment_lines": 89,
+            "files": 8
+          }
+        },
+        "total_code_lines": 664,
+        "total_comment_lines": 99
+      }
+    },
+    {
+      "id": 77105,
+      "crate": "libloading",
+      "num": "0.5.0",
+      "dl_path": "/api/v1/crates/libloading/0.5.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.5.0/readme",
+      "updated_at": "2018-01-11T12:34:46.684978Z",
+      "created_at": "2018-01-11T12:34:46.684978Z",
+      "downloads": 1107665,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.5.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.5.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.5.0/authors"
+      },
+      "crate_size": 15990,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "9c3ad660d7cb8c5822cd83d10897b0f1f1526792737a179e73896152f85b88c2",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "C": {
+            "code_lines": 17,
+            "comment_lines": 0,
+            "files": 1
+          },
+          "Rust": {
+            "code_lines": 609,
+            "comment_lines": 89,
+            "files": 8
+          }
+        },
+        "total_code_lines": 626,
+        "total_comment_lines": 89
+      }
+    },
+    {
+      "id": 73618,
+      "crate": "libloading",
+      "num": "0.4.3",
+      "dl_path": "/api/v1/crates/libloading/0.4.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.4.3/readme",
+      "updated_at": "2017-12-07T19:50:52.466836Z",
+      "created_at": "2017-12-07T19:50:52.466836Z",
+      "downloads": 521452,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.4.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.4.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.4.3/authors"
+      },
+      "crate_size": 15613,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "fd38073de8f7965d0c17d30546d4bb6da311ab428d1c7a3fc71dff7f9d4979b9",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 585,
+            "comment_lines": 89,
+            "files": 8
+          }
+        },
+        "total_code_lines": 585,
+        "total_comment_lines": 89
+      }
+    },
+    {
+      "id": 66199,
+      "crate": "libloading",
+      "num": "0.4.2",
+      "dl_path": "/api/v1/crates/libloading/0.4.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.4.2/readme",
+      "updated_at": "2017-11-30T03:10:38.578315Z",
+      "created_at": "2017-09-24T10:13:32.647650Z",
+      "downloads": 40424,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.4.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.4.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.4.2/authors"
+      },
+      "crate_size": 15383,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "3f92926a9a4ba7aeeb01f5fba3f0d577147243b6e7fa8261c219cd1d6fbe3b1c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 602,
+            "comment_lines": 93,
+            "files": 8
+          }
+        },
+        "total_code_lines": 602,
+        "total_comment_lines": 93
+      }
+    },
+    {
+      "id": 63936,
+      "crate": "libloading",
+      "num": "0.4.1",
+      "dl_path": "/api/v1/crates/libloading/0.4.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.4.1/readme",
+      "updated_at": "2017-11-30T03:52:10.164321Z",
+      "created_at": "2017-08-29T20:15:28.926291Z",
+      "downloads": 15976,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.4.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.4.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.4.1/authors"
+      },
+      "crate_size": 14417,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "6b699b2cb9154b7a5c7b8c40fd200bd077791b292556a44ddae07482192123c6",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 558,
+            "comment_lines": 75,
+            "files": 8
+          }
+        },
+        "total_code_lines": 558,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 51985,
+      "crate": "libloading",
+      "num": "0.4.0",
+      "dl_path": "/api/v1/crates/libloading/0.4.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.4.0/readme",
+      "updated_at": "2017-11-30T03:07:40.601674Z",
+      "created_at": "2017-05-02T13:26:29.044719Z",
+      "downloads": 56111,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.4.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.4.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.4.0/authors"
+      },
+      "crate_size": 14462,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "be99f814beb3e9503a786a592c909692bb6d4fc5a695f6ed7987223acfbd5194",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 556,
+            "comment_lines": 75,
+            "files": 8
+          }
+        },
+        "total_code_lines": 556,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 48698,
+      "crate": "libloading",
+      "num": "0.3.4",
+      "dl_path": "/api/v1/crates/libloading/0.3.4/download",
+      "readme_path": "/api/v1/crates/libloading/0.3.4/readme",
+      "updated_at": "2017-11-30T02:59:41.735440Z",
+      "created_at": "2017-03-25T09:30:21.009459Z",
+      "downloads": 382543,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.3.4/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.3.4/downloads",
+        "authors": "/api/v1/crates/libloading/0.3.4/authors"
+      },
+      "crate_size": 14351,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "0a020ac941774eb37e9d13d418c37b522e76899bfc4e7b1a600d529a53f83a66",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 557,
+            "comment_lines": 75,
+            "files": 8
+          }
+        },
+        "total_code_lines": 557,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 48679,
+      "crate": "libloading",
+      "num": "0.3.3",
+      "dl_path": "/api/v1/crates/libloading/0.3.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.3.3/readme",
+      "updated_at": "2017-11-30T04:17:23.554987Z",
+      "created_at": "2017-03-24T22:59:37.809478Z",
+      "downloads": 3129,
+      "features": {},
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.3.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.3.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.3.3/authors"
+      },
+      "crate_size": 14353,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "97173ccbc8ca98d9f3cc0a3cbc9b44b49004ef1b722ac3acd9ed24f4d7955c95",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 557,
+            "comment_lines": 75,
+            "files": 8
+          }
+        },
+        "total_code_lines": 557,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 45117,
+      "crate": "libloading",
+      "num": "0.3.2",
+      "dl_path": "/api/v1/crates/libloading/0.3.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.3.2/readme",
+      "updated_at": "2017-11-30T02:57:31.913320Z",
+      "created_at": "2017-02-10T04:26:19.752567Z",
+      "downloads": 64766,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.3.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.3.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.3.2/authors"
+      },
+      "crate_size": 14013,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "fd1835a714c1f67ba073a493493c23686a480e2614e208c921834808b1f19d8f",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 541,
+            "comment_lines": 75,
+            "files": 8
+          }
+        },
+        "total_code_lines": 541,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 34939,
+      "crate": "libloading",
+      "num": "0.3.1",
+      "dl_path": "/api/v1/crates/libloading/0.3.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.3.1/readme",
+      "updated_at": "2017-11-30T03:40:03.871005Z",
+      "created_at": "2016-10-01T01:38:35.447626Z",
+      "downloads": 115009,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.3.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.3.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.3.1/authors"
+      },
+      "crate_size": 14220,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "84816a8c6ed8163dfe0dbdd2b09d35c6723270ea77a4c7afa4bedf038a36cb99",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://docs.rs/libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 563,
+            "comment_lines": 73,
+            "files": 8
+          },
+          "Shell": {
+            "code_lines": 8,
+            "comment_lines": 0,
+            "files": 1
+          }
+        },
+        "total_code_lines": 571,
+        "total_comment_lines": 73
+      }
+    },
+    {
+      "id": 30831,
+      "crate": "libloading",
+      "num": "0.3.0",
+      "dl_path": "/api/v1/crates/libloading/0.3.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.3.0/readme",
+      "updated_at": "2017-11-30T03:11:27.355730Z",
+      "created_at": "2016-07-27T18:30:54.907594Z",
+      "downloads": 8092,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.3.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.3.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.3.0/authors"
+      },
+      "crate_size": 11900,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2069c3d283cb87f37a08a5040b27f47603e59e988dbe5b2cf2ad768e19100fc3",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 540,
+            "comment_lines": 49,
+            "files": 8
+          },
+          "Shell": {
+            "code_lines": 7,
+            "comment_lines": 0,
+            "files": 1
+          }
+        },
+        "total_code_lines": 547,
+        "total_comment_lines": 49
+      }
+    },
+    {
+      "id": 29538,
+      "crate": "libloading",
+      "num": "0.2.4",
+      "dl_path": "/api/v1/crates/libloading/0.2.4/download",
+      "readme_path": "/api/v1/crates/libloading/0.2.4/readme",
+      "updated_at": "2017-11-30T03:18:48.079324Z",
+      "created_at": "2016-07-03T16:54:46.732813Z",
+      "downloads": 101328,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.2.4/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.2.4/downloads",
+        "authors": "/api/v1/crates/libloading/0.2.4/authors"
+      },
+      "crate_size": 8144,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "eceb2637ee9a27c7f19764048a9f377e40e3a70a322722f348e6bc7704d565f2",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 471,
+            "comment_lines": 43,
+            "files": 6
+          }
+        },
+        "total_code_lines": 471,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 29534,
+      "crate": "libloading",
+      "num": "0.2.3",
+      "dl_path": "/api/v1/crates/libloading/0.2.3/download",
+      "readme_path": "/api/v1/crates/libloading/0.2.3/readme",
+      "updated_at": "2017-11-30T03:49:17.770905Z",
+      "created_at": "2016-07-03T16:07:29.005360Z",
+      "downloads": 3226,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.2.3/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.2.3/downloads",
+        "authors": "/api/v1/crates/libloading/0.2.3/authors"
+      },
+      "crate_size": 8120,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "ec941308eab1678c9026901477f8b7a2d58eb54d2cb72ed2f45d9a042ad105f0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 471,
+            "comment_lines": 43,
+            "files": 6
+          }
+        },
+        "total_code_lines": 471,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 26490,
+      "crate": "libloading",
+      "num": "0.2.2",
+      "dl_path": "/api/v1/crates/libloading/0.2.2/download",
+      "readme_path": "/api/v1/crates/libloading/0.2.2/readme",
+      "updated_at": "2017-11-30T02:43:27.242367Z",
+      "created_at": "2016-05-02T22:10:45.809270Z",
+      "downloads": 55275,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.2.2/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.2.2/downloads",
+        "authors": "/api/v1/crates/libloading/0.2.2/authors"
+      },
+      "crate_size": 8823,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "dfa2c300418af0c8042e94f921274743fd05aa028bd365b42ce3469a6db15000",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 478,
+            "comment_lines": 40,
+            "files": 6
+          },
+          "Shell": {
+            "code_lines": 61,
+            "comment_lines": 1,
+            "files": 2
+          }
+        },
+        "total_code_lines": 539,
+        "total_comment_lines": 41
+      }
+    },
+    {
+      "id": 20277,
+      "crate": "libloading",
+      "num": "0.2.1",
+      "dl_path": "/api/v1/crates/libloading/0.2.1/download",
+      "readme_path": "/api/v1/crates/libloading/0.2.1/readme",
+      "updated_at": "2017-11-30T03:31:53.911260Z",
+      "created_at": "2016-01-06T16:49:00.973873Z",
+      "downloads": 82016,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.2.1/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.2.1/downloads",
+        "authors": "/api/v1/crates/libloading/0.2.1/authors"
+      },
+      "crate_size": 8784,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "9bf296a78f7aa1c3ad23da173565367769c84e34af19c6e2d6f6b63da7189b9f",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 467,
+            "comment_lines": 40,
+            "files": 6
+          },
+          "Shell": {
+            "code_lines": 61,
+            "comment_lines": 1,
+            "files": 2
+          }
+        },
+        "total_code_lines": 528,
+        "total_comment_lines": 41
+      }
+    },
+    {
+      "id": 17817,
+      "crate": "libloading",
+      "num": "0.2.0",
+      "dl_path": "/api/v1/crates/libloading/0.2.0/download",
+      "readme_path": "/api/v1/crates/libloading/0.2.0/readme",
+      "updated_at": "2017-11-30T03:52:06.682159Z",
+      "created_at": "2015-11-08T12:22:07.876945Z",
+      "downloads": 12673,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "ISC",
+      "links": {
+        "dependencies": "/api/v1/crates/libloading/0.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/libloading/0.2.0/downloads",
+        "authors": "/api/v1/crates/libloading/0.2.0/authors"
+      },
+      "crate_size": 7659,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "e2e11ea0af5fc3c215736165032f3ef4bef51dbe9460ddbf63d21d764185bd1c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "A safer binding to platform’s dynamic library loading utilities",
+      "homepage": null,
+      "documentation": "https://nagisa.github.io/rust_libloading/",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 474,
+            "comment_lines": 37,
+            "files": 6
+          }
+        },
+        "total_code_lines": 474,
+        "total_comment_lines": 37
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "load",
+      "keyword": "load",
+      "created_at": "2015-05-30T05:45:48.303904Z",
+      "crates_cnt": 38
+    },
+    {
+      "id": "dlopen",
+      "keyword": "dlopen",
+      "created_at": "2015-11-08T12:22:07.901639Z",
+      "crates_cnt": 33
+    },
+    {
+      "id": "shared",
+      "keyword": "shared",
+      "created_at": "2015-11-08T12:22:07.910378Z",
+      "crates_cnt": 91
+    },
+    {
+      "id": "dylib",
+      "keyword": "dylib",
+      "created_at": "2015-11-08T12:22:07.923095Z",
+      "crates_cnt": 37
+    }
+  ],
+  "categories": [
+    {
+      "id": "api-bindings",
+      "category": "API bindings",
+      "slug": "api-bindings",
+      "description": "Idiomatic wrappers of specific APIs for convenient access from Rust. Includes HTTP API wrappers as well. Non-idiomatic or unsafe bindings can be found in External FFI bindings.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 15692
+    }
+  ]
+}

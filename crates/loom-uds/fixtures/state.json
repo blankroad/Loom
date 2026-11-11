@@ -1,0 +1,64 @@
+[
+  {
+    "kind": "uds.state",
+    "payload": {
+      "addr": "DoIP 0x1001",
+      "backend": "sim",
+      "generation": 1,
+      "lease": null,
+      "link": {
+        "cause": "connected",
+        "state": "up"
+      },
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "security": {
+        "confidence": "assumed",
+        "level": null
+      },
+      "session": {
+        "confidence": "assumed",
+        "id": 1,
+        "name": "default"
+      },
+      "target": "ecu1",
+      "tester_present": null
+    },
+    "request_id": null
+  },
+  {
+    "kind": "uds.state",
+    "payload": {
+      "addr": "DoIP 0x1001",
+      "backend": "sim",
+      "generation": 1,
+      "lease": {
+        "actor_id": "viewer:alice",
+        "client_id": "conn-2",
+        "owner_origin": "user"
+      },
+      "link": {
+        "cause": "connected",
+        "state": "up"
+      },
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "security": {
+        "confidence": "confirmed",
+        "level": null
+      },
+      "session": {
+        "confidence": "confirmed",
+        "id": 3,
+        "name": "extended"
+      },
+      "target": "ecu1",
+      "tester_present": {
+        "active": true,
+        "interval_ms": 2000,
+        "ok_count": 1
+      }
+    },
+    "request_id": null
+  }
+]

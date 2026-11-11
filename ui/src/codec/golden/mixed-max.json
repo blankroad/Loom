@@ -1,0 +1,87 @@
+{
+  "name": "mixed-max",
+  "delta": true,
+  "epoch": "18446744073709551615",
+  "displayGap": {
+    "count": "unknown",
+    "causes": [],
+    "seq_range": null
+  },
+  "recordHealth": "ok",
+  "rows": [
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "18446744073709551615",
+      "source_seq": "18446744073709551615",
+      "epoch": "18446744073709551615",
+      "seq": "18446744073709551614",
+      "ts": {
+        "clock_id": "device",
+        "mono_ns": "18446744073709551615",
+        "wall_ns": "18446744073709551615",
+        "source": "device",
+        "quality": null
+      },
+      "origin": "device",
+      "payload": {
+        "id": 291,
+        "ext": false,
+        "fd": false,
+        "brs": false,
+        "esi": false,
+        "rtr": false,
+        "dlc": 1,
+        "len": 1,
+        "bytes": {
+          "encoding": "hex",
+          "data": "00"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "uart",
+      "kind": "uart.data",
+      "producer_id": "serial:dut",
+      "producer_epoch": "3",
+      "source_seq": "18446744073709551615",
+      "epoch": "18446744073709551615",
+      "seq": "18446744073709551615",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "0",
+        "wall_ns": "18446744073709551615",
+        "source": "host_read_complete",
+        "quality": "coarse"
+      },
+      "origin": "script",
+      "payload": {
+        "bytes": {
+          "encoding": "base64",
+          "data": "AP+A",
+          "ref": null
+        },
+        "custom": {
+          "nested": [
+            null,
+            true,
+            "한글"
+          ]
+        }
+      },
+      "channel": "dut",
+      "client_id": "web:1",
+      "request_id": "uart-1",
+      "dir": "tx",
+      "quality": [
+        "driver_overrun"
+      ],
+      "generation": null
+    }
+  ]
+}

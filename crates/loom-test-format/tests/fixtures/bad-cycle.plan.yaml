@@ -1,0 +1,8 @@
+loom_tc_plan: 1
+steps:
+  - id: S1
+    psu.out: {state: "off"}
+    on_fail: {goto: S2}
+  - id: S2
+    psu.out: {state: "off"}
+    on_fail: {goto: S1}

@@ -1,0 +1,14 @@
+[package]
+name = "loom-schema"
+description = "Exports loom-proto types as JSON Schema files (schema/v1) and checks for drift."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

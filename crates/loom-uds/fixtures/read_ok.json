@@ -1,0 +1,134 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-1"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "accepted"
+    },
+    "request_id": "r-1"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-1"
+  },
+  {
+    "kind": "uds.rx",
+    "payload": {
+      "bytes": {
+        "data": "62f1904c4f4f4d53494d30303030303030303031",
+        "encoding": "hex"
+      },
+      "kind": "positive",
+      "late": false,
+      "t_rx_mono_ns": "5001200000",
+      "target": "ecu1"
+    },
+    "request_id": "r-1"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "decoded": [
+        {
+          "did": "F190",
+          "name": "VIN",
+          "unit": null,
+          "value": "LOOMSIM0000000001"
+        }
+      ],
+      "first_rx_ms": 1.2,
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "resp_bytes": {
+        "data": "62f1904c4f4f4d53494d30303030303030303031",
+        "encoding": "hex"
+      },
+      "risk": "R0",
+      "rtt_ms": 1.2,
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "t_final_rx_mono_ns": "5001200000",
+      "t_first_rx_mono_ns": "5001200000",
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "confirmed"
+    },
+    "request_id": "r-1"
+  }
+]

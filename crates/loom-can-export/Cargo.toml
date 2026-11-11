@@ -1,0 +1,19 @@
+[package]
+name = "loom-can-export"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Bounded streaming CAN BLF/ASC export and provenance sidecars"
+
+[dependencies]
+loom-can-frame = { path = "../loom-can-frame" }
+autors-blf = "=0.1.1"
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+autors-asc = "=0.1.1"
+
+[lints]
+workspace = true

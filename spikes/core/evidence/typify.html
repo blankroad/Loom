@@ -1,0 +1,403 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Typify"><title>typify - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-009149e2.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="typify" data-themes="" data-resource-suffix="-20261031-1.101.0-nightly-f9ceb4a4d" data-rustdoc-version="1.101.0-nightly (f9ceb4a4d 2026-10-31)" data-channel="nightly" data-search-js="search-835b9732.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20261031-1.101.0-nightly-f9ceb4a4d.js"></script><script defer src="/-/rustdoc.static/main-1814ead3.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "typify",
+            "version": "0.8.0"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="JSON schema to rust type code generator">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">typify-0.8.0</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        typify 0.8.0
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/typify/0.8.0/typify/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/typify/latest" class="pure-menu-link description" title="See typify in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.101.0-nightly (f9ceb4a4d 2026-10-31)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 01 November 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/oxidecomputer/typify" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/typify" class="pure-menu-link" title="See typify in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/typify/latest/source/" title="Browse source of typify-0.8.0" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/ahl" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> ahl
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/typify-impl/^0.8.0/" class="pure-menu-link">
+                typify-impl ^0.8.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/typify-macro/^0.8.0/" class="pure-menu-link">
+                typify-macro ^0.8.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/chrono/^0.4.45/" class="pure-menu-link">
+                chrono ^0.4.45
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/env_logger/^0.11.10/" class="pure-menu-link">
+                env_logger ^0.11.10
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/expectorate/^1.2.0/" class="pure-menu-link">
+                expectorate ^1.2.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/glob/^0.3.3/" class="pure-menu-link">
+                glob ^0.3.3
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/quote/^1.0.45/" class="pure-menu-link">
+                quote ^1.0.45
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/regress/^0.12.0/" class="pure-menu-link">
+                regress ^0.12.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/rustfmt-wrapper/^0.2.1/" class="pure-menu-link">
+                rustfmt-wrapper ^0.2.1
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/schemars/^0.8.22/" class="pure-menu-link">
+                schemars ^0.8.22
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.228/" class="pure-menu-link">
+                serde ^1.0.228
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_json/^1.0.150/" class="pure-menu-link">
+                serde_json ^1.0.150
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/trybuild/^1.0.116/" class="pure-menu-link">
+                trybuild ^1.0.116
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uuid/^1.16.0/" class="pure-menu-link">
+                uuid ^1.16.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/typify/latest/menus/releases/typify/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/typify/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/typify/latest/menus/platforms/typify/"><li class="pure-menu-item">
+            <a href="/crate/typify/latest/target-redirect/typify/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/typify/latest/features" title="Browse available feature flags of typify-0.8.0" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/typify/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate typify</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typify/index.html">typify</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#typify" title="Typify">Typify</a></li><li><a href="#altering-conversion" title="Altering Conversion">Altering Conversion</a><ul><li><a href="#renames-and-additional-derivations" title="Renames and additional derivations">Renames and additional derivations</a></li><li><a href="#replacement-types" title="Replacement types">Replacement types</a></li><li><a href="#conversion-overrides" title="Conversion overrides">Conversion overrides</a></li></ul></li><li><a href="#macro-vs-buildrs" title="Macro vs. `build.rs`">Macro vs. <code>build.rs</code></a><ul><li><a href="#builder-interface" title="Builder interface">Builder interface</a></li></ul></li><li><a href="#mapping-json-schema-to-rust" title="Mapping JSON Schema to Rust">Mapping JSON Schema to Rust</a></li></ul><h3><a href="#macros">Crate Items</a></h3><ul class="block"><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>typify</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typify/lib.rs.html#3-169">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="typify"><a class="doc-anchor" href="#typify">§</a>Typify</h2>
+<p>Typify lets you convert JSON Schema documents into Rust types. It can be
+used via a macro <a href="macro.import_types.html" title="macro typify::import_types"><code>import_types!</code></a> or a <code>build.rs</code> file.</p>
+<p>A typical use looks like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(<span class="string">"../example.json"</span>);</code></pre></div>
+<p>This expands to type definitions corresponding to the types from the file
+<code>example.json</code>. The types are <code>pub</code> and have a number of useful associated
+<code>impl</code>s including <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html" title="derive core::fmt::macros::Debug">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,
+<a href="https://docs.rs/serde/latest/serde/trait.Serialize.html">Serialize</a>, and
+<a href="https://docs.rs/serde/latest/serde/trait.Deserialize.html">Deserialize</a>.</p>
+<p>Alternatively, you may use the expanded form:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(schema = <span class="string">"../example.json"</span>);</code></pre></div>
+<p>If you want to add additional derives for the generated types, you can
+specify them with the <code>derives</code> property of the expanded form:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(
+    schema = <span class="string">"../example.json"</span>,
+    derives = [schemars::JsonSchema],
+);</code></pre></div>
+<p>Generated structs can optionally include a builder-style interface:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(
+    schema = <span class="string">"../example.json"</span>,
+    struct_builder = <span class="bool-val">true</span>,
+);</code></pre></div>
+<p>With this set, consumers can construct a struct <code>Veggie</code> as follows:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>veggie: Veggie = Veggie::builder()
+    .veggie_name(<span class="string">"radish"</span>)
+    .veggie_like(<span class="bool-val">true</span>)
+    .try_into()
+    .unwrap();</code></pre></div><h2 id="altering-conversion"><a class="doc-anchor" href="#altering-conversion">§</a>Altering Conversion</h2><h3 id="renames-and-additional-derivations"><a class="doc-anchor" href="#renames-and-additional-derivations">§</a>Renames and additional derivations</h3>
+<p>You can specify renames types or add additional derive macros for generated
+types using the <code>patch</code> syntax:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(
+    schema = <span class="string">"../example.json"</span>,
+    patch = {
+        Veggie = {
+            rename = <span class="string">"Vegetable"</span>,
+            derives = [ schemars::JsonSchema ],
+        }
+    }
+);</code></pre></div><h3 id="replacement-types"><a class="doc-anchor" href="#replacement-types">§</a>Replacement types</h3>
+<p>You can replace a generated type with an existing type by specifying an
+association between the name of a type with the type to use in its place:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(
+    schema = <span class="string">"../example.json"</span>,
+    replace = {
+        Ipv6Cidr = my_fancy_networking_crate::Ipv6Cidr,
+    }
+);</code></pre></div><h3 id="conversion-overrides"><a class="doc-anchor" href="#conversion-overrides">§</a>Conversion overrides</h3>
+<p>You can override a conversion for a particular JSON schema construct by
+specifying an association between the schema and the type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">import_types!</span>(
+    schema = <span class="string">"../example.json"</span>,
+    convert = {
+        {
+            <span class="kw">type </span>= <span class="string">"string"</span>,
+            format = <span class="string">"uuid"</span>,
+        } = my_fancy_uuid_crate::MyUuid,
+    }
+);</code></pre></div><h2 id="macro-vs-buildrs"><a class="doc-anchor" href="#macro-vs-buildrs">§</a>Macro vs. <code>build.rs</code></h2>
+<p>While using the <a href="macro.import_types.html" title="macro typify::import_types"><code>import_types!</code></a> macro is quite a bit simpler, you can
+also construct output in a <code>build.rs</code> script. Doing so requires a little
+more work to process the JSON Schema document and write out the file to
+your intended location. The biggest benefit is that the generated type
+definitions are significantly easier to inspect. The macro-generated types
+can be viewed with <code>cargo expand</code> and they (like <code>build.rs</code>-derived types)
+have generated documentation, but if you find that you’d like to see the
+actual code generated you may prefer a <code>build.rs</code>.</p>
+<h3 id="builder-interface"><a class="doc-anchor" href="#builder-interface">§</a>Builder interface</h3>
+<p>Typify exports a <a href="struct.TypeSpace.html" title="struct typify::TypeSpace">TypeSpace</a> interface that is intended for programmatic
+construction of types. This can be for something simple like a <code>build.rs</code>
+script or something more complex like a generator whose input includes JSON
+schema type definitions.</p>
+<h2 id="mapping-json-schema-to-rust"><a class="doc-anchor" href="#mapping-json-schema-to-rust">§</a>Mapping JSON Schema to Rust</h2>
+<p>JSON Schema allows for extreme flexibility. As such, there are some schemas
+that Typify isn’t able to interpret (please file an issue!). In general,
+though, Typify does a pretty job of mapping JSON Schema types to Rust. For
+more information, see the project’s
+<a href="https://github.com/oxidecomputer/typify">README.md</a>.</p>
+</div></details><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.import_types.html" title="macro typify::import_types">import_<wbr>types</a></dt><dd>Import types from a schema file. This may be invoked with simply a pathname
+for a JSON Schema file (relative to <code>$CARGO_MANIFEST_DIR</code>), or it may be
+invoked with a structured form:</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.MapType.html" title="struct typify::MapType">MapType</a></dt><dd>Type name to use in generated code.</dd><dt><a class="struct" href="struct.Type.html" title="struct typify::Type">Type</a></dt><dd>Representation of a type which may have a definition or may be built-in.</dd><dt><a class="struct" href="struct.TypeEnum.html" title="struct typify::TypeEnum">Type<wbr>Enum</a></dt><dd>Enum type details.</dd><dt><a class="struct" href="struct.TypeId.html" title="struct typify::TypeId">TypeId</a></dt><dd>Type identifier returned from type creation and used to lookup types.</dd><dt><a class="struct" href="struct.TypeNewtype.html" title="struct typify::TypeNewtype">Type<wbr>Newtype</a></dt><dd>Newtype details.</dd><dt><a class="struct" href="struct.TypeSpace.html" title="struct typify::TypeSpace">Type<wbr>Space</a></dt><dd>A collection of types.</dd><dt><a class="struct" href="struct.TypeSpacePatch.html" title="struct typify::TypeSpacePatch">Type<wbr>Space<wbr>Patch</a></dt><dd>Contains a set of modifications that may be applied to an existing type.</dd><dt><a class="struct" href="struct.TypeSpaceSettings.html" title="struct typify::TypeSpaceSettings">Type<wbr>Space<wbr>Settings</a></dt><dd>Settings that alter type generation.</dd><dt><a class="struct" href="struct.TypeStruct.html" title="struct typify::TypeStruct">Type<wbr>Struct</a></dt><dd>Struct type details.</dd><dt><a class="struct" href="struct.TypeStructPropInfo.html" title="struct typify::TypeStructPropInfo">Type<wbr>Struct<wbr>Prop<wbr>Info</a></dt><dd>Full information pertaining to a struct property.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.CrateVers.html" title="enum typify::CrateVers">Crate<wbr>Vers</a></dt><dd>Specify the version for a named crate to consider for type use (rather than
+generating types) in the presense of a schema extension.</dd><dt><a class="enum" href="enum.Error.html" title="enum typify::Error">Error</a></dt><dt><a class="enum" href="enum.TypeDetails.html" title="enum typify::TypeDetails">Type<wbr>Details</a></dt><dd>Type details returned by Type::details() to inspect a type.</dd><dt><a class="enum" href="enum.TypeEnumVariant.html" title="enum typify::TypeEnumVariant">Type<wbr>Enum<wbr>Variant</a></dt><dd>Enum variant details.</dd><dt><a class="enum" href="enum.TypeSpaceImpl.html" title="enum typify::TypeSpaceImpl">Type<wbr>Space<wbr>Impl</a></dt><dt><a class="enum" href="enum.UnknownPolicy.html" title="enum typify::UnknownPolicy">Unknown<wbr>Policy</a></dt><dd>Policy to apply to external types described by schema extensions whose
+crates are not explicitly specified.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.accept_as_ident.html" title="fn typify::accept_as_ident">accept_<wbr>as_<wbr>ident</a></dt><dd>Return true if the string is a valid Rust identifier.</dd></dl></section></div></main></div></body></html>

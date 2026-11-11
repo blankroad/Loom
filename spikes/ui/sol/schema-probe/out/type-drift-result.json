@@ -1,0 +1,6 @@
+{
+  "schema_path_tsc_pass": true,
+  "direct_path_actual_json_rejected": true,
+  "reason": "ts-rs direct output requires note: string|null, but serde skip_serializing_if omits note=None; JSON Schema output note?:string|null accepts actual serialized JSON",
+  "mitigation": "Explicit #[ts(optional = nullable)] or wire DTO convention; retain golden serialization fixtures. Do not silence unsupported serde warnings."
+}

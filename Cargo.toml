@@ -1,0 +1,70 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+repository = "local"
+
+[workspace.dependencies]
+# CORE owns this file. Domain teams request additions via docs/impl/requests/<team>-core.md.
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+serde_bytes = "0.11.19"
+schemars = "1.2"
+rmp-serde = "1.3.1"
+thiserror = "2.0.18"
+hex = "0.4.3"
+base64 = "0.22.1"
+clap = { version = "4.6.7", features = ["derive"] }
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "signal", "fs", "io-util"] }
+axum = { version = "0.8.9", features = ["ws"] }
+futures-util = "0.3.32"
+tungstenite = "0.29.0"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+regex = "1.13.1"
+toml = "1.2.1"
+crc32c = "0.6.9"
+sha2 = "0.11.1"
+rand = "0.9.5"
+tempfile = "3.27.0"
+# domain requests (docs/impl/requests/*-core.md, 2026-11-11)
+serde-saphyr = "2.1.1"
+can-dbc = { version = "10.0.0", default-features = false, features = ["encodings"] }
+pest = "2.9.6"
+proptest = "1.12.0"
+pulldown-cmark = "0.13.6"
+rust-embed = "8.13.0"
+mime_guess = "2.0.5"
+# eth (requests/eth-core.md)
+etherparse = "=0.21.0"
+pcap = "=2.5.0"
+ipnet = "2.12.2"
+
+loom-proto = { path = "crates/loom-proto" }
+loom-domain-api = { path = "crates/loom-domain-api" }
+loom-worker-sdk = { path = "crates/loom-worker-sdk" }
+loom-cli-kit = { path = "crates/loom-cli-kit" }
+loom-testkit = { path = "crates/loom-testkit" }
+loom-gateway = { path = "crates/loom-gateway" }
+loom-echo = { path = "crates/loom-echo" }
+loom-journal = { path = "crates/loom-journal" }
+loom-worker-host = { path = "crates/loom-worker-host" }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+todo = "deny"
+unwrap_used = "deny"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApprovalResolvedPayload",
+  "description": "`core.approval_resolved` payload.",
+  "type": "object",
+  "properties": {
+    "approval_id": {
+      "description": "Approval id.",
+      "type": "string"
+    },
+    "by": {
+      "description": "Deciding client (viewer).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "outcome": {
+      "description": "Outcome.",
+      "$ref": "#/$defs/ApprovalOutcome"
+    },
+    "reason": {
+      "description": "Reason.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "approval_id",
+    "outcome"
+  ],
+  "$defs": {
+    "ApprovalOutcome": {
+      "description": "Outcome of an approval.",
+      "oneOf": [
+        {
+          "description": "Approved.",
+          "type": "string",
+          "const": "approved"
+        },
+        {
+          "description": "Denied.",
+          "type": "string",
+          "const": "denied"
+        },
+        {
+          "description": "Expired.",
+          "type": "string",
+          "const": "expired"
+        },
+        {
+          "description": "Invalidated (state changed, STOP …).",
+          "type": "string",
+          "const": "invalidated"
+        }
+      ]
+    }
+  }
+}

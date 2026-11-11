@@ -1,0 +1,13 @@
+[package]
+name = "loom-can-periodic"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Bounded sans-IO CAN periodic transmission scheduler"
+
+[dependencies]
+loom-can-frame = { path = "../loom-can-frame" }
+
+[lints]
+workspace = true

@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ErrorCode",
+  "description": "Loom error code (`error.code` in the CLI envelope). Wire form is `\"E_…\"`.",
+  "oneOf": [
+    {
+      "description": "Internal bug or unexpected state.",
+      "type": "string",
+      "const": "E_INTERNAL"
+    },
+    {
+      "description": "Stub / not yet implemented path (P0 stubs never fake device success).",
+      "type": "string",
+      "const": "E_NOT_IMPLEMENTED"
+    },
+    {
+      "description": "Bad command-line usage or arguments.",
+      "type": "string",
+      "const": "E_USAGE"
+    },
+    {
+      "description": "Channel name matches more than one candidate.",
+      "type": "string",
+      "const": "E_AMBIGUOUS_CHANNEL"
+    },
+    {
+      "description": "Configuration (loom.toml / policy) error.",
+      "type": "string",
+      "const": "E_CONFIG"
+    },
+    {
+      "description": "Database / diagnostic DB error.",
+      "type": "string",
+      "const": "E_DB"
+    },
+    {
+      "description": "RPC method not registered.",
+      "type": "string",
+      "const": "E_UNKNOWN_METHOD"
+    },
+    {
+      "description": "Parameters failed schema validation.",
+      "type": "string",
+      "const": "E_SCHEMA"
+    },
+    {
+      "description": "Condition wait timed out (expect, wait-for, approval wait).",
+      "type": "string",
+      "const": "E_TIMEOUT"
+    },
+    {
+      "description": "Immediate check: condition not met (E2).",
+      "type": "string",
+      "const": "E_NO_MATCH"
+    },
+    {
+      "description": "Immediate check: forbidden match was found (E2).",
+      "type": "string",
+      "const": "E_UNEXPECTED_MATCH"
+    },
+    {
+      "description": "Immediate check: count outside the expected range (E2).",
+      "type": "string",
+      "const": "E_COUNT_OUT_OF_RANGE"
+    },
+    {
+      "description": "Policy denial (hard deny list, configured deny).",
+      "type": "string",
+      "const": "E_DENIED"
+    },
+    {
+      "description": "Service Loom does not implement (`immutable_deny`, F1).",
+      "type": "string",
+      "const": "E_UNSUPPORTED"
+    },
+    {
+      "description": "Rate limit exceeded.",
+      "type": "string",
+      "const": "E_RATE_LIMIT"
+    },
+    {
+      "description": "Gateway admission full (RPC slots); retry later.",
+      "type": "string",
+      "const": "E_BUSY"
+    },
+    {
+      "description": "Recording / audit unavailable: agent·script R1+ writes blocked (A12).",
+      "type": "string",
+      "const": "E_RECORDING_FAILED"
+    },
+    {
+      "description": "Test verdict PASS without evidence.",
+      "type": "string",
+      "const": "E_EVIDENCE_MISSING"
+    },
+    {
+      "description": "Cited evidence does not match the claim.",
+      "type": "string",
+      "const": "E_EVIDENCE_MISMATCH"
+    },
+    {
+      "description": "Cited evidence lies outside the step window.",
+      "type": "string",
+      "const": "E_OUT_OF_WINDOW"
+    },
+    {
+      "description": "Cited predicate is not the registered plan expectation.",
+      "type": "string",
+      "const": "E_PLAN_MISMATCH"
+    },
+    {
+      "description": "R2 confirmation token required (only when enabled by policy, F1).",
+      "type": "string",
+      "const": "E_CONFIRM_REQUIRED"
+    },
+    {
+      "description": "Viewer approval required (only when enabled by policy, F1).",
+      "type": "string",
+      "const": "E_APPROVAL_REQUIRED"
+    },
+    {
+      "description": "Approval required but no approving viewer is connected.",
+      "type": "string",
+      "const": "E_NO_APPROVER"
+    },
+    {
+      "description": "The user denied the approval.",
+      "type": "string",
+      "const": "E_APPROVAL_DENIED"
+    },
+    {
+      "description": "Approval expired or already used.",
+      "type": "string",
+      "const": "E_APPROVAL_EXPIRED"
+    },
+    {
+      "description": "The user is typing / holds input.",
+      "type": "string",
+      "const": "E_USER_ACTIVE"
+    },
+    {
+      "description": "Resource locked by another client.",
+      "type": "string",
+      "const": "E_LOCKED"
+    },
+    {
+      "description": "Agent lock was broken by the user.",
+      "type": "string",
+      "const": "E_LOCK_BROKEN"
+    },
+    {
+      "description": "User hold in effect.",
+      "type": "string",
+      "const": "E_HELD_BY_USER"
+    },
+    {
+      "description": "User interrupted the operation.",
+      "type": "string",
+      "const": "E_INTERRUPTED_BY_USER"
+    },
+    {
+      "description": "Late-response quarantine (UDS).",
+      "type": "string",
+      "const": "E_QUARANTINE"
+    },
+    {
+      "description": "STOP latch is on.",
+      "type": "string",
+      "const": "E_STOPPED"
+    },
+    {
+      "description": "Lease not held.",
+      "type": "string",
+      "const": "E_LEASE"
+    },
+    {
+      "description": "Another test session is active.",
+      "type": "string",
+      "const": "E_SESSION_ACTIVE"
+    },
+    {
+      "description": "Test session is paused (E3).",
+      "type": "string",
+      "const": "E_SESSION_PAUSED"
+    },
+    {
+      "description": "Channel / target not open.",
+      "type": "string",
+      "const": "E_NOT_OPEN"
+    },
+    {
+      "description": "Device disconnected.",
+      "type": "string",
+      "const": "E_DISCONNECTED"
+    },
+    {
+      "description": "Device identity / generation changed.",
+      "type": "string",
+      "const": "E_CONNECTION_CHANGED"
+    },
+    {
+      "description": "CAN bus-off.",
+      "type": "string",
+      "const": "E_BUS_OFF"
+    },
+    {
+      "description": "Device did not respond (UDS P2/P2*); writes are `outcome_unknown`.",
+      "type": "string",
+      "const": "E_NO_RESPONSE"
+    },
+    {
+      "description": "Port in use by another program.",
+      "type": "string",
+      "const": "E_PORT_BUSY"
+    },
+    {
+      "description": "OS permission denied (e.g. dialout).",
+      "type": "string",
+      "const": "E_PERMISSION"
+    },
+    {
+      "description": "Device / target not found.",
+      "type": "string",
+      "const": "E_NOT_FOUND"
+    },
+    {
+      "description": "Owning worker process is down / quarantined.",
+      "type": "string",
+      "const": "E_WORKER_DOWN"
+    },
+    {
+      "description": "Worker control lane full; the write was not sent.",
+      "type": "string",
+      "const": "E_WORKER_BUSY"
+    },
+    {
+      "description": "Cursor refers to data outside retention / another epoch.",
+      "type": "string",
+      "const": "E_CURSOR_GAP"
+    },
+    {
+      "description": "Bounded scan limit reached; resume with `resume_from`.",
+      "type": "string",
+      "const": "E_SCAN_LIMIT"
+    },
+    {
+      "description": "Partial result (e.g. write sent but not yet published, E7).",
+      "type": "string",
+      "const": "E_PARTIAL"
+    },
+    {
+      "description": "Daemon unreachable.",
+      "type": "string",
+      "const": "E_DAEMON"
+    },
+    {
+      "description": "Protocol major version mismatch.",
+      "type": "string",
+      "const": "E_PROTO_MISMATCH"
+    },
+    {
+      "description": "Device negative response (UDS NRC).",
+      "type": "string",
+      "const": "E_NRC"
+    },
+    {
+      "description": "Test session / `run --test` verdict failed (E3).",
+      "type": "string",
+      "const": "E_TEST_FAILED"
+    },
+    {
+      "description": "도메인이 정한 자원·운영 상한을 넘었다(기존 variant 순서는 유지).",
+      "type": "string",
+      "const": "E_LIMIT"
+    }
+  ]
+}

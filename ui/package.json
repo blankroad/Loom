@@ -1,0 +1,56 @@
+{
+  "name": "loom-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "mock": "tsx tools/mock/server.ts",
+    "e2e": "playwright test",
+    "check": "pnpm check:schema && pnpm typecheck && pnpm lint && pnpm test",
+    "gen:schema": "tsx scripts/gen-schema.ts",
+    "check:schema": "tsx scripts/gen-schema.ts --check",
+    "e2e:mock": "playwright test -c e2e/m1.config.ts --project=mock",
+    "e2e:replay": "playwright test -c e2e/m1.config.ts --project=replay",
+    "e2e:m1": "playwright test -c e2e/m1.config.ts",
+    "fixtures:replay": "tsx tools/mock/capture-replay.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-virtual": "3.14.26",
+    "@xterm/addon-webgl": "0.19.0",
+    "@xterm/xterm": "6.0.0",
+    "ajv": "8.20.0",
+    "dockview-core": "8.8.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "uplot": "1.6.32"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/ws": "8.18.2",
+    "@vitejs/plugin-react": "6.3.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "jsdom": "31.0.0",
+    "json-schema-to-typescript": "16.0.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.7",
+    "vitest": "5.1.0",
+    "ws": "8.22.2"
+  }
+}

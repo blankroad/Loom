@@ -1,0 +1,35 @@
+# build / tool outputs
+target/
+node_modules/
+dist/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.cache/
+.browsers/
+.cargo/
+.cargo-home/
+
+# spike measurement data and vendor documents (keep code + RESULT.md)
+spikes/**/runs/
+spikes/**/data/
+spikes/**/*.pdf
+spikes/**/*.db
+spikes/**/*.bin
+spikes/**/*.pcap
+spikes/**/*.pcapng
+spikes/**/*-raw/
+
+# local runtime
+.loom/
+*.log
+.DS_Store
+
+# third-party source copies and scraped vendor/manual text kept only locally
+spikes/**/source/
+spikes/explore/r2-sol/*.txt
+spikes/explore/r2c-sol/*.txt
+
+# team worktrees
+.worktrees/

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SafeStateRun",
+  "description": "`core.safe_state.run` params — one key runs several items (CR-UI-12).",
+  "type": "object",
+  "properties": {
+    "ids": {
+      "description": "Item ids.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "ids"
+  ]
+}

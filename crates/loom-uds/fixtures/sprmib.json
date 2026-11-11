@@ -1,0 +1,108 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "3e80",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x3E TesterPresent",
+      "risk": "R0",
+      "service": "TesterPresent",
+      "sid": 62,
+      "subfunction": 0,
+      "summary": "TesterPresent 0x00",
+      "suppress_pos": true,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-6"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "3e80",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x3E TesterPresent",
+      "risk": "R0",
+      "service": "TesterPresent",
+      "sid": 62,
+      "subfunction": 0,
+      "summary": "TesterPresent 0x00",
+      "suppress_pos": true,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "accepted"
+    },
+    "request_id": "r-6"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "3e80",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x3E TesterPresent",
+      "risk": "R0",
+      "service": "TesterPresent",
+      "sid": 62,
+      "subfunction": 0,
+      "summary": "TesterPresent 0x00",
+      "suppress_pos": true,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-6"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "bytes": {
+        "data": "3e80",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": true,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x3E TesterPresent",
+      "risk": "R0",
+      "service": "TesterPresent",
+      "sid": 62,
+      "subfunction": 0,
+      "summary": "TesterPresent 0x00",
+      "suppress_pos": true,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-6"
+  }
+]

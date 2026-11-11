@@ -1,0 +1,221 @@
+{
+  "checked_at": "2026-11-09T14:05:39.128858+00:00",
+  "repos": {
+    "pylessard/python-udsoncan": {
+      "url": "https://github.com/pylessard/python-udsoncan",
+      "default_branch": "master",
+      "archived": false,
+      "pushed_at": "2026-10-26T04:10:49Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "07d7be1fcfd17e41af9a30f1c5573774e45bcdbd",
+      "last_commit_author_date": "2026-10-26T04:10:49Z",
+      "last_commit_committer_date": "2026-10-26T04:10:49Z",
+      "commit_url": "https://github.com/pylessard/python-udsoncan/commit/07d7be1fcfd17e41af9a30f1c5573774e45bcdbd",
+      "description": "Python implementation of UDS (ISO-14229) standard."
+    },
+    "jacobschaer/python-doipclient": {
+      "url": "https://github.com/jacobschaer/python-doipclient",
+      "default_branch": "main",
+      "archived": false,
+      "pushed_at": "2026-11-09T07:20:12Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "f43e811f229006d7d31efe5d8359d0a899026b7c",
+      "last_commit_author_date": "2026-11-09T07:20:12Z",
+      "last_commit_committer_date": "2026-11-09T07:20:12Z",
+      "commit_url": "https://github.com/jacobschaer/python-doipclient/commit/f43e811f229006d7d31efe5d8359d0a899026b7c",
+      "description": "Pure Python ISO 13400 Client"
+    },
+    "pylessard/python-can-isotp": {
+      "url": "https://github.com/pylessard/python-can-isotp",
+      "default_branch": "v2.x",
+      "archived": false,
+      "pushed_at": "2026-08-22T16:36:31Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "5593c219f35e739554d743a98d3af68c9332da31",
+      "last_commit_author_date": "2026-08-22T16:36:31Z",
+      "last_commit_committer_date": "2026-08-22T16:36:31Z",
+      "commit_url": "https://github.com/pylessard/python-can-isotp/commit/5593c219f35e739554d743a98d3af68c9332da31",
+      "description": "A Python package that provides support for ISO-TP (ISO-15765) protocol"
+    },
+    "hardbyte/python-can": {
+      "url": "https://github.com/hardbyte/python-can",
+      "default_branch": "main",
+      "archived": false,
+      "pushed_at": "2026-11-09T00:00:19Z",
+      "license": {
+        "key": "lgpl-3.0",
+        "name": "GNU Lesser General Public License v3.0",
+        "spdx_id": "LGPL-3.0",
+        "url": "https://api.github.com/licenses/lgpl-3.0",
+        "node_id": "MDc6TGljZW5zZTEy"
+      },
+      "commit_sha": "2a45350e3c23cd6ddeb71fc1d1c58dbaf311f263",
+      "last_commit_author_date": "2026-11-08T23:55:54Z",
+      "last_commit_committer_date": "2026-11-08T23:55:54Z",
+      "commit_url": "https://github.com/hardbyte/python-can/commit/2a45350e3c23cd6ddeb71fc1d1c58dbaf311f263",
+      "description": "The can package provides controller area network support for Python developers"
+    },
+    "mercedes-benz/odxtools": {
+      "url": "https://github.com/mercedes-benz/odxtools",
+      "default_branch": "main",
+      "archived": false,
+      "pushed_at": "2026-11-08T10:45:28Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "3898a61b870be54bd7cc044a5fa237790ad3134b",
+      "last_commit_author_date": "2026-11-08T10:45:28Z",
+      "last_commit_committer_date": "2026-11-08T10:45:28Z",
+      "commit_url": "https://github.com/mercedes-benz/odxtools/commit/3898a61b870be54bd7cc044a5fa237790ad3134b",
+      "description": "odxtools is a collection of utilities to interact with the diagnostic functionality of automotive electronic control units using python"
+    },
+    "secdev/scapy": {
+      "url": "https://github.com/secdev/scapy",
+      "default_branch": "master",
+      "archived": false,
+      "pushed_at": "2026-11-08T19:56:14Z",
+      "license": {
+        "key": "gpl-2.0",
+        "name": "GNU General Public License v2.0",
+        "spdx_id": "GPL-2.0",
+        "url": "https://api.github.com/licenses/gpl-2.0",
+        "node_id": "MDc6TGljZW5zZTg="
+      },
+      "commit_sha": "d2a43b525e145969fae36e42adfb4de8341fbcb8",
+      "last_commit_author_date": "2026-11-08T19:56:14Z",
+      "last_commit_committer_date": "2026-11-08T19:56:14Z",
+      "commit_url": "https://github.com/secdev/scapy/commit/d2a43b525e145969fae36e42adfb4de8341fbcb8",
+      "description": "Scapy: the Python-based interactive packet manipulation program & library."
+    },
+    "mdabrowski1990/uds": {
+      "url": "https://github.com/mdabrowski1990/uds",
+      "default_branch": "main",
+      "archived": false,
+      "pushed_at": "2026-11-09T06:05:27Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "69c90393968c026fd8eef1305e44bc9d95402be1",
+      "last_commit_author_date": "2026-11-02T18:23:00Z",
+      "last_commit_committer_date": "2026-11-02T18:23:00Z",
+      "commit_url": "https://github.com/mdabrowski1990/uds/commit/69c90393968c026fd8eef1305e44bc9d95402be1",
+      "description": "Python package for Unified Diagnostic Services (UDS, ISO 14229) communication. Provides a common API across diagnostic buses (CAN, Ethernet, LIN, FlexRay, K-Line) and can be extended to custom transports."
+    },
+    "linklayer/pyvit": {
+      "url": "https://github.com/linklayer/pyvit",
+      "default_branch": "master",
+      "archived": true,
+      "pushed_at": "2019-12-03T21:51:27Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      },
+      "commit_sha": "0192c92f6888747e7daf3dc6c5aa4a6c4768f635",
+      "last_commit_author_date": "2019-03-03T16:10:18Z",
+      "last_commit_committer_date": "2019-03-03T16:10:18Z",
+      "commit_url": "https://github.com/linklayer/pyvit/commit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635",
+      "description": "pyvit: Python Vehicle Interface Toolkit"
+    },
+    "christiansandberg/aioisotp": {
+      "url": "https://github.com/christiansandberg/aioisotp",
+      "default_branch": "master",
+      "archived": true,
+      "pushed_at": "2020-04-13T10:42:08Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "6c61576e5483a28f0dbc19dba05749ca774a13b8",
+      "last_commit_author_date": "2020-04-13T10:42:07Z",
+      "last_commit_committer_date": "2020-04-13T10:42:07Z",
+      "commit_url": "https://github.com/christiansandberg/aioisotp/commit/6c61576e5483a28f0dbc19dba05749ca774a13b8",
+      "description": "ISO-TP implemenation for asyncio Python"
+    },
+    "Alonso07/doip_server": {
+      "url": "https://github.com/Alonso07/doip_server",
+      "default_branch": "main",
+      "archived": false,
+      "pushed_at": "2026-09-02T01:07:41Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba",
+      "last_commit_author_date": "2026-06-14T06:18:21Z",
+      "last_commit_committer_date": "2026-06-14T06:18:21Z",
+      "commit_url": "https://github.com/Alonso07/doip_server/commit/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba",
+      "description": null
+    },
+    "zombieCraig/uds-server": {
+      "url": "https://github.com/zombieCraig/uds-server",
+      "default_branch": "master",
+      "archived": false,
+      "pushed_at": "2025-10-08T14:53:49Z",
+      "license": {
+        "key": "gpl-2.0",
+        "name": "GNU General Public License v2.0",
+        "spdx_id": "GPL-2.0",
+        "url": "https://api.github.com/licenses/gpl-2.0",
+        "node_id": "MDc6TGljZW5zZTg="
+      },
+      "commit_sha": "4ec7e7dec8894aeb852a300da79cd2f25bb2dbc2",
+      "last_commit_author_date": "2025-10-08T14:53:49Z",
+      "last_commit_committer_date": "2025-10-08T14:53:49Z",
+      "commit_url": "https://github.com/zombieCraig/uds-server/commit/4ec7e7dec8894aeb852a300da79cd2f25bb2dbc2",
+      "description": "CAN UDS Simulator and Fuzzer"
+    },
+    "ebroecker/canmatrix": {
+      "url": "https://github.com/ebroecker/canmatrix",
+      "default_branch": "development",
+      "archived": false,
+      "pushed_at": "2026-10-28T16:45:57Z",
+      "license": {
+        "key": "bsd-2-clause",
+        "name": "BSD 2-Clause \"Simplified\" License",
+        "spdx_id": "BSD-2-Clause",
+        "url": "https://api.github.com/licenses/bsd-2-clause",
+        "node_id": "MDc6TGljZW5zZTQ="
+      },
+      "commit_sha": "8b54a41dd44b4615953d4e3351a16bc773ba104e",
+      "last_commit_author_date": "2026-10-28T16:45:56Z",
+      "last_commit_committer_date": "2026-10-28T16:45:56Z",
+      "commit_url": "https://github.com/ebroecker/canmatrix/commit/8b54a41dd44b4615953d4e3351a16bc773ba104e",
+      "description": "Converting Can (Controller Area Network) Database Formats .arxml .dbc .dbf .kcd ..."
+    }
+  }
+}

@@ -1,0 +1,18 @@
+[package]
+name = "loom-eth-capture"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+live = ["dep:pcap"]
+
+[dependencies]
+loom-eth-pcapng = { path = "../loom-eth-pcapng" }
+etherparse = "=0.21.0"
+pcap = { version = "=2.5.0", optional = true }
+
+[lints]
+workspace = true

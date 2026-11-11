@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "observed_date": "2026-11-10",
+  "command": "CARGO_HOME=\"$PWD/.cargo-home\" cargo run --release --locked --manifest-path Cargo.toml",
+  "working_directory": "spikes/uds/rust",
+  "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+  "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)",
+  "cargo_lock_sha256": "44e4dd002f9b63ed52c0ff423ba26ef5a3bbcbb1f962b8bd820aa5df8cfbf082",
+  "platform": "macos-aarch64",
+  "samples": 1000,
+  "warmup": 20,
+  "transport": "tokio current_thread loopback, no IPC/UI/TLS",
+  "rtt_ms": {"p50": 0.019875, "p99": 0.120583, "max": 0.363917},
+  "candidate_checks": {
+    "fragment_and_coalescing": true,
+    "automotive_diag_central_security": 224,
+    "doip_definitions_central_security": 2,
+    "doip_codec_rejects_e0": true,
+    "doip_codec_oversize_header_returns_none": true
+  },
+  "limits": [
+    "One local TCP connection, routing activation followed by sequential VIN reads",
+    "ACK and diagnostic response coalesced in one server write; separate candidate test splits a frame",
+    "Minimal owned decoder caps DoIP payload at 4096 bytes before allocation",
+    "No production UDS transaction state machine, discovery, alive-check, TLS, worker IPC, web UI or real hardware",
+    "No Windows/Linux execution or 24-hour memory measurement; not directly comparable to prior Python runs"
+  ]
+}

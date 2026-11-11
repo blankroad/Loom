@@ -1,0 +1,536 @@
+{
+  "retrieved_at": "2026-11-09T14:34:17.579449+00:00",
+  "sources": [
+    {
+      "name": "dlt-common-v3.0.1",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/v3.0.1/include/dlt/dlt_common.h",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "dlt-client-v3.0.1",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/v3.0.1/src/lib/dlt_client.c",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "dlt-daemon-client-v3.0.1",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/v3.0.1/src/daemon/dlt_daemon_client.c",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "dlt-daemon-connection-v3.0.1",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/v3.0.1/src/daemon/dlt_daemon_connection.c",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "dlt-protocol-v3.0.1",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/v3.0.1/include/dlt/dlt_protocol.h",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "pyocd-options",
+      "url": "https://pyocd.io/docs/options.html",
+      "status": 200,
+      "sha256": "00ff0b7554db20b6035732c94fe4b59f4d6d66be1b73bdfe165bc6ca17400275"
+    },
+    {
+      "name": "pyocd-rtt-source",
+      "url": "https://raw.githubusercontent.com/pyocd/pyOCD/v0.46.1/pyocd/subcommands/rtt_cmd.py",
+      "status": 200,
+      "sha256": "c5d0ba21d5e56a4942b0588b190c2f1959ce6d413e3d131f1ddcbfcc4691390e"
+    },
+    {
+      "name": "someipy-license",
+      "url": "https://raw.githubusercontent.com/chrizog/someipy/master/LICENSE.md",
+      "status": 200,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "name": "saleae-license",
+      "url": "https://raw.githubusercontent.com/saleae/logic2-automation/master/LICENSE",
+      "status": 200,
+      "sha256": "ddbdc56a1bdaf4bcb11695c7925560da88883745c4de16adbe34c219a405dac7"
+    },
+    {
+      "name": "pyxcp-readme",
+      "url": "https://raw.githubusercontent.com/christoph2/pyxcp/master/README.rst",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "plin",
+      "url": "https://www.peak-system.com/products/software/development-packages/plin-api/?L=1",
+      "status": 200,
+      "sha256": "4e28e33fe8c69a036e2409afd0f0d49063e21658e355f1aa2fe904b5b2361a6d"
+    },
+    {
+      "name": "asyncssh-api",
+      "url": "https://asyncssh.readthedocs.io/en/latest/api.html",
+      "status": 200,
+      "sha256": "843330b77de3500f722f9a28493336b7006cf5629baf42f085b957f72864d7e6"
+    },
+    {
+      "name": "numato-manual",
+      "url": "https://numato.com/docs/8-channel-usb-relay-module/",
+      "status": 200,
+      "sha256": "f8fbcb427cd5e0a0e6ed30ba66f6707c4244829b2ed0f100b277fb09ee1e137d"
+    },
+    {
+      "name": "pypi-pyocd",
+      "url": "https://pypi.org/pypi/pyocd/json",
+      "status": 200,
+      "sha256": "d8b7c8a618012a639a53706cf3363870ab49d55edc10176911265c242cc67476",
+      "info": {
+        "version": "0.46.1",
+        "requires_python": ">=3.9.0",
+        "license": "Apache 2.0",
+        "license_expression": null,
+        "classifiers": [
+          "Development Status :: 5 - Production/Stable",
+          "Environment :: Console",
+          "Intended Audience :: Developers",
+          "Intended Audience :: Manufacturing",
+          "Intended Audience :: Science/Research",
+          "License :: OSI Approved :: Apache Software License",
+          "Operating System :: MacOS :: MacOS X",
+          "Operating System :: Microsoft :: Windows",
+          "Operating System :: POSIX",
+          "Operating System :: POSIX :: BSD",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
+          "Programming Language :: Python :: 3.14",
+          "Programming Language :: Python :: 3.9",
+          "Topic :: Software Development",
+          "Topic :: Software Development :: Debuggers",
+          "Topic :: Software Development :: Embedded Systems",
+          "Topic :: Software Development :: Testing",
+          "Topic :: Utilities"
+        ],
+        "project_urls": {
+          "Discussions": "https://github.com/pyocd/pyOCD/discussions",
+          "Documentation": "https://pyocd.io//docs",
+          "Homepage": "https://github.com/pyocd/pyOCD",
+          "Issues": "https://github.com/pyocd/pyOCD/issues",
+          "Releases": "https://github.com/pyocd/pyOCD/releases",
+          "Source": "https://github.com/pyocd/pyOCD",
+          "Website": "https://pyocd.io/"
+        },
+        "requires_dist": [
+          "capstone<6.0,>=5.0",
+          "cmsis-pack-manager<1.0,>=0.5.2",
+          "colorama<1.0",
+          "hidapi<1.0,>=0.10.1; platform_system != \"Linux\"",
+          "importlib_metadata>=3.6",
+          "importlib_resources",
+          "intelhex<3.0,>=2.0",
+          "intervaltree<4.0,>=3.0.2",
+          "lark<2.0,>=1.1.5",
+          "libusb-package<2.0,>=1.0",
+          "natsort<9.0,>=8.0.0",
+          "prettytable<4.0,>=2.0",
+          "pyelftools<1.0",
+          "pylink-square<2.0,>=1.0",
+          "pyusb<2.0,>=1.2.1",
+          "pyyaml<7.0,>=6.0",
+          "typing-extensions<5.0,>=4.0",
+          "pyocd_pemicro>=1.0.6; extra == \"pemicro\"",
+          "pytest>=6.2; extra == \"test\"",
+          "pytest-cov; extra == \"test\"",
+          "coverage; extra == \"test\"",
+          "flake8; extra == \"test\"",
+          "pylint; extra == \"test\"",
+          "tox; extra == \"test\""
+        ]
+      },
+      "release_date": "2026-11-02T11:26:03.211391Z"
+    },
+    {
+      "name": "pypi-pylink-square",
+      "url": "https://pypi.org/pypi/pylink-square/json",
+      "status": 200,
+      "sha256": "a3d1c3c08d994f23bde34960739227c072c8aa13fba58cbc40ce224c2568d0e6",
+      "info": {
+        "version": "2.1.0",
+        "requires_python": ">=3.0",
+        "license": "Apache 2.0",
+        "license_expression": null,
+        "classifiers": [],
+        "project_urls": {
+          "Homepage": "http://www.github.com/Square/pylink"
+        },
+        "requires_dist": [
+          "psutil>=5.2.2",
+          "behave==1.2.5; extra == \"dev\"",
+          "coverage==4.4.1; extra == \"dev\"",
+          "psutil>=5.2.2; extra == \"dev\"",
+          "pycodestyle>=2.3.1; extra == \"dev\"",
+          "setuptools>=70.2.0; extra == \"dev\"",
+          "sphinx==1.4.8; extra == \"dev\"",
+          "sphinx-argparse==0.1.15; extra == \"dev\"",
+          "sphinx_rtd_theme==0.2.4; extra == \"dev\"",
+          "sphinxcontrib-napoleon==0.5.3; extra == \"dev\"",
+          "wheel; extra == \"dev\"",
+          "mock==2.0.0; extra == \"test\""
+        ]
+      },
+      "release_date": "2026-11-06T17:53:17.098594Z"
+    },
+    {
+      "name": "pypi-pyhid-usb-relay",
+      "url": "https://pypi.org/pypi/pyhid-usb-relay/json",
+      "status": 200,
+      "sha256": "bb5176c8b53936ff12bdb9393865185a032c184c1085a13644186841250a1736",
+      "info": {
+        "version": "1.4.0",
+        "requires_python": null,
+        "license": "Copyright 2020 Joshua Watt <JPEWhacker@gmail.com>\n        \n        Permission is hereby granted, free of charge, to any person obtaining a copy of\n        this software and associated documentation files (the \"Software\"), to deal in\n        the Software without restriction, including without limitation the rights to\n        use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n        of the Software, and to permit persons to whom the Software is furnished to do\n        so, subject to the following conditions:\n        \n        The above copyright notice and this permission notice shall be included in all\n        copies or substantial portions of the Software.\n        \n        THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n        SOFTWARE.",
+        "license_expression": null,
+        "classifiers": [
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9"
+        ],
+        "project_urls": {
+          "Homepage": "https://github.com/JPEWdev/pyhid-usb-relay",
+          "Issues": "https://github.com/JPEWdev/pyhid-usb-relay/issues",
+          "Repository": "https://github.com/JPEWdev/pyhid-usb-relay.git"
+        },
+        "requires_dist": [
+          "libusb>=1.0.26b5; sys_platform == \"win32\"",
+          "pyusb>=1.2.1",
+          "pyyaml>=6.0",
+          "xdg-base-dirs>=6.0.3",
+          "black; extra == \"dev\"",
+          "flake8; extra == \"dev\"",
+          "pytest>=7.4; extra == \"dev\""
+        ]
+      },
+      "release_date": "2026-09-23T18:05:33.771419Z"
+    },
+    {
+      "name": "pypi-numato-gpio",
+      "url": "https://pypi.org/pypi/numato-gpio/json",
+      "status": 200,
+      "sha256": "962c8f17cbfc8366ab2f631421edf15378d48bb257bb1f1948e89b8715e382fb",
+      "info": {
+        "version": "0.14.0",
+        "requires_python": "<3.14,>=3.9",
+        "license": null,
+        "license_expression": "MIT",
+        "classifiers": [
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9"
+        ],
+        "project_urls": {
+          "Homepage": "https://github.com/clssn/numato-gpio",
+          "Repository": "https://github.com/clssn/numato-gpio.git"
+        },
+        "requires_dist": [
+          "pyserial<4,>=3.1",
+          "rich>=14.0.0"
+        ]
+      },
+      "release_date": "2025-04-29T21:12:35.629657Z"
+    },
+    {
+      "name": "pypi-telnetlib3",
+      "url": "https://pypi.org/pypi/telnetlib3/json",
+      "status": 200,
+      "sha256": "494663db796d3bdfdb14d7e336242787767cadab76643c32e3d1d52d25c8a8a9",
+      "info": {
+        "version": "5.0.2",
+        "requires_python": ">=3.9",
+        "license": null,
+        "license_expression": "ISC",
+        "classifiers": [
+          "Development Status :: 4 - Beta",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: ISC License (ISCL)",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
+          "Programming Language :: Python :: 3.14",
+          "Programming Language :: Python :: 3.9",
+          "Topic :: Internet",
+          "Topic :: System :: Networking",
+          "Topic :: System :: Shells",
+          "Topic :: Terminals :: Telnet",
+          "Typing :: Typed"
+        ],
+        "project_urls": {
+          "Documentation": "https://telnetlib3.readthedocs.io",
+          "Homepage": "https://github.com/jquast/telnetlib3",
+          "Issues": "https://github.com/jquast/telnetlib3/issues",
+          "Repository": "https://github.com/jquast/telnetlib3"
+        },
+        "requires_dist": [
+          "blessed>=1.41; platform_system == \"Windows\"",
+          "wcwidth>=0.6.0",
+          "sphinx-autodoc-typehints; extra == \"docs\"",
+          "sphinx-rtd-theme; extra == \"docs\"",
+          "sphinx>3; extra == \"docs\"",
+          "blessed>=1.41; extra == \"extras\"",
+          "prettytable<4,>=3.17; extra == \"extras\"",
+          "ucs-detect<3,>=2; extra == \"extras\""
+        ]
+      },
+      "release_date": "2026-11-04T21:53:03.208718Z"
+    },
+    {
+      "name": "pypi-lauterbach-trace32-rcl",
+      "url": "https://pypi.org/pypi/lauterbach-trace32-rcl/json",
+      "status": 200,
+      "sha256": "61c98cfe58d83df3b9d49eee5518c859b717b7ea741d0b480cb24d6a1e299be3",
+      "info": {
+        "version": "1.1.6",
+        "requires_python": null,
+        "license": "MIT",
+        "license_expression": null,
+        "classifiers": [
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.9",
+          "Topic :: Software Development :: Debuggers"
+        ],
+        "project_urls": {
+          "Documentation": "https://pyrcl.readthedocs.io",
+          "Homepage": "https://www.lauterbach.com",
+          "Repository": "https://gitlab.com/lauterbach/pyrcl"
+        },
+        "requires_dist": null
+      },
+      "release_date": "2026-07-02T13:58:42.762549Z"
+    },
+    {
+      "name": "pypi-pyelftools",
+      "url": "https://pypi.org/pypi/pyelftools/json",
+      "status": 200,
+      "sha256": "10ad509a44d1efcaf52f2b5758239d3cbc1c55732e55b89cf5e61de253a04d17",
+      "info": {
+        "version": "0.33",
+        "requires_python": ">=3.10",
+        "license": "Public domain",
+        "license_expression": null,
+        "classifiers": [
+          "Development Status :: 5 - Production/Stable",
+          "Intended Audience :: Developers",
+          "License :: Public Domain",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python :: 3",
+          "Topic :: File Formats",
+          "Topic :: Software Development :: Compilers",
+          "Topic :: Software Development :: Debuggers",
+          "Topic :: Software Development :: Disassemblers"
+        ],
+        "project_urls": {
+          "Homepage": "https://github.com/eliben/pyelftools",
+          "Issues": "https://github.com/eliben/pyelftools/issues",
+          "Repository": "https://github.com/eliben/pyelftools.git"
+        },
+        "requires_dist": null
+      },
+      "release_date": "2026-05-29T12:56:20.587302Z"
+    },
+    {
+      "name": "pypi-pylibftdi",
+      "url": "https://pypi.org/pypi/pylibftdi/json",
+      "status": 200,
+      "sha256": "743d503cac8f1ad397f04c9c4e171e328a93cc6be66ff4fd313907e761342133",
+      "info": {
+        "version": "0.25.0",
+        "requires_python": ">=3.11",
+        "license": null,
+        "license_expression": "MIT",
+        "classifiers": [
+          "Development Status :: 4 - Beta",
+          "Environment :: Console",
+          "Intended Audience :: Developers",
+          "Operating System :: Microsoft :: Windows",
+          "Operating System :: POSIX",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
+          "Programming Language :: Python :: 3.14",
+          "Programming Language :: Python :: 3.15",
+          "Topic :: Scientific/Engineering",
+          "Topic :: Software Development :: Embedded Systems",
+          "Topic :: System :: Hardware"
+        ],
+        "project_urls": {
+          "Documentation": "https://pylibftdi.readthedocs.io/en/latest/",
+          "Homepage": "https://github.com/codedstructure/pylibftdi",
+          "Repository": "https://github.com/codedstructure/pylibftdi"
+        },
+        "requires_dist": null
+      },
+      "release_date": "2026-11-03T07:57:21.097086Z"
+    },
+    {
+      "name": "pypi-opencv-python",
+      "url": "https://pypi.org/pypi/opencv-python/json",
+      "status": 200,
+      "sha256": "5e22013a4d62b7191d314c106587f0e9aeb09ff9bbfa68925bf0e74b27bc1772",
+      "info": {
+        "version": "5.0.0.93",
+        "requires_python": ">=3.6",
+        "license": "Apache 2.0",
+        "license_expression": null,
+        "classifiers": [
+          "Development Status :: 5 - Production/Stable",
+          "Environment :: Console",
+          "Intended Audience :: Developers",
+          "Intended Audience :: Education",
+          "Intended Audience :: Information Technology",
+          "Intended Audience :: Science/Research",
+          "License :: OSI Approved :: Apache Software License",
+          "Operating System :: MacOS",
+          "Operating System :: Microsoft :: Windows",
+          "Operating System :: POSIX",
+          "Operating System :: Unix",
+          "Programming Language :: C++",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3 :: Only",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
+          "Programming Language :: Python :: 3.14",
+          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9",
+          "Programming Language :: Python :: Implementation :: CPython",
+          "Topic :: Scientific/Engineering",
+          "Topic :: Scientific/Engineering :: Image Recognition",
+          "Topic :: Software Development"
+        ],
+        "project_urls": {
+          "Homepage": "https://github.com/opencv/opencv-python"
+        },
+        "requires_dist": [
+          "numpy<2.0; python_version < \"3.9\"",
+          "numpy>=2; python_version >= \"3.9\""
+        ]
+      },
+      "release_date": "2026-07-02T05:49:54.971738Z"
+    },
+    {
+      "name": "pypi-logic2-automation",
+      "url": "https://pypi.org/pypi/logic2-automation/json",
+      "status": 200,
+      "sha256": "b0a6b8250209373c2c6947ab4b5125bef64ad9e7876f460779da2d66ae4aea11",
+      "info": {
+        "version": "1.0.11",
+        "requires_python": ">=3.7",
+        "license": null,
+        "license_expression": null,
+        "classifiers": [
+          "Programming Language :: Python :: 3"
+        ],
+        "project_urls": {
+          "Bug Tracker": "https://github.com/saleae/logic2-automation/issues",
+          "Homepage": "https://github.com/saleae/logic2-automation"
+        },
+        "requires_dist": [
+          "grpcio>=1.49.0",
+          "protobuf>=3.20.0",
+          "pywin32; platform_system == \"Windows\""
+        ]
+      },
+      "release_date": "2025-11-18T23:37:40.707331Z"
+    },
+    {
+      "name": "pypi-someipy",
+      "url": "https://pypi.org/pypi/someipy/json",
+      "status": 200,
+      "sha256": "f4f5d6731ff16d16c7907bee7af934a2cead356136feccd9ee3d700e6ade05ae",
+      "info": {
+        "version": "2.1.2",
+        "requires_python": ">=3.8",
+        "license": null,
+        "license_expression": null,
+        "classifiers": [
+          "Intended Audience :: Developers",
+          "Operating System :: Microsoft :: Windows",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python :: 3.8"
+        ],
+        "project_urls": {
+          "Bug Tracker": "https://github.com/chrizog/someipy/issues",
+          "Homepage": "https://github.com/chrizog/someipy",
+          "Repository": "https://github.com/chrizog/someipy"
+        },
+        "requires_dist": null
+      },
+      "release_date": "2026-01-10T11:18:39.393467Z"
+    },
+    {
+      "name": "pypi-pysigrok",
+      "url": "https://pypi.org/pypi/pysigrok/json",
+      "status": 200,
+      "sha256": "8a7483b732bdc4eeac10f1c6aeebc5a2f1cd4e2a08c6d596c45c8d539af67061",
+      "info": {
+        "version": "0.4.2",
+        "requires_python": ">=3.7",
+        "license": null,
+        "license_expression": null,
+        "classifiers": [
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
+        ],
+        "project_urls": {
+          "Home": "https://github.com/pysigrok/pysigrok"
+        },
+        "requires_dist": [
+          "click < 9",
+          "importlib-metadata < 7"
+        ]
+      },
+      "release_date": "2023-02-23T23:04:33.878767Z"
+    },
+    {
+      "name": "dlt-common-master",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/master/include/dlt/dlt_common.h",
+      "sha256": "faffa74687dac449dd984bbcb480db8c406f0646f18ae88617f5bbc78416e648",
+      "status": 200
+    },
+    {
+      "name": "dlt-client-master",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/master/src/lib/dlt_client.c",
+      "sha256": "c7ca0e96e2f07d9dd60657661d05c5842c8708836033e90d08d621751e0bf2fd",
+      "status": 200
+    },
+    {
+      "name": "dlt-daemon-client-master",
+      "url": "https://raw.githubusercontent.com/COVESA/dlt-daemon/master/src/daemon/dlt_daemon_client.c",
+      "sha256": "77b38eb09eb8bfd2125d9b9c29a0ca63cfe16730dd3fd29c1340d34a01bae944",
+      "status": 200
+    },
+    {
+      "name": "mpl-faq",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/FAQ/",
+      "sha256": "b524dea62748de448ca85f019b25266d645c56221cf8d8e0d0f2971e01b5a60a",
+      "status": 200
+    }
+  ]
+}

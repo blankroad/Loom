@@ -1,0 +1,16 @@
+DONE v2.0
+- **Rust 이식(C1)**: Rust `loom-uds` crate에 자체 러너·자체 서비스 코덱·자체 tokio DoIP를 둔다. 공개 DoIP crate는 0xE0 오류·길이 상한 없음, UDS crate는 상태 결합·GPL이라 비채택했고 `automotive_diag`는 정의만 쓴다. 기본 경로에서 Python 의존은 사라졌고, 남는 곳은 D32에 근거를 적었다. Rust DoIP loopback 측정 p99는 0.12 ms다(§0.1·§7.0·D26).
+- **큐·메모리(C2)**: §3.8에 큐별 상한·넘침 정책을 두었다. UDS 예산은 64 MiB이고, 늦은 응답 격리 U는 eviction으로 풀지 않는다. 24 h soak의 UDS 부하와 관문 초안도 넣었다(D31).
+- **UI(C6)**: Loom UI 앱의 UDS 콘솔 패널 U1–U9 명세와 지연 목표(응답 → UI p95 ≤ 100 ms)를 정했다. TUI는 보조로 낮췄다. 웹 승인 링크(bootstrap)는 대화형 TTY·데스크톱 셸에서만 발급하자고 CORE·UI에 요청했다(§5.0·D28, `_xteam/uds-ui.md`).
+- **M1 재정의**: Rust + 웹 E2E-1(t0–t6)이다. Playwright로 실제 DOM 행과 `data-request-id`를 확인하고, 사용자는 키보드로만 개입한다. 30분 연속 반복에서 RSS 증가 ≤ 10 MiB이며, 헤드리스 수신만으로는 불합격이다(§11).
+- **실HW(C4·C4.1·C5)**: CAN-TP는 VN5640(CAN FD 전용)·PCAN-USB FD이고 FD는 M2부터다. DoIP는 PC 랜카드 + 미디어 컨버터(OS TCP/IP)로 확정됐다. VN5640 이더넷·`smoltcp`는 범위 밖이라 U-31을 취소했다(§8.2·D27). `canoe`는 P4 선택 기능이며 `auto`는 자체 스택이다. seed-key는 데몬 밖 helper에서 계산하고 x86 DLL은 `i686` helper로 돌린다(§10.8).
+- **통합 테스트·스킬(C7·C8)**:
+  - 명령은 `check`·`wait-for`·`--expect`이고 증거 REF는 TEST 형식을 따른다. 부재 증명 규칙을 두었다.
+  - 패턴 범위 사전 승인이어도 매 송신마다 바이트로 승인 결속을 다시 만든다.
+  - `auto_reconnect`는 재전송하지 않고 세션·보안을 stale로 표시한다.
+  - 스킬 골격에 TC 절을 넣었다(§6.6·§10.10).
+- **점검**: uds-sol이 v2.0 정합을 점검했다(`v20-check.md` V20 FIX: P1 5건·P2 3건, 모두 반영). C4.1은 그 뒤 리드가 반영했다.
+- **팀 간 문서**:
+  - 새로 작성: `_xteam/uds-ui.md`, `uds-core.md`(CORE 요청 13건), `vn5640-eth.md`(메인 확정 완료)
+  - 의견 추가: `test-domains.md` `## uds 의견`(수용, 이벤트 이름은 `uds.tx`/`uds.rx`)
+- **열린 항목**: CORE의 `check` 불일치 종료 코드 확정(C-11, UDS 구현의 선행 관문). can-lead의 `canoe-bridge.md` 정정 회신.

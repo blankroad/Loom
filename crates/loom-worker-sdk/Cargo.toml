@@ -1,0 +1,22 @@
+[package]
+name = "loom-worker-sdk"
+description = "Loom worker-side SDK: Worker trait, non-blocking Emitter, LatchFlag, RateGuard, clocks, loom-worker/1 frame codec, transport and run_worker IPC runtime."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+loom-journal.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rmp-serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

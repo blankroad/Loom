@@ -1,0 +1,142 @@
+[
+  {
+    "pattern": "(a+)+$",
+    "a_count": 32,
+    "api": "regex.search(..., timeout=0.05), concurrent omitted",
+    "outcomes": [
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match"
+    ],
+    "median_ms": 0.215,
+    "range_ms": [
+      0.205,
+      0.294
+    ],
+    "samples_ms": [
+      0.294,
+      0.217,
+      0.216,
+      0.215,
+      0.214,
+      0.212,
+      0.205
+    ]
+  },
+  {
+    "pattern": "^(\\w+\\s?)*$",
+    "a_count": 24,
+    "api": "regex.search(..., timeout=0.05), concurrent omitted",
+    "outcomes": [
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match",
+      "no_match"
+    ],
+    "median_ms": 0.009,
+    "range_ms": [
+      0.009,
+      0.116
+    ],
+    "samples_ms": [
+      0.116,
+      0.012,
+      0.009,
+      0.009,
+      0.009,
+      0.009,
+      0.009
+    ]
+  },
+  {
+    "pattern": "(a+)+$",
+    "a_count": 32768,
+    "api": "regex.search(..., timeout=0.05), concurrent omitted",
+    "outcomes": [
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError"
+    ],
+    "median_ms": 51.633,
+    "range_ms": [
+      50.171,
+      59.172
+    ],
+    "samples_ms": [
+      51.734,
+      50.206,
+      50.171,
+      50.292,
+      58.459,
+      59.172,
+      51.633
+    ]
+  },
+  {
+    "pattern": "^(\\w+\\s?)*$",
+    "a_count": 32768,
+    "api": "regex.search(..., timeout=0.05), concurrent omitted",
+    "outcomes": [
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError"
+    ],
+    "median_ms": 50.485,
+    "range_ms": [
+      50.155,
+      52.13
+    ],
+    "samples_ms": [
+      50.305,
+      52.13,
+      50.155,
+      50.787,
+      50.674,
+      50.485,
+      50.392
+    ]
+  },
+  {
+    "pattern": "^(a|aa)+$",
+    "a_count": 40,
+    "api": "regex.search(..., timeout=0.05), concurrent omitted",
+    "outcomes": [
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError",
+      "builtins.TimeoutError"
+    ],
+    "median_ms": 50.18,
+    "range_ms": [
+      50.03,
+      52.717
+    ],
+    "samples_ms": [
+      50.044,
+      50.071,
+      50.03,
+      52.717,
+      50.414,
+      50.285,
+      50.18
+    ]
+  }
+]

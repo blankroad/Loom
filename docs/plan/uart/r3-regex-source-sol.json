@@ -1,0 +1,27 @@
+{
+  "checked": "2026-11-09",
+  "version": "2026.11.9",
+  "source_url": "https://files.pythonhosted.org/packages/61/27/a5afeb952577b84ee5fe48b8b9ce47ae662dbb69cc5b76c28eff98f83b1e/regex-2026.11.9.tar.gz",
+  "matches": [
+    {
+      "file": "regex-2026.11.9/src/_regex.c",
+      "line": 2237,
+      "text": "\n/* Checks whether matching has timed out. */\nPy_LOCAL_INLINE(bool) check_timed_out(RE_State* state) {\n    if (state->timeout == RE_NO_TIMEOUT)\n        /* No timeout. */\n        return false;\n\n    if ((Py_ssize_t)(clock() - state->start_time) < state->timeout)\n        /* Hasn't timed out yet. */\n        return false;\n\n    set_error(RE_ERROR_TIMED_OUT, NULL);\n\n    return true;\n}\n\n/* Checks whether to cancel due to a KeyboardInterrupt or a timeout. */\nPy_LOCAL_INLINE(bool) safe_check_cancel(RE_State* state) {\n    bool result;"
+    },
+    {
+      "file": "regex-2026.11.9/src/_regex.c",
+      "line": 2241,
+      "text": "        /* No timeout. */\n        return false;\n\n    if ((Py_ssize_t)(clock() - state->start_time) < state->timeout)\n        /* Hasn't timed out yet. */\n        return false;\n\n    set_error(RE_ERROR_TIMED_OUT, NULL);\n\n    return true;\n}\n\n/* Checks whether to cancel due to a KeyboardInterrupt or a timeout. */\nPy_LOCAL_INLINE(bool) safe_check_cancel(RE_State* state) {\n    bool result;\n\n    acquire_GIL(state);\n\n    result = (bool)PyErr_CheckSignals();"
+    },
+    {
+      "file": "regex-2026.11.9/src/_regex.c",
+      "line": 18543,
+      "text": "        break;\n    }\n\n    state->timeout = timeout;\n    state->start_time = timeout == RE_NO_TIMEOUT ? 0 : clock();\n\n    /* A state struct can sometimes be shared across threads. In such\n     * instances, if multithreading is enabled we need to protect the state\n     * with a lock (mutex) during matching.\n     */\n    if (state->is_multithreaded && use_lock)\n        state->lock = PyThread_allocate_lock();\n\n    for (p = 0; p < MAX_SEARCH_POSITIONS; p++)\n        state->search_positions[p].start_pos = -1;\n\n    return true;\n\nerror:"
+    },
+    {
+      "file": "regex-2026.11.9/src/_regex.c",
+      "line": 18544,
+      "text": "    }\n\n    state->timeout = timeout;\n    state->start_time = timeout == RE_NO_TIMEOUT ? 0 : clock();\n\n    /* A state struct can sometimes be shared across threads. In such\n     * instances, if multithreading is enabled we need to protect the state\n     * with a lock (mutex) during matching.\n     */\n    if (state->is_multithreaded && use_lock)\n        state->lock = PyThread_allocate_lock();\n\n    for (p = 0; p < MAX_SEARCH_POSITIONS; p++)\n        state->search_positions[p].start_pos = -1;\n\n    return true;\n\nerror:\n    re_dealloc(state->group_call_guard_list);"
+    }
+  ]
+}

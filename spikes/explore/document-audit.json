@@ -1,0 +1,12 @@
+{
+  "audited_at": "2026-11-09T14:31:44.469614+00:00",
+  "line_count": 1053,
+  "recommendation_subsections": "5 x a-j present",
+  "candidate_rows": 21,
+  "backend_checks": 6,
+  "import_checks": 14,
+  "score_arithmetic": "pass",
+  "local_links": "pass",
+  "end_marker": "pass",
+  "status": "pass"
+}

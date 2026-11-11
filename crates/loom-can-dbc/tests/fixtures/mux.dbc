@@ -1,0 +1,14 @@
+// Hand-written fixture: simple multiplexing (one M signal).
+VERSION ""
+
+BU_: ECU GW
+
+BO_ 400 MuxMsg: 8 ECU
+ SG_ Mode M : 0|8@1+ (1,0) [0|0] "" GW
+ SG_ A m0 : 8|16@1+ (1,0) [0|0] "" GW
+ SG_ B m1 : 8|8@1+ (1,0) [0|0] "" GW
+ SG_ C m1 : 16|8@1+ (1,0) [0|0] "" GW
+ SG_ Common : 56|8@1+ (1,0) [0|0] "" GW
+
+BA_DEF_ SG_ "GenSigStartValue" INT 0 1000;
+BA_DEF_DEF_ "GenSigStartValue" 0;

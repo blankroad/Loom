@@ -1,0 +1,29 @@
+{
+  "name": "absolute-uart",
+  "rows": [
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "uart",
+      "kind": "uart.data",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "18446744073709551615",
+      "epoch": "9",
+      "seq": "18446744073709551615",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "device",
+      "payload": {
+        "bytes": {
+          "encoding": "base64",
+          "data": ""
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PublishedRecord",
+  "description": "Record as published by the hub to subscribers and queries (stream form).",
+  "type": "object",
+  "properties": {
+    "actor_id": {
+      "description": "Runner/test actor (`run:<id>`, `test:<id>`).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "channel": {
+      "description": "Domain channel alias (`dut`, `ch0`, `ecu1`); absent for core events.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "client_id": {
+      "description": "Client id (`LOOM_CLIENT` + pid, `web:tab-3`).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dir": {
+      "description": "Direction (`rx`/`tx`), absent for state/control.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Dir"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "domain": {
+      "description": "Domain (`uart`, `can`, `uds`, `core`, `display`, `record`, `source`, `run`, `test`, `ui` …).",
+      "type": "string"
+    },
+    "env": {
+      "description": "Environment badge; required on write events (B4).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Env"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "epoch": {
+      "description": "stream_epoch (increments on every gateway start) — cursors bind to it.",
+      "$ref": "#/$defs/U64"
+    },
+    "external_actor": {
+      "description": "External tool on the bus (`canoe`, `host`, `unknown`) when origin = device.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "generation": {
+      "description": "Device/link generation (UART gen, UDS link epoch, CAN reopen) — CR-C5.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0
+    },
+    "job_id": {
+      "description": "Job id (periodic TX, run, export …).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kind": {
+      "description": "Event kind `<domain>.<event>` (see [`validate_event_kind`]).",
+      "type": "string"
+    },
+    "metrics": {
+      "description": "Numeric samples (omitted when empty).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Metric"
+      }
+    },
+    "origin": {
+      "description": "Origin decided by connection credentials.",
+      "$ref": "#/$defs/Origin"
+    },
+    "original_origin": {
+      "description": "Original origin of a replayed event.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Origin"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "payload": {
+      "description": "Kind-specific structured object (E1). Raw bytes in `payload.bytes`,\nwrite state in `payload.write_state` (E8).",
+      "default": {}
+    },
+    "producer_epoch": {
+      "description": "Producer epoch.",
+      "$ref": "#/$defs/U64"
+    },
+    "producer_id": {
+      "description": "Producer id (worker instance or `gateway`).",
+      "type": "string"
+    },
+    "purpose": {
+      "description": "Purpose (`agent_send`, `keepalive`, `run`, `replay`, `sim` …).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "quality": {
+      "description": "Quality flags (`stale`, `decimated:N`, `simulated` …), omitted when empty.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "request_id": {
+      "description": "Request id; write rows of one request share it (A2).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "risk": {
+      "description": "Risk class of a write.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Risk"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "description": "Record schema version (currently [`crate::SCHEMA_VERSION`]).",
+      "type": "integer",
+      "format": "uint16",
+      "maximum": 65535,
+      "minimum": 0
+    },
+    "seq": {
+      "description": "stream_seq assigned by the hub.",
+      "$ref": "#/$defs/U64"
+    },
+    "session_id": {
+      "description": "Recording session id.",
+      "type": "string"
+    },
+    "source_seq": {
+      "description": "Producer sequence.",
+      "$ref": "#/$defs/U64"
+    },
+    "test_session": {
+      "description": "Test session this client was bound to (auto-tagged by the hub, TC-C1).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "test_step": {
+      "description": "Test step at the time of the event.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ts": {
+      "description": "Timestamps.",
+      "$ref": "#/$defs/Ts"
+    }
+  },
+  "required": [
+    "schema_version",
+    "session_id",
+    "domain",
+    "kind",
+    "seq",
+    "epoch",
+    "producer_id",
+    "producer_epoch",
+    "source_seq",
+    "ts",
+    "origin"
+  ],
+  "$defs": {
+    "Dir": {
+      "description": "Direction relative to Loom; absent for state/control events.",
+      "oneOf": [
+        {
+          "description": "Received from the device.",
+          "type": "string",
+          "const": "rx"
+        },
+        {
+          "description": "Sent to the device.",
+          "type": "string",
+          "const": "tx"
+        }
+      ]
+    },
+    "Env": {
+      "description": "Environment badge (B4). Does not change risk handling.",
+      "oneOf": [
+        {
+          "description": "Simulation backends.",
+          "type": "string",
+          "const": "sim"
+        },
+        {
+          "description": "Bench hardware.",
+          "type": "string",
+          "const": "bench"
+        },
+        {
+          "description": "Real vehicle.",
+          "type": "string",
+          "const": "vehicle"
+        }
+      ]
+    },
+    "Metric": {
+      "description": "Numeric sample attached to an event (CR-X2); viz plots these without domain code.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Metric name, e.g. `current`.",
+          "type": "string"
+        },
+        "unit": {
+          "description": "Unit, e.g. `A`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "description": "Value.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ]
+    },
+    "Origin": {
+      "description": "Who caused the event (fixed 4 values, D3). Decided by connection credentials, never by\nrequest fields.",
+      "oneOf": [
+        {
+          "description": "AI agent via CLI / agent connection.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Human via a viewer connection.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The device (or external tool on the bus, see `external_actor`).",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Loom runner / test session.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "Risk": {
+      "description": "Risk class (D6). Under F1 every class runs automatically by default; the class is still\nshown and recorded.",
+      "oneOf": [
+        {
+          "description": "Observe only.",
+          "type": "string",
+          "const": "R0"
+        },
+        {
+          "description": "Reversible, low risk write.",
+          "type": "string",
+          "const": "R1"
+        },
+        {
+          "description": "State-changing write.",
+          "type": "string",
+          "const": "R2"
+        },
+        {
+          "description": "Dangerous (security access, actuators, periodic TX …).",
+          "type": "string",
+          "const": "R3"
+        },
+        {
+          "description": "Irreversible / high risk.",
+          "type": "string",
+          "const": "R4"
+        }
+      ]
+    },
+    "Ts": {
+      "description": "Timestamp of an event (D3). All integers are nanoseconds.",
+      "type": "object",
+      "properties": {
+        "clock_id": {
+          "description": "Identifies the monotonic clock domain (changes on reboot).",
+          "type": "string"
+        },
+        "mono_ns": {
+          "description": "Host monotonic clock (same-host comparisons, latency gates).",
+          "$ref": "#/$defs/U64"
+        },
+        "quality": {
+          "description": "Free-form quality note (e.g. `usb_latency_ms`), if known.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "Where the timestamp was taken.",
+          "$ref": "#/$defs/TsSource"
+        },
+        "wall_ns": {
+          "description": "Wall clock (UTC, ns since Unix epoch).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "mono_ns",
+        "wall_ns",
+        "clock_id",
+        "source"
+      ]
+    },
+    "TsSource": {
+      "description": "Origin of a timestamp.",
+      "oneOf": [
+        {
+          "description": "Host read call completed.",
+          "type": "string",
+          "const": "host_read_complete"
+        },
+        {
+          "description": "Driver-provided timestamp.",
+          "type": "string",
+          "const": "driver"
+        },
+        {
+          "description": "Hardware timestamp from the interface.",
+          "type": "string",
+          "const": "hardware"
+        },
+        {
+          "description": "Timestamp reported by the device itself.",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Assigned by the gateway.",
+          "type": "string",
+          "const": "gateway"
+        },
+        {
+          "description": "Synthetic (simulation, replay).",
+          "type": "string",
+          "const": "synthetic"
+        },
+        {
+          "description": "pcap host timestamp (eth; `ts.source = \"pcap_host\"`).",
+          "type": "string",
+          "const": "pcap_host"
+        },
+        {
+          "description": "pcap adapter (NIC hardware) timestamp (eth).",
+          "type": "string",
+          "const": "pcap_adapter"
+        },
+        {
+          "description": "Re-emitted from a recording (eth replay).",
+          "type": "string",
+          "const": "replay"
+        },
+        {
+          "description": "Produced by a simulation backend (eth sim).",
+          "type": "string",
+          "const": "sim"
+        }
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

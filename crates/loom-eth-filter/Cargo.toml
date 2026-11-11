@@ -1,0 +1,19 @@
+[package]
+name = "loom-eth-filter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Loom eth: Wireshark display-filter subset (loom-pktfilter) over loom-eth-decode fields"
+
+[dependencies]
+loom-eth-decode = { path = "../loom-eth-decode" }
+regex = "1.13.1"
+ipnet = "2.12.2"
+thiserror.workspace = true
+
+[dev-dependencies]
+etherparse = "=0.21.0"
+
+[lints]
+workspace = true

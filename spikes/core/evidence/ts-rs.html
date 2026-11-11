@@ -1,0 +1,516 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Why?"><title>ts_rs - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-020b02a2.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="ts_rs" data-themes="" data-resource-suffix="-20261105-1.101.0-nightly-249c1e4e3" data-rustdoc-version="1.101.0-nightly (249c1e4e3 2026-11-05)" data-channel="nightly" data-search-js="search-835b9732.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20261105-1.101.0-nightly-249c1e4e3.js"></script><script defer src="/-/rustdoc.static/main-b2682d9c.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-101b5a15.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "ts-rs",
+            "version": "12.0.1"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="generate typescript bindings from rust types">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">ts-rs-12.0.1</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        ts-rs 12.0.1
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/ts-rs/12.0.1/ts_rs/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/ts-rs/latest" class="pure-menu-link description" title="See ts-rs in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.101.0-nightly (249c1e4e3 2026-11-05)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 07 November 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/Aleph-Alpha/ts-rs" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-house " aria-hidden="true"></span> Homepage
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://github.com/Aleph-Alpha/ts-rs" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/ts-rs" class="pure-menu-link" title="See ts-rs in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/ts-rs/latest/source/" title="Browse source of ts-rs-12.0.1" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/NyxCode" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> NyxCode
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/arrayvec/%3E=0.6,%20%3C0.8/" class="pure-menu-link">
+                arrayvec >=0.6, <0.8
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bigdecimal/%3E=0.0.13,%20%3C0.5/" class="pure-menu-link">
+                bigdecimal >=0.0.13, <0.5
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bson/^2/" class="pure-menu-link">
+                bson ^2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bytes/^1/" class="pure-menu-link">
+                bytes ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/chrono/^0.4/" class="pure-menu-link">
+                chrono ^0.4
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/dprint-plugin-typescript/=0.95/" class="pure-menu-link">
+                dprint-plugin-typescript =0.95
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/heapless/%3E=0.7,%20%3C0.9/" class="pure-menu-link">
+                heapless >=0.7, <0.9
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/indexmap/^2/" class="pure-menu-link">
+                indexmap ^2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/jiff/^0.2/" class="pure-menu-link">
+                jiff ^0.2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/ordered-float/%3E=3,%20%3C6/" class="pure-menu-link">
+                ordered-float >=3, <6
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/semver/^1/" class="pure-menu-link">
+                semver ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_json/^1/" class="pure-menu-link">
+                serde_json ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/smol_str/^0.3/" class="pure-menu-link">
+                smol_str ^0.3
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/thiserror/^2/" class="pure-menu-link">
+                thiserror ^2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1/" class="pure-menu-link">
+                tokio ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/ts-rs-macros/=12.0.1/" class="pure-menu-link">
+                ts-rs-macros =12.0.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/url/^2/" class="pure-menu-link">
+                url ^2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uuid/^1/" class="pure-menu-link">
+                uuid ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/chrono/^0.4/" class="pure-menu-link">
+                chrono ^0.4
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0/" class="pure-menu-link">
+                serde ^1.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_json/^1/" class="pure-menu-link">
+                serde_json ^1
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1.40/" class="pure-menu-link">
+                tokio ^1.40
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/ts-rs/latest/menus/releases/ts_rs/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/ts-rs/latest" class="pure-menu-link">
+                                        <b>86.05%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/ts-rs/latest/menus/platforms/ts_rs/"><li class="pure-menu-item">
+            <a href="/crate/ts-rs/latest/target-redirect/ts_rs/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/ts-rs/latest/features" title="Browse available feature flags of ts-rs-12.0.1" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/ts-rs/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate ts_rs</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../ts_rs/index.html">ts_rs</a><span class="version">12.0.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#why" title="Why?">Why?</a></li><li><a href="#how" title="How?">How?</a></li><li><a href="#get-started" title="Get started">Get started</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#configuration" title="Configuration">Configuration</a></li><li><a href="#serde-compatibility" title="Serde Compatibility">Serde Compatibility</a></li><li><a href="#cargo-features" title="Cargo Features">Cargo Features</a></li><li><a href="#contributing" title="Contributing">Contributing</a></li><li><a href="#msrv" title="MSRV">MSRV</a></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>ts_rs</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/ts_rs/lib.rs.html#1-1213">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h1 align="center" style="padding-top: 0; margin-top: 0;">
+<img width="150px" src="https://raw.githubusercontent.com/Aleph-Alpha/ts-rs/main/logo.png" alt="logo">
+<br/>
+ts-rs
+</h1>
+<p align="center">
+Generate typescript type declarations from rust types
+</p>
+<div align="center">
+<!-- Github Actions -->
+<img src="https://img.shields.io/github/actions/workflow/status/Aleph-Alpha/ts-rs/test.yml?branch=main" alt="actions status" />
+<a href="https://crates.io/crates/ts-rs">
+<img src="https://img.shields.io/crates/v/ts-rs.svg?style=flat-square"
+alt="Crates.io version" />
+</a>
+<a href="https://docs.rs/ts-rs">
+<img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square"
+alt="docs.rs docs" />
+</a>
+<a href="https://crates.io/crates/ts-rs">
+<img src="https://img.shields.io/crates/d/ts-rs.svg?style=flat-square"
+alt="Download" />
+</a>
+</div>
+<h3 id="why"><a class="doc-anchor" href="#why">§</a>Why?</h3>
+<p>When building a web application in rust, data structures have to be shared between backend and frontend.
+Using this library, you can easily generate TypeScript bindings to your rust structs &amp; enums so that you can keep your
+types in one place.</p>
+<p>ts-rs might also come in handy when working with webassembly.</p>
+<h3 id="how"><a class="doc-anchor" href="#how">§</a>How?</h3>
+<p>ts-rs exposes a single trait, <code>TS</code>. Using a derive macro, you can implement this interface for your types.
+Then, you can use this trait to obtain the TypeScript bindings.
+We recommend doing this in your tests.
+<a href="https://github.com/Aleph-Alpha/ts-rs/blob/main/example/src/lib.rs">See the example</a> and <a href="https://docs.rs/ts-rs/latest/ts_rs/">the docs</a>.</p>
+<h3 id="get-started"><a class="doc-anchor" href="#get-started">§</a>Get started</h3><div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+ts-rs = &quot;12.0&quot;</code></pre></div>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(ts_rs::TS)]
+#[ts(export)]
+</span><span class="kw">struct </span>User {
+    user_id: i32,
+    first_name: String,
+    last_name: String,
+}</code></pre></div>
+<p>When running <code>cargo test</code> or <code>cargo test export_bindings</code>, the following TypeScript type will be exported to <code>bindings/User.ts</code>:</p>
+<div class="example-wrap"><pre class="language-ts"><code>export type User = { user_id: number, first_name: string, last_name: string, };</code></pre></div><h3 id="features"><a class="doc-anchor" href="#features">§</a>Features</h3>
+<ul>
+<li>generate type declarations from rust structs</li>
+<li>generate union declarations from rust enums</li>
+<li>works with generic types</li>
+<li>compatible with serde</li>
+<li>generate necessary imports when exporting to multiple files</li>
+<li>precise control over generated types</li>
+</ul>
+<p>If there’s a type you’re dealing with which doesn’t implement <code>TS</code>, you can use either
+<code>#[ts(as = "..")]</code> or <code>#[ts(type = "..")]</code>, enable the appropriate cargo feature, or open a PR.</p>
+<h3 id="configuration"><a class="doc-anchor" href="#configuration">§</a>Configuration</h3>
+<p>When using <code>#[ts(export)]</code> on a type, <code>ts-rs</code> generates a test which writes the bindings for it to disk.<br />
+The following environment variables may be set to configure <em>how</em> and <em>where</em>:</p>
+<div class="table"><table><thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>TS_RS_EXPORT_DIR</code></td><td>Base directory into which bindings will be exported</td><td><code>./bindings</code></td></tr>
+<tr><td><code>TS_RS_IMPORT_EXTENSION</code></td><td>File extension used in <code>import</code> statements</td><td><em>none</em></td></tr>
+<tr><td><code>TS_RS_LARGE_INT</code></td><td>Binding used for large integer types (<code>i64</code>, <code>u64</code>, <code>i128</code>, <code>u128</code>)</td><td><code>bigint</code></td></tr>
+</tbody></table>
+</div>
+<p>We recommend putting this configuration in the project’s <a href="https://doc.rust-lang.org/cargo/reference/config.html#env">config.toml</a> to make it persistent:</p>
+<div class="example-wrap"><pre class="language-toml"><code># &lt;project-root&gt;/.cargo/config.toml
+[env]
+TS_RS_EXPORT_DIR = { value = &quot;bindings&quot;, relative = true }
+TS_RS_LARGE_INT = &quot;number&quot;</code></pre></div>
+<p>To export bindings programmatically without the use of tests, <code>TS::export_all</code>, <code>TS::export</code>, and <code>TS::export_to_string</code> can be used instead.</p>
+<h3 id="serde-compatibility"><a class="doc-anchor" href="#serde-compatibility">§</a>Serde Compatibility</h3>
+<p>With the <code>serde-compat</code> feature (enabled by default), serde attributes are parsed for enums and structs.<br />
+Supported serde attributes: <code>rename</code>, <code>rename-all</code>, <code>rename-all-fields</code>, <code>tag</code>, <code>content</code>, <code>untagged</code>, <code>skip</code>, <code>skip_serializing</code>, <code>skip_serializing_if</code>, <code>flatten</code>, <code>default</code></p>
+<p><strong>Note</strong>: <code>skip_serializing</code> and <code>skip_serializing_if</code> only have an effect when used together with
+<code>#[serde(default)]</code>. This ensures that the generated type is correct for both serialization and deserialization.</p>
+<p><strong>Note</strong>: <code>skip_deserializing</code> is ignored. If you wish to exclude a field
+from the generated type, but cannot use <code>#[serde(skip)]</code>, use <code>#[ts(skip)]</code> instead.</p>
+<p>When ts-rs encounters an unsupported serde attribute, a warning is emitted, unless the feature <code>no-serde-warnings</code> is enabled.<br />
+We are currently waiting for <a href="https://github.com/rust-lang/rust/issues/54140">#54140</a>, which will improve the ergonomics arund these diagnostics.</p>
+<h3 id="cargo-features"><a class="doc-anchor" href="#cargo-features">§</a>Cargo Features</h3><div class="table"><table><thead><tr><th style="text-align: left"><strong>Feature</strong></th><th><strong>Description</strong></th></tr></thead><tbody>
+<tr><td style="text-align: left">serde-compat</td><td><strong>Enabled by default</strong> <br/>See the <em>“serde compatibility”</em> section below for more information.</td></tr>
+<tr><td style="text-align: left">format</td><td>Enables formatting of the generated TypeScript bindings. <br/>Currently, this unfortunately adds quite a few dependencies.</td></tr>
+<tr><td style="text-align: left">no-serde-warnings</td><td>By default, warnings are printed during build if unsupported serde attributes are encountered. <br/>Enabling this feature silences these warnings.</td></tr>
+<tr><td style="text-align: left">serde-json-impl</td><td>Implement <code>TS</code> for types from <em>serde_json</em></td></tr>
+<tr><td style="text-align: left">chrono-impl</td><td>Implement <code>TS</code> for types from <em>chrono</em></td></tr>
+<tr><td style="text-align: left">bigdecimal-impl</td><td>Implement <code>TS</code> for types from <em>bigdecimal</em></td></tr>
+<tr><td style="text-align: left">url-impl</td><td>Implement <code>TS</code> for types from <em>url</em></td></tr>
+<tr><td style="text-align: left">uuid-impl</td><td>Implement <code>TS</code> for types from <em>uuid</em></td></tr>
+<tr><td style="text-align: left">bson-uuid-impl</td><td>Implement <code>TS</code> for <em>bson::oid::ObjectId</em> and <em>bson::uuid</em></td></tr>
+<tr><td style="text-align: left">bytes-impl</td><td>Implement <code>TS</code> for types from <em>bytes</em></td></tr>
+<tr><td style="text-align: left">indexmap-impl</td><td>Implement <code>TS</code> for types from <em>indexmap</em></td></tr>
+<tr><td style="text-align: left">ordered-float-impl</td><td>Implement <code>TS</code> for types from <em>ordered_float</em></td></tr>
+<tr><td style="text-align: left">heapless-impl</td><td>Implement <code>TS</code> for types from <em>heapless</em></td></tr>
+<tr><td style="text-align: left">semver-impl</td><td>Implement <code>TS</code> for types from <em>semver</em></td></tr>
+<tr><td style="text-align: left">smol_str-impl</td><td>Implement <code>TS</code> for types from <em>smol_str</em></td></tr>
+<tr><td style="text-align: left">tokio-impl</td><td>Implement <code>TS</code> for types from <em>tokio</em></td></tr>
+<tr><td style="text-align: left">jiff-impl</td><td>Implement <code>TS</code> for types from <em>jiff</em></td></tr>
+<tr><td style="text-align: left">arrayvec-impl</td><td>Implement <code>TS</code> for types from <em>arrayvec</em></td></tr>
+</tbody></table>
+</div><h3 id="contributing"><a class="doc-anchor" href="#contributing">§</a>Contributing</h3>
+<p>Contributions are always welcome!
+Feel free to open an issue, discuss using GitHub discussions or open a PR.
+<a href="https://github.com/Aleph-Alpha/ts-rs/blob/main/CONTRIBUTING.md">See CONTRIBUTING.md</a></p>
+<h3 id="msrv"><a class="doc-anchor" href="#msrv">§</a>MSRV</h3>
+<p>The Minimum Supported Rust Version for this crate is 1.88.0</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Config.html" title="struct ts_rs::Config">Config</a></dt><dd>Configuration that affects the generation of TypeScript bindings and how they are exported.</dd><dt><a class="struct" href="struct.Dependency.html" title="struct ts_rs::Dependency">Dependency</a></dt><dd>A typescript type which is depended upon by other types.
+This information is required for generating the correct import statements.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.ExportError.html" title="enum ts_rs::ExportError">Export<wbr>Error</a></dt><dd>An error which may occur when exporting a type</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.TS.html" title="trait ts_rs::TS">TS</a></dt><dd>A type which can be represented in TypeScript.
+Most of the time, you’d want to derive this trait instead of implementing it manually.
+ts-rs comes with implementations for all primitives, most collections, tuples,
+arrays and containers.</dd><dt><a class="trait" href="trait.TypeVisitor.html" title="trait ts_rs::TypeVisitor">Type<wbr>Visitor</a></dt><dd>A visitor used to iterate over all dependencies or generics of a type.
+When an instance of <a href="trait.TypeVisitor.html" title="trait ts_rs::TypeVisitor"><code>TypeVisitor</code></a> is passed to <a href="trait.TS.html#method.visit_dependencies" title="associated function ts_rs::TS::visit_dependencies"><code>TS::visit_dependencies</code></a> or
+<a href="trait.TS.html#method.visit_generics" title="associated function ts_rs::TS::visit_generics"><code>TS::visit_generics</code></a>, the <a href="trait.TypeVisitor.html#tymethod.visit" title="method ts_rs::TypeVisitor::visit"><code>TypeVisitor::visit</code></a> method will be invoked for every dependency
+or generic parameter respectively.</dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.TS.html" title="derive ts_rs::TS">TS</a></dt><dd>Derives <a href="./trait.TS.html">TS</a> for a struct or enum.
+Please take a look at <a href="./trait.TS.html">TS</a> for documentation.</dd></dl></section></div></main></div></body></html>

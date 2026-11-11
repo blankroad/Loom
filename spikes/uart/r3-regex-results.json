@@ -1,0 +1,557 @@
+{
+  "os": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.15.0",
+  "implementation": "CPython",
+  "gil_enabled": true,
+  "regex_version": "2026.11.9",
+  "cases": [
+    {
+      "kind": "pattern",
+      "result": {
+        "pattern": "(a+)+$",
+        "a_count": 32,
+        "input_chars": 33,
+        "timeout_ms": 50,
+        "concurrent": true,
+        "outcomes": [
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match"
+        ],
+        "timing": {
+          "median_ms": 0.21,
+          "min_ms": 0.207,
+          "max_ms": 0.25,
+          "samples_ms": [
+            0.25,
+            0.211,
+            0.208,
+            0.21,
+            0.212,
+            0.208,
+            0.207
+          ]
+        }
+      }
+    },
+    {
+      "kind": "pattern",
+      "result": {
+        "pattern": "^(\\w+\\s?)*$",
+        "a_count": 24,
+        "input_chars": 25,
+        "timeout_ms": 50,
+        "concurrent": true,
+        "outcomes": [
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match",
+          "no_match"
+        ],
+        "timing": {
+          "median_ms": 0.007,
+          "min_ms": 0.006,
+          "max_ms": 0.055,
+          "samples_ms": [
+            0.055,
+            0.008,
+            0.007,
+            0.006,
+            0.006,
+            0.006,
+            0.007
+          ]
+        }
+      }
+    },
+    {
+      "kind": "pattern",
+      "result": {
+        "pattern": "(a+)+$",
+        "a_count": 32768,
+        "input_chars": 32769,
+        "timeout_ms": 50,
+        "concurrent": true,
+        "outcomes": [
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out"
+        ],
+        "timing": {
+          "median_ms": 104.33,
+          "min_ms": 57.685,
+          "max_ms": 141.462,
+          "samples_ms": [
+            106.77,
+            126.994,
+            57.685,
+            104.33,
+            141.462,
+            72.565,
+            61.419
+          ]
+        }
+      }
+    },
+    {
+      "kind": "pattern",
+      "result": {
+        "pattern": "^(\\w+\\s?)*$",
+        "a_count": 32768,
+        "input_chars": 32769,
+        "timeout_ms": 50,
+        "concurrent": true,
+        "outcomes": [
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out"
+        ],
+        "timing": {
+          "median_ms": 70.363,
+          "min_ms": 55.032,
+          "max_ms": 215.831,
+          "samples_ms": [
+            55.032,
+            66.952,
+            70.363,
+            215.831,
+            89.144,
+            63.013,
+            73.694
+          ]
+        }
+      }
+    },
+    {
+      "kind": "pattern",
+      "result": {
+        "pattern": "^(a|aa)+$",
+        "a_count": 40,
+        "input_chars": 41,
+        "timeout_ms": 50,
+        "concurrent": true,
+        "outcomes": [
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out",
+          "builtins.TimeoutError: regex timed out"
+        ],
+        "timing": {
+          "median_ms": 61.65,
+          "min_ms": 54.429,
+          "max_ms": 85.532,
+          "samples_ms": [
+            62.067,
+            55.896,
+            61.65,
+            85.532,
+            54.739,
+            54.429,
+            74.084
+          ]
+        }
+      }
+    },
+    {
+      "kind": "gil",
+      "result": {
+        "concurrent": "true",
+        "period_ms": 10,
+        "timeout_ms": 250,
+        "runs": [
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 432.982,
+            "ticks_during_match": 28,
+            "max_counter_gap_ms": 26.529
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 523.465,
+            "ticks_during_match": 32,
+            "max_counter_gap_ms": 30.191
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 363.962,
+            "ticks_during_match": 23,
+            "max_counter_gap_ms": 24.734
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 604.605,
+            "ticks_during_match": 37,
+            "max_counter_gap_ms": 57.9
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 322.788,
+            "ticks_during_match": 20,
+            "max_counter_gap_ms": 23.577
+          }
+        ],
+        "median_ticks": 28,
+        "median_max_gap_ms": 26.529
+      }
+    },
+    {
+      "kind": "gil",
+      "result": {
+        "concurrent": "false",
+        "period_ms": 10,
+        "timeout_ms": 250,
+        "runs": [
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 295.314,
+            "ticks_during_match": 1,
+            "max_counter_gap_ms": 300.056
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 340.121,
+            "ticks_during_match": 0,
+            "max_counter_gap_ms": 351.807
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 319.204,
+            "ticks_during_match": 0,
+            "max_counter_gap_ms": 327.285
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 256.792,
+            "ticks_during_match": 0,
+            "max_counter_gap_ms": 265.703
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 268.573,
+            "ticks_during_match": 0,
+            "max_counter_gap_ms": 280.965
+          }
+        ],
+        "median_ticks": 0,
+        "median_max_gap_ms": 300.056
+      }
+    },
+    {
+      "kind": "gil",
+      "result": {
+        "concurrent": "default",
+        "period_ms": 10,
+        "timeout_ms": 250,
+        "runs": [
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 267.831,
+            "ticks_during_match": 20,
+            "max_counter_gap_ms": 16.362
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 315.77,
+            "ticks_during_match": 24,
+            "max_counter_gap_ms": 18.983
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 287.623,
+            "ticks_during_match": 23,
+            "max_counter_gap_ms": 15.809
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 318.266,
+            "ticks_during_match": 23,
+            "max_counter_gap_ms": 19.629
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "match_ms": 338.868,
+            "ticks_during_match": 26,
+            "max_counter_gap_ms": 26.573
+          }
+        ],
+        "median_ticks": 23,
+        "median_max_gap_ms": 18.983
+      }
+    },
+    {
+      "kind": "loop",
+      "result": {
+        "matches": [
+          {
+            "outcome": "builtins.TimeoutError",
+            "elapsed_ms": 522.114,
+            "heartbeat_ticks_during": 41
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "elapsed_ms": 430.283,
+            "heartbeat_ticks_during": 35
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "elapsed_ms": 734.871,
+            "heartbeat_ticks_during": 61
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "elapsed_ms": 560.747,
+            "heartbeat_ticks_during": 43
+          },
+          {
+            "outcome": "builtins.TimeoutError",
+            "elapsed_ms": 362.716,
+            "heartbeat_ticks_during": 31
+          }
+        ],
+        "heartbeat_gap": {
+          "median_ms": 12.048,
+          "min_ms": 10.154,
+          "max_ms": 29.233,
+          "samples_ms": [
+            11.362,
+            11.768,
+            28.677,
+            29.233,
+            20.119,
+            24.983,
+            13.945,
+            11.343,
+            11.241,
+            12.125,
+            11.721,
+            12.311,
+            12.126,
+            12.0,
+            12.193,
+            12.132,
+            12.065,
+            12.232,
+            10.208,
+            11.942,
+            12.148,
+            11.34,
+            10.92,
+            11.472,
+            12.265,
+            12.137,
+            10.986,
+            10.675,
+            11.178,
+            11.055,
+            10.947,
+            10.933,
+            12.178,
+            11.985,
+            12.121,
+            12.16,
+            12.187,
+            10.858,
+            11.837,
+            10.652,
+            11.03,
+            12.158,
+            10.862,
+            11.74,
+            12.18,
+            12.048,
+            12.373,
+            12.14,
+            12.568,
+            10.391,
+            11.444,
+            12.764,
+            10.426,
+            13.099,
+            13.433,
+            12.184,
+            11.257,
+            11.899,
+            12.112,
+            11.648,
+            10.69,
+            12.169,
+            12.202,
+            10.765,
+            12.156,
+            12.221,
+            15.405,
+            10.155,
+            12.16,
+            12.382,
+            19.699,
+            10.82,
+            11.791,
+            12.292,
+            10.965,
+            10.495,
+            10.937,
+            11.7,
+            11.588,
+            12.82,
+            11.777,
+            10.917,
+            11.704,
+            11.511,
+            11.549,
+            10.541,
+            10.891,
+            11.133,
+            11.619,
+            10.581,
+            12.786,
+            14.321,
+            13.567,
+            11.649,
+            10.276,
+            13.105,
+            13.776,
+            12.36,
+            12.197,
+            11.573,
+            12.632,
+            12.15,
+            12.154,
+            12.132,
+            10.863,
+            12.011,
+            11.199,
+            12.026,
+            12.576,
+            12.403,
+            11.853,
+            11.217,
+            10.531,
+            10.762,
+            12.176,
+            11.871,
+            12.177,
+            11.054,
+            10.154,
+            12.134,
+            11.878,
+            11.457,
+            11.882,
+            12.13,
+            11.656,
+            11.337,
+            10.492,
+            12.123,
+            11.072,
+            15.375,
+            12.072,
+            10.354,
+            12.686,
+            22.269,
+            18.25,
+            10.597,
+            12.188,
+            12.439,
+            11.602,
+            11.85,
+            12.019,
+            12.28,
+            12.156,
+            12.149,
+            12.146,
+            14.961,
+            28.357,
+            12.549,
+            12.27,
+            12.177,
+            12.172,
+            27.342,
+            11.602,
+            10.413,
+            11.6,
+            11.774,
+            11.567,
+            11.559,
+            12.781,
+            15.528,
+            12.231,
+            13.679,
+            10.384,
+            11.444,
+            12.167,
+            12.284,
+            12.159,
+            12.315,
+            11.061,
+            11.879,
+            12.115,
+            12.236,
+            12.002,
+            12.14,
+            12.751,
+            12.176,
+            11.336,
+            10.389,
+            23.316,
+            12.303,
+            12.205,
+            12.157,
+            11.004,
+            11.816,
+            11.698,
+            10.346,
+            12.172,
+            10.699,
+            11.951,
+            12.141,
+            12.836,
+            10.642,
+            10.763,
+            12.773,
+            11.195,
+            12.436,
+            10.924,
+            12.178,
+            11.292,
+            11.865,
+            12.087,
+            10.951,
+            12.473,
+            12.161,
+            12.168,
+            12.457,
+            12.147,
+            14.314,
+            11.883,
+            12.184,
+            10.723,
+            10.865,
+            11.613,
+            11.847,
+            10.49,
+            12.365,
+            12.339
+          ]
+        },
+        "period_ms": 10
+      }
+    }
+  ]
+}

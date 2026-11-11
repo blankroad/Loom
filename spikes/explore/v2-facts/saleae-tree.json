@@ -1,0 +1,891 @@
+{
+  "sha": "cb33973429eed40626cb86f331f4e58a0bf2e379",
+  "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/cb33973429eed40626cb86f331f4e58a0bf2e379",
+  "tree": [
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "162b598e5434c1cf9761571b81ce620479c8753e",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/162b598e5434c1cf9761571b81ce620479c8753e"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8f8100ce5895f42d4a1f20bfdd54c0f3037cec9d",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/8f8100ce5895f42d4a1f20bfdd54c0f3037cec9d"
+    },
+    {
+      "path": ".github/workflows/build-wheel.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e27964c258a47cdb7da4cb0154e76ae73c8a8442",
+      "size": 437,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e27964c258a47cdb7da4cb0154e76ae73c8a8442"
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "89753563a0ec27b42706563806b1547322f3bdc7",
+      "size": 1196,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/89753563a0ec27b42706563806b1547322f3bdc7"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "16c27c859a447ec547914e60a92768c1048e53f8",
+      "size": 75,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/16c27c859a447ec547914e60a92768c1048e53f8"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "587eecff45dad58c8309241df25eddc9974cd752",
+      "size": 11336,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/587eecff45dad58c8309241df25eddc9974cd752"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f1d61d6d9c7d1b464ff7150d715e5b103971a129",
+      "size": 719,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/f1d61d6d9c7d1b464ff7150d715e5b103971a129"
+    },
+    {
+      "path": "proto",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3d6ccf25172b7a30892fe5ded4065d5a5512d7c9",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/3d6ccf25172b7a30892fe5ded4065d5a5512d7c9"
+    },
+    {
+      "path": "proto/saleae",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "85b62e5801fd0bbe3f42240d55d06467cc073793",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/85b62e5801fd0bbe3f42240d55d06467cc073793"
+    },
+    {
+      "path": "proto/saleae/grpc",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5f486903ee5143dbd355171f5d723f68373f01f1",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/5f486903ee5143dbd355171f5d723f68373f01f1"
+    },
+    {
+      "path": "proto/saleae/grpc/CHANGELOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c1ca69b1dac43bca1bc4c4d3c09c0fee4edbadf0",
+      "size": 384,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/c1ca69b1dac43bca1bc4c4d3c09c0fee4edbadf0"
+    },
+    {
+      "path": "proto/saleae/grpc/saleae.proto",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1a469ab963088fecc7ee6e27300451d9e290e9aa",
+      "size": 17085,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/1a469ab963088fecc7ee6e27300451d9e290e9aa"
+    },
+    {
+      "path": "python",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9badf585f68fdff1a5159ae823300ddc2dba5640",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/9badf585f68fdff1a5159ae823300ddc2dba5640"
+    },
+    {
+      "path": "python/.gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "python/BUILD.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "66de0f51f5dea5f7d99e93ed749492eb55e4da49",
+      "size": 1400,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/66de0f51f5dea5f7d99e93ed749492eb55e4da49"
+    },
+    {
+      "path": "python/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8adc439cf7c31b7a25d2bea655c8d59cf51c50cb",
+      "size": 1573,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/8adc439cf7c31b7a25d2bea655c8d59cf51c50cb"
+    },
+    {
+      "path": "python/build.sh",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "23e3b9e47f070c10b816ef3c154ab61641b4626b",
+      "size": 111,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/23e3b9e47f070c10b816ef3c154ab61641b4626b"
+    },
+    {
+      "path": "python/docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c0f5e4b230af45ea542291f9f0b1b2f31cad36b0",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/c0f5e4b230af45ea542291f9f0b1b2f31cad36b0"
+    },
+    {
+      "path": "python/docs/Makefile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d0c3cbf1020d5c292abdedf27627c6abe25e2293",
+      "size": 638,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/d0c3cbf1020d5c292abdedf27627c6abe25e2293"
+    },
+    {
+      "path": "python/docs/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7d3e9ee24e277ae822109e74137bcaff5ec9d69",
+      "size": 342,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e7d3e9ee24e277ae822109e74137bcaff5ec9d69"
+    },
+    {
+      "path": "python/docs/make.bat",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dc1312ab09ca6fb0267dee6b28a38e69c253631a",
+      "size": 769,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/dc1312ab09ca6fb0267dee6b28a38e69c253631a"
+    },
+    {
+      "path": "python/docs/requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ea58c7bb8f910b3158d3963343c27917ed4b1454",
+      "size": 107,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/ea58c7bb8f910b3158d3963343c27917ed4b1454"
+    },
+    {
+      "path": "python/docs/source",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "82f47c2152ca6e86a6866a69783d3c32f244db3e",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/82f47c2152ca6e86a6866a69783d3c32f244db3e"
+    },
+    {
+      "path": "python/docs/source/.nojekyll",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "python/docs/source/_static",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "16c7aa97a387782b8e626043e1d88bb74abf97f3",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/16c7aa97a387782b8e626043e1d88bb74abf97f3"
+    },
+    {
+      "path": "python/docs/source/_static/device_info.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "395cebe30306882ceaffff2e188fe3daad9715f8",
+      "size": 27205,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/395cebe30306882ceaffff2e188fe3daad9715f8"
+    },
+    {
+      "path": "python/docs/source/_static/device_serial.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "793eaa60ccb8f7544f05f579c69f30ec1fad5f41",
+      "size": 18064,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/793eaa60ccb8f7544f05f579c69f30ec1fad5f41"
+    },
+    {
+      "path": "python/docs/source/_static/saleae_example.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "108a3a2436459f49f6c81f9296459bb23355e9f7",
+      "size": 3161,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/108a3a2436459f49f6c81f9296459bb23355e9f7"
+    },
+    {
+      "path": "python/docs/source/_static/server_ui.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f626e839fd15299f3239be734d1047a8ec74718c",
+      "size": 7612,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/f626e839fd15299f3239be734d1047a8ec74718c"
+    },
+    {
+      "path": "python/docs/source/automation.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fdb065f81acb51faa61789c257489c7d2ed35d57",
+      "size": 1567,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/fdb065f81acb51faa61789c257489c7d2ed35d57"
+    },
+    {
+      "path": "python/docs/source/conf.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0501163480a4cd79f38c92d3fb0b8e06c92937f7",
+      "size": 2437,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/0501163480a4cd79f38c92d3fb0b8e06c92937f7"
+    },
+    {
+      "path": "python/docs/source/errors.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e9f9f0c73cde0528ee9e7f276a933f7056b639a7",
+      "size": 2370,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e9f9f0c73cde0528ee9e7f276a933f7056b639a7"
+    },
+    {
+      "path": "python/docs/source/getting_started.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "221ecb896f970933c071aa914279dc0306039162",
+      "size": 5779,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/221ecb896f970933c071aa914279dc0306039162"
+    },
+    {
+      "path": "python/docs/source/index.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5108a79399687be1f11e153a0e03c38920b95801",
+      "size": 655,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/5108a79399687be1f11e153a0e03c38920b95801"
+    },
+    {
+      "path": "python/docs/source/launching_logic2.rst",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a82c9c2691c13e50a145316815d4cd850ec965bb",
+      "size": 1016,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a82c9c2691c13e50a145316815d4cd850ec965bb"
+    },
+    {
+      "path": "python/grpc_build_hook.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d9019afb9bdd936724e5475adee09a061696ae9",
+      "size": 652,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/5d9019afb9bdd936724e5475adee09a061696ae9"
+    },
+    {
+      "path": "python/pyproject.toml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ceda19102d44d85d8ab485935cf27f18bd8ad646",
+      "size": 1336,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/ceda19102d44d85d8ab485935cf27f18bd8ad646"
+    },
+    {
+      "path": "python/pytest.ini",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d4518b67ffb8f1824f92932a0709b0b987d6000e",
+      "size": 152,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/d4518b67ffb8f1824f92932a0709b0b987d6000e"
+    },
+    {
+      "path": "python/requirements.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8691b48bf61b25a69c88a346f1602769168921ba",
+      "size": 323,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/8691b48bf61b25a69c88a346f1602769168921ba"
+    },
+    {
+      "path": "python/saleae",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "aa4d93565209f55d059f77ecd2579eefb6d2397e",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/aa4d93565209f55d059f77ecd2579eefb6d2397e"
+    },
+    {
+      "path": "python/saleae/automation",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b0d586a2d37b48819c1934772cb56abed0f8dff9",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/b0d586a2d37b48819c1934772cb56abed0f8dff9"
+    },
+    {
+      "path": "python/saleae/automation/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c7a5ea58738d247978d5b5efcc57bfd3406e0aef",
+      "size": 505,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/c7a5ea58738d247978d5b5efcc57bfd3406e0aef"
+    },
+    {
+      "path": "python/saleae/automation/capture.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8c4da57c5996267893fd23e8f4c7a96c065651b2",
+      "size": 15941,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/8c4da57c5996267893fd23e8f4c7a96c065651b2"
+    },
+    {
+      "path": "python/saleae/automation/errors.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8057be639035f55578094298a91a2e1d7ec4ea61",
+      "size": 4320,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/8057be639035f55578094298a91a2e1d7ec4ea61"
+    },
+    {
+      "path": "python/saleae/automation/manager.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d2ded698b4c3ffcad79b5dccbfe25e17b7bc986f",
+      "size": 23756,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/d2ded698b4c3ffcad79b5dccbfe25e17b7bc986f"
+    },
+    {
+      "path": "python/tests",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "018e3c0c51deeb84f0c1d68197e4ab41cfcfb4f4",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/018e3c0c51deeb84f0c1d68197e4ab41cfcfb4f4"
+    },
+    {
+      "path": "python/tests/__init__.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "python/tests/analyzer_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aa4dc4197ca8903c10a1d09f05a82af75cd84256",
+      "size": 4552,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/aa4dc4197ca8903c10a1d09f05a82af75cd84256"
+    },
+    {
+      "path": "python/tests/assets",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "50c895243ef02a5489f725711b4c268607612df2",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/50c895243ef02a5489f725711b4c268607612df2"
+    },
+    {
+      "path": "python/tests/assets/.gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1d18472a4f3f740eedefa4cc9587a2d4b9c22784",
+      "size": 18,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/1d18472a4f3f740eedefa4cc9587a2d4b9c22784"
+    },
+    {
+      "path": "python/tests/assets/cap1.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "51c70b139d732b52d1df12dc069d40b8bcd658da",
+      "size": 493278,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/51c70b139d732b52d1df12dc069d40b8bcd658da"
+    },
+    {
+      "path": "python/tests/assets/cap1",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d2a41c323241bfc5974cc6db020f6de86336d2a7",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/d2a41c323241bfc5974cc6db020f6de86336d2a7"
+    },
+    {
+      "path": "python/tests/assets/cap1/all",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e77326f549177e0b6a5664878530c24884986586",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/e77326f549177e0b6a5664878530c24884986586"
+    },
+    {
+      "path": "python/tests/assets/cap1/all/analog.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75f293ff1df62765d3e48f512729411d124ecaf9",
+      "size": 4500533,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/75f293ff1df62765d3e48f512729411d124ecaf9"
+    },
+    {
+      "path": "python/tests/assets/cap1/all/digital.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19128f96e8c60160191338a3e7fe8b915f1fe7fd",
+      "size": 29677,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/19128f96e8c60160191338a3e7fe8b915f1fe7fd"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "67f36f30ff9d8838f438f18fc69f9e7a314073b0",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/67f36f30ff9d8838f438f18fc69f9e7a314073b0"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_bin/analog_0.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0e1cace3f6dbcbbeaab083ead5e043ef343e6852",
+      "size": 750132,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/0e1cace3f6dbcbbeaab083ead5e043ef343e6852"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_bin/analog_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a81373a9d0fa774875e9951109caa02a0350038b",
+      "size": 750132,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a81373a9d0fa774875e9951109caa02a0350038b"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_bin/digital_0.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f092878e825b39768fa0415173cee6d5ef814008",
+      "size": 7444,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/f092878e825b39768fa0415173cee6d5ef814008"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_bin/digital_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "946fc641f90fb444982b854323476f495576b8f5",
+      "size": 7452,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/946fc641f90fb444982b854323476f495576b8f5"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_isotimestamps",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e87ce44e6e9dbcd4f275835e1b0727260d024031",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/e87ce44e6e9dbcd4f275835e1b0727260d024031"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_isotimestamps/analog.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d4014770e2c507cff651a3dcf0c396d26f31d26",
+      "size": 9001037,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/9d4014770e2c507cff651a3dcf0c396d26f31d26"
+    },
+    {
+      "path": "python/tests/assets/cap1/all_isotimestamps/digital.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "78b95e605b1a4cc82c7744fcfb0024ccc6bfb0f9",
+      "size": 74149,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/78b95e605b1a4cc82c7744fcfb0024ccc6bfb0f9"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_1_downsample4",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ae3b440ca0b6185df54add6e35039003a3a3e038",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/ae3b440ca0b6185df54add6e35039003a3a3e038"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_1_downsample4/analog.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aef3973f67ae01738c64ee871739c01379b931de",
+      "size": 843878,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/aef3973f67ae01738c64ee871739c01379b931de"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_1_downsample4_bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ff146beb3a892cdddeef6730065a53daad8e2353",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/ff146beb3a892cdddeef6730065a53daad8e2353"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_1_downsample4_bin/analog_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a082902c979cfb43e6961aecf0409e33529f7fde",
+      "size": 187572,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a082902c979cfb43e6961aecf0409e33529f7fde"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8fdfd8dd325f870a8a3aeaf9badf14e896e39dc6",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/8fdfd8dd325f870a8a3aeaf9badf14e896e39dc6"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_bin/analog_0.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "430989143c6774895a4a16cc84b99ee972853495",
+      "size": 750144,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/430989143c6774895a4a16cc84b99ee972853495"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_bin/analog_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ff0e8fd172769c5a45668aa46442fab6a47ea4fc",
+      "size": 750144,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/ff0e8fd172769c5a45668aa46442fab6a47ea4fc"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_only",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "722b8a0b3895b1f5a6906d97a464d8c162161dd1",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/722b8a0b3895b1f5a6906d97a464d8c162161dd1"
+    },
+    {
+      "path": "python/tests/assets/cap1/analog_only/analog.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "df3a45d02ecf72e5da2e6eed8a47839b5c551ffd",
+      "size": 4500608,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/df3a45d02ecf72e5da2e6eed8a47839b5c551ffd"
+    },
+    {
+      "path": "python/tests/assets/cap1/ch1_bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cf80b40659f2ce486447e5a0c1d10f6e14e345fb",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/cf80b40659f2ce486447e5a0c1d10f6e14e345fb"
+    },
+    {
+      "path": "python/tests/assets/cap1/ch1_bin/analog_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a81373a9d0fa774875e9951109caa02a0350038b",
+      "size": 750132,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a81373a9d0fa774875e9951109caa02a0350038b"
+    },
+    {
+      "path": "python/tests/assets/cap1/ch1_bin/digital_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "946fc641f90fb444982b854323476f495576b8f5",
+      "size": 7452,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/946fc641f90fb444982b854323476f495576b8f5"
+    },
+    {
+      "path": "python/tests/assets/cap1/digital_bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "11ba4b8e42bc07b1939d15788c3c6e5463385032",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/11ba4b8e42bc07b1939d15788c3c6e5463385032"
+    },
+    {
+      "path": "python/tests/assets/cap1/digital_bin/digital_0.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f092878e825b39768fa0415173cee6d5ef814008",
+      "size": 7444,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/f092878e825b39768fa0415173cee6d5ef814008"
+    },
+    {
+      "path": "python/tests/assets/cap1/digital_bin/digital_1.bin",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "946fc641f90fb444982b854323476f495576b8f5",
+      "size": 7452,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/946fc641f90fb444982b854323476f495576b8f5"
+    },
+    {
+      "path": "python/tests/assets/cap1/digital_only",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "34fe0b5904d82afeff9c6ce4ce358a7ff437adef",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/34fe0b5904d82afeff9c6ce4ce358a7ff437adef"
+    },
+    {
+      "path": "python/tests/assets/cap1/digital_only/digital.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19128f96e8c60160191338a3e7fe8b915f1fe7fd",
+      "size": 29677,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/19128f96e8c60160191338a3e7fe8b915f1fe7fd"
+    },
+    {
+      "path": "python/tests/assets/cap1/swd.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d463ac4eb3a582b65a541dff7f8e56e3bbdeee25",
+      "size": 1416,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/d463ac4eb3a582b65a541dff7f8e56e3bbdeee25"
+    },
+    {
+      "path": "python/tests/assets/cap1/swd_start_only.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5af459e557122341c0702a7607975c56ad4b6ed9",
+      "size": 561,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/5af459e557122341c0702a7607975c56ad4b6ed9"
+    },
+    {
+      "path": "python/tests/assets/cap1/swd_type_and_value.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "692bafb9e990271f5c46bb330e64b4ecfc44c8df",
+      "size": 941,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/692bafb9e990271f5c46bb330e64b4ecfc44c8df"
+    },
+    {
+      "path": "python/tests/assets/cap2.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "58c9ac1cb39db54449aeaec98f10aa194cfcd241",
+      "size": 14988,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/58c9ac1cb39db54449aeaec98f10aa194cfcd241"
+    },
+    {
+      "path": "python/tests/assets/cap3.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "94a676f8866c2fc62b0974e3103eb9fca314740d",
+      "size": 11554,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/94a676f8866c2fc62b0974e3103eb9fca314740d"
+    },
+    {
+      "path": "python/tests/assets/cap4.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd64cb0878430e8cb0d07b78f97fd1937ae12ef6",
+      "size": 8384,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/bd64cb0878430e8cb0d07b78f97fd1937ae12ef6"
+    },
+    {
+      "path": "python/tests/assets/empty.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "python/tests/assets/hla",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "99e637f2d694cdada28e4a35a0793dcf9b662f31",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/99e637f2d694cdada28e4a35a0793dcf9b662f31"
+    },
+    {
+      "path": "python/tests/assets/hla/data_table_case1.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "002a1e796308185ca0e23388f71e23eabaa28c07",
+      "size": 13862,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/002a1e796308185ca0e23388f71e23eabaa28c07"
+    },
+    {
+      "path": "python/tests/assets/hla/test",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4d4423e2f0eabc06f3ac7a1137e94e37a00bdbee",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/4d4423e2f0eabc06f3ac7a1137e94e37a00bdbee"
+    },
+    {
+      "path": "python/tests/assets/hla/test/extension.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "92fad6b80652bb0c4b920c7b6608b46748179158",
+      "size": 247,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/92fad6b80652bb0c4b920c7b6608b46748179158"
+    },
+    {
+      "path": "python/tests/assets/hla/test/test_hla_module.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ca7ae53714dd52d5488ec585d420ec5df653ac3b",
+      "size": 1548,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/ca7ae53714dd52d5488ec585d420ec5df653ac3b"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "84858e8fe3f4f09e2f40df9fc3e676fbfef787d1",
+      "size": 180704,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/84858e8fe3f4f09e2f40df9fc3e676fbfef787d1"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "873071020f93113e88f3aea07eb8533de71cd04b",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/873071020f93113e88f3aea07eb8533de71cd04b"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture/2_analyzers.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "33407fc345e3e0267f80423f85e8154fd518ba4b",
+      "size": 2502481,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/33407fc345e3e0267f80423f85e8154fd518ba4b"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture/search_ascii_0x36.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b5f319a1ec637991c33c4d9a7eab09c731a88d7f",
+      "size": 37,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/b5f319a1ec637991c33c4d9a7eab09c731a88d7f"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture/search_ascii_7.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "899af9c3b08ee3ddf6783e32e8dc07ec0bdee39d",
+      "size": 106393,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/899af9c3b08ee3ddf6783e32e8dc07ec0bdee39d"
+    },
+    {
+      "path": "python/tests/assets/large_async_capture/search_hex_0x36.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd9945edb05232c1b4a253881786fd8c42465885",
+      "size": 60247,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/fd9945edb05232c1b4a253881786fd8c42465885"
+    },
+    {
+      "path": "python/tests/assets/large_spi_capture.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bdc075b60720d31b69a1a7beeb2f9f6d9e4c0d8f",
+      "size": 26968872,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/bdc075b60720d31b69a1a7beeb2f9f6d9e4c0d8f"
+    },
+    {
+      "path": "python/tests/assets/small_spi_capture.sal",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9312bb87bf8bb33db66a87ec4eef6ffa01af9eb7",
+      "size": 29687,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/9312bb87bf8bb33db66a87ec4eef6ffa01af9eb7"
+    },
+    {
+      "path": "python/tests/assets/small_spi_capture",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9b2820b32120dafb7546366a7e3cfb2c9159220d",
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/trees/9b2820b32120dafb7546366a7e3cfb2c9159220d"
+    },
+    {
+      "path": "python/tests/assets/small_spi_capture/data_table_case1.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c7d1e1be0685e16f0f0b2ccfb750450aa3fcda7b",
+      "size": 6318,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/c7d1e1be0685e16f0f0b2ccfb750450aa3fcda7b"
+    },
+    {
+      "path": "python/tests/assets/small_spi_capture/data_table_case2.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0481cb90aaf9305da9ed9238f0c0b20c0f734d57",
+      "size": 9708,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/0481cb90aaf9305da9ed9238f0c0b20c0f734d57"
+    },
+    {
+      "path": "python/tests/assets/small_spi_capture/data_table_multiple.csv",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3dc39f465dd1163f0ea89c70e43ce29cae7c8efa",
+      "size": 20655,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/3dc39f465dd1163f0ea89c70e43ce29cae7c8efa"
+    },
+    {
+      "path": "python/tests/conftest.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5cfd35151b01bc374ae70f9bb4ed0c06ed7b78c1",
+      "size": 946,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/5cfd35151b01bc374ae70f9bb4ed0c06ed7b78c1"
+    },
+    {
+      "path": "python/tests/export_analyzer_legacy_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e66c1b3f0868ce9cb7a73e6edc3d6809c97a9560",
+      "size": 856,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/e66c1b3f0868ce9cb7a73e6edc3d6809c97a9560"
+    },
+    {
+      "path": "python/tests/export_data_table_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a946770e7fb2a5e685d379e5e5267fc7db7e9782",
+      "size": 10226,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a946770e7fb2a5e685d379e5e5267fc7db7e9782"
+    },
+    {
+      "path": "python/tests/export_raw_data_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8f27c0471502dcc4a7e58a62b6556a975831232f",
+      "size": 10449,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/8f27c0471502dcc4a7e58a62b6556a975831232f"
+    },
+    {
+      "path": "python/tests/get_devices_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a8c00a26bb04b6d5f4187dd8af41193503f06fe7",
+      "size": 637,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/a8c00a26bb04b6d5f4187dd8af41193503f06fe7"
+    },
+    {
+      "path": "python/tests/grpc_error_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f56b9f2066792eebfd2bcb828c9dbd94e6f8cc07",
+      "size": 456,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/f56b9f2066792eebfd2bcb828c9dbd94e6f8cc07"
+    },
+    {
+      "path": "python/tests/hla_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5a0d5adb6665e5b812d4b6d4c49fb74b46e1e198",
+      "size": 1079,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/5a0d5adb6665e5b812d4b6d4c49fb74b46e1e198"
+    },
+    {
+      "path": "python/tests/load_save_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "36dae38b59ebabb84013df9b7f13731c12889c56",
+      "size": 2071,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/36dae38b59ebabb84013df9b7f13731c12889c56"
+    },
+    {
+      "path": "python/tests/start_capture_test.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "64fcda5b80a2e8632e33962f8a4e662b9f2fe785",
+      "size": 14654,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/64fcda5b80a2e8632e33962f8a4e662b9f2fe785"
+    },
+    {
+      "path": "python/tests/utils.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0a2cb1835db467b5876cb56d43652670835d4549",
+      "size": 615,
+      "url": "https://api.github.com/repos/saleae/logic2-automation/git/blobs/0a2cb1835db467b5876cb56d43652670835d4549"
+    }
+  ],
+  "truncated": false
+}

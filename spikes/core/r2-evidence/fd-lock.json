@@ -1,0 +1,1636 @@
+{
+  "crate": {
+    "id": "fd-lock",
+    "name": "fd-lock",
+    "updated_at": "2025-03-10T15:53:43.359688Z",
+    "versions": [
+      1477511,
+      1472969,
+      999073,
+      972726,
+      835597,
+      834848,
+      770096,
+      762169,
+      720172,
+      709728,
+      660389,
+      655703,
+      570480,
+      521073,
+      504713,
+      486801,
+      465582,
+      458420,
+      402450,
+      317241,
+      202581,
+      158961,
+      158878
+    ],
+    "keywords": [
+      "file",
+      "unix",
+      "fd",
+      "lock",
+      "windows"
+    ],
+    "categories": [
+      "filesystem",
+      "os::macos-apis",
+      "os::unix-apis",
+      "os::windows-apis",
+      "os"
+    ],
+    "badges": [],
+    "created_at": "2019-06-28T00:08:41.253765Z",
+    "downloads": 72856569,
+    "recent_downloads": 15779737,
+    "default_version": "4.0.4",
+    "num_versions": 23,
+    "yanked": false,
+    "max_version": "4.0.4",
+    "newest_version": "4.0.4",
+    "max_stable_version": "4.0.4",
+    "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+    "homepage": null,
+    "documentation": "https://docs.rs/fd-lock",
+    "repository": "https://github.com/yoshuawuyts/fd-lock",
+    "links": {
+      "version_downloads": "/api/v1/crates/fd-lock/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/fd-lock/owners",
+      "owner_team": "/api/v1/crates/fd-lock/owner_team",
+      "owner_user": "/api/v1/crates/fd-lock/owner_user",
+      "reverse_dependencies": "/api/v1/crates/fd-lock/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 1477511,
+      "crate": "fd-lock",
+      "num": "4.0.4",
+      "dl_path": "/api/v1/crates/fd-lock/4.0.4/download",
+      "readme_path": "/api/v1/crates/fd-lock/4.0.4/readme",
+      "updated_at": "2025-03-10T15:53:43.359688Z",
+      "created_at": "2025-03-10T15:53:43.359688Z",
+      "downloads": 37500004,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/4.0.4/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/4.0.4/downloads",
+        "authors": "/api/v1/crates/fd-lock/4.0.4/authors"
+      },
+      "crate_size": 15522,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2025-03-10T15:53:43.359688Z"
+        }
+      ],
+      "checksum": "0ce92ff622d6dadf7349484f42c93271a0d49b7cc4d466a936405bacbe10aa78",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 503,
+            "comment_lines": 2,
+            "files": 19
+          }
+        },
+        "total_code_lines": 503,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 1472969,
+      "crate": "fd-lock",
+      "num": "4.0.3",
+      "dl_path": "/api/v1/crates/fd-lock/4.0.3/download",
+      "readme_path": "/api/v1/crates/fd-lock/4.0.3/readme",
+      "updated_at": "2025-03-07T04:10:46.613867Z",
+      "created_at": "2025-03-07T04:10:46.613867Z",
+      "downloads": 688188,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/4.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/4.0.3/downloads",
+        "authors": "/api/v1/crates/fd-lock/4.0.3/authors"
+      },
+      "crate_size": 15662,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2025-03-07T04:10:46.613867Z"
+        }
+      ],
+      "checksum": "c44818c96aec5cadc9dacfb97bbcbcfc19a0de75b218412d56f57fbaab94e439",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 503,
+            "comment_lines": 2,
+            "files": 19
+          }
+        },
+        "total_code_lines": 503,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 999073,
+      "crate": "fd-lock",
+      "num": "4.0.2",
+      "dl_path": "/api/v1/crates/fd-lock/4.0.2/download",
+      "readme_path": "/api/v1/crates/fd-lock/4.0.2/readme",
+      "updated_at": "2023-12-29T16:59:11.528936Z",
+      "created_at": "2023-12-29T16:59:11.528936Z",
+      "downloads": 7775345,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/4.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/4.0.2/downloads",
+        "authors": "/api/v1/crates/fd-lock/4.0.2/authors"
+      },
+      "crate_size": 13675,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-12-29T16:59:11.528936Z"
+        }
+      ],
+      "checksum": "7e5768da2206272c81ef0b5e951a41862938a6070da63bcea197899942d3b947",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 503,
+            "comment_lines": 2,
+            "files": 19
+          }
+        },
+        "total_code_lines": 503,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 972726,
+      "crate": "fd-lock",
+      "num": "4.0.1",
+      "dl_path": "/api/v1/crates/fd-lock/4.0.1/download",
+      "readme_path": "/api/v1/crates/fd-lock/4.0.1/readme",
+      "updated_at": "2023-12-01T00:28:41.514111Z",
+      "created_at": "2023-12-01T00:28:41.514111Z",
+      "downloads": 285162,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/4.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/4.0.1/downloads",
+        "authors": "/api/v1/crates/fd-lock/4.0.1/authors"
+      },
+      "crate_size": 13579,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-12-01T00:28:41.514111Z"
+        }
+      ],
+      "checksum": "b93f7a0db71c99f68398f80653ed05afb0b00e062e1a20c7ff849c4edfabbbcc",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 496,
+            "comment_lines": 2,
+            "files": 19
+          }
+        },
+        "total_code_lines": 496,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 835597,
+      "crate": "fd-lock",
+      "num": "4.0.0",
+      "dl_path": "/api/v1/crates/fd-lock/4.0.0/download",
+      "readme_path": "/api/v1/crates/fd-lock/4.0.0/readme",
+      "updated_at": "2023-06-30T14:25:12.513456Z",
+      "created_at": "2023-06-30T14:25:12.513456Z",
+      "downloads": 4240038,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/4.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/4.0.0/downloads",
+        "authors": "/api/v1/crates/fd-lock/4.0.0/authors"
+      },
+      "crate_size": 13577,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-06-30T14:25:12.513456Z"
+        }
+      ],
+      "checksum": "0b0377f1edc77dbd1118507bc7a66e4ab64d2b90c66f90726dc801e73a8c68f9",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 496,
+            "comment_lines": 2,
+            "files": 19
+          }
+        },
+        "total_code_lines": 496,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 834848,
+      "crate": "fd-lock",
+      "num": "3.0.13",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.13/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.13/readme",
+      "updated_at": "2023-06-29T21:18:26.986085Z",
+      "created_at": "2023-06-29T21:18:26.986085Z",
+      "downloads": 13763049,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.13/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.13/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.13/authors"
+      },
+      "crate_size": 13692,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-06-29T21:18:26.986085Z"
+        }
+      ],
+      "checksum": "ef033ed5e9bad94e55838ca0ca906db0e043f517adda0c8b79c7a8c66c93c1b5",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 497,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 497,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 770096,
+      "crate": "fd-lock",
+      "num": "3.0.12",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.12/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.12/readme",
+      "updated_at": "2023-04-06T17:00:28.506142Z",
+      "created_at": "2023-04-06T17:00:28.506142Z",
+      "downloads": 1268260,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.12/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.12/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.12/authors"
+      },
+      "crate_size": 13692,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-04-06T17:00:28.506142Z"
+        }
+      ],
+      "checksum": "39ae6b3d9530211fb3b12a95374b8b0823be812f53d09e18c5675c0146b09642",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 497,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 497,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 762169,
+      "crate": "fd-lock",
+      "num": "3.0.11",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.11/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.11/readme",
+      "updated_at": "2023-03-29T04:36:05.074892Z",
+      "created_at": "2023-03-29T04:36:05.074892Z",
+      "downloads": 699732,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.11/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.11/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.11/authors"
+      },
+      "crate_size": 13694,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-03-29T04:36:05.074892Z"
+        }
+      ],
+      "checksum": "9799aefb4a2e4a01cc47610b1dd47c18ab13d991f27bbcaed9296f5a53d5cbad",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 497,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 497,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 720172,
+      "crate": "fd-lock",
+      "num": "3.0.10",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.10/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.10/readme",
+      "updated_at": "2023-02-05T23:45:18.876383Z",
+      "created_at": "2023-02-05T23:45:18.876383Z",
+      "downloads": 582615,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.10/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.10/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.10/authors"
+      },
+      "crate_size": 13691,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2023-02-05T23:45:18.876383Z"
+        }
+      ],
+      "checksum": "8ef1a30ae415c3a691a4f41afddc2dbcd6d70baf338368d85ebc1e8ed92cedb9",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 497,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 497,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 709728,
+      "crate": "fd-lock",
+      "num": "3.0.9",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.9/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.9/readme",
+      "updated_at": "2023-01-23T16:37:22.086842Z",
+      "created_at": "2023-01-23T16:37:22.086842Z",
+      "downloads": 299495,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.9/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.9/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.9/authors"
+      },
+      "crate_size": 13799,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2023-01-23T16:37:22.086842Z"
+        }
+      ],
+      "checksum": "28c0190ff0bd3b28bfdd4d0cf9f92faa12880fb0b8ae2054723dd6c76a4efd42",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 497,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 497,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 660389,
+      "crate": "fd-lock",
+      "num": "3.0.8",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.8/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.8/readme",
+      "updated_at": "2022-11-09T20:00:30.064995Z",
+      "created_at": "2022-11-09T20:00:30.064995Z",
+      "downloads": 2135096,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.8/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.8/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.8/authors"
+      },
+      "crate_size": 13438,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-11-09T20:00:30.064995Z"
+        }
+      ],
+      "checksum": "bb21c69b9fea5e15dbc1049e4b77145dd0ba1c84019c488102de0dc4ea4b0a27",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 490,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 490,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 655703,
+      "crate": "fd-lock",
+      "num": "3.0.7",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.7/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.7/readme",
+      "updated_at": "2022-11-02T22:41:16.414048Z",
+      "created_at": "2022-11-02T22:41:16.414048Z",
+      "downloads": 133015,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.7/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.7/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.7/authors"
+      },
+      "crate_size": 13441,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-11-02T22:41:16.414048Z"
+        }
+      ],
+      "checksum": "0c93a581058d957dc4176875aad04f82f81613e6611d64aa1a9c755bdfb16711",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 490,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 490,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 570480,
+      "crate": "fd-lock",
+      "num": "3.0.6",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.6/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.6/readme",
+      "updated_at": "2022-06-21T14:52:40.465849Z",
+      "created_at": "2022-06-21T14:52:40.465849Z",
+      "downloads": 1126698,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.6/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.6/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.6/authors"
+      },
+      "crate_size": 13433,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-06-21T14:52:40.465849Z"
+        }
+      ],
+      "checksum": "e11dcc7e4d79a8c89b9ab4c6f5c30b1fc4a83c420792da3542fd31179ed5f517",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 490,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 490,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 521073,
+      "crate": "fd-lock",
+      "num": "3.0.5",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.5/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.5/readme",
+      "updated_at": "2022-03-23T15:23:40.184799Z",
+      "created_at": "2022-03-23T15:23:40.184799Z",
+      "downloads": 635837,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.5/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.5/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.5/authors"
+      },
+      "crate_size": 13383,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-03-23T15:23:40.184799Z"
+        }
+      ],
+      "checksum": "46e245f4c8ec30c6415c56cb132c07e69e74f1942f6b4a4061da748b49f486ca",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 487,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 487,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 504713,
+      "crate": "fd-lock",
+      "num": "3.0.4",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.4/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.4/readme",
+      "updated_at": "2022-02-22T21:27:53.087463Z",
+      "created_at": "2022-02-22T21:27:53.087463Z",
+      "downloads": 149789,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.4/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.4/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.4/authors"
+      },
+      "crate_size": 13381,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-02-22T21:27:53.087463Z"
+        }
+      ],
+      "checksum": "02ecad9808e0596f8956d14f7fa868f996290bd01c8d7329d6e5bc2bb76adf8f",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 487,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 487,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 486801,
+      "crate": "fd-lock",
+      "num": "3.0.3",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.3/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.3/readme",
+      "updated_at": "2022-01-21T01:36:38.198468Z",
+      "created_at": "2022-01-21T01:36:38.198468Z",
+      "downloads": 98893,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.3/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.3/authors"
+      },
+      "crate_size": 13379,
+      "published_by": {
+        "id": 6825,
+        "login": "sunfishcode",
+        "name": "Dan Gohman",
+        "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+        "url": "https://github.com/sunfishcode",
+        "github_username_matches": true,
+        "created_at": "2013-05-22T21:05:44Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 6825,
+            "login": "sunfishcode",
+            "name": "Dan Gohman",
+            "avatar": "https://avatars.githubusercontent.com/u/4503403?v=4",
+            "url": "https://github.com/sunfishcode",
+            "github_username_matches": true,
+            "created_at": "2013-05-22T21:05:44Z"
+          },
+          "time": "2022-01-21T01:36:38.198468Z"
+        }
+      ],
+      "checksum": "fcef756dea9cf3db5ce73759cf0467330427a786b47711b8d6c97620d718ceb9",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 487,
+            "comment_lines": 7,
+            "files": 19
+          }
+        },
+        "total_code_lines": 487,
+        "total_comment_lines": 7
+      }
+    },
+    {
+      "id": 465582,
+      "crate": "fd-lock",
+      "num": "3.0.2",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.2/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.2/readme",
+      "updated_at": "2021-12-09T11:14:50.968706Z",
+      "created_at": "2021-12-09T11:14:50.968706Z",
+      "downloads": 214734,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.2/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.2/authors"
+      },
+      "crate_size": 13339,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2021-12-09T11:14:50.968706Z"
+        }
+      ],
+      "checksum": "a16910e685088843d53132b04e0f10a571fdb193224fc589685b3ba1ce4cb03d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 502,
+            "comment_lines": 2,
+            "files": 20
+          }
+        },
+        "total_code_lines": 502,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 458420,
+      "crate": "fd-lock",
+      "num": "3.0.1",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.1/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.1/readme",
+      "updated_at": "2021-11-24T21:55:58.733446Z",
+      "created_at": "2021-11-24T21:55:58.733446Z",
+      "downloads": 102281,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.1/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.1/authors"
+      },
+      "crate_size": 13187,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2021-11-24T21:55:58.733446Z"
+        }
+      ],
+      "checksum": "cfc110fe50727d46a428eed832df40affe9bf74d077cac1bf3f2718e823f14c5",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 502,
+            "comment_lines": 2,
+            "files": 20
+          }
+        },
+        "total_code_lines": 502,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 402450,
+      "crate": "fd-lock",
+      "num": "3.0.0",
+      "dl_path": "/api/v1/crates/fd-lock/3.0.0/download",
+      "readme_path": "/api/v1/crates/fd-lock/3.0.0/readme",
+      "updated_at": "2021-07-17T23:43:23.878032Z",
+      "created_at": "2021-07-17T23:43:23.878032Z",
+      "downloads": 353874,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/3.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/3.0.0/downloads",
+        "authors": "/api/v1/crates/fd-lock/3.0.0/authors"
+      },
+      "crate_size": 13313,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2021-07-17T23:43:23.878032Z"
+        }
+      ],
+      "checksum": "b8806dd91a06a7a403a8e596f9bfbfb34e469efbc363fc9c9713e79e26472e36",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 501,
+            "comment_lines": 2,
+            "files": 20
+          }
+        },
+        "total_code_lines": 501,
+        "total_comment_lines": 2
+      }
+    },
+    {
+      "id": 317241,
+      "crate": "fd-lock",
+      "num": "2.0.0",
+      "dl_path": "/api/v1/crates/fd-lock/2.0.0/download",
+      "readme_path": "/api/v1/crates/fd-lock/2.0.0/readme",
+      "updated_at": "2020-12-21T17:21:19.162716Z",
+      "created_at": "2020-12-21T17:21:19.162716Z",
+      "downloads": 703267,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/2.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/2.0.0/downloads",
+        "authors": "/api/v1/crates/fd-lock/2.0.0/authors"
+      },
+      "crate_size": 11368,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2020-12-21T17:21:19.162716Z"
+        }
+      ],
+      "checksum": "0010f02effd88c702318c5dde0463206be67495d0b4d906ba7c0a8f166cc7f06",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 149,
+            "comment_lines": 1,
+            "files": 3
+          }
+        },
+        "total_code_lines": 149,
+        "total_comment_lines": 1
+      }
+    },
+    {
+      "id": 202581,
+      "crate": "fd-lock",
+      "num": "1.1.1",
+      "dl_path": "/api/v1/crates/fd-lock/1.1.1/download",
+      "readme_path": "/api/v1/crates/fd-lock/1.1.1/readme",
+      "updated_at": "2020-01-09T16:30:58.889415Z",
+      "created_at": "2020-01-09T16:30:58.889415Z",
+      "downloads": 14156,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/1.1.1/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/1.1.1/downloads",
+        "authors": "/api/v1/crates/fd-lock/1.1.1/authors"
+      },
+      "crate_size": 13497,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3824,
+            "login": "yoshuawuyts",
+            "name": "Yosh",
+            "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+            "url": "https://github.com/yoshuawuyts",
+            "github_username_matches": true,
+            "created_at": "2012-10-01T21:40:46Z"
+          },
+          "time": "2020-01-09T16:30:58.889415Z"
+        }
+      ],
+      "checksum": "a15bec795244d49f5ee3024bdc6c3883fb035f7f6601d4a4821c3d5d60784454",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 162,
+            "comment_lines": 33,
+            "files": 4
+          }
+        },
+        "total_code_lines": 162,
+        "total_comment_lines": 33
+      }
+    },
+    {
+      "id": 158961,
+      "crate": "fd-lock",
+      "num": "1.1.0",
+      "dl_path": "/api/v1/crates/fd-lock/1.1.0/download",
+      "readme_path": "/api/v1/crates/fd-lock/1.1.0/readme",
+      "updated_at": "2019-06-28T10:14:01.019789Z",
+      "created_at": "2019-06-28T10:14:01.019789Z",
+      "downloads": 2941,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/1.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/1.1.0/downloads",
+        "authors": "/api/v1/crates/fd-lock/1.1.0/authors"
+      },
+      "crate_size": 12517,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [],
+      "checksum": "4cb686e505c582212560d7aaa47a6cbe6253d74c13aff597244790286858c567",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 186,
+            "comment_lines": 0,
+            "files": 4
+          }
+        },
+        "total_code_lines": 186,
+        "total_comment_lines": 0
+      }
+    },
+    {
+      "id": 158878,
+      "crate": "fd-lock",
+      "num": "1.0.0",
+      "dl_path": "/api/v1/crates/fd-lock/1.0.0/download",
+      "readme_path": "/api/v1/crates/fd-lock/1.0.0/readme",
+      "updated_at": "2019-06-28T00:08:41.253765Z",
+      "created_at": "2019-06-28T00:08:41.253765Z",
+      "downloads": 2900,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fd-lock/1.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/fd-lock/1.0.0/downloads",
+        "authors": "/api/v1/crates/fd-lock/1.0.0/authors"
+      },
+      "crate_size": 12318,
+      "published_by": {
+        "id": 3824,
+        "login": "yoshuawuyts",
+        "name": "Yosh",
+        "avatar": "https://avatars.githubusercontent.com/u/2467194?v=4",
+        "url": "https://github.com/yoshuawuyts",
+        "github_username_matches": true,
+        "created_at": "2012-10-01T21:40:46Z"
+      },
+      "audit_actions": [],
+      "checksum": "ca313da2f4d67f0d56835e8f7e34d4dc1015884da28591e044fe4bedfd81bf32",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Advisory cross-platform lock on a file using a file descriptor to it.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fd-lock",
+      "repository": "https://github.com/yoshuawuyts/fd-lock",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 169,
+            "comment_lines": 0,
+            "files": 4
+          }
+        },
+        "total_code_lines": 169,
+        "total_comment_lines": 0
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "file",
+      "keyword": "file",
+      "created_at": "2014-11-20T20:07:58.726767Z",
+      "crates_cnt": 870
+    },
+    {
+      "id": "unix",
+      "keyword": "unix",
+      "created_at": "2015-02-21T21:11:19.529533Z",
+      "crates_cnt": 340
+    },
+    {
+      "id": "fd",
+      "keyword": "fd",
+      "created_at": "2015-03-06T08:29:34.898440Z",
+      "crates_cnt": 33
+    },
+    {
+      "id": "lock",
+      "keyword": "lock",
+      "created_at": "2015-03-09T21:06:51.686561Z",
+      "crates_cnt": 170
+    },
+    {
+      "id": "windows",
+      "keyword": "windows",
+      "created_at": "2015-05-23T17:13:20.460427Z",
+      "crates_cnt": 1308
+    }
+  ],
+  "categories": [
+    {
+      "id": "filesystem",
+      "category": "Filesystem",
+      "slug": "filesystem",
+      "description": "Crates for dealing with files and filesystems.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 4638
+    },
+    {
+      "id": "os::macos-apis",
+      "category": "macOS APIs",
+      "slug": "os::macos-apis",
+      "description": "Bindings to macOS-specific APIs.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 668
+    },
+    {
+      "id": "os::unix-apis",
+      "category": "Unix APIs",
+      "slug": "os::unix-apis",
+      "description": "Bindings to Unix-specific APIs.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 588
+    },
+    {
+      "id": "os::windows-apis",
+      "category": "Windows APIs",
+      "slug": "os::windows-apis",
+      "description": "Bindings to Windows-specific APIs.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 795
+    },
+    {
+      "id": "os",
+      "category": "Operating systems",
+      "slug": "os",
+      "description": "Bindings to operating system-specific APIs.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 2154
+    }
+  ]
+}

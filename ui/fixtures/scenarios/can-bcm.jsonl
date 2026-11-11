@@ -1,0 +1,4 @@
+{"scenario":"can-bcm","note":"E-UI-3: background frames 0x100 @10 Hz and 0x200 @20 Hz on can/ch0; the mock agent sends 0x300#01 every 30 s (first at 4 s), sim BCM answers 0x301"}
+{"t_ms":0,"every_ms":100,"emit":{"domain":"can","channel":"ch0","kind":"can.frame","dir":"rx","origin":"device","payload":{"id":256,"ext":false,"fd":false,"dlc":8,"bytes":{"encoding":"hex","data":"0102030405060708"}}}}
+{"t_ms":0,"every_ms":50,"emit":{"domain":"can","channel":"ch0","kind":"can.frame","dir":"rx","origin":"device","payload":{"id":512,"ext":false,"fd":false,"dlc":4,"bytes":{"encoding":"hex","data":"0fa00000"}}}}
+{"t_ms":4000,"every_ms":30000,"agent":{"method":"can.send","params":{"channel":"ch0","frame":"300#01"}}}

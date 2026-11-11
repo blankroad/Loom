@@ -1,0 +1,92 @@
+[
+  {
+    "candidate": "**DLT 수신·제어** (dlt-daemon TCP, 제어/인젝션)",
+    "stated": "**94**",
+    "calculated": 94.0
+  },
+  {
+    "candidate": "**전원공급기 (SCPI/VISA)**",
+    "stated": "**94**",
+    "calculated": 94.0
+  },
+  {
+    "candidate": "**타깃 셸** (SSH/ADB/telnet/raw TCP)",
+    "stated": "**92**",
+    "calculated": 92.0
+  },
+  {
+    "candidate": "**디버그 프로브** (SWD/JTAG 메모리, RTT, halt, flash)",
+    "stated": "**88**",
+    "calculated": 88.0
+  },
+  {
+    "candidate": "**릴레이/IO 보드** (KL15/KL30/버튼)",
+    "stated": "**83**",
+    "calculated": 83.25
+  },
+  {
+    "candidate": "DMM / 전자부하 (SCPI)",
+    "stated": "81",
+    "calculated": 81.0
+  },
+  {
+    "candidate": "XCP/CCP 측정·캘리브레이션",
+    "stated": "79",
+    "calculated": 79.0
+  },
+  {
+    "candidate": "I2C/SPI/GPIO 어댑터 (FT232H 등)",
+    "stated": "74",
+    "calculated": 74.0
+  },
+  {
+    "candidate": "오실로스코프 (SCPI 파형)",
+    "stated": "73",
+    "calculated": 73.25
+  },
+  {
+    "candidate": "HMI 영상 캡처 + 터치 주입 (UVC 캡처/ADB)",
+    "stated": "70",
+    "calculated": 70.25
+  },
+  {
+    "candidate": "Modbus (TCP/RTU) 일반",
+    "stated": "70",
+    "calculated": 70.0
+  },
+  {
+    "candidate": "차량 이더넷 캡처 / SOME/IP(-SD)",
+    "stated": "68",
+    "calculated": 68.25
+  },
+  {
+    "candidate": "LIN",
+    "stated": "67",
+    "calculated": 67.25
+  },
+  {
+    "candidate": "CAN XL",
+    "stated": "65",
+    "calculated": 65.0
+  },
+  {
+    "candidate": "로직 애널라이저 (sigrok/Saleae)",
+    "stated": "64",
+    "calculated": 63.5
+  },
+  {
+    "candidate": "CANoe/CANalyzer 원격 제어 (COM)",
+    "stated": "63",
+    "calculated": 63.25
+  },
+  {
+    "candidate": "파일 분석 도구 (MF4/BLF/A2L 오프라인)",
+    "stated": "60 → **탈락(규칙1)**",
+    "calculated": 59.5
+  },
+  {
+    "candidate": "FlexRay",
+    "stated": "47 → **탈락**",
+    "calculated": 46.5
+  }
+]

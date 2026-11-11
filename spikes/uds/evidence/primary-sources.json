@@ -1,0 +1,82 @@
+{
+  "odxtools_readme": {
+    "url": "https://raw.githubusercontent.com/mercedes-benz/odxtools/3898a61b870be54bd7cc044a5fa237790ad3134b/README.md",
+    "content_sha256": "aded691bda4bb385be24d284d8dcc807df45b6ad7879fac0f6a7cc7de5b37fff",
+    "decoded_characters": 31220,
+    "observations": [
+      "PDX load, ECU/service inspection and request/response encode/decode documented. MIT. Non-strict results may be undefined."
+    ]
+  },
+  "pyuds_readme": {
+    "url": "https://raw.githubusercontent.com/mdabrowski1990/uds/69c90393968c026fd8eef1305e44bc9d95402be1/README.md",
+    "error": "HTTP Error 404: Not Found"
+  },
+  "doipserver_readme": {
+    "url": "https://raw.githubusercontent.com/Alonso07/doip_server/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba/README.md",
+    "content_sha256": "f9c7364ba19804b5195f96499c0a3d1deea68b69e2546d2e8991dd3985726fb3",
+    "decoded_characters": 16607,
+    "observations": [
+      "YAML gateway, ECU and service configuration. Vehicle identification, routing activation and functional diagnostics documented; not executed locally."
+    ]
+  },
+  "canmatrix_formats": {
+    "url": "https://api.github.com/repos/ebroecker/canmatrix/contents/src/canmatrix/formats?ref=8b54a41dd44b4615953d4e3351a16bc773ba104e",
+    "content_sha256": "c5a4c8cf471c65e42aad2e5782ae55f646ebff05acd6ba59cab08848d531bbd7",
+    "decoded_characters": 19905,
+    "observations": [
+      "Format directory inspected; cdd.py absent. odx.py present does not imply CDD parsing."
+    ]
+  },
+  "cdd_utils_readme": {
+    "url": "https://raw.githubusercontent.com/fshoocn/cdd_utils/main/README.md",
+    "content_sha256": "c93b326131517260e679fe9a8f7189f860fcfb9f747ba13ee458f65070efb17b",
+    "decoded_characters": 17481,
+    "observations": [
+      "README documents load_cdd, immutable model, references and encode/decode. Internal API version 2.0.0."
+    ]
+  },
+  "gocan_cdd": {
+    "url": "https://api.github.com/repos/tomrford/gocan/contents/cdd",
+    "content_sha256": "f6fe0e23f68a4f4d4b8bff6f77c5294d564b23aa6b9c4098fef93085a0cd90f3",
+    "decoded_characters": 15069,
+    "observations": [
+      "Go cdd package includes parser, codec, catalog and tests."
+    ]
+  },
+  "pyvit_setup": {
+    "url": "https://raw.githubusercontent.com/linklayer/pyvit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635/setup.py",
+    "content_sha256": "65fe07739d98132b20fbc78cc9b2ba1ec931b9d6cff938636a6acefb46aab55f",
+    "decoded_characters": 749,
+    "observations": [
+      "HEAD setup version 0.2.2, license GPLv3, Requires-Python not declared."
+    ]
+  },
+  "pyvit_license": {
+    "url": "https://raw.githubusercontent.com/linklayer/pyvit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635/LICENSE",
+    "error": "HTTP Error 404: Not Found"
+  },
+  "can_pcan": {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/pcan.html",
+    "content_sha256": "4448617f3de83394b4b79b021fd008d38d7d24c67dadf9de2f881363a45baf19",
+    "decoded_characters": 44739,
+    "observations": [
+      "PCAN-Basic interface. Linux SocketCAN support and CAN FD parameters documented."
+    ]
+  },
+  "can_vector": {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/vector.html",
+    "content_sha256": "9f174be1c63539d39430b088db7e2906cae7a7837de15d75925d9ae34fbd586d",
+    "decoded_characters": 221456,
+    "observations": [
+      "Vector interface and app_name/channel configuration documented."
+    ]
+  },
+  "can_virtual": {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/virtual.html",
+    "content_sha256": "2c5a1f900a324a459baf7465bd4e0c87e69f6ff7f84e3f84d57b0d722f85a2bd",
+    "decoded_characters": 39796,
+    "observations": [
+      "Reliable ordered in-process virtual channel; no physical rate limiting or CAN ID arbitration."
+    ]
+  }
+}

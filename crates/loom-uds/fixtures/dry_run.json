@@ -1,0 +1,63 @@
+[
+  {
+    "block": null,
+    "bytes": {
+      "data": "22f190",
+      "encoding": "hex"
+    },
+    "did_name": "VIN",
+    "dry_run": true,
+    "policy_action": "auto",
+    "reason": "UDS 0x22 ReadDataByIdentifier",
+    "risk": "R0",
+    "service": "ReadDataByIdentifier",
+    "sid": 34,
+    "summary": "ReadDataByIdentifier F190 VIN",
+    "suppress_pos": false,
+    "target": "ecu1"
+  },
+  {
+    "block": null,
+    "bytes": {
+      "data": "2ef1a002",
+      "encoding": "hex"
+    },
+    "dry_run": true,
+    "policy_action": "auto",
+    "reason": "UDS 0x2E WriteDataByIdentifier",
+    "risk": "R2",
+    "service": "WriteDataByIdentifier",
+    "sid": 46,
+    "summary": "WriteDataByIdentifier F1A0 = 02",
+    "suppress_pos": false,
+    "target": "ecu1"
+  },
+  {
+    "block": "immutable_deny",
+    "bytes": {
+      "data": "2a0101",
+      "encoding": "hex"
+    },
+    "dry_run": true,
+    "policy_action": "deny",
+    "reason": "UDS 0x2A ReadDataByPeriodicIdentifier: unsolicited responses not implemented",
+    "risk": "R1",
+    "service": "ReadDataByPeriodicIdentifier",
+    "sid": 42,
+    "summary": "ReadDataByPeriodicIdentifier",
+    "suppress_pos": false,
+    "target": "ecu1"
+  },
+  {
+    "block": null,
+    "dry_run": true,
+    "parse_error": {
+      "at": 7,
+      "message": "odd number of hex digits"
+    },
+    "policy_action": "deny",
+    "reason": "parse error",
+    "suppress_pos": false,
+    "target": "ecu1"
+  }
+]

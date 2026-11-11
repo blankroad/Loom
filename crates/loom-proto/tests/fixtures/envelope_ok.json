@@ -1,0 +1,1 @@
+{"schema_version":1,"ok":true,"cmd":"uart.send","data":{"state":"sent","written_bytes":7,"seq":"88127","generation":1,"request_id":"q-01JC7"},"meta":{"truncated":false,"record_health":"ok","env":"sim","latch":false,"viewers":{"subscribed":1,"visible":1},"stream_epoch":"3","visibility":"visible"},"others_since_last":{"count":"0"}}

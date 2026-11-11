@@ -1,0 +1,26 @@
+// Hand-written fixture: CAN FD messages (VFrameFormat), 64-byte payload, 29-bit id, padding.
+VERSION ""
+
+BU_: ECU GW
+
+BO_ 2564485392 FdBig: 64 ECU
+ SG_ First : 0|8@1+ (1,0) [0|0] "" GW
+ SG_ Mid : 263|16@0+ (1,0) [0|0] "" GW
+ SG_ Last : 504|8@1+ (1,0) [0|0] "" GW
+
+BO_ 600 FdSmall: 18 ECU
+ SG_ X : 136|8@1+ (1,0) [0|0] "" GW
+
+BO_ 601 ClassicLenFd: 8 ECU
+ SG_ Y : 0|8@1+ (1,0) [0|0] "" GW
+
+BO_ 602 Plain: 8 ECU
+ SG_ Z : 0|8@1+ (1,0) [0|0] "" GW
+
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","StandardCAN_FD","ExtendedCAN_FD";
+BA_DEF_ SG_ "GenSigStartValue" INT 0 1000;
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
+BA_DEF_DEF_ "GenSigStartValue" 0;
+BA_ "VFrameFormat" BO_ 2564485392 15;
+BA_ "VFrameFormat" BO_ 600 14;
+BA_ "VFrameFormat" BO_ 601 14;

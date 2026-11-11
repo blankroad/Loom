@@ -1,0 +1,12 @@
+{
+  "schema_draft": "https://json-schema.org/draft/2020-12/schema",
+  "valid_fixture": true,
+  "u64_max_preserved": true,
+  "above_2_53_preserved": true,
+  "numeric_seq_rejected": true,
+  "unknown_tag_rejected": true,
+  "missing_required_rejected": true,
+  "validation": "Ajv 2020 strict",
+  "typescript": "7.0.2",
+  "scope": "Tagged enum + decimal-string newtype + optional field only; not all serde attributes, numeric string syntax/range, or full Loom schema"
+}

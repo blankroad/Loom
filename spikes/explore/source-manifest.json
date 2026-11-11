@@ -1,0 +1,172 @@
+{
+  "retrieved_at": "2026-11-09T14:15:15.519110+00:00",
+  "sources": [
+    {
+      "id": "visa-communication",
+      "url": "https://pyvisa.readthedocs.io/en/latest/introduction/communication.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/visa-communication.txt"
+    },
+    {
+      "id": "visa-binary",
+      "url": "https://pyvisa.readthedocs.io/en/latest/introduction/rvalues.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/visa-binary.txt"
+    },
+    {
+      "id": "visa-py-install",
+      "url": "https://pyvisa-py.readthedocs.io/en/latest/installation.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/visa-py-install.txt"
+    },
+    {
+      "id": "visa-sim",
+      "url": "https://pyvisa-sim.readthedocs.io/en/latest/definitions.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/visa-sim.txt"
+    },
+    {
+      "id": "rtt",
+      "url": "https://kb.segger.com/RTT",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/rtt.txt"
+    },
+    {
+      "id": "jlink-os",
+      "url": "https://www.segger.com/downloads/jlink/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/jlink-os.txt"
+    },
+    {
+      "id": "openocd-server",
+      "url": "https://openocd.org/doc/html/Server-Configuration.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/openocd-server.txt"
+    },
+    {
+      "id": "openocd-rtt",
+      "url": "https://openocd.org/doc/html/General-Commands.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/openocd-rtt.txt"
+    },
+    {
+      "id": "pyocd-docs",
+      "url": "https://pyocd.io/docs/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/pyocd-docs.txt"
+    },
+    {
+      "id": "pyftdi-os",
+      "url": "https://eblot.github.io/pyftdi/installation.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/pyftdi-os.txt"
+    },
+    {
+      "id": "plin",
+      "url": "https://www.peak-system.com/products/software/development-packages/plin-api/?L=1",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/plin.txt"
+    },
+    {
+      "id": "vector-xl",
+      "url": "https://www.vector.com/en/business-unit/testing-validation-diagnostics/products/network-interfaces/xl-driver-library/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/vector-xl.txt"
+    },
+    {
+      "id": "saleae-api",
+      "url": "https://docs.saleae.com/automation/guides/getting-started",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/saleae-api.txt"
+    },
+    {
+      "id": "saleae-os",
+      "url": "https://www.saleae.com/support/logic-software/download-and-installation/supported-operating-systems",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/saleae-os.txt"
+    },
+    {
+      "id": "sigrok-bindings",
+      "url": "https://sigrok.org/wiki/Libsigrok",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/sigrok-bindings.txt"
+    },
+    {
+      "id": "sigrok-windows",
+      "url": "https://sigrok.org/wiki/Windows",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/sigrok-windows.txt"
+    },
+    {
+      "id": "numato-prices",
+      "url": "https://numato.com/product-category/usb-relay-modules",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/numato-prices.txt"
+    },
+    {
+      "id": "ft232h-price",
+      "url": "https://www.adafruit.com/product/2264",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/ft232h-price.txt"
+    },
+    {
+      "id": "jlink-price",
+      "url": "https://www.segger.com/products/debug-probes/j-link/models/j-link-base/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/jlink-price.txt"
+    },
+    {
+      "id": "buspirate",
+      "url": "https://docs.buspirate.com/docs/binmode-reference/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/buspirate.txt"
+    },
+    {
+      "id": "xcp-quickstart",
+      "url": "https://pyxcp.readthedocs.io/en/latest/quickstart.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/xcp-quickstart.txt"
+    },
+    {
+      "id": "xcp-simulator",
+      "url": "https://github.com/vectorgrp/XCPlite",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/xcp-simulator.txt"
+    },
+    {
+      "id": "qemu-gdb",
+      "url": "https://www.qemu.org/docs/master/system/gdb.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/qemu-gdb.txt"
+    },
+    {
+      "id": "renode-gdb",
+      "url": "https://renode.readthedocs.io/en/latest/debugging/gdb.html",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/renode-gdb.txt"
+    },
+    {
+      "id": "someipy-docs",
+      "url": "https://someipy.readthedocs.io/en/latest/",
+      "status": 200,
+      "file": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/docs-raw/someipy-docs.txt"
+    },
+    {
+      "id": "keysight-scpi",
+      "url": "https://helpfiles.keysight.com/csg/e36300/Content/3_SCPI%20Programming/Introduction%20to%20SCPI.htm",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "segger-pricing",
+      "url": "https://www.segger.com/purchase/pricing/jlink-related/",
+      "status": 200,
+      "file": "spikes/explore/docs-raw/segger-pricing.txt"
+    },
+    {
+      "id": "rigol-pricing",
+      "url": "https://www.rigolna.com/products/dc-power-loads/dp800/dp821a/",
+      "status": 200,
+      "file": "spikes/explore/docs-raw/rigol-pricing.txt"
+    }
+  ]
+}

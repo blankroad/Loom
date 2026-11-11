@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SafeStateRunResult",
+  "description": "`core.safe_state.run` result.",
+  "type": "object",
+  "properties": {
+    "items": {
+      "description": "Per-item outcomes, in request order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SafeStateRunItem"
+      }
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "$defs": {
+    "SafeStateOutcome": {
+      "description": "Per-item outcome of a safe-state run.",
+      "oneOf": [
+        {
+          "description": "Sent (see the write rows of `request_id`).",
+          "type": "string",
+          "const": "sent"
+        },
+        {
+          "description": "Skipped (interlock / deny).",
+          "type": "string",
+          "const": "skipped"
+        },
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "failed"
+        }
+      ]
+    },
+    "SafeStateRunItem": {
+      "description": "One item of a [`SafeStateRunResult`].",
+      "type": "object",
+      "properties": {
+        "finally_blocked": {
+          "description": "Skipped because an interlock / deny blocked it (`finally_blocked`).",
+          "type": "boolean",
+          "default": false
+        },
+        "id": {
+          "description": "Item id.",
+          "type": "string"
+        },
+        "outcome": {
+          "description": "Outcome.",
+          "$ref": "#/$defs/SafeStateOutcome"
+        },
+        "reason": {
+          "description": "Reason.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request_id": {
+          "description": "Request id of the write rows.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "outcome"
+      ]
+    }
+  }
+}

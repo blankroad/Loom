@@ -1,0 +1,53 @@
+{
+  "plan_sha256": "2a906bd54588ec37bc7effa753d32202b10f730c7003974cc95e8b4f5f258296",
+  "plan_lines": 1031,
+  "numbered_sections": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16"
+  ],
+  "journal_example": {
+    "compact_utf8_bytes_including_newline": 540,
+    "uncompressed_decimal_GB_per_hour_at_5000fps": 9.72,
+    "decimal_MB_per_second_at_5000fps": 2.7,
+    "limitations": "Arithmetic using section 6.1 one-byte frame; not throughput, RSS, compression or worst-case measurement."
+  },
+  "r1_fc_p99_idle_ms": 1.486,
+  "r1_fc_p99_loaded_ms": 51.862708,
+  "r2_send_error_p99_idle_ms": [
+    4.555958,
+    6.776624999999999
+  ],
+  "r2_send_error_p99_loaded_ms": [
+    46.833291,
+    59.752792
+  ],
+  "r2_blf_closed": {
+    "readable_frames": 100000,
+    "missing_frames": 0,
+    "read_error": null,
+    "bytes": 791158,
+    "write_close_seconds": 0.9881550410063937,
+    "frames_per_second": 101198.69438519918
+  },
+  "r2_blf_abrupt": {
+    "readable_frames": 81920,
+    "missing_frames": 18080,
+    "read_error": null,
+    "bytes": 647272
+  }
+}

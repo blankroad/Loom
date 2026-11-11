@@ -1,0 +1,74 @@
+{
+  "pyuds_tree": {
+    "url": "https://api.github.com/repos/mdabrowski1990/uds/contents?ref=69c90393968c026fd8eef1305e44bc9d95402be1",
+    "content_sha256": "0a80312f67af2eace481833fad487392b37dc36d95e9483b4f52b4338ae2b7f6",
+    "decoded_characters": 14397,
+    "observations": [
+      "README.rst found; CAN transport and client implementation present."
+    ]
+  },
+  "pyuds_description": {
+    "url": "https://pypi.org/pypi/py-uds/5.0.0/json",
+    "content_sha256": "7ed645ecf548fe7708f49341e47a95007b070a5de452b316adacd5dfab8d1afb",
+    "decoded_characters": 9967,
+    "observations": [
+      "README describes client and server ambitions; implementation status must be checked separately."
+    ]
+  },
+  "scapy_uds": {
+    "url": "https://raw.githubusercontent.com/secdev/scapy/v2.8.0/scapy/contrib/automotive/uds.py",
+    "content_sha256": "ac70a24aea884c893299adc87c9aad86d61109a79958f86f0c7b20a4a6a07bb2",
+    "decoded_characters": 64571,
+    "observations": [
+      "UDS packet/service classes and UDS_TesterPresentSender present."
+    ]
+  },
+  "scapy_ecu": {
+    "url": "https://raw.githubusercontent.com/secdev/scapy/v2.8.0/scapy/contrib/automotive/ecu.py",
+    "content_sha256": "fd675becd4e1c1fb07ceccaf21a4187225b0edc345fdc02258c2383240cd0ff5",
+    "decoded_characters": 29115,
+    "observations": [
+      "EcuState, EcuResponse and EcuAnsweringMachine present."
+    ]
+  },
+  "gocan_cdd_readme": {
+    "url": "https://raw.githubusercontent.com/tomrford/gocan/0b385f99468f36715d35ee2ef6e00650184aa3f6/cdd/parse.go",
+    "content_sha256": "116fc186f02327fed1b4208280a16fb5ccadaa96a82ad983d4bbc7b9e084bd9d",
+    "decoded_characters": 10271,
+    "observations": [
+      "CDD record resolver handles component references and diagnostic record fields."
+    ]
+  },
+  "python_ssl": {
+    "url": "https://docs.python.org/3.14/library/ssl.html",
+    "content_sha256": "c028fbd9c439a8290efcdef36aac33ba756386d7d6c6ff5b58d286c2b011fddd",
+    "decoded_characters": 347415,
+    "observations": [
+      "SSLContext.wrap_socket supports server_hostname. Hostname validation requires a verification name."
+    ]
+  },
+  "pyvit_root": {
+    "url": "https://api.github.com/repos/linklayer/pyvit/contents?ref=0192c92f6888747e7daf3dc6c5aa4a6c4768f635",
+    "content_sha256": "fbf407b35f8402cd8941012e5b199899b97279c8f45fdcaa7e338f1745c19685",
+    "decoded_characters": 9474,
+    "observations": [
+      "LICENSE.rst, setup.py and README.rst present."
+    ]
+  },
+  "can_pcan_source": {
+    "url": "https://raw.githubusercontent.com/hardbyte/python-can/v4.6.1/can/interfaces/pcan/basic.py",
+    "content_sha256": "22ffe93739075b0f50abc259f79235a39767ae4b5a3dbb6bad0390ac92f9dec4",
+    "decoded_characters": 41286,
+    "observations": [
+      "Darwin branch loads PCBUSB, identified as third-party MacCAN library."
+    ]
+  },
+  "can_vector_source": {
+    "url": "https://raw.githubusercontent.com/hardbyte/python-can/v4.6.1/can/interfaces/vector/xlclass.py",
+    "content_sha256": "bcfa29b6523b73c7c05e6b053726bb3281fb134dce03c64ada408b58484ec599",
+    "decoded_characters": 8461,
+    "observations": [
+      "Vector ctypes structures inspected; platform restriction should be established from driver loader."
+    ]
+  }
+}

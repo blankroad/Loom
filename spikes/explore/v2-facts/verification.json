@@ -1,0 +1,38 @@
+[
+  {
+    "project": "v2-evidence",
+    "phase": "fmt-check",
+    "exit_code": 0,
+    "elapsed_s": 0.3254233750049025
+  },
+  {
+    "project": "v2-evidence",
+    "phase": "build",
+    "exit_code": 0,
+    "elapsed_s": 1.5215573330642655
+  },
+  {
+    "project": "v2-evidence",
+    "phase": "run",
+    "exit_code": 0,
+    "elapsed_s": 0.4536900829989463
+  },
+  {
+    "project": "v2-saleae-rs",
+    "phase": "fmt-check",
+    "exit_code": 0,
+    "elapsed_s": 0.13850583299063146
+  },
+  {
+    "project": "v2-saleae-rs",
+    "phase": "build",
+    "exit_code": 0,
+    "elapsed_s": 2.7379825419047847
+  },
+  {
+    "project": "v2-saleae-rs",
+    "phase": "run",
+    "exit_code": 0,
+    "elapsed_s": 0.2873507500626147
+  }
+]

@@ -1,0 +1,86 @@
+{
+  "checked": "2026-11-09",
+  "note": "Latest stable PyPI info.version; first artifact upload UTC, not GitHub release date",
+  "packages": [
+    {
+      "name": "pyserial",
+      "version": "3.5",
+      "release_utc": "2020-11-23T03:59:13.410020Z",
+      "python": "",
+      "license": "BSD",
+      "url": "https://pypi.org/project/pyserial/"
+    },
+    {
+      "name": "pyserial-asyncio",
+      "version": "0.6",
+      "release_utc": "2021-09-30T22:29:00.120004Z",
+      "python": "",
+      "license": "BSD",
+      "url": "https://pypi.org/project/pyserial-asyncio/"
+    },
+    {
+      "name": "pyserial-asyncio-fast",
+      "version": "0.16",
+      "release_utc": "2025-03-27T02:35:19.062404Z",
+      "python": ">=3.9",
+      "license": "BSD-3-Clause",
+      "url": "https://pypi.org/project/pyserial-asyncio-fast/"
+    },
+    {
+      "name": "textual",
+      "version": "8.2.8",
+      "release_utc": "2026-06-30T06:51:24.495173Z",
+      "python": "<4.0,>=3.9",
+      "license": "MIT",
+      "url": "https://pypi.org/project/textual/"
+    },
+    {
+      "name": "prompt_toolkit",
+      "version": "3.0.53",
+      "release_utc": "2026-07-26T20:56:12.512245Z",
+      "python": ">=3.10",
+      "license": null,
+      "url": "https://pypi.org/project/prompt_toolkit/"
+    },
+    {
+      "name": "urwid",
+      "version": "5.1.0",
+      "release_utc": "2026-11-06T13:50:59.218034Z",
+      "python": ">=3.11.0",
+      "license": "LGPL-2.1-only",
+      "url": "https://pypi.org/project/urwid/"
+    },
+    {
+      "name": "pexpect",
+      "version": "4.9.0",
+      "release_utc": "2023-11-25T06:56:14.810548Z",
+      "python": "",
+      "license": "ISC license",
+      "url": "https://pypi.org/project/pexpect/"
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "release_utc": "2026-10-30T15:06:39.361797Z",
+      "python": ">=3.11",
+      "license": "BSD-3-Clause",
+      "url": "https://pypi.org/project/websockets/"
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.14.5",
+      "release_utc": "2026-10-11T00:59:07.668168Z",
+      "python": ">=3.10",
+      "license": "Apache-2.0 AND MIT",
+      "url": "https://pypi.org/project/aiohttp/"
+    },
+    {
+      "name": "fastapi",
+      "version": "0.162.2",
+      "release_utc": "2026-11-07T15:41:38.509078Z",
+      "python": ">=3.10",
+      "license": "MIT",
+      "url": "https://pypi.org/project/fastapi/"
+    }
+  ]
+}

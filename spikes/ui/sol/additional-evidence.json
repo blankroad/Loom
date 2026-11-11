@@ -1,0 +1,47 @@
+[
+  {
+    "name": "dockview-react",
+    "version": "8.9.0",
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+      "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    },
+    "published": "2026-11-08T14:21:41.738Z",
+    "repository": {
+      "url": "git+https://github.com/dockview/dockview.git",
+      "type": "git",
+      "directory": "packages/dockview-react"
+    }
+  },
+  {
+    "name": "timechart",
+    "version": "0.5.2",
+    "license": "MIT",
+    "published": "2020-12-07T04:40:38.112Z",
+    "repository": {
+      "url": "git+https://github.com/huww98/TimeChart.git",
+      "type": "git"
+    }
+  },
+  {
+    "name": "echarts",
+    "version": "6.1.0",
+    "license": "Apache-2.0",
+    "published": "2026-05-19T17:52:11.076Z",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/apache/echarts.git"
+    }
+  },
+  {
+    "name": "plotly.js-dist-min",
+    "version": "4.2.0",
+    "license": "MIT",
+    "published": "2026-10-29T20:08:12.885Z",
+    "repository": {
+      "url": "git+https://github.com/plotly/plotly.js.git",
+      "type": "git"
+    }
+  }
+]

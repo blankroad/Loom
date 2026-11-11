@@ -1,0 +1,104 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-4"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "accepted"
+    },
+    "request_id": "r-4"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-4"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "bytes": {
+        "data": "22f190",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F190 VIN",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": true,
+      "write_state": "failed"
+    },
+    "request_id": "r-4"
+  }
+]

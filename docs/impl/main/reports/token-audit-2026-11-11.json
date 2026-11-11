@@ -1,0 +1,1304 @@
+{
+  "capturedAt": {
+    "opus": "2026-11-11T12:12:49.894Z",
+    "codex": "2026-11-11T12:14:03.480Z"
+  },
+  "scope": "Managed Loom teams and their child agents; unrelated w1 and abandoned main attempt excluded",
+  "method": {
+    "claude": "Deduplicate message.id; maximum usage fields across streaming fragments. Cache input categories are disjoint. Thinking is part of output.",
+    "codex": "Differences of distinct cumulative token_count usage; cached_input_tokens is a subset of input_tokens. Reasoning is part of output."
+  },
+  "opus": {
+    "today": {
+      "core-opus": {
+        "requests": 362,
+        "input": 738,
+        "cacheWrite": 4051231,
+        "cacheRead": 212351043,
+        "output": 657846,
+        "thinking": 165271,
+        "contextMax": 964650,
+        "models": {
+          "claude-opus-5-5": 360,
+          "<synthetic>": 2
+        },
+        "contextMedian": 659207,
+        "newTokens": 4709815,
+        "total": 217060858
+      },
+      "can-opus": {
+        "requests": 290,
+        "input": 604,
+        "cacheWrite": 3993668,
+        "cacheRead": 153345892,
+        "output": 610421,
+        "thinking": 184885,
+        "contextMax": 965065,
+        "models": {
+          "claude-opus-5-5": 288,
+          "<synthetic>": 2
+        },
+        "contextMedian": 565242,
+        "newTokens": 4604693,
+        "total": 157950585
+      },
+      "explore-opus": {
+        "requests": 309,
+        "input": 638,
+        "cacheWrite": 3502477,
+        "cacheRead": 144388563,
+        "output": 582759,
+        "thinking": 161608,
+        "contextMax": 951321,
+        "models": {
+          "claude-opus-5-5": 309
+        },
+        "contextMedian": 472781,
+        "newTokens": 4085874,
+        "total": 148474437
+      },
+      "ui-opus": {
+        "requests": 404,
+        "input": 834,
+        "cacheWrite": 3447913,
+        "cacheRead": 207583310,
+        "output": 598987,
+        "thinking": 142259,
+        "contextMax": 962820,
+        "models": {
+          "claude-opus-5-5": 403,
+          "<synthetic>": 1
+        },
+        "contextMedian": 534251,
+        "newTokens": 4047734,
+        "total": 211631044
+      },
+      "ui-lead": {
+        "requests": 253,
+        "input": 540,
+        "cacheWrite": 3415778,
+        "cacheRead": 160234393,
+        "output": 172919,
+        "thinking": 33477,
+        "contextMax": 827777,
+        "models": {
+          "claude-opus-5-5": 244,
+          "<synthetic>": 9
+        },
+        "contextMedian": 667101,
+        "newTokens": 3589237,
+        "total": 163823630
+      },
+      "core-lead": {
+        "requests": 181,
+        "input": 378,
+        "cacheWrite": 3234636,
+        "cacheRead": 107838106,
+        "output": 143729,
+        "thinking": 30603,
+        "contextMax": 774770,
+        "models": {
+          "claude-opus-5-5": 171,
+          "<synthetic>": 10
+        },
+        "contextMedian": 647965,
+        "newTokens": 3378743,
+        "total": 111216849
+      },
+      "can-lead": {
+        "requests": 257,
+        "input": 554,
+        "cacheWrite": 3169432,
+        "cacheRead": 150920742,
+        "output": 154086,
+        "thinking": 35208,
+        "contextMax": 778635,
+        "models": {
+          "claude-opus-5-5": 247,
+          "<synthetic>": 10
+        },
+        "contextMedian": 615107,
+        "newTokens": 3324072,
+        "total": 154244814
+      },
+      "explore-lead": {
+        "requests": 168,
+        "input": 364,
+        "cacheWrite": 2800672,
+        "cacheRead": 87524118,
+        "output": 139781,
+        "thinking": 32981,
+        "contextMax": 682250,
+        "models": {
+          "claude-opus-5-5": 160,
+          "<synthetic>": 8
+        },
+        "contextMedian": 567425,
+        "newTokens": 2940817,
+        "total": 90464935
+      },
+      "uart-opus": {
+        "requests": 146,
+        "input": 304,
+        "cacheWrite": 2211408,
+        "cacheRead": 94403348,
+        "output": 269185,
+        "thinking": 87294,
+        "contextMax": 856754,
+        "models": {
+          "claude-opus-5-5": 146
+        },
+        "contextMedian": 678145,
+        "newTokens": 2480897,
+        "total": 96884245
+      },
+      "uds-opus": {
+        "requests": 146,
+        "input": 306,
+        "cacheWrite": 2035128,
+        "cacheRead": 84932512,
+        "output": 272073,
+        "thinking": 76778,
+        "contextMax": 787376,
+        "models": {
+          "claude-opus-5-5": 144,
+          "<synthetic>": 2
+        },
+        "contextMedian": 604003,
+        "newTokens": 2307507,
+        "total": 87240019
+      },
+      "ui-lead/subagent": {
+        "requests": 340,
+        "input": 686,
+        "cacheWrite": 1752125,
+        "cacheRead": 100459897,
+        "output": 476604,
+        "thinking": 128553,
+        "contextMax": 571198,
+        "models": {
+          "claude-opus-5-5": 338,
+          "<synthetic>": 2
+        },
+        "contextMedian": 271109,
+        "newTokens": 2229415,
+        "total": 102689312
+      },
+      "uart-lead": {
+        "requests": 179,
+        "input": 372,
+        "cacheWrite": 1544000,
+        "cacheRead": 54380917,
+        "output": 161454,
+        "thinking": 33201,
+        "contextMax": 468653,
+        "models": {
+          "claude-opus-5-5": 172,
+          "<synthetic>": 7
+        },
+        "contextMedian": 338552,
+        "newTokens": 1705826,
+        "total": 56086743
+      },
+      "uart-lead/subagent": {
+        "requests": 166,
+        "input": 340,
+        "cacheWrite": 809975,
+        "cacheRead": 28793540,
+        "output": 462561,
+        "thinking": 175763,
+        "contextMax": 332312,
+        "models": {
+          "claude-opus-5-5": 166
+        },
+        "contextMedian": 193394,
+        "newTokens": 1272876,
+        "total": 30066416
+      },
+      "core-lead/subagent": {
+        "requests": 101,
+        "input": 206,
+        "cacheWrite": 679291,
+        "cacheRead": 25747258,
+        "output": 312346,
+        "thinking": 120157,
+        "contextMax": 448630,
+        "models": {
+          "claude-opus-5-5": 100,
+          "<synthetic>": 1
+        },
+        "contextMedian": 233881,
+        "newTokens": 991843,
+        "total": 26739101
+      },
+      "uds-lead/subagent": {
+        "requests": 106,
+        "input": 212,
+        "cacheWrite": 413056,
+        "cacheRead": 15605139,
+        "output": 230932,
+        "thinking": 85067,
+        "contextMax": 277002,
+        "models": {
+          "claude-opus-5-5": 106
+        },
+        "contextMedian": 146867,
+        "newTokens": 644200,
+        "total": 16249339
+      },
+      "uds-lead": {
+        "requests": 100,
+        "input": 214,
+        "cacheWrite": 381434,
+        "cacheRead": 14312150,
+        "output": 73913,
+        "thinking": 21200,
+        "contextMax": 239773,
+        "models": {
+          "claude-opus-5-5": 95,
+          "<synthetic>": 5
+        },
+        "contextMedian": 156823,
+        "newTokens": 455561,
+        "total": 14767711
+      },
+      "can-lead/subagent": {
+        "requests": 44,
+        "input": 88,
+        "cacheWrite": 305773,
+        "cacheRead": 5128904,
+        "output": 90947,
+        "thinking": 42373,
+        "contextMax": 206116,
+        "models": {
+          "claude-opus-5-5": 43,
+          "<synthetic>": 1
+        },
+        "contextMedian": 119697,
+        "newTokens": 396808,
+        "total": 5525712
+      }
+    },
+    "last5h": {
+      "core-opus": {
+        "requests": 161,
+        "input": 326,
+        "cacheWrite": 1467463,
+        "cacheRead": 111931915,
+        "output": 178058,
+        "thinking": 54003,
+        "contextMax": 847813,
+        "models": {
+          "claude-opus-5-5": 160,
+          "<synthetic>": 1
+        },
+        "contextMedian": 720603,
+        "newTokens": 1645847,
+        "total": 113577762
+      },
+      "ui-lead": {
+        "requests": 93,
+        "input": 192,
+        "cacheWrite": 1540976,
+        "cacheRead": 64910076,
+        "output": 56199,
+        "thinking": 11618,
+        "contextMax": 827777,
+        "models": {
+          "claude-opus-5-5": 86,
+          "<synthetic>": 7
+        },
+        "contextMedian": 764131,
+        "newTokens": 1597367,
+        "total": 66507443
+      },
+      "core-lead": {
+        "requests": 56,
+        "input": 114,
+        "cacheWrite": 1462356,
+        "cacheRead": 35036060,
+        "output": 48550,
+        "thinking": 13890,
+        "contextMax": 774770,
+        "models": {
+          "claude-opus-5-5": 50,
+          "<synthetic>": 6
+        },
+        "contextMedian": 718005,
+        "newTokens": 1511020,
+        "total": 36547080
+      },
+      "can-lead": {
+        "requests": 74,
+        "input": 152,
+        "cacheWrite": 1444949,
+        "cacheRead": 48528502,
+        "output": 47870,
+        "thinking": 10251,
+        "contextMax": 778635,
+        "models": {
+          "claude-opus-5-5": 68,
+          "<synthetic>": 6
+        },
+        "contextMedian": 729181,
+        "newTokens": 1492971,
+        "total": 50021473
+      },
+      "can-opus": {
+        "requests": 98,
+        "input": 208,
+        "cacheWrite": 1144401,
+        "cacheRead": 52842515,
+        "output": 165905,
+        "thinking": 36443,
+        "contextMax": 664106,
+        "models": {
+          "claude-opus-5-5": 97,
+          "<synthetic>": 1
+        },
+        "contextMedian": 551909,
+        "newTokens": 1310514,
+        "total": 54153029
+      },
+      "explore-lead": {
+        "requests": 43,
+        "input": 92,
+        "cacheWrite": 1275502,
+        "cacheRead": 23681449,
+        "output": 23229,
+        "thinking": 4964,
+        "contextMax": 682250,
+        "models": {
+          "claude-opus-5-5": 38,
+          "<synthetic>": 5
+        },
+        "contextMedian": 656604,
+        "newTokens": 1298823,
+        "total": 24980272
+      },
+      "explore-opus": {
+        "requests": 59,
+        "input": 124,
+        "cacheWrite": 1136034,
+        "cacheRead": 32280274,
+        "output": 117355,
+        "thinking": 26823,
+        "contextMax": 649625,
+        "models": {
+          "claude-opus-5-5": 59
+        },
+        "contextMedian": 566588,
+        "newTokens": 1253513,
+        "total": 33533787
+      },
+      "ui-opus": {
+        "requests": 158,
+        "input": 326,
+        "cacheWrite": 1089918,
+        "cacheRead": 81984999,
+        "output": 154946,
+        "thinking": 42100,
+        "contextMax": 653316,
+        "models": {
+          "claude-opus-5-5": 157,
+          "<synthetic>": 1
+        },
+        "contextMedian": 531338,
+        "newTokens": 1245190,
+        "total": 83230189
+      },
+      "uart-lead": {
+        "requests": 36,
+        "input": 74,
+        "cacheWrite": 856892,
+        "cacheRead": 13384122,
+        "output": 23557,
+        "thinking": 4390,
+        "contextMax": 468653,
+        "models": {
+          "claude-opus-5-5": 32,
+          "<synthetic>": 4
+        },
+        "contextMedian": 440903,
+        "newTokens": 880523,
+        "total": 14264645
+      },
+      "uart-opus": {
+        "requests": 19,
+        "input": 40,
+        "cacheWrite": 824398,
+        "cacheRead": 15108576,
+        "output": 21258,
+        "thinking": 4141,
+        "contextMax": 856754,
+        "models": {
+          "claude-opus-5-5": 19
+        },
+        "contextMedian": 837923,
+        "newTokens": 845696,
+        "total": 15954272
+      },
+      "uds-opus": {
+        "requests": 4,
+        "input": 8,
+        "cacheWrite": 755020,
+        "cacheRead": 1600617,
+        "output": 3643,
+        "thinking": 108,
+        "contextMax": 787376,
+        "models": {
+          "claude-opus-5-5": 3,
+          "<synthetic>": 1
+        },
+        "contextMedian": 784294,
+        "newTokens": 758671,
+        "total": 2359288
+      },
+      "uds-lead": {
+        "requests": 17,
+        "input": 32,
+        "cacheWrite": 207299,
+        "cacheRead": 2745703,
+        "output": 8646,
+        "thinking": 2707,
+        "contextMax": 239773,
+        "models": {
+          "claude-opus-5-5": 13,
+          "<synthetic>": 4
+        },
+        "contextMedian": 223248,
+        "newTokens": 215977,
+        "total": 2961680
+      }
+    },
+    "sinceTakeover": {
+      "uart-lead": {
+        "requests": 15,
+        "input": 26,
+        "cacheWrite": 436179,
+        "cacheRead": 4637865,
+        "output": 8714,
+        "thinking": 2881,
+        "contextMax": 468653,
+        "models": {
+          "claude-opus-5-5": 11,
+          "<synthetic>": 4
+        },
+        "contextMedian": 457872,
+        "newTokens": 444919,
+        "total": 5082784
+      },
+      "uds-lead": {
+        "requests": 17,
+        "input": 32,
+        "cacheWrite": 207299,
+        "cacheRead": 2745703,
+        "output": 8646,
+        "thinking": 2707,
+        "contextMax": 239773,
+        "models": {
+          "claude-opus-5-5": 13,
+          "<synthetic>": 4
+        },
+        "contextMedian": 223248,
+        "newTokens": 215977,
+        "total": 2961680
+      },
+      "ui-opus": {
+        "requests": 23,
+        "input": 50,
+        "cacheWrite": 40684,
+        "cacheRead": 14533500,
+        "output": 30290,
+        "thinking": 10494,
+        "contextMax": 653316,
+        "models": {
+          "claude-opus-5-5": 23
+        },
+        "contextMedian": 633976,
+        "newTokens": 71024,
+        "total": 14604524
+      },
+      "can-opus": {
+        "requests": 12,
+        "input": 26,
+        "cacheWrite": 27979,
+        "cacheRead": 7810080,
+        "output": 24876,
+        "thinking": 5233,
+        "contextMax": 664106,
+        "models": {
+          "claude-opus-5-5": 12
+        },
+        "contextMedian": 656958,
+        "newTokens": 52881,
+        "total": 7862961
+      },
+      "ui-lead": {
+        "requests": 25,
+        "input": 48,
+        "cacheWrite": 27821,
+        "cacheRead": 16305554,
+        "output": 11857,
+        "thinking": 5290,
+        "contextMax": 827777,
+        "models": {
+          "claude-opus-5-5": 20,
+          "<synthetic>": 5
+        },
+        "contextMedian": 814480,
+        "newTokens": 39726,
+        "total": 16345280
+      },
+      "can-lead": {
+        "requests": 16,
+        "input": 26,
+        "cacheWrite": 16531,
+        "cacheRead": 8489507,
+        "output": 6181,
+        "thinking": 2445,
+        "contextMax": 778635,
+        "models": {
+          "claude-opus-5-5": 11,
+          "<synthetic>": 5
+        },
+        "contextMedian": 771472,
+        "newTokens": 22738,
+        "total": 8512245
+      },
+      "core-opus": {
+        "requests": 5,
+        "input": 10,
+        "cacheWrite": 9801,
+        "cacheRead": 4197289,
+        "output": 9937,
+        "thinking": 1284,
+        "contextMax": 847813,
+        "models": {
+          "claude-opus-5-5": 5
+        },
+        "contextMedian": 840336,
+        "newTokens": 19748,
+        "total": 4217037
+      },
+      "explore-lead": {
+        "requests": 11,
+        "input": 20,
+        "cacheWrite": 11547,
+        "cacheRead": 4737054,
+        "output": 4088,
+        "thinking": 1306,
+        "contextMax": 682250,
+        "models": {
+          "claude-opus-5-5": 7,
+          "<synthetic>": 4
+        },
+        "contextMedian": 676869,
+        "newTokens": 15655,
+        "total": 4752709
+      },
+      "core-lead": {
+        "requests": 9,
+        "input": 14,
+        "cacheWrite": 8015,
+        "cacheRead": 3847518,
+        "output": 4870,
+        "thinking": 1644,
+        "contextMax": 774770,
+        "models": {
+          "claude-opus-5-5": 5,
+          "<synthetic>": 4
+        },
+        "contextMedian": 766933,
+        "newTokens": 12899,
+        "total": 3860417
+      },
+      "uds-opus": {
+        "requests": 1,
+        "input": 0,
+        "cacheWrite": 0,
+        "cacheRead": 0,
+        "output": 0,
+        "thinking": 0,
+        "contextMax": 0,
+        "models": {
+          "<synthetic>": 1
+        },
+        "contextMedian": 0,
+        "newTokens": 0,
+        "total": 0
+      }
+    }
+  },
+  "codex": [
+    {
+      "name": "uart-sol",
+      "windows": {
+        "today": {
+          "requests": 76,
+          "input": 18424282,
+          "cachedInput": 17661056,
+          "output": 128030,
+          "reasoningOutput": 65113,
+          "contextMax": 448754,
+          "newTokens": 891256,
+          "total": 18552312,
+          "cacheRatio": 0.958574993587267
+        },
+        "last5h": {
+          "requests": 53,
+          "input": 11450917,
+          "cachedInput": 10965248,
+          "output": 65898,
+          "reasoningOutput": 30198,
+          "contextMax": 448754,
+          "newTokens": 551567,
+          "total": 11516815,
+          "cacheRatio": 0.9575868902027672
+        },
+        "sinceTakeover": {
+          "requests": 34,
+          "input": 3931453,
+          "cachedInput": 3826816,
+          "output": 26521,
+          "reasoningOutput": 7648,
+          "contextMax": 448754,
+          "newTokens": 131158,
+          "total": 3957974,
+          "cacheRatio": 0.9733846493904417
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T10:53:38.726Z",
+      "models": {
+        "gpt-6.1-sol": 12
+      }
+    },
+    {
+      "name": "uds-sol",
+      "windows": {
+        "today": {
+          "requests": 63,
+          "input": 19004553,
+          "cachedInput": 18699136,
+          "output": 95565,
+          "reasoningOutput": 47178,
+          "contextMax": 400341,
+          "newTokens": 400982,
+          "total": 19100118,
+          "cacheRatio": 0.9839292721065315
+        },
+        "last5h": {
+          "requests": 25,
+          "input": 9193144,
+          "cachedInput": 9152000,
+          "output": 46537,
+          "reasoningOutput": 22901,
+          "contextMax": 400341,
+          "newTokens": 87681,
+          "total": 9239681,
+          "cacheRatio": 0.9955244908597103
+        },
+        "sinceTakeover": {
+          "requests": 25,
+          "input": 9193144,
+          "cachedInput": 9152000,
+          "output": 46537,
+          "reasoningOutput": 22901,
+          "contextMax": 400341,
+          "newTokens": 87681,
+          "total": 9239681,
+          "cacheRatio": 0.9955244908597103
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T10:54:56.875Z",
+      "models": {
+        "gpt-6.1-sol": 18
+      }
+    },
+    {
+      "name": "can-sol",
+      "windows": {
+        "today": {
+          "requests": 178,
+          "input": 45038387,
+          "cachedInput": 44143488,
+          "output": 261596,
+          "reasoningOutput": 115598,
+          "contextMax": 448683,
+          "newTokens": 1156495,
+          "total": 45299983,
+          "cacheRatio": 0.9801303052882422
+        },
+        "last5h": {
+          "requests": 155,
+          "input": 39253972,
+          "cachedInput": 38843648,
+          "output": 180061,
+          "reasoningOutput": 83673,
+          "contextMax": 448683,
+          "newTokens": 590385,
+          "total": 39434033,
+          "cacheRatio": 0.9895469431730374
+        },
+        "sinceTakeover": {
+          "requests": 54,
+          "input": 15999210,
+          "cachedInput": 15855488,
+          "output": 58261,
+          "reasoningOutput": 33075,
+          "contextMax": 363401,
+          "newTokens": 201983,
+          "total": 16057471,
+          "cacheRatio": 0.9910169314609909
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T10:54:24.778Z",
+      "models": {
+        "gpt-6.1-sol": 13
+      }
+    },
+    {
+      "name": "explore-sol",
+      "windows": {
+        "today": {
+          "requests": 244,
+          "input": 55505342,
+          "cachedInput": 54628224,
+          "output": 425091,
+          "reasoningOutput": 192514,
+          "contextMax": 449735,
+          "newTokens": 1302209,
+          "total": 55930433,
+          "cacheRatio": 0.9841975930893282
+        },
+        "last5h": {
+          "requests": 98,
+          "input": 21106935,
+          "cachedInput": 20845952,
+          "output": 149725,
+          "reasoningOutput": 62537,
+          "contextMax": 449735,
+          "newTokens": 410708,
+          "total": 21256660,
+          "cacheRatio": 0.9876352014160275
+        },
+        "sinceTakeover": {
+          "requests": 23,
+          "input": 4812065,
+          "cachedInput": 4739328,
+          "output": 30698,
+          "reasoningOutput": 11714,
+          "contextMax": 243642,
+          "newTokens": 103435,
+          "total": 4842763,
+          "cacheRatio": 0.984884451893314
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T10:53:48.104Z",
+      "models": {
+        "gpt-6.1-sol": 17
+      }
+    },
+    {
+      "name": "ui-sol",
+      "windows": {
+        "today": {
+          "requests": 97,
+          "input": 22406895,
+          "cachedInput": 21597440,
+          "output": 162993,
+          "reasoningOutput": 69104,
+          "contextMax": 447982,
+          "newTokens": 972448,
+          "total": 22569888,
+          "cacheRatio": 0.9638747358792907
+        },
+        "last5h": {
+          "requests": 97,
+          "input": 22406895,
+          "cachedInput": 21597440,
+          "output": 162993,
+          "reasoningOutput": 69104,
+          "contextMax": 447982,
+          "newTokens": 972448,
+          "total": 22569888,
+          "cacheRatio": 0.9638747358792907
+        },
+        "sinceTakeover": {
+          "requests": 16,
+          "input": 1738038,
+          "cachedInput": 1726848,
+          "output": 16888,
+          "reasoningOutput": 5725,
+          "contextMax": 119558,
+          "newTokens": 28078,
+          "total": 1754926,
+          "cacheRatio": 0.9935617057854892
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T10:33:37.304Z",
+      "models": {
+        "gpt-6.1-sol": 9
+      }
+    },
+    {
+      "name": "core-sol",
+      "windows": {
+        "today": {
+          "requests": 167,
+          "input": 39510320,
+          "cachedInput": 38795776,
+          "output": 231838,
+          "reasoningOutput": 120950,
+          "contextMax": 448375,
+          "newTokens": 946382,
+          "total": 39742158,
+          "cacheRatio": 0.9819150034725105
+        },
+        "last5h": {
+          "requests": 126,
+          "input": 31731195,
+          "cachedInput": 31504000,
+          "output": 190865,
+          "reasoningOutput": 106202,
+          "contextMax": 444941,
+          "newTokens": 418060,
+          "total": 31922060,
+          "cacheRatio": 0.9928400112255463
+        },
+        "sinceTakeover": {
+          "requests": 36,
+          "input": 12000304,
+          "cachedInput": 11919360,
+          "output": 63717,
+          "reasoningOutput": 40850,
+          "contextMax": 444941,
+          "newTokens": 144661,
+          "total": 12064021,
+          "cacheRatio": 0.9932548375441156
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T11:01:59.597Z",
+      "models": {
+        "gpt-6.1-sol": 10
+      }
+    },
+    {
+      "name": "main-orch",
+      "windows": {
+        "today": {
+          "requests": 95,
+          "input": 14200440,
+          "cachedInput": 13760000,
+          "output": 39430,
+          "reasoningOutput": 20176,
+          "contextMax": 224374,
+          "newTokens": 479870,
+          "total": 14239870,
+          "cacheRatio": 0.9689840596488559
+        },
+        "last5h": {
+          "requests": 95,
+          "input": 14200440,
+          "cachedInput": 13760000,
+          "output": 39430,
+          "reasoningOutput": 20176,
+          "contextMax": 224374,
+          "newTokens": 479870,
+          "total": 14239870,
+          "cacheRatio": 0.9689840596488559
+        },
+        "sinceTakeover": {
+          "requests": 95,
+          "input": 14200440,
+          "cachedInput": 13760000,
+          "output": 39430,
+          "reasoningOutput": 20176,
+          "contextMax": 224374,
+          "newTokens": 479870,
+          "total": 14239870,
+          "cacheRatio": 0.9689840596488559
+        }
+      },
+      "effort": "high",
+      "latestAt": "2026-11-11T12:13:16.348Z",
+      "models": {
+        "gpt-6.1-sol": 2
+      }
+    }
+  ],
+  "toolCounts": {
+    "core-lead/subagent": {
+      "calls": 121,
+      "names": {
+        "Bash": 89,
+        "Write": 29,
+        "SubagentHandback": 3
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "read": 39,
+        "cargo": 38,
+        "wait": 3,
+        "fullWorkspace": 5
+      },
+      "pollExamples": 0
+    },
+    "core-lead": {
+      "calls": 174,
+      "names": {
+        "Bash": 154,
+        "Write": 14,
+        "Agent": 1,
+        "ToolSearch": 1,
+        "SendMessage": 3,
+        "TaskStop": 1
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "wait": 19,
+        "read": 81,
+        "notify": 11,
+        "cargo": 35,
+        "fullWorkspace": 14
+      },
+      "pollExamples": 0
+    },
+    "uds-lead/subagent": {
+      "calls": 124,
+      "names": {
+        "Bash": 90,
+        "Read": 2,
+        "Write": 26,
+        "Edit": 4,
+        "SubagentHandback": 2
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/uds/crates/loom-uds-runner/src/runner.rs": 1,
+        "/Users/ctmctm/.claude/projects/-Users-ctmctm-workspace-Loom/1a6cf52f-186a-4b7e-9e7c-f3cbd6fc304f/tool-results/bqddcyvfa.txt": 1
+      },
+      "shellKinds": {
+        "read": 44,
+        "cargo": 23,
+        "wait": 3
+      },
+      "pollExamples": 0
+    },
+    "uds-lead": {
+      "calls": 95,
+      "names": {
+        "Bash": 84,
+        "Read": 1,
+        "Write": 7,
+        "Edit": 1,
+        "Agent": 2
+      },
+      "readPaths": {
+        "/Users/ctmctm/.claude/projects/-Users-ctmctm-workspace-Loom/1a6cf52f-186a-4b7e-9e7c-f3cbd6fc304f/tool-results/b42wzvyem.txt": 1
+      },
+      "shellKinds": {
+        "read": 54,
+        "wait": 3,
+        "notify": 8,
+        "cargo": 12
+      },
+      "pollExamples": 0
+    },
+    "uds-opus": {
+      "calls": 155,
+      "names": {
+        "Bash": 113,
+        "Write": 34,
+        "Edit": 5,
+        "Read": 3
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/uds/crates/loom-uds/src/payload.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/uds/crates/loom-uds/src/module.rs": 1,
+        "/Users/ctmctm/workspace/Loom/docs/impl/uds/reports/p1b-opus.md": 1
+      },
+      "shellKinds": {
+        "read": 73,
+        "cargo": 31,
+        "wait": 5
+      },
+      "pollExamples": 0
+    },
+    "can-opus": {
+      "calls": 325,
+      "names": {
+        "Bash": 254,
+        "Write": 32,
+        "Edit": 26,
+        "Read": 12,
+        "AskUserQuestion": 1
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-dbc/tests/load.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-isotp/src/lib.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-isotp/src/codec.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-isotp/src/engine.rs": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-isotp/tests/protocol.rs": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can-isotp/README.md": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can/src/gateway.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can/src/cli.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can/src/worker.rs": 2
+      },
+      "shellKinds": {
+        "cargo": 104,
+        "read": 129,
+        "wait": 2
+      },
+      "pollExamples": 0
+    },
+    "ui-lead/subagent": {
+      "calls": 376,
+      "names": {
+        "Bash": 316,
+        "Write": 51,
+        "Edit": 2,
+        "SubagentHandback": 3,
+        "ToolSearch": 1,
+        "Read": 3
+      },
+      "readPaths": {
+        "/Users/ctmctm/.claude/projects/-Users-ctmctm-workspace-Loom/5859124a-8325-4c01-9837-9161827b8ccd/tool-results/bvs0d0604.txt": 1,
+        "/Users/ctmctm/.claude/projects/-Users-ctmctm-workspace-Loom/5859124a-8325-4c01-9837-9161827b8ccd/tool-results/bdqe2s8b8.txt": 1,
+        "/Users/ctmctm/.claude/projects/-Users-ctmctm-workspace-Loom/5859124a-8325-4c01-9837-9161827b8ccd/tool-results/b05sd4ie8.txt": 1
+      },
+      "shellKinds": {
+        "read": 160,
+        "wait": 24,
+        "cargo": 1
+      },
+      "pollExamples": 0
+    },
+    "ui-lead": {
+      "calls": 245,
+      "names": {
+        "Bash": 229,
+        "ToolSearch": 1,
+        "SendMessage": 8,
+        "Write": 5,
+        "Agent": 2
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "wait": 6,
+        "read": 149,
+        "notify": 17,
+        "cargo": 12
+      },
+      "pollExamples": 0
+    },
+    "ui-opus": {
+      "calls": 473,
+      "names": {
+        "Write": 72,
+        "Edit": 34,
+        "Bash": 353,
+        "Read": 14
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/store/adapter.ts": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/store/shellControl.ts": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/shell/ShellApp.tsx": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/store/rowStore.ts": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/sdk/context.ts": 3,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/sdk/sdk.test.ts": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/shell/TopBar.tsx": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/shell/services.ts": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/shell/Layout.tsx": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/sdk/storeMirror.ts": 1
+      },
+      "shellKinds": {
+        "read": 169,
+        "wait": 4
+      },
+      "pollExamples": 0
+    },
+    "uart-lead/subagent": {
+      "calls": 183,
+      "names": {
+        "Bash": 134,
+        "Write": 31,
+        "Read": 3,
+        "SubagentHandback": 3,
+        "ToolSearch": 2,
+        "Monitor": 2,
+        "TaskStop": 2,
+        "Edit": 6
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/uart/crates/loom-uart-worker/src/channel.rs": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/uart/crates/loom-uart-worker/tests/channel_core.rs": 1
+      },
+      "shellKinds": {
+        "read": 74,
+        "cargo": 53
+      },
+      "pollExamples": 0
+    },
+    "uart-lead": {
+      "calls": 177,
+      "names": {
+        "Bash": 156,
+        "Write": 15,
+        "Agent": 3,
+        "SendMessage": 3
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "read": 111,
+        "wait": 9,
+        "notify": 9,
+        "cargo": 33,
+        "fullWorkspace": 1
+      },
+      "pollExamples": 0
+    },
+    "can-lead/subagent": {
+      "calls": 50,
+      "names": {
+        "Bash": 40,
+        "Write": 4,
+        "Edit": 4,
+        "Read": 1,
+        "SubagentHandback": 1
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can/src/worker.rs": 1
+      },
+      "shellKinds": {
+        "read": 27,
+        "cargo": 7
+      },
+      "pollExamples": 0
+    },
+    "can-lead": {
+      "calls": 230,
+      "names": {
+        "Bash": 214,
+        "Write": 10,
+        "Agent": 1,
+        "Read": 1,
+        "Edit": 3,
+        "SendMessage": 1
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/can/crates/loom-can/src/lib.rs": 1
+      },
+      "shellKinds": {
+        "wait": 48,
+        "read": 132,
+        "cargo": 47,
+        "notify": 14,
+        "fullWorkspace": 9
+      },
+      "pollExamples": 0
+    },
+    "core-opus": {
+      "calls": 408,
+      "names": {
+        "Bash": 315,
+        "Write": 75,
+        "Read": 11,
+        "Edit": 7
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-cli-kit/src/lib.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-cli-kit/tests/kit.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-gateway/src/replay/hub.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-gateway/src/replay/conn.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-gateway/src/daemon.rs": 6,
+        "/Users/ctmctm/workspace/Loom/.worktrees/core/crates/loom-gateway/src/daemon/core_rpc.rs": 1
+      },
+      "shellKinds": {
+        "read": 130,
+        "cargo": 117,
+        "fullWorkspace": 25,
+        "wait": 20
+      },
+      "pollExamples": 0
+    },
+    "uart-opus": {
+      "calls": 167,
+      "names": {
+        "Bash": 126,
+        "Write": 21,
+        "Read": 3,
+        "Edit": 16,
+        "ToolSearch": 1
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/uart/crates/loom-console/src/arbiter.rs": 2,
+        "/Users/ctmctm/workspace/Loom/.worktrees/uart/crates/loom-uart-worker/src/worker/send.rs": 1
+      },
+      "shellKinds": {
+        "read": 67,
+        "cargo": 29,
+        "wait": 2
+      },
+      "pollExamples": 0
+    },
+    "explore-opus": {
+      "calls": 338,
+      "names": {
+        "Bash": 263,
+        "Write": 66,
+        "Edit": 6,
+        "Read": 3
+      },
+      "readPaths": {
+        "/Users/ctmctm/workspace/Loom/.worktrees/eth/crates/loom-eth-decode/src/stream.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/eth/crates/loom-eth-filter/src/lexer.rs": 1,
+        "/Users/ctmctm/workspace/Loom/.worktrees/eth/crates/loom-eth/src/model.rs": 1
+      },
+      "shellKinds": {
+        "read": 144,
+        "cargo": 64,
+        "fullWorkspace": 12
+      },
+      "pollExamples": 0
+    },
+    "other-w1": {
+      "calls": 58,
+      "names": {
+        "Bash": 57,
+        "Write": 1
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "wait": 39,
+        "read": 23,
+        "cargo": 8,
+        "fullWorkspace": 7,
+        "notify": 10
+      },
+      "pollExamples": 0
+    },
+    "explore-lead": {
+      "calls": 150,
+      "names": {
+        "Bash": 149,
+        "Write": 1
+      },
+      "readPaths": {},
+      "shellKinds": {
+        "read": 95,
+        "cargo": 28,
+        "wait": 13,
+        "notify": 9,
+        "fullWorkspace": 14
+      },
+      "pollExamples": 0
+    }
+  },
+  "warning": "Local telemetry, not an invoice. Provider billing and subscription quota weights are not inferred."
+}

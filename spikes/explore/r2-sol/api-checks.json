@@ -1,0 +1,8 @@
+{
+  "pyocd_rtt_subcommand": [
+    "rtt"
+  ],
+  "pyvisa_sim_device_properties": "voltage/current/output setters and getters exercised by R1 psu.yaml + backend-results.json",
+  "can_message_parameters": "(timestamp: float = 0.0, arbitration_id: int = 0, is_extended_id: bool = True, is_remote_frame: bool = False, is_error_frame: bool = False, channel: int | str | collections.abc.Sequence[int] | None = None, dlc: int | None = None, data: bytes | bytearray | int | collections.abc.Iterable[int] | None = None, is_fd: bool = False, is_rx: bool = True, bitrate_switch: bool = False, error_state_indicator: bool = False, check: bool = False)",
+  "can_fd_dlc65": "DLC was 65 but it should be <= 64 for CAN FD frames"
+}

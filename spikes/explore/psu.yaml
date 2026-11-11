@@ -1,0 +1,26 @@
+spec: "1.0"
+devices:
+  psu:
+    eom:
+      TCPIP INSTR: {q: "\n", r: "\n"}
+    error: ERROR
+    dialogues:
+      - {q: "*IDN?", r: "LOOM,SIM-PSU,1,0"}
+    properties:
+      voltage:
+        default: 0.0
+        getter: {q: "VOLT?", r: "{:.3f}"}
+        setter: {q: "VOLT {:.3f}"}
+        specs: {min: 0, max: 16, type: float}
+      current:
+        default: 0.1
+        getter: {q: "CURR?", r: "{:.3f}"}
+        setter: {q: "CURR {:.3f}"}
+        specs: {min: 0, max: 1, type: float}
+      output:
+        default: 0
+        getter: {q: "OUTP?", r: "{:d}"}
+        setter: {q: "OUTP {:d}"}
+        specs: {valid: [0, 1], type: int}
+resources:
+  TCPIP::localhost::INSTR: {device: psu}

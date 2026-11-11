@@ -1,0 +1,44 @@
+[
+  {
+    "name": "local-dlt-common",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/third_party/dlt/orig/include/dlt/dlt_common.h",
+    "sha256": "faffa74687dac449dd984bbcb480db8c406f0646f18ae88617f5bbc78416e648",
+    "lines": 2282,
+    "excerpt_file": "local-dlt-common-excerpts.txt"
+  },
+  {
+    "name": "local-dlt-protocol",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/third_party/dlt/orig/include/dlt/dlt_protocol.h",
+    "sha256": "42ad5d43bcab511b0a6492fc3463dfbde51bb5e4166aa6f2d037e91db6d027e8",
+    "lines": 287,
+    "excerpt_file": "local-dlt-protocol-excerpts.txt"
+  },
+  {
+    "name": "local-dlt-client",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/build/dlt/orig/src/src/lib/dlt_client.c",
+    "sha256": "c7ca0e96e2f07d9dd60657661d05c5842c8708836033e90d08d621751e0bf2fd",
+    "lines": 2199,
+    "excerpt_file": "local-dlt-client-excerpts.txt"
+  },
+  {
+    "name": "local-dlt-daemon-client",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/build/dlt/orig/src/src/daemon/dlt_daemon_client.c",
+    "sha256": "77b38eb09eb8bfd2125d9b9c29a0ca63cfe16730dd3fd29c1340d34a01bae944",
+    "lines": 4551,
+    "excerpt_file": "local-dlt-daemon-client-excerpts.txt"
+  },
+  {
+    "name": "local-dlt-common-c",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/build/dlt/orig/src/src/shared/dlt_common.c",
+    "sha256": "bf4837b657924f762e244b061dab0f205e7050603232ebadcded8ae7d7efaf5f",
+    "lines": 6608,
+    "excerpt_file": "local-dlt-common-c-excerpts.txt"
+  },
+  {
+    "name": "local-dlt-daemon-connection",
+    "path": "/Users/ctmctm/Desktop/01_PROJECT/dlt-wrapper/build/dlt/orig/src/src/daemon/dlt_daemon_connection.c",
+    "sha256": "1ca206d5b3b62d0774a146c4f81731996ff7d623c43cb56f591a8b14e5aaa688",
+    "lines": 428,
+    "excerpt_file": "local-dlt-daemon-connection-excerpts.txt"
+  }
+]

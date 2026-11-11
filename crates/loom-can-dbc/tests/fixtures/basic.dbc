@@ -1,0 +1,44 @@
+// Hand-written fixture for loom-can-dbc tests. Expected bytes are computed by hand in tests/codec.rs.
+VERSION ""
+
+NS_ :
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+
+BS_:
+
+BU_: ECU GW
+
+BO_ 256 EngineData: 8 ECU
+ SG_ EngRPM : 0|16@1+ (0.25,0) [0|16000] "rpm" GW
+ SG_ EngTemp : 16|8@1- (1,0) [-40|127] "degC" GW
+ SG_ Flag : 24|1@1+ (1,0) [0|1] "" GW
+ SG_ Gear : 25|3@1+ (1,0) [0|7] "" GW
+ SG_ MotoA : 39|12@0+ (1,0) [0|4095] "" GW
+ SG_ MotoB : 43|4@0+ (1,0) [0|15] "" GW
+ SG_ Volt : 55|16@0- (0.01,-1.5) [-200|200] "V" GW
+
+BO_ 512 Wide: 8 ECU
+ SG_ U64 : 0|64@1+ (1,0) [0|0] "" GW
+
+BO_ 513 WideM: 8 ECU
+ SG_ S64 : 7|64@0- (1,0) [0|0] "" GW
+
+BO_ 2566844672 J1939: 8 ECU
+ SG_ Speed : 8|16@1+ (0.00390625,0) [0|250.996] "km/h" GW
+
+CM_ SG_ 256 EngRPM "Engine speed";
+CM_ BO_ 256 "Engine status";
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 65535;
+BA_DEF_ SG_ "GenSigStartValue" INT -2147483648 2147483647;
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_ "GenMsgCycleTime" BO_ 256 10;
+BA_ "GenSigStartValue" SG_ 256 EngRPM 3200;
+BA_ "GenSigStartValue" SG_ 256 EngTemp -10;
+BA_ "GenSigStartValue" SG_ 256 Flag 0;
+BA_ "GenSigStartValue" SG_ 256 Gear 2;
+BA_ "GenSigStartValue" SG_ 256 MotoA 0;
+BA_ "GenSigStartValue" SG_ 256 MotoB 0;
+VAL_ 256 Gear 0 "P" 1 "R" 2 "N" 3 "D" ;

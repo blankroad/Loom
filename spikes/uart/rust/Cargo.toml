@@ -1,0 +1,11 @@
+[package]
+name = "uart-rust-feasibility"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+serialport = { version = "=4.10.1", default-features = false }
+nix = { version = "=0.31.3", features = ["term", "fs"] }
+regex = "=1.13.1"
+memchr = "=2.8.3"

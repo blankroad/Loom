@@ -1,0 +1,714 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Result envelope of every command / RPC.",
+  "type": "object",
+  "properties": {
+    "cmd": {
+      "description": "Command / method (`uart.send`).",
+      "type": "string"
+    },
+    "data": {
+      "description": "Result data on success."
+    },
+    "error": {
+      "description": "Error on failure.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ErrorBody"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "meta": {
+      "description": "Metadata.",
+      "$ref": "#/$defs/Meta",
+      "default": {
+        "latch": false,
+        "record_health": "ok",
+        "stream_epoch": "0",
+        "truncated": false,
+        "viewers": {
+          "subscribed": 0,
+          "visible": 0
+        }
+      }
+    },
+    "ok": {
+      "description": "Success flag.",
+      "type": "boolean"
+    },
+    "others_since_last": {
+      "description": "User / other activity since the last call (always present).",
+      "$ref": "#/$defs/OthersSinceLast"
+    },
+    "schema_version": {
+      "description": "Envelope schema version ([`crate::SCHEMA_VERSION`]).",
+      "type": "integer",
+      "format": "uint16",
+      "maximum": 65535,
+      "minimum": 0
+    },
+    "warnings": {
+      "description": "Warnings.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Warning"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "ok",
+    "cmd",
+    "others_since_last"
+  ],
+  "$defs": {
+    "Cursor": {
+      "description": "Cursor: @last | now | seq:N | e<E>:seq:N | mark:X | -5s | HH:MM:SS[.mmm] | ISO8601 | <prefix>:<value>",
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "Env": {
+      "description": "Environment badge (B4). Does not change risk handling.",
+      "oneOf": [
+        {
+          "description": "Simulation backends.",
+          "type": "string",
+          "const": "sim"
+        },
+        {
+          "description": "Bench hardware.",
+          "type": "string",
+          "const": "bench"
+        },
+        {
+          "description": "Real vehicle.",
+          "type": "string",
+          "const": "vehicle"
+        }
+      ]
+    },
+    "ErrorBody": {
+      "description": "Error body of a failed result.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Error code (decides the exit code).",
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "detail": {
+          "description": "Structured detail."
+        },
+        "hint": {
+          "description": "What the agent should do next.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "description": "One-line message.",
+          "type": "string"
+        },
+        "request_id": {
+          "description": "Request id, for `loom status --request`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retryable": {
+          "description": "Safe to retry as-is (never true for writes with unknown outcome).",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ]
+    },
+    "ErrorCode": {
+      "description": "Loom error code (`error.code` in the CLI envelope). Wire form is `\"E_…\"`.",
+      "oneOf": [
+        {
+          "description": "Internal bug or unexpected state.",
+          "type": "string",
+          "const": "E_INTERNAL"
+        },
+        {
+          "description": "Stub / not yet implemented path (P0 stubs never fake device success).",
+          "type": "string",
+          "const": "E_NOT_IMPLEMENTED"
+        },
+        {
+          "description": "Bad command-line usage or arguments.",
+          "type": "string",
+          "const": "E_USAGE"
+        },
+        {
+          "description": "Channel name matches more than one candidate.",
+          "type": "string",
+          "const": "E_AMBIGUOUS_CHANNEL"
+        },
+        {
+          "description": "Configuration (loom.toml / policy) error.",
+          "type": "string",
+          "const": "E_CONFIG"
+        },
+        {
+          "description": "Database / diagnostic DB error.",
+          "type": "string",
+          "const": "E_DB"
+        },
+        {
+          "description": "RPC method not registered.",
+          "type": "string",
+          "const": "E_UNKNOWN_METHOD"
+        },
+        {
+          "description": "Parameters failed schema validation.",
+          "type": "string",
+          "const": "E_SCHEMA"
+        },
+        {
+          "description": "Condition wait timed out (expect, wait-for, approval wait).",
+          "type": "string",
+          "const": "E_TIMEOUT"
+        },
+        {
+          "description": "Immediate check: condition not met (E2).",
+          "type": "string",
+          "const": "E_NO_MATCH"
+        },
+        {
+          "description": "Immediate check: forbidden match was found (E2).",
+          "type": "string",
+          "const": "E_UNEXPECTED_MATCH"
+        },
+        {
+          "description": "Immediate check: count outside the expected range (E2).",
+          "type": "string",
+          "const": "E_COUNT_OUT_OF_RANGE"
+        },
+        {
+          "description": "Policy denial (hard deny list, configured deny).",
+          "type": "string",
+          "const": "E_DENIED"
+        },
+        {
+          "description": "Service Loom does not implement (`immutable_deny`, F1).",
+          "type": "string",
+          "const": "E_UNSUPPORTED"
+        },
+        {
+          "description": "Rate limit exceeded.",
+          "type": "string",
+          "const": "E_RATE_LIMIT"
+        },
+        {
+          "description": "Gateway admission full (RPC slots); retry later.",
+          "type": "string",
+          "const": "E_BUSY"
+        },
+        {
+          "description": "Recording / audit unavailable: agent·script R1+ writes blocked (A12).",
+          "type": "string",
+          "const": "E_RECORDING_FAILED"
+        },
+        {
+          "description": "Test verdict PASS without evidence.",
+          "type": "string",
+          "const": "E_EVIDENCE_MISSING"
+        },
+        {
+          "description": "Cited evidence does not match the claim.",
+          "type": "string",
+          "const": "E_EVIDENCE_MISMATCH"
+        },
+        {
+          "description": "Cited evidence lies outside the step window.",
+          "type": "string",
+          "const": "E_OUT_OF_WINDOW"
+        },
+        {
+          "description": "Cited predicate is not the registered plan expectation.",
+          "type": "string",
+          "const": "E_PLAN_MISMATCH"
+        },
+        {
+          "description": "R2 confirmation token required (only when enabled by policy, F1).",
+          "type": "string",
+          "const": "E_CONFIRM_REQUIRED"
+        },
+        {
+          "description": "Viewer approval required (only when enabled by policy, F1).",
+          "type": "string",
+          "const": "E_APPROVAL_REQUIRED"
+        },
+        {
+          "description": "Approval required but no approving viewer is connected.",
+          "type": "string",
+          "const": "E_NO_APPROVER"
+        },
+        {
+          "description": "The user denied the approval.",
+          "type": "string",
+          "const": "E_APPROVAL_DENIED"
+        },
+        {
+          "description": "Approval expired or already used.",
+          "type": "string",
+          "const": "E_APPROVAL_EXPIRED"
+        },
+        {
+          "description": "The user is typing / holds input.",
+          "type": "string",
+          "const": "E_USER_ACTIVE"
+        },
+        {
+          "description": "Resource locked by another client.",
+          "type": "string",
+          "const": "E_LOCKED"
+        },
+        {
+          "description": "Agent lock was broken by the user.",
+          "type": "string",
+          "const": "E_LOCK_BROKEN"
+        },
+        {
+          "description": "User hold in effect.",
+          "type": "string",
+          "const": "E_HELD_BY_USER"
+        },
+        {
+          "description": "User interrupted the operation.",
+          "type": "string",
+          "const": "E_INTERRUPTED_BY_USER"
+        },
+        {
+          "description": "Late-response quarantine (UDS).",
+          "type": "string",
+          "const": "E_QUARANTINE"
+        },
+        {
+          "description": "STOP latch is on.",
+          "type": "string",
+          "const": "E_STOPPED"
+        },
+        {
+          "description": "Lease not held.",
+          "type": "string",
+          "const": "E_LEASE"
+        },
+        {
+          "description": "Another test session is active.",
+          "type": "string",
+          "const": "E_SESSION_ACTIVE"
+        },
+        {
+          "description": "Test session is paused (E3).",
+          "type": "string",
+          "const": "E_SESSION_PAUSED"
+        },
+        {
+          "description": "Channel / target not open.",
+          "type": "string",
+          "const": "E_NOT_OPEN"
+        },
+        {
+          "description": "Device disconnected.",
+          "type": "string",
+          "const": "E_DISCONNECTED"
+        },
+        {
+          "description": "Device identity / generation changed.",
+          "type": "string",
+          "const": "E_CONNECTION_CHANGED"
+        },
+        {
+          "description": "CAN bus-off.",
+          "type": "string",
+          "const": "E_BUS_OFF"
+        },
+        {
+          "description": "Device did not respond (UDS P2/P2*); writes are `outcome_unknown`.",
+          "type": "string",
+          "const": "E_NO_RESPONSE"
+        },
+        {
+          "description": "Port in use by another program.",
+          "type": "string",
+          "const": "E_PORT_BUSY"
+        },
+        {
+          "description": "OS permission denied (e.g. dialout).",
+          "type": "string",
+          "const": "E_PERMISSION"
+        },
+        {
+          "description": "Device / target not found.",
+          "type": "string",
+          "const": "E_NOT_FOUND"
+        },
+        {
+          "description": "Owning worker process is down / quarantined.",
+          "type": "string",
+          "const": "E_WORKER_DOWN"
+        },
+        {
+          "description": "Worker control lane full; the write was not sent.",
+          "type": "string",
+          "const": "E_WORKER_BUSY"
+        },
+        {
+          "description": "Cursor refers to data outside retention / another epoch.",
+          "type": "string",
+          "const": "E_CURSOR_GAP"
+        },
+        {
+          "description": "Bounded scan limit reached; resume with `resume_from`.",
+          "type": "string",
+          "const": "E_SCAN_LIMIT"
+        },
+        {
+          "description": "Partial result (e.g. write sent but not yet published, E7).",
+          "type": "string",
+          "const": "E_PARTIAL"
+        },
+        {
+          "description": "Daemon unreachable.",
+          "type": "string",
+          "const": "E_DAEMON"
+        },
+        {
+          "description": "Protocol major version mismatch.",
+          "type": "string",
+          "const": "E_PROTO_MISMATCH"
+        },
+        {
+          "description": "Device negative response (UDS NRC).",
+          "type": "string",
+          "const": "E_NRC"
+        },
+        {
+          "description": "Test session / `run --test` verdict failed (E3).",
+          "type": "string",
+          "const": "E_TEST_FAILED"
+        },
+        {
+          "description": "도메인이 정한 자원·운영 상한을 넘었다(기존 variant 순서는 유지).",
+          "type": "string",
+          "const": "E_LIMIT"
+        }
+      ]
+    },
+    "GapCount": {
+      "description": "Exact loss count as canonical decimal string, or \"unknown\".",
+      "type": "string",
+      "pattern": "^(unknown|0|[1-9][0-9]{0,19})$"
+    },
+    "GapSummary": {
+      "description": "Short gap summary carried in envelopes and event batches.",
+      "type": "object",
+      "properties": {
+        "causes": {
+          "description": "Distinct causes.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "count": {
+          "description": "Total lost events.",
+          "$ref": "#/$defs/GapCount"
+        },
+        "seq_range": {
+          "description": "Covered stream range when known.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeqRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "count"
+      ]
+    },
+    "Meta": {
+      "description": "Envelope metadata.",
+      "type": "object",
+      "properties": {
+        "display_gap": {
+          "description": "Screen-only drops within the range.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "env": {
+          "description": "Environment badge (B4).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Env"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "latch": {
+          "description": "STOP latch state.",
+          "type": "boolean",
+          "default": false
+        },
+        "next_cursor": {
+          "description": "Cursor to continue reading.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Cursor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "range": {
+          "description": "Stream range covered by this result.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeqRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "record_health": {
+          "description": "Recording health at reply time.",
+          "$ref": "#/$defs/RecordHealth",
+          "default": "ok"
+        },
+        "stream_epoch": {
+          "description": "Stream epoch at reply time.",
+          "$ref": "#/$defs/U64",
+          "default": "0"
+        },
+        "truncated": {
+          "description": "Output was cut by size/row limits.",
+          "type": "boolean",
+          "default": false
+        },
+        "viewers": {
+          "description": "Viewer counts.",
+          "$ref": "#/$defs/Viewers",
+          "default": {
+            "subscribed": 0,
+            "visible": 0
+          }
+        },
+        "visibility": {
+          "description": "Visibility summary.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Visibility"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Origin": {
+      "description": "Who caused the event (fixed 4 values, D3). Decided by connection credentials, never by\nrequest fields.",
+      "oneOf": [
+        {
+          "description": "AI agent via CLI / agent connection.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Human via a viewer connection.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The device (or external tool on the bus, see `external_actor`).",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Loom runner / test session.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "OthersSinceLast": {
+      "description": "User / other-actor activity since this client's previous call (D5, I5).",
+      "type": "object",
+      "properties": {
+        "by_channel": {
+          "description": "Count per channel (`<domain>:<channel>`).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/U64"
+          }
+        },
+        "count": {
+          "description": "Number of counted events.",
+          "$ref": "#/$defs/U64"
+        },
+        "from_cursor": {
+          "description": "Cursor the count starts from (`None` on the first call).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Cursor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kinds": {
+          "description": "Count per event kind.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/U64"
+          }
+        },
+        "origins": {
+          "description": "Distinct origins among them.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Origin"
+          }
+        }
+      },
+      "required": [
+        "count"
+      ]
+    },
+    "RecordHealth": {
+      "description": "Recording health (A12).",
+      "oneOf": [
+        {
+          "description": "Recording normally.",
+          "type": "string",
+          "const": "ok"
+        },
+        {
+          "description": "Backlog building up, nothing lost yet.",
+          "type": "string",
+          "const": "degraded"
+        },
+        {
+          "description": "Original data lost or audit unavailable: agent·script R1+ writes blocked.",
+          "type": "string",
+          "const": "failed"
+        },
+        {
+          "description": "Intentionally off (`--no-record`; audit still on).",
+          "type": "string",
+          "const": "disabled"
+        }
+      ]
+    },
+    "SeqRange": {
+      "description": "Inclusive stream-seq range.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "First seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        },
+        "to": {
+          "description": "Last seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "Viewers": {
+      "description": "Viewer counts (uart-core #13). `visible` is a tab-visibility report, not proof of a human.",
+      "type": "object",
+      "properties": {
+        "subscribed": {
+          "description": "Viewer connections with an active subscription.",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "visible": {
+          "description": "Of those, viewers reporting a visible panel.",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        }
+      },
+      "required": [
+        "subscribed",
+        "visible"
+      ]
+    },
+    "Visibility": {
+      "description": "Summary of whether the user can currently see results.",
+      "oneOf": [
+        {
+          "description": "At least one visible viewer.",
+          "type": "string",
+          "const": "visible"
+        },
+        {
+          "description": "Viewers connected but none visible (`no_visible_viewer`).",
+          "type": "string",
+          "const": "not_visible"
+        },
+        {
+          "description": "No viewer connected (`no_viewer_attached`).",
+          "type": "string",
+          "const": "no_viewer"
+        }
+      ]
+    },
+    "Warning": {
+      "description": "Warning item (`warnings[]`).",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Warning code (see [`warnings`]).",
+          "type": "string"
+        },
+        "detail": {
+          "description": "Optional detail."
+        }
+      },
+      "required": [
+        "code"
+      ]
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "checked_at": "2026-11-09T14:39:39.348811+00:00",
+  "plan_sha256": "4f00a9ff65bffd0e697ebc5d555371fdbf55540cbd03ef9dd5153f695778f2c9",
+  "remote_sources": {
+    "wireshark": {
+      "url": "https://raw.githubusercontent.com/wireshark/wireshark/master/epan/dissectors/packet-doip.c",
+      "sha256": "ad42912b3b1d9c38dbc35a0d7f065c79b3aedff5e07254a11af7ac798c0f529e",
+      "matching_lines": [
+        {
+          "line": 218,
+          "text": "{ 0xE0, \"Central security\" },"
+        }
+      ]
+    },
+    "scapy": {
+      "url": "https://raw.githubusercontent.com/secdev/scapy/v2.8.0/scapy/contrib/automotive/doip.py",
+      "sha256": "6a929d8322751e208bbb4b8a3712ca296929ca8dd06483c380b4afe1fdcb98df",
+      "matching_lines": [
+        {
+          "line": 173,
+          "text": "0: \"Default\", 1: \"WWH-OBD\", 0xe0: \"Central security\","
+        }
+      ]
+    }
+  },
+  "local_sources": {
+    "doip_enum": {
+      "path": "spikes/uds/.venv/lib/python3.14/site-packages/doipclient/messages.py",
+      "sha256": "f22c741b36c58acce93be010aa78af26650961c7192623faf0cf0d8bfb6a47cd"
+    },
+    "udsoncan_defaults": {
+      "path": "spikes/uds/.venv/lib/python3.14/site-packages/udsoncan/configs.py",
+      "sha256": "65bce3e8bde5980fce93b422ccf2635aa48c8e055bb29d131da1afaf6b3e0d21"
+    },
+    "dtc_parser": {
+      "path": "spikes/uds/.venv/lib/python3.14/site-packages/udsoncan/services/ReadDTCInformation.py",
+      "sha256": "268bce6ce2205185f38f3e0107a802b4bfbc3c346bf8192875c916dda1cb271a"
+    },
+    "response_parser": {
+      "path": "spikes/uds/.venv/lib/python3.14/site-packages/udsoncan/Response.py",
+      "sha256": "2a47cd4e3dbac08e4dd5e6d6834a9cb972b44c19d31dfab455ee679078854380"
+    },
+    "isotp_address": {
+      "path": "spikes/uds/.venv/lib/python3.14/site-packages/isotp/address.py",
+      "sha256": "80104592e2561c24a676871477c89ed153dd8895cff636d49b73d3d4f7ad13d4"
+    }
+  },
+  "checks": {
+    "central_security": {
+      "public_autosar_supported_value": "0xE0",
+      "doipclient_1_3_0_enum": "0xE1",
+      "edition_difference_verified": false,
+      "iso_2012_2019_full_text_obtained": false,
+      "public_sources": [
+        {
+          "url": "https://www.autosar.org/fileadmin/standards/R4.1.3/CP/AUTOSAR_SWS_DiagnosticOverIP.pdf",
+          "printed_page": 32,
+          "requirements": [
+            "SWS_DoIP_00082",
+            "SWS_DoIP_00083",
+            "SWS_DoIP_00084"
+          ]
+        },
+        {
+          "url": "https://www.autosar.org/fileadmin/standards/R24-11/CP/AUTOSAR_CP_SWS_DiagnosticOverIP.pdf",
+          "printed_page": 38,
+          "requirements": [
+            "SWS_DoIP_00082",
+            "SWS_DoIP_00083",
+            "SWS_DoIP_00084"
+          ],
+          "iso_reference": "ISO 13400-2:2019, reference [7], printed p11"
+        }
+      ]
+    },
+    "duplicate_sa": {
+      "source": "AUTOSAR R24-11 SWS_DoIP_00105, printed p41",
+      "conditions": "same DoIPInterface, registered on another connection, old connection responds to alive check before timeout",
+      "rejection": "0x03; no alive response proceeds to SWS_DoIP_00107"
+    },
+    "functional_sf": {
+      "normal_classic": 7,
+      "normal_fd_64": 62,
+      "one_address_byte_classic": 6,
+      "one_address_byte_fd_64": 61
+    },
+    "udsoncan_defaults_seconds": {
+      "p2": 1,
+      "p2_star": 5,
+      "request_timeout": 5
+    },
+    "dtc_format": {
+      "0x19_02_contains_format_identifier": false,
+      "0x19_01_contains_format_identifier": true
+    },
+    "metadata": {
+      "existing_recorded_versions_and_dates": "consistent with plan section 7 where present; abbreviated licenses and omitted cells require clarification"
+    },
+    "roundtrip": {
+      "plan_section_9_2_values": "all match recorded values after rounding",
+      "rerun_performed": false
+    }
+  },
+  "validation": {
+    "plan_unchanged_sha256": "4f00a9ff65bffd0e697ebc5d555371fdbf55540cbd03ef9dd5153f695778f2c9",
+    "required_plan_sections_0_to_16": true,
+    "report_A_to_F": true,
+    "plan_json_examples_parse": true,
+    "report_local_links_exist": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-11-09T14:35:11.843867+00:00",
+  "source_url": "https://pypi.org/pypi/textual/json",
+  "version": "8.2.8",
+  "released": [
+    "2026-06-30T06:51:26.364743Z",
+    "2026-06-30T06:51:24.495173Z"
+  ],
+  "license": "MIT",
+  "license_expression": null,
+  "requires_python": "<4.0,>=3.9",
+  "classifiers": [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.9",
+    "Typing :: Typed"
+  ],
+  "project_urls": {
+    "Bug Tracker": "https://github.com/Textualize/textual/issues",
+    "Documentation": "https://textual.textualize.io/",
+    "Homepage": "https://github.com/Textualize/textual",
+    "Repository": "https://github.com/Textualize/textual"
+  }
+}

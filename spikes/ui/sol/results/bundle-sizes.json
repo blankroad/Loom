@@ -1,0 +1,25 @@
+{
+  "method": "One mounted counter, esbuild 0.28.2 production/minified ESM, gzip default. Not full Loom app; compiler toolchain excluded; JSX-free equivalent Solid DOM.",
+  "rows": [
+    {
+      "name": "react",
+      "raw_bytes": 222826,
+      "gzip_bytes": 69102
+    },
+    {
+      "name": "preact",
+      "raw_bytes": 13138,
+      "gzip_bytes": 5562
+    },
+    {
+      "name": "solid",
+      "raw_bytes": 11328,
+      "gzip_bytes": 4491
+    },
+    {
+      "name": "svelte",
+      "raw_bytes": 44857,
+      "gzip_bytes": 16875
+    }
+  ]
+}

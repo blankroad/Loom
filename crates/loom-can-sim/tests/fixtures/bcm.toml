@@ -1,0 +1,21 @@
+# Fake BCM for the plan §2.0 walking-skeleton scenario.
+# 0x300 Light_Req → 0x301 Light_Ack (copy of the request) after 5 ms.
+# 0x310 Light_Status every 100 ms (first at +50 ms); byte0 follows the last 0x300 byte0.
+
+[[node]]
+name = "BCM"
+channel = "sim1"
+seed = 7
+
+[[node.on]]
+id = 0x300
+reply_id = 0x301
+reply = "copy"
+delay_ms = 5.0
+
+[[node.periodic]]
+id = 0x310
+period_ms = 100.0
+offset_ms = 50.0
+data = "00 00 00 00 00 00 00 00"
+follow = [{ source_id = 0x300, source_byte = 0, byte = 0 }]

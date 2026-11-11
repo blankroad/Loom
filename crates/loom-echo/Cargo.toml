@@ -1,0 +1,30 @@
+[package]
+name = "loom-echo"
+description = "Sample Loom domain (sim loopback): gateway, worker and CLI pieces. Copy this to start a domain crate."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+serde_json.workspace = true
+loom-domain-api = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
+loom-worker-sdk = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+loom-cli-kit = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+
+# The `loom` CLI links only `cli` (invariant I1: no gateway/worker code in the CLI binary).
+[features]
+default = ["gateway", "worker", "cli"]
+gateway = ["dep:loom-domain-api", "dep:schemars"]
+worker = ["dep:loom-worker-sdk", "dep:base64"]
+cli = ["dep:loom-cli-kit", "dep:clap"]
+
+[dev-dependencies]
+loom-testkit.workspace = true
+
+[lints]
+workspace = true

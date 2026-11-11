@@ -1,0 +1,138 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "190209",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x19 ReadDTCInformation",
+      "risk": "R0",
+      "service": "ReadDTCInformation",
+      "sid": 25,
+      "subfunction": 2,
+      "summary": "ReadDTCInformation byStatusMask 0x09",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-8"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "190209",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x19 ReadDTCInformation",
+      "risk": "R0",
+      "service": "ReadDTCInformation",
+      "sid": 25,
+      "subfunction": 2,
+      "summary": "ReadDTCInformation byStatusMask 0x09",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "accepted"
+    },
+    "request_id": "r-8"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "190209",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x19 ReadDTCInformation",
+      "risk": "R0",
+      "service": "ReadDTCInformation",
+      "sid": 25,
+      "subfunction": 2,
+      "summary": "ReadDTCInformation byStatusMask 0x09",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-8"
+  },
+  {
+    "kind": "uds.rx",
+    "payload": {
+      "bytes": {
+        "data": "5902ff92340009c100002f",
+        "encoding": "hex"
+      },
+      "kind": "positive",
+      "late": false,
+      "t_rx_mono_ns": "5001000000",
+      "target": "ecu1"
+    },
+    "request_id": "r-8"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "bytes": {
+        "data": "190209",
+        "encoding": "hex"
+      },
+      "dtcs": [
+        {
+          "dtc": "923400",
+          "status": 9
+        },
+        {
+          "dtc": "C10000",
+          "status": 47
+        }
+      ],
+      "first_rx_ms": 1.0,
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x19 ReadDTCInformation",
+      "resp_bytes": {
+        "data": "5902ff92340009c100002f",
+        "encoding": "hex"
+      },
+      "risk": "R0",
+      "rtt_ms": 1.0,
+      "service": "ReadDTCInformation",
+      "sid": 25,
+      "subfunction": 2,
+      "summary": "ReadDTCInformation byStatusMask 0x09",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "confirmed"
+    },
+    "request_id": "r-8"
+  }
+]

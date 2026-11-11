@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+const fixture=JSON.parse(await fs.readFile('schema-probe/out/fixture.json','utf8'));
+await fs.writeFile('schema-probe/out/direct-consumer.ts','const direct: WireEvent = '+JSON.stringify(fixture)+';\nconsole.log(direct);\n');
+const options=['--strict','--noEmit','--skipLibCheck','--moduleResolution','bundler','--module','esnext','--target','es2022'];
+const positive=spawnSync('./node_modules/.bin/tsc',[...options,'schema-probe/out/from-schema.ts','schema-probe/out/consumer.ts'],{encoding:'utf8'});
+assert.equal(positive.status,0,positive.stdout+positive.stderr);
+const negative=spawnSync('./node_modules/.bin/tsc',[...options,'schema-probe/out/direct-ts-rs.ts','schema-probe/out/direct-consumer.ts'],{encoding:'utf8'});
+assert.equal(negative.status,1,'Expected direct-generator drift to be rejected');
+assert.match(negative.stdout+negative.stderr,/note/);
+await fs.writeFile('schema-probe/out/direct-type-drift.txt',negative.stdout+negative.stderr);
+const result={schema_path_tsc_pass:true,direct_path_actual_json_rejected:true,reason:'ts-rs direct output requires note: string|null, but serde skip_serializing_if omits note=None; JSON Schema output note?:string|null accepts actual serialized JSON',mitigation:'Explicit #[ts(optional = nullable)] or wire DTO convention; retain golden serialization fixtures. Do not silence unsupported serde warnings.'};
+await fs.writeFile('schema-probe/out/type-drift-result.json',JSON.stringify(result,null,2));
+console.log(result);

@@ -1,0 +1,11 @@
+DONE v2.0 — `docs/plan/ui/plan.md` (UI 앱 통합 계획, 2026-11-10)
+- 형태: `loomd`가 내장 서빙하는 웹 SPA(오프라인, 오리진 `http://localhost:<port>` 정본 — WebAuthn RP ID), 탭당 WS 1개, Web Worker 디코드·원본 링 + 메인 미러, 제어 경로(승인·STOP·최종 단계) 분리. React 19 + 외부 스토어, Trace는 DOM 가상화(TanStack), 플롯 uPlot + 서버 min/max, 터미널 xterm 6 + WebGL, 도킹 M2 dockview. Tauri는 M4 선택.
+- 지연 목표(종단 p95): UART 100 · CAN 150(p99 300) · UDS 100(p99 200) · 플롯 250 ms. 스파이크(10k 프레임/s, headless Chromium) 렌더 proxy p95 33 ms — JSON·열 binary 차이 작음 → M1 JSON, M2 초반 데이터 구독만 `loom.columns.v1` opt-in. M1 전 재측정 P1–P9(§9.3).
+- M1 = 셸(STOP·복구 송신·Activity) + UART 터미널 + CAN Trace + UDS 콘솔 + R2 확인 카드, 수용 시험 UI-T01–T10. **M1b** = TEST TC-1용 `shell.test` 최소판 + `psu.gauge`. R3/R4 승인·존재 확인·도킹·Fixed/IG/Graphics는 M2, `loom.viz`(데몬 `loom-viz` crate, UI 소유)는 M3.
+- 자기 승인 차단: TTY `loom ui`만 bootstrap(operate), 비TTY는 가리키기만, rights watch/operate/approve, M2부터 R3/R4에 WebAuthn 존재 확인 + **등록 게이트**(없으면 확장 가상 인증기로 우회 가능), 인증기 없는 호스트는 대역 외 코드. 위협 모델 한계 명시.
+- CORE 요청(`_xteam/core-ui.md` v0.2 요약 CR-UI-01–18): d1/d2 `core.time`, rights·presence 일반화, 비TTY bootstrap 미발급, `core.agent_cursor`, `core.safe_state.run`, STOP HTTP 대체, CSP·Permissions-Policy·localhost, WS 모드 stub gateway, soak에 UI 탭.
+- 마스터 계약 변경 요청 R-1–R-7(§15.3): 웹 STOP 키 `Ctrl-X` 미채택, viewer rights, R3/R4 존재 확인, 출처 색 통일(AGT 청록·USR 노랑), CAN monitor·UDS view TUI 폐기, 쓰기 이벤트 `request_id`+`write_state` 필수, localhost 오리진.
+- 타팀 회신: `can/uart/uds/explore-ui.md`, `ui-test.md`에 `## ui 의견`, `ui-panel-template.md` v0.2.
+- 사용자 질문(§14, 기본값으로 진행): 원격 보기 여부, Touch ID·Windows Hello·보안 키 사용 가능 여부(Linux 보안 키), 가리키기 자동/묻기, 주 브라우저.
+- **미해결 — ui-sol BLOCKED: sandbox path**: 재부팅 후 Codex 세션 cwd가 심볼릭 링크(옛 Desktop 경로)라 샌드박스가 모든 명령 거부, 리드의 샌드박스 밖 승인은 auto 모드가 거부(우회 안 함). sol의 R2 리뷰는 리드가 xterm 소스로 직접 사실 확인해 대체(plan §16.1). 메인 요청: ui-sol을 `/Users/ctmctm/workspace/Loom`에서 재시작. 그 뒤 남은 정리: `spikes/ui/sol/.browsers`(584 MB)·`.cargo-home`·`.npm-cache`를 `~/.cache/loom-ui-sol/`로 이동, RESULTS.md soak 서술 "750 s 중단(EPERM)" 확정.
+- 산출물: plan.md · r1-opus.md · r1-sol.md(+ spikes/ui/sol/RESULTS.md, schema-probe) · r1b-opus-xteam.md · r2-opus-review.md · r4-check.md.

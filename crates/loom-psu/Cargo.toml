@@ -1,0 +1,23 @@
+[package]
+name = "loom-psu"
+description = "Loom psu domain: SimPsu bench power supply (plugin contract check) — gateway, worker and CLI pieces."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+loom-domain-api.workspace = true
+loom-worker-sdk.workspace = true
+loom-cli-kit.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+clap.workspace = true
+
+[dev-dependencies]
+loom-testkit.workspace = true
+
+[lints]
+workspace = true

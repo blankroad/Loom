@@ -1,0 +1,50 @@
+[
+  {
+    "key": "datamodel-code-generator",
+    "url": "https://github.com/koxudaxi/datamodel-code-generator",
+    "status": 200,
+    "chars": 24551
+  },
+  {
+    "key": "cargo-dist",
+    "url": "https://github.com/axodotdev/cargo-dist",
+    "status": 200,
+    "chars": 8603
+  },
+  {
+    "key": "iceoryx-platform",
+    "url": "https://github.com/eclipse-iceoryx/iceoryx2",
+    "status": 200,
+    "chars": 10201
+  },
+  {
+    "key": "bincode-current",
+    "url": "https://docs.rs/bincode/latest/bincode/",
+    "status": 200,
+    "chars": 8010
+  },
+  {
+    "key": "bincode2-source",
+    "url": "https://docs.rs/crate/bincode/2.0.1/source/src/lib.rs",
+    "status": 200,
+    "chars": 10089
+  },
+  {
+    "key": "axum-source",
+    "url": "https://docs.rs/axum/latest/src/axum/extract/ws.rs.html",
+    "status": 200,
+    "chars": 42886
+  },
+  {
+    "key": "shared-memory",
+    "url": "https://docs.rs/shared_memory/latest/shared_memory/",
+    "status": 200,
+    "chars": 1229
+  },
+  {
+    "key": "simd-json",
+    "url": "https://docs.rs/simd-json/latest/simd_json/",
+    "status": 200,
+    "chars": 12338
+  }
+]

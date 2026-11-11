@@ -1,0 +1,38 @@
+{
+  "pyuds_features": {
+    "url": "https://uds.readthedocs.io/en/stable/",
+    "content_sha256": "e477985f9da37f30bc2e63158e81eb5930291cdc28ebe094fa02c91a3182fa5d",
+    "decoded_characters": 159541,
+    "observations": [
+      "Stable feature table: server simulation planned, Ethernet planned, CAN full; client simulation and periodic TesterPresent documented."
+    ]
+  },
+  "pyuds_tree": {
+    "url": "https://api.github.com/repos/mdabrowski1990/uds/git/trees/69c90393968c026fd8eef1305e44bc9d95402be1?recursive=1",
+    "content_sha256": "fd3f2b9ca950dfbc8310e717264286364f6f5df8a29dce47e3c88e5c3baaf2ed",
+    "decoded_characters": 151309,
+    "observations": [
+      "README.rst found; CAN transport and client implementation present."
+    ]
+  },
+  "pyvit_license": {
+    "url": "https://raw.githubusercontent.com/linklayer/pyvit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635/LICENSE.rst",
+    "content_sha256": "a45a3d6b48bb1defc3c4d1151cbae1e0b66a6a2bd5a59784087272e8cc8a8ab3",
+    "decoded_characters": 632,
+    "observations": [
+      "License text allows GPL version 3 or later."
+    ]
+  },
+  "cdd_utils_root": {
+    "url": "https://api.github.com/repos/fshoocn/cdd_utils/contents?ref=da10c76ff3d10ee5aa0208e7cf6245f3f447ab71",
+    "content_sha256": "0462ce4b24b1877dd26fd94dd06da723542828e6504ddafd1c4d919779f5e851",
+    "decoded_characters": 4540,
+    "observations": [
+      "No root LICENSE file among returned directory entries. GitHub API license is null."
+    ]
+  },
+  "pcan_maccan": {
+    "url": "https://www.mac-can.com/",
+    "error": "'utf-8' codec can't decode byte 0xf3 in position 44750: invalid continuation byte"
+  }
+}

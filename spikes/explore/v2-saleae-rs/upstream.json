@@ -1,0 +1,18 @@
+{
+  "commit": "cb33973429eed40626cb86f331f4e58a0bf2e379",
+  "commit_date": "2024-01-31T23:46:36Z",
+  "commit_url": "https://api.github.com/repos/saleae/logic2-automation/commits/master",
+  "tree_sha": "0bc2f890c31d6c6354827e0b7292368cda49c7b3",
+  "files": [
+    {
+      "url": "https://raw.githubusercontent.com/saleae/logic2-automation/cb33973429eed40626cb86f331f4e58a0bf2e379/proto/saleae/grpc/saleae.proto",
+      "path": "proto/saleae.proto",
+      "sha256": "13ed873e9d4eb6eac222ef4e532a39f4c330da9ea45c4e998a1805650a15311e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/saleae/logic2-automation/cb33973429eed40626cb86f331f4e58a0bf2e379/LICENSE",
+      "path": "proto/LICENSE",
+      "sha256": "ddbdc56a1bdaf4bcb11695c7925560da88883745c4de16adbe34c219a405dac7"
+    }
+  ]
+}

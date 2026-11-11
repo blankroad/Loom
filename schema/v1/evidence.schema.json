@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence",
+  "description": "One evidence item in `data.evidence[]`.",
+  "type": "object",
+  "properties": {
+    "complete": {
+      "description": "True when the checked window had full coverage (no gap / retention / no-record loss).",
+      "type": "boolean"
+    },
+    "expected": {
+      "description": "Expected value summary."
+    },
+    "kind": {
+      "description": "Evidence kind (`uart.match`, `can.signal`, `uds.rx`, `uart.timeout` …).",
+      "type": "string"
+    },
+    "observed": {
+      "description": "Observed value summary."
+    },
+    "pointer": {
+      "description": "RFC 6901 pointer into the published record JSON (`/payload/state`).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "predicate_id": {
+      "description": "Plan expectation id this evidence answers.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ref": {
+      "description": "Where the evidence is.",
+      "$ref": "#/$defs/EvidenceRef"
+    },
+    "request_id": {
+      "description": "Request id linking request and response rows.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "ref",
+    "kind",
+    "complete"
+  ],
+  "$defs": {
+    "EvidenceRef": {
+      "description": "Machine reference to a stream range plus its source identities.",
+      "type": "object",
+      "properties": {
+        "seq_range": {
+          "description": "Inclusive stream range.",
+          "$ref": "#/$defs/SeqRange"
+        },
+        "source_refs": {
+          "description": "Source identities (journal truth) of the cited events.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          }
+        },
+        "stream_epoch": {
+          "description": "Stream epoch the seq range belongs to.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "stream_epoch",
+        "seq_range"
+      ]
+    },
+    "SeqRange": {
+      "description": "Inclusive stream-seq range.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "First seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        },
+        "to": {
+          "description": "Last seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "SourceRef": {
+      "description": "Source identity of an event: who produced it and its producer sequence (D3).",
+      "type": "object",
+      "properties": {
+        "producer_epoch": {
+          "description": "Increments on every producer (worker) start.",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer (worker instance or `gateway`).",
+          "type": "string"
+        },
+        "source_seq": {
+          "description": "Monotonic per producer epoch.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "producer_id",
+        "producer_epoch",
+        "source_seq"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

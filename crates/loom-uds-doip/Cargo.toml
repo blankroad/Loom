@@ -1,0 +1,18 @@
+[package]
+name = "loom-uds-doip"
+description = "ISO 13400-2 DoIP framing, bounded tokio client transport, UDP discovery and a test/sim DoIP entity. UDS bytes are opaque payload."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true

@@ -1,0 +1,31 @@
+{
+  "audited_at": "2026-11-09T14:55:06.119721+00:00",
+  "lines": 210,
+  "sections": [
+    [
+      "1",
+      "틀린 사실(근거·확신도)"
+    ],
+    [
+      "2",
+      "확인된 사실"
+    ],
+    [
+      "3",
+      "보완"
+    ],
+    [
+      "4",
+      "결론 이견"
+    ]
+  ],
+  "fact_corrections": 6,
+  "local_links": "pass",
+  "scope_yaml": "pass",
+  "dwfpy_import": "pass",
+  "dwf_runtime": "absent as expected; not a hardware failure",
+  "sigrok_cli": "not installed; no runtime stream test",
+  "end_marker": "pass",
+  "review_target_sha256": "165df8813e925eaf2fe1c9a4924c3265ad9e8efc44387a53fa6d4dbcfd42c6cc",
+  "status": "pass"
+}

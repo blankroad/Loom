@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MetricsReport",
+  "description": "`core.metrics.report` params (UI render latency etc.).",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "description": "Channel, if per channel.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "detail": {
+      "description": "Extra fields."
+    },
+    "kind": {
+      "description": "`ui.render` | `ui.render.sample` | …",
+      "type": "string"
+    },
+    "n": {
+      "description": "Sample count.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "p50": {
+      "description": "p50 (ms).",
+      "type": "number",
+      "format": "double"
+    },
+    "p95": {
+      "description": "p95 (ms).",
+      "type": "number",
+      "format": "double"
+    },
+    "p99": {
+      "description": "p99 (ms).",
+      "type": "number",
+      "format": "double"
+    },
+    "rendered_through_seq": {
+      "description": "Highest stream seq rendered.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "skew_err_ms": {
+      "description": "Clock offset uncertainty (ms).",
+      "type": "number",
+      "format": "double"
+    }
+  },
+  "required": [
+    "kind",
+    "p50",
+    "p95",
+    "p99",
+    "n",
+    "skew_err_ms"
+  ],
+  "$defs": {
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

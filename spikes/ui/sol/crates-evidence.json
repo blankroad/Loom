@@ -1,0 +1,68 @@
+{
+  "checked_at": "2026-11-09T23:06:59.083Z",
+  "crates": [
+    {
+      "name": "schemars",
+      "status": 200,
+      "version": "1.2.3",
+      "updated_at": "2026-10-12T20:30:07.644403Z",
+      "repository": "https://github.com/GREsau/schemars",
+      "license": "MIT",
+      "created_at": "2026-10-12T20:30:07.644403Z"
+    },
+    {
+      "name": "ts-rs",
+      "status": 200,
+      "version": "12.0.1",
+      "updated_at": "2026-01-31T19:05:25.017774Z",
+      "repository": "https://github.com/Aleph-Alpha/ts-rs",
+      "license": "MIT",
+      "created_at": "2026-01-31T19:05:25.017774Z"
+    },
+    {
+      "name": "specta",
+      "status": 200,
+      "version": "1.0.5",
+      "updated_at": "2026-11-05T08:09:10.560601Z",
+      "repository": "https://github.com/specta-rs/specta",
+      "license": "MIT",
+      "created_at": "2023-07-17T19:28:34.622914Z"
+    },
+    {
+      "name": "typeshare",
+      "status": 200,
+      "version": "1.0.5",
+      "updated_at": "2026-01-02T18:15:19.175306Z",
+      "repository": "https://github.com/1Password/typeshare",
+      "license": "MIT OR Apache-2.0",
+      "created_at": "2026-01-02T18:15:19.175306Z"
+    },
+    {
+      "name": "rust-embed",
+      "status": 200,
+      "version": "8.13.0",
+      "updated_at": "2026-10-07T10:23:29.685454Z",
+      "repository": "https://pyrossh.dev/repos/rust-embed",
+      "license": "MIT",
+      "created_at": "2026-10-07T10:23:29.685454Z"
+    },
+    {
+      "name": "include_dir",
+      "status": 200,
+      "version": "0.7.4",
+      "updated_at": "2024-06-17T14:46:19.491634Z",
+      "repository": "https://github.com/Michael-F-Bryan/include_dir",
+      "license": "MIT",
+      "created_at": "2024-06-17T14:46:19.491634Z"
+    },
+    {
+      "name": "tauri",
+      "status": 200,
+      "version": "2.12.5",
+      "updated_at": "2026-11-06T11:54:50.754884Z",
+      "repository": "https://github.com/tauri-apps/tauri",
+      "license": "Apache-2.0 OR MIT",
+      "created_at": "2026-10-21T11:54:45.622972Z"
+    }
+  ]
+}

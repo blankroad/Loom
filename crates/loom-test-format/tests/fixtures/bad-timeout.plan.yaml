@@ -1,0 +1,4 @@
+loom_tc_plan: 1
+steps:
+  - id: S1
+    uart.expect: {port: dut, pattern: "login:"}

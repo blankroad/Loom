@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-11-09T14:09:07.387459+00:00",
+  "repos": {
+    "fshoocn/cdd_utils": {
+      "url": "https://github.com/fshoocn/cdd_utils",
+      "license": null,
+      "commit_sha": "da10c76ff3d10ee5aa0208e7cf6245f3f447ab71",
+      "last_commit_committer_date": "2026-03-05T06:07:42Z",
+      "commit_url": "https://github.com/fshoocn/cdd_utils/commit/da10c76ff3d10ee5aa0208e7cf6245f3f447ab71",
+      "default_branch": "main"
+    },
+    "tomrford/gocan": {
+      "url": "https://github.com/tomrford/gocan",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "commit_sha": "0b385f99468f36715d35ee2ef6e00650184aa3f6",
+      "last_commit_committer_date": "2026-11-06T13:22:42Z",
+      "commit_url": "https://github.com/tomrford/gocan/commit/0b385f99468f36715d35ee2ef6e00650184aa3f6",
+      "default_branch": "main"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "checked_at_utc": "2026-11-09T14:09:05Z",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.14.1",
+  "versions": {
+    "udsoncan": "1.26.1",
+    "doipclient": "1.3.0",
+    "can-isotp": "2.0.7",
+    "python-can": "4.6.1"
+  },
+  "request_hex": "22f190",
+  "response_hex": "62f1904c4f4f4d53494d30303030303030303031",
+  "can": {
+    "pipe_ping_rtt": {
+      "n": 500,
+      "min_ms": 0.016208,
+      "median_ms": 0.049958,
+      "p95_ms": 0.268708,
+      "p99_ms": 2.003208,
+      "max_ms": 10.374083
+    },
+    "ipc_isotp_uds_roundtrip": {
+      "n": 100,
+      "min_ms": 0.501875,
+      "median_ms": 0.921333,
+      "p95_ms": 2.178375,
+      "p99_ms": 3.087959,
+      "max_ms": 5.972416
+    },
+    "pending": {
+      "nrc78_count": 2,
+      "elapsed_ms": 72.779708
+    },
+    "p2_timeout": {
+      "observed": true,
+      "elapsed_ms": 55.809458
+    },
+    "frame_counts_on_bus_rx": {
+      "SF": 104,
+      "FF": 101,
+      "FC": 101,
+      "CF": 202
+    },
+    "isotp_errors": []
+  },
+  "doip": {
+    "bind": "127.0.0.1",
+    "port": 64940,
+    "activation_ms": 1.013792,
+    "uds_roundtrip": {
+      "n": 100,
+      "min_ms": 0.149291,
+      "median_ms": 0.305084,
+      "p95_ms": 0.54825,
+      "p99_ms": 0.850958,
+      "max_ms": 1.161917
+    },
+    "routing_activation_count": 1,
+    "diagnostic_count": 101,
+    "first_events": [
+      {
+        "kind": "0x5",
+        "payload_hex": "0e000000000000"
+      },
+      {
+        "kind": "0x8001",
+        "payload_hex": "0e00100122f190"
+      }
+    ],
+    "silent_response_timeout": {
+      "configured_p2_ms": 50,
+      "elapsed_ms": 2001.87075
+    },
+    "failures": []
+  }
+}

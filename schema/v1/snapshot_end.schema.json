@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SnapshotEnd",
+  "description": "`core.snapshot_end` — live events continue with seq > `stream_seq`.",
+  "type": "object",
+  "properties": {
+    "stream_seq": {
+      "description": "High-water H of the snapshot.",
+      "$ref": "#/$defs/U64"
+    },
+    "sub": {
+      "description": "Subscription id.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sub",
+    "stream_seq"
+  ],
+  "$defs": {
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

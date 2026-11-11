@@ -1,0 +1,115 @@
+{
+  "retrieved_at": "2026-11-09T14:17:27.016127+00:00",
+  "python": "3.14.1",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "versions": {
+    "pyelftools": "0.33",
+    "importlib_metadata": "10.1.0",
+    "intelhex": "2.3.0",
+    "stringparser": "0.7",
+    "intervaltree": "3.2.1",
+    "logic2-automation": "1.0.11",
+    "packaging": "26.3",
+    "importlib_resources": "7.1.0",
+    "lark": "1.3.1",
+    "protobuf": "7.36.2",
+    "scapy": "2.8.0",
+    "PyVISA-sim": "0.7.1",
+    "zipp": "4.1.2",
+    "colorama": "0.4.6",
+    "natsort": "8.4.0",
+    "pip": "25.3",
+    "pyocd": "0.46.1",
+    "pygdbmi": "0.11.0.0",
+    "wcwidth": "0.9.4",
+    "pyftdi": "0.57.2",
+    "appdirs": "1.4.4",
+    "cryptography": "50.0.2",
+    "python-can": "4.6.1",
+    "pycparser": "3.12",
+    "someipy": "2.1.2",
+    "grpcio": "1.85.1",
+    "hidapi": "0.15.0",
+    "libusb-package": "1.0.30.1",
+    "wrapt": "1.17.3",
+    "PyYAML": "6.0.3",
+    "cmsis-pack-manager": "0.6.0",
+    "sortedcontainers": "2.4.0",
+    "asyncssh": "2.24.1",
+    "pyusb": "1.3.1",
+    "cffi": "2.1.1",
+    "PyVISA": "1.16.2",
+    "capstone": "5.0.9",
+    "typing_extensions": "4.16.0",
+    "pydlt": "0.3.5",
+    "prettytable": "3.18.0",
+    "pyserial": "3.5",
+    "psutil": "7.2.2",
+    "pylink-square": "1.7.0",
+    "six": "1.17.0",
+    "pymodbus": "3.16.2",
+    "PyVISA-py": "0.8.1"
+  },
+  "checks": [
+    {
+      "name": "pyvisa-sim-psu",
+      "status": "pass",
+      "result": {
+        "idn": "LOOM,SIM-PSU,1,0",
+        "write_read": "VOLT=12,CURR=.2,OUTP=1 then OUTP=0",
+        "n": 100,
+        "query_ms_median": 0.009875,
+        "query_ms_p95": 0.010625,
+        "scope": "in-process YAML simulator; no USB/TCP physical timing"
+      }
+    },
+    {
+      "name": "pymodbus-tcp",
+      "status": "pass",
+      "result": {
+        "address": "loopback ephemeral",
+        "write": 1234,
+        "read": [
+          1234
+        ]
+      }
+    },
+    {
+      "name": "python-can-virtual",
+      "status": "pass",
+      "result": {
+        "frame": "123#0102",
+        "scope": "single-process python-can virtual; not vcan or XCP"
+      }
+    },
+    {
+      "name": "pydlt-codec",
+      "status": "pass",
+      "result": {
+        "bytes": 44,
+        "hex": "2500002c45435531410143414d5343414d000002000014006672616d65203432206c61743d312e32356d7300",
+        "message": "0 ECU1 CAMS CAM log info verbose 1 frame 42 lat=1.25ms",
+        "scope": "V1 log codec only; no daemon/control roundtrip"
+      }
+    },
+    {
+      "name": "qemu-gdb-memory",
+      "status": "pass",
+      "result": {
+        "machine": "lm3s6965evb",
+        "write": "M20000000,4:78563412",
+        "read": "78563412",
+        "scope": "QEMU GDB RSP halted SRAM only; no target firmware/RTT/SWD throughput"
+      }
+    },
+    {
+      "name": "asyncssh-loopback",
+      "status": "pass",
+      "result": {
+        "stdout": "sim-target:status\n",
+        "exit_status": 0,
+        "scope": "ephemeral local SSH server with verified generated host key; no real OS command"
+      }
+    }
+  ]
+}

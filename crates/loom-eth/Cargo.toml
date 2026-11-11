@@ -1,0 +1,32 @@
+[package]
+name = "loom-eth"
+description = "Loom eth domain: gateway (registration, queries, hooks), worker (capture pipeline) and CLI (tshark-style) pieces."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+loom-domain-api.workspace = true
+loom-worker-sdk.workspace = true
+loom-cli-kit.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+clap.workspace = true
+base64.workspace = true
+loom-eth-decode = { path = "../loom-eth-decode" }
+loom-eth-filter = { path = "../loom-eth-filter" }
+loom-eth-pcapng = { path = "../loom-eth-pcapng" }
+loom-eth-capture = { path = "../loom-eth-capture" }
+
+[features]
+default = []
+live = ["loom-eth-capture/live"]
+
+[dev-dependencies]
+loom-testkit.workspace = true
+
+[lints]
+workspace = true

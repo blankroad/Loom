@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentCursorPayload",
+  "description": "`core.agent_cursor` payload — the agent received user interventions up to `to_seq` (CR-UI-11).",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "description": "Agent client id.",
+      "type": "string"
+    },
+    "from_seq": {
+      "description": "Previous cursor.",
+      "$ref": "#/$defs/U64"
+    },
+    "others_count": {
+      "description": "`others_since_last.count` delivered with that result.",
+      "$ref": "#/$defs/U64"
+    },
+    "to_seq": {
+      "description": "New cursor.",
+      "$ref": "#/$defs/U64"
+    }
+  },
+  "required": [
+    "client_id",
+    "from_seq",
+    "to_seq",
+    "others_count"
+  ],
+  "$defs": {
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

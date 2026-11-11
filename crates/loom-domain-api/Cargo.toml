@@ -1,0 +1,17 @@
+[package]
+name = "loom-domain-api"
+description = "Loom gateway-side domain API: DomainModule, Registry, write hooks, evidence verifier, handler context (compile-only in P0)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

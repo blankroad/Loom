@@ -1,0 +1,21 @@
+[package]
+name = "loom-journal"
+description = "Loom journal (contract 06): CRC32C append segments, sparse index, bounded scan, stream mapping log, retention GC."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+crc32c.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

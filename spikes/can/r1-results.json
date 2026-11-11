@@ -1,0 +1,144 @@
+{
+  "environment": {
+    "python": "3.14.1 (main, Dec 29 2025, 16:04:03) [Clang 21.1.8 ]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu": "arm",
+    "packages": {
+      "python-can": "4.6.1",
+      "can-isotp": "2.0.7",
+      "cantools": "45.1.2"
+    }
+  },
+  "method": "One process, two virtual buses, wall-clock perf_counter; no hardware or arbitration; one run per condition.",
+  "idle": {
+    "cyclic": [
+      {
+        "period_ms": 1.0,
+        "interval_ms": {
+          "n": 700,
+          "p50": 1.0008125100284815,
+          "p95": 1.5997920418158174,
+          "p99": 2.827709075063467,
+          "max": 4.332792013883591
+        },
+        "absolute_interval_error_ms": {
+          "n": 700,
+          "p50": 0.07177102472633123,
+          "p95": 0.9965409515425563,
+          "p99": 1.827709075063467,
+          "max": 3.3327920138835907
+        }
+      },
+      {
+        "period_ms": 10.0,
+        "interval_ms": {
+          "n": 120,
+          "p50": 9.910479479003698,
+          "p95": 12.009166064672172,
+          "p99": 13.049624976702034,
+          "max": 15.063792001456022
+        },
+        "absolute_interval_error_ms": {
+          "n": 120,
+          "p50": 0.7908540428616107,
+          "p95": 2.5791250029578805,
+          "p99": 5.063792001456022,
+          "max": 5.14495802577585
+        }
+      }
+    ],
+    "isotp": {
+      "pdu_bytes": 256,
+      "stmin": 0,
+      "blocksize": 0,
+      "round_trip_ms": {
+        "n": 50,
+        "p50": 1.895125,
+        "p95": 5.812083,
+        "p99": 9.565833,
+        "max": 9.565833
+      },
+      "ff_send_to_fc_send_ms": {
+        "n": 100,
+        "p50": 0.068021,
+        "p95": 0.625958,
+        "p99": 1.486,
+        "max": 2.557417
+      },
+      "errors": []
+    }
+  },
+  "gil_decode_load": {
+    "cyclic": [
+      {
+        "period_ms": 1.0,
+        "interval_ms": {
+          "n": 698,
+          "p50": 0.001374981366097927,
+          "p95": 7.2316250298172235,
+          "p99": 14.493542024865746,
+          "max": 48.349207965657115
+        },
+        "absolute_interval_error_ms": {
+          "n": 698,
+          "p50": 0.9987500486895442,
+          "p95": 6.2316250298172235,
+          "p99": 13.493542024865746,
+          "max": 47.349207965657115
+        }
+      },
+      {
+        "period_ms": 10.0,
+        "interval_ms": {
+          "n": 121,
+          "p50": 9.766708011738956,
+          "p95": 22.94983307365328,
+          "p99": 30.300916056148708,
+          "max": 41.74295789562166
+        },
+        "absolute_interval_error_ms": {
+          "n": 121,
+          "p50": 9.89283294416964,
+          "p95": 12.94983307365328,
+          "p99": 20.300916056148708,
+          "max": 31.742957895621657
+        }
+      }
+    ],
+    "isotp": {
+      "pdu_bytes": 256,
+      "stmin": 0,
+      "blocksize": 0,
+      "round_trip_ms": {
+        "n": 50,
+        "p50": 105.2648125,
+        "p95": 188.686,
+        "p99": 253.774166,
+        "max": 253.774166
+      },
+      "ff_send_to_fc_send_ms": {
+        "n": 100,
+        "p50": 9.2245,
+        "p95": 33.843,
+        "p99": 51.862708,
+        "max": 60.502584
+      },
+      "errors": []
+    }
+  },
+  "decode": {
+    "frames": 200000,
+    "signals": 3,
+    "elapsed_seconds": 0.4426199160516262,
+    "frames_per_second": 451854.9499175099
+  },
+  "json_batch": {
+    "batch_frames": 200,
+    "batch_bytes": 39091,
+    "ms_per_batch": 0.3706201669992879,
+    "estimated_bytes_per_second_at_5000fps": 977275,
+    "serialize_cpu_ms_per_second_at_5000fps": 9.265504174982198,
+    "excludes": "WebSocket, fan-out, browser, decode, storage"
+  }
+}

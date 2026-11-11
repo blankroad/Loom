@@ -1,0 +1,7 @@
+{
+  "python": "3.14.1",
+  "arch": "arm64",
+  "version": "1.2.0",
+  "import": "pass",
+  "runtime_error": "Traceback (most recent call last):\n  File \"<stdin>\", line 6, in <module>\n  File \"/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/.venv/lib/python3.14/site-packages/dwfpy/application.py\", line 57, in get_version\n    api.dwf_get_version(buffer)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/.venv/lib/python3.14/site-packages/dwfpy/bindings.py\", line 92, in _dwf_library_error_handler\n    raise _dwf_library\nFileNotFoundError: Failed to load Digilent WaveForms runtime components: dlopen(/Library/Frameworks/dwf.framework/dwf, 0x0006): tried: '/Library/Frameworks/dwf.framework/dwf' (no such file), '/System/Volumes/Preboot/Cryptexes/OS/Library/Frameworks/dwf.framework/dwf' (no such file), '/Library/Frameworks/dwf.framework/dwf' (no such file)\n"
+}

@@ -1,0 +1,24 @@
+// Hand-written fixture: statements can-dbc cannot parse. Line numbers matter for the tests.
+VERSION ""
+
+BU_: ECU
+
+BO_ 100 Good: 8 ECU
+ SG_ G1 : 0|8@1+ (1,0) [0|255] "" ECU
+
+BO_ 101 Broken: 8 ECU
+ SG_ B1 : 0|8@1+ (1,0) [0|255 "" ECU
+
+BO_ 102 MuxBad: 8 ECU
+ SG_ Sel M : 0|8@1+ (1,0) [0|0] "" ECU
+ SG_ V m1 : 8|8@1+ (1,0) [0|0] "" ECU
+
+BO_ 103 Fine: 8 ECU
+ SG_ F1 : 0|8@1+ (1,0) [0|255] "" ECU
+
+SGTYPE_ MyType : 8@1+ (1,0) [0|255] "" ;
+SIG_TYPE_REF_ 100 G1 : MyType;
+SG_MUL_VAL_ 102 V Sel 1-x;
+BA_DEF_ SG_ "GenSigStartValue" INT 0 255;
+BA_DEF_DEF_ "GenSigStartValue" 0;
+BA_ "GenSigStartValue" SG_ 100 G1 abc;

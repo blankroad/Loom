@@ -1,0 +1,16 @@
+[
+  {
+    "kind": "uds.rx",
+    "payload": {
+      "bytes": {
+        "data": "62f1904c4f4f4d53494d30303030303030303031",
+        "encoding": "hex"
+      },
+      "kind": "positive",
+      "late": true,
+      "t_rx_mono_ns": "11200000000",
+      "target": "ecu1"
+    },
+    "request_id": "r-4"
+  }
+]

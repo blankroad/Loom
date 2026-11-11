@@ -1,0 +1,19 @@
+{
+  "r1_hashes": {
+    "docs/plan/explore/r1-opus.md": "9de4c763747cb277ad431b8b22bcc5ed663376c9109d378ab45e716e04486d3b",
+    "docs/plan/explore/r1-sol.md": "7be535a364605a4baa3ee9a583bd7cc8020928a7ad823a36f6aadb602f0a8bf6"
+  },
+  "toml_parse": {
+    "0": "Expected newline or end of document after a statement (at line 8, column 15)",
+    "1": "pass"
+  },
+  "pyocd_options": {
+    "connect_mode": "OptionInfo(name='connect_mode', type=<class 'str'>, default='halt', help=\"One of 'halt', 'pre-reset', 'under-reset', 'attach'. Default is 'halt'.\")",
+    "resume_on_disconnect": "OptionInfo(name='resume_on_disconnect', type=<class 'bool'>, default=True, help='Whether to run target on disconnect.')",
+    "auto_unlock": "OptionInfo(name='auto_unlock', type=<class 'bool'>, default=True, help='Whether to unlock secured target by erasing.')",
+    "cache.read_code_from_elf": "OptionInfo(name='cache.read_code_from_elf', type=<class 'bool'>, default=True, help='Controls whether reads of code sections will be taken from an attached ELF file instead of the target memory.')",
+    "cache.enable_memory": "OptionInfo(name='cache.enable_memory', type=<class 'bool'>, default=True, help='Enable the memory read cache. Default is enabled.')",
+    "no_config": "OptionInfo(name='no_config', type=<class 'bool'>, default=False, help='Do not use default config file.')"
+  },
+  "rtt_source": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/.venv/lib/python3.14/site-packages/pyocd/subcommands/rtt_cmd.py"
+}

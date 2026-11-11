@@ -1,0 +1,60 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "block": {
+        "class": "immutable_deny",
+        "reason": "UDS 0x2A ReadDataByPeriodicIdentifier: unsolicited responses not implemented"
+      },
+      "bytes": {
+        "data": "2a0101",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "deny",
+      "reason": "UDS 0x2A ReadDataByPeriodicIdentifier: unsolicited responses not implemented",
+      "risk": "R1",
+      "service": "ReadDataByPeriodicIdentifier",
+      "sid": 42,
+      "summary": "ReadDataByPeriodicIdentifier",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-7"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "block": {
+        "class": "immutable_deny",
+        "reason": "UDS 0x2A ReadDataByPeriodicIdentifier: unsolicited responses not implemented"
+      },
+      "bytes": {
+        "data": "2a0101",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "deny",
+      "reason": "UDS 0x2A ReadDataByPeriodicIdentifier: unsolicited responses not implemented",
+      "risk": "R1",
+      "service": "ReadDataByPeriodicIdentifier",
+      "sid": 42,
+      "summary": "ReadDataByPeriodicIdentifier",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "failed"
+    },
+    "request_id": "r-7"
+  }
+]

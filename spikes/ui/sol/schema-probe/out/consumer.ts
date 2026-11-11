@@ -1,0 +1,3 @@
+import type {WireEvent} from "./from-schema";
+const value:WireEvent = {"kind":"can.frame","payload":{"seq":"18446744073709551615","mono_ns":"9007199254740993","data_hex":"0102030405060708"}};
+console.log(value);

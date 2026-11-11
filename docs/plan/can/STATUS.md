@@ -1,0 +1,26 @@
+DONE v2.0
+- v2.0 (2026-11-10, 마스터 §2.3 C1–C8 + C4.1): 워커 초안 `v2-opus.md`(구조·UI 패널·테스트·스킬)·`v2-sol.md`(Rust crate·FFI·C2, 실측 `spikes/can/rust/`)를 plan.md에 통합. §0.3 정합표, 결정 기록 D54(v2.0 방향 전환)~D75. 계약 절(§2·§4·§6.1–6.2·§10)은 C3로 유지, 바뀐 절만 수정.
+- Rust·Python 0: 백엔드별 worker `can-sim`/`can-pcan`(PEAK 공식 Rust FFI 모듈, SDK 5.1.0.1194에서 확인)/`can-socketcan`(`socketcan` 4.0.0)/`can-vxl`(CAN 소유 XL crate, **CAN/CAN FD API만** — C4.1). ISO-TP는 자체 Rust 상태기계, DBC는 `can-dbc` + 자체 codec, BLF/ASC는 `autors-*` 후보(외부 호환 관문), MF4 미지원 명시.
+- 마일스톤: M1 = Rust sim worker + loomd + CLI + **웹 UI 최소 CAN 패널**(브라우저 E2E, paint p95 < 150 ms). M2a = PCAN-USB FD(Win+Linux) + 신호·검증·ISO-TP 최소 + 24 h soak. **M2b = VN5640 CAN FD + CANoe 공존 실측(M3에서 앞당김)**. CANoe 브리지는 P4.
+- C2: §9.4 큐·링 상한 표와 넘칠 때 정책, worker 정상 ≤ 192 MiB / 상한 256 MiB, 24 h soak 판정(drift ≤ 16 MiB, slope ≤ 0.5 MiB/h). Rust 타이밍 실측(macOS, 10 ms 주기 p99 4.53 ms)은 목표 3 ms **미달** — 그대로 공개, Windows에서 재측정.
+- C6·C7·C8: UI 패널 명세 `_xteam/can-ui.md`(UI 회신 대기), 증거는 TEST 정본 ref `can:<ch>@seq:a..b` + CAN 도메인 술어(`_xteam/test-domains.md` `## can 의견`), `loom-can` 스킬 v2(테스트 단계 절 포함).
+- 타팀 문서: `can-core.md`(W1–W10, core R2 수용 확인 + v2 갱신, core 답변 대기), `can-ui.md`, `test-domains.md`, `canoe-bridge.md`(v2 변경 절). `vn5640-eth.md`는 메인 확정으로 CAN 초안 불필요.
+- 메인에 알릴 것: ① 마스터 C4의 "공개 Rust crate 없음"은 사실과 다름 — `vxlapi-sys` 2.1.0(FD 구현)이 있다. 그래도 자체 crate는 유지(shared FD `permissionMask=0`, 이벤트 보존, 시계 리셋 금지 — D63). ② CANoe의 Python 예외는 C1 조건 미충족 — Rust COM이 가능하므로 P4에서 Rust 스파이크 먼저(D71). ③ 벤더 SDK(`vxlapi.h`, PCAN Rust 모듈) 재배포 권리 미확인 — 저장소에 넣지 않음(R22).
+- 아래는 v1.2 요약(이력).
+- v1.2 (2026-11-10, 마스터 §2.2 B1–B7): plan.md에 §0.2 정합표, 결정 기록 D45(v1.2 사용자 답변 반영)~D53 추가. 바뀐 절만 수정.
+- 실HW = Windows x64 + Linux x64(B1): M2 첫 실HW를 PCAN으로 두 OS 모두(Win PCAN-Basic / Linux SocketCAN `peak_usb`). Linux netdev는 사람이 사전 설정, Loom은 open 시 검증·`setup-hint`만(권한 헬퍼 없음, D47). OS별 실HW 체크리스트 §8.3. macOS 실HW 비범위.
+- CANoe(B3): 브리지 v0 `loom/canoe/`를 M2에(K16, §8.2 — COM STA 전용 worker, 측정 상태·시작/정지, 신호·시스템 변수, 재연결, 사용자 화면 표). Vector 공존 실측을 P3(K13a)로, 실패 시 브리지 + PCAN 관찰. 외부 트래픽 `EXT canoe/host/?` 배지, 관찰 불가 시 `bus not observed by Loom`.
+- vehicle(B4): 기본 차단 폐기 — vehicle = bench 규칙(lease 30 s 폐기), `default_blocked` 비움, 하드 차단 = 사용자 설정만(+ISO-TP 예약 ID), 실HW 미설정 채널 = confirm(read-only 폐기), E2E 추정은 R4. `env=vehicle` 배지 상시(TUI·CLI `meta.env`).
+- `_xteam/canoe-bridge.md` 초안 작성(UDS `canoe` 백엔드용 내부 API·STOP·경로 충돌·미확인 6건·질문 5건) — `## uds 의견` 대기. COM 이름은 py-canoe 26.4.1 소스로 확인, 설치본 대조는 미확인.
+- 아래는 v1.1 요약(이력).
+- v1.1 (2026-11-10): 마스터 계획 v1.1(D1–D14, A1–A16)과 `master-review.md` (c) 12항목을 plan.md에 반영. 새 §0.1 정합표, 결정 기록 D30–D44 추가(D28은 A3에 맞춰 수정). 주요 변경: 쓰기 클래스(단발=요청형, 주기·IG·replay·ISO-TP=잡형), R2 실HW 기본 viewer, R3 승인 10분=사용 기한 + max_job_duration 1 h, STOP은 agent·script+모든 잡만 latch(사용자 송신 허용), 종료 코드 0~10, D4 상태 단계, 손실 3층(source.gap), 레코드 필드(kind·ts 구조·metrics), `can.isotp.*` 이름, `~/.loom` 경로·30일, C0–C4는 CORE 소유·CAN은 gateway 모듈 G1 신설, 스킬 원본 `skills/`.
+- `_xteam/can-uds-isotp.md`에 "v1.1 이름·상태 정본(A14·A16)" 절 작성 — uds-lead 확인 대기.
+- 아래는 v1.0 요약(이력).
+- 산출물: `plan.md`(16절 + 핵심 원칙 체크리스트, R1 2건·R2 교차리뷰 2건·R4 점검 2건 반영 — R4 P1 18건 전부 수정). 02-core-principle 6항목 통과(§0 핵심 루프 표, §2.0 E2E, §3.8 실시간 목표·고부하 정직성, §11 M1 걷는 뼈대, §3.7 가시성 불변식 I1~I6, §1.2 후순위/비범위).
+- 핵심 결정: 사용자에게는 `loomd` 하나, 내부는 gateway + CAN worker(`can-hw` 실HW / `can-sim` virtual+가짜 ECU) 분리 — 실측 근거: 같은 프로세스 CPU 경쟁 시 ISO-TP FC p99 1.5→52 ms. 기록 정본 = Loom 저널(BLF/ASC/MF4는 export). 뷰어 M1 Textual TUI → M3 웹(uPlot). 순번 = 원본 ID + gateway stream_seq. STOP = 최종 send 경로 TX latch.
+- 안전: R0~R4 + 하드 차단(deny/allow_ids, E2E 보호, ISO-TP 예약 ID) + viewer role 전용 승인(plan hash·신호 범위) + 정책 완화는 viewer 승인 후 적용 + env별 lease. 사용자 1회 송신은 에이전트 job ID를 override 가능(개입 보장).
+- 마일스톤: M1 virtual 걷는 뼈대 / M2 DBC·주기·승인·첫 실HW(PCAN 우선)·ISO-TP 최소판(=UDS M1b 전제) / M3 웹+loom.viz+UDS·UART 패널 / M4 Vector+CANoe 공존·FD·ISO-TP 완성 / M5 Replay·CANoe MCP 등.
+- 타팀 조율: `_xteam/can-uds-isotp.md` — CAN 의견·v0.3 회신 작성, UDS 답변으로 합의 완료(CR1 포함). `_xteam/viz-requirements.md` — CAN(소유 팀) 응답 절 추가, UDS·UART 요구 전부 M3 수용.
+- 공통 계약 변경 요청(메인 결정 필요, plan §15.1): CR1 데몬 내부 worker 분리, CR2 JSON-RPC/WS + role 인증, CR3 순번 두 층·origin 4종 고정·손실 이벤트, CR4 출력 계약(100행/64 KiB, 종료 코드 0~8), CR5 공통 안전 골격·viewer 전용 승인, CR6 공통 `loom` 스킬 + Codex `.agents/skills`, CR7 `loom.toml` 완화 승인, CR8 웹 패널/소스 플러그인. `loom.core` 소유자 지정 필요.
+- 사용자 질문(plan §14, 기본값으로 진행 중): 보유 HW(기본 PCAN-USB FD + Vector), HW PC에서 에이전트 실행 가능 여부, CANoe 동시 사용·버전(20 SP2+면 공식 MCP), E2E 보호 메시지 유무, 벤치 송신 허용 ID 대역, 주기 정확도 요구, ECU 패딩 요구.
+- 남은 미확인: Vector FD 채널 CANoe 공존, Windows 주기 지터·FC 실측, macOS PCBUSB 실동작 — M0/M2/M4 gate로 배치.

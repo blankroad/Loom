@@ -1,0 +1,44 @@
+{
+  "cpu_wall_samples": [
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 100.324,
+      "process_cpu_ms": 50.077
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 91.213,
+      "process_cpu_ms": 50.051
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 104.066,
+      "process_cpu_ms": 50.038
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 120.749,
+      "process_cpu_ms": 50.031
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 114.129,
+      "process_cpu_ms": 50.029
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 82.445,
+      "process_cpu_ms": 50.03
+    },
+    {
+      "outcome": "builtins.TimeoutError",
+      "wall_ms": 120.473,
+      "process_cpu_ms": 50.044
+    }
+  ],
+  "posix_clock_url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/clock.html",
+  "clock_summary_excerpt": [
+    "24 defers to the ISO&nbsp;C standard. The clock () function shall return the implementation's best approximation to the processor time used by the process since the beginning of an implementation-defined era related only to the process invocation. RETURN VALUE To determine the time in seconds, the value returned by clock () should be divided by the value of the macro CLOCKS_PER_SEC",
+    "value of the macro CLOCKS_PER_SEC. [ XSI ] &nbsp;CLOCKS_PER_SEC is defined to be one million in &lt;time.h&gt; . If the processor time used is not available or its value cannot be represented, the function shall return the value ( clock_t )-1. ERRORS The clock () function shall fail if: [EOVERFLOW] [ CX ] The processor time used cannot be represented in an object of type clock_t . "
+  ]
+}

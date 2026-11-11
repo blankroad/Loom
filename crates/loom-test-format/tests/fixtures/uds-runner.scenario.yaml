@@ -1,0 +1,20 @@
+# UDS plan §6.5 bcm-coding, for the commands used by loom-uds-runner.
+# Legacy expectation maps are retained and flagged for the UDS adapter, never silently discarded.
+loom_scenario: 1
+name: bcm-coding
+target: bcm
+db: diag/bcm.yaml
+on_error: stop
+vars: {region: EU}
+steps:
+  - uds.session: {mode: extended}
+  - uds.security: {level: 1}
+  - uds.read-did: {dids: [0x0101]}
+    save: before
+  - uds.write-did: {did: 0x0101, fields: {region: "${region}"}}
+  - uds.read-did: {dids: [0x0101]}
+    expect: {0x0101.region: "${region}"}
+  - uds.reset: {type: soft}
+  - wait: 3s
+finally:
+  - uds.session: {mode: default}

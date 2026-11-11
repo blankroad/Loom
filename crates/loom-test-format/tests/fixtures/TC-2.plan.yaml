@@ -1,0 +1,31 @@
+loom_tc_plan: 1
+tc: TC-2@sha256:0736631d3277b86cedb60b541eb7f80d6519cb303b57d341397fbf8a3a5c5526
+env: sim
+steps:
+  - id: S1
+    tc_step: 1
+    dlt.level: {channel: ecu1, context: CAM, level: debug}
+    expect:
+      - filter: {domain: dlt, channel: ecu1, kinds: [dlt.ctrl]}
+        pred: {field: /payload/write_state, op: "==", value: effective_verified}
+  - id: S2
+    tc_step: 2
+    do:
+      - la.capture: {device: sal, trigger: "uart_tx:fall", duration: 2s, async: true}
+      - uart.send: {port: dut, text: "cam stat\r"}
+  - id: S3
+    tc_step: 3
+    la.wait: {device: sal, timeout: 5s}
+    expect:
+      - filter: {domain: la, channel: sal, kinds: [la.decode]}
+        pred: {field: /payload/bytes, op: bytes_eq, value: "63616d20737461740d"}
+        anchor: {step: S2, kind: uart.tx}
+        within_ms: 5000
+  - id: S4
+    tc_step: 4
+    dlt.wait-for: {channel: ecu1, context: CAM, level: debug, timeout: 2s}
+    expect:
+      - filter: {domain: dlt, channel: ecu1, kinds: [dlt.log]}
+        pred: {op: exists}
+        anchor: {step: S2, kind: uart.tx}
+        within_ms: 2000

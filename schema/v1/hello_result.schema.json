@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HelloResult",
+  "description": "`core.hello` result.",
+  "type": "object",
+  "properties": {
+    "capabilities": {
+      "description": "Capabilities, e.g. `core/1`, `uart/1`.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "conn_id": {
+      "description": "Connection id.",
+      "type": "string"
+    },
+    "env": {
+      "description": "Environment badge.",
+      "$ref": "#/$defs/Env"
+    },
+    "latch": {
+      "description": "STOP latch state.",
+      "type": "boolean"
+    },
+    "rights": {
+      "description": "Rights for viewer connections (`None` for agent/script).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Rights"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "role": {
+      "description": "Granted role.",
+      "$ref": "#/$defs/Role"
+    },
+    "server": {
+      "description": "Server identity.",
+      "$ref": "#/$defs/ServerInfo"
+    },
+    "stream_epoch": {
+      "description": "Current stream epoch.",
+      "$ref": "#/$defs/U64"
+    },
+    "viewers": {
+      "description": "Viewer counts.",
+      "$ref": "#/$defs/Viewers"
+    }
+  },
+  "required": [
+    "role",
+    "conn_id",
+    "stream_epoch",
+    "server",
+    "env",
+    "latch",
+    "viewers"
+  ],
+  "$defs": {
+    "Env": {
+      "description": "Environment badge (B4). Does not change risk handling.",
+      "oneOf": [
+        {
+          "description": "Simulation backends.",
+          "type": "string",
+          "const": "sim"
+        },
+        {
+          "description": "Bench hardware.",
+          "type": "string",
+          "const": "bench"
+        },
+        {
+          "description": "Real vehicle.",
+          "type": "string",
+          "const": "vehicle"
+        }
+      ]
+    },
+    "Rights": {
+      "description": "Viewer rights level (E9). Ordered: watch < operate < approve.",
+      "oneOf": [
+        {
+          "description": "See everything, change nothing.",
+          "type": "string",
+          "const": "watch"
+        },
+        {
+          "description": "Input, STOP release, worker restart, run/test control.",
+          "type": "string",
+          "const": "operate"
+        },
+        {
+          "description": "Approvals, policy relaxations, verdict overrides.",
+          "type": "string",
+          "const": "approve"
+        }
+      ]
+    },
+    "Role": {
+      "description": "Connection role, assigned by the server (D2).",
+      "oneOf": [
+        {
+          "description": "`daemon.json` token holder (CLI). Writes carry origin = agent.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Web viewer (bootstrap cookie). Writes carry origin = user.",
+          "type": "string",
+          "const": "viewer"
+        },
+        {
+          "description": "Internal runner / test actor. Origin = script.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "ServerInfo": {
+      "description": "Server identity in the hello result.",
+      "type": "object",
+      "properties": {
+        "build": {
+          "description": "Build id.",
+          "type": "string"
+        },
+        "schema_hash": {
+          "description": "Schema hash of `loom-proto` (drift detection).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "description": "Daemon version.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "build"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "Viewers": {
+      "description": "Viewer counts (uart-core #13). `visible` is a tab-visibility report, not proof of a human.",
+      "type": "object",
+      "properties": {
+        "subscribed": {
+          "description": "Viewer connections with an active subscription.",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "visible": {
+          "description": "Of those, viewers reporting a visible panel.",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        }
+      },
+      "required": [
+        "subscribed",
+        "visible"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[package]
+name = "loom-uds-sim"
+description = "Deterministic virtual UDS ECU state model (pure handle()) with fault injection. Transport adapters live elsewhere."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+loom-uds-codec = { path = "../loom-uds-codec" }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

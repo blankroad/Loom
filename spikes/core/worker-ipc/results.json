@@ -1,0 +1,56 @@
+[
+  {
+    "achieved_events_s": 100031.90324158878,
+    "codec": "postcard",
+    "gateway_cpu_s": 0.09573499999999999,
+    "rtt_n": 10000,
+    "rtt_p50_us": 8.417,
+    "rtt_p99_us": 58.083,
+    "single_request_bytes": 79,
+    "stream_n": 300000,
+    "stream_p50_us": 151.0,
+    "stream_p99_us": 3783.0,
+    "stream_wire_bytes": 22792488,
+    "target_events_s": 100000,
+    "worker": {
+      "cpu_s": 0.161657,
+      "wall_s": 2.999072209
+    }
+  },
+  {
+    "achieved_events_s": 100037.09292041244,
+    "codec": "bincode2",
+    "gateway_cpu_s": 0.10102100000000003,
+    "rtt_n": 10000,
+    "rtt_p50_us": 18.708,
+    "rtt_p99_us": 103.792,
+    "single_request_bytes": 80,
+    "stream_n": 300000,
+    "stream_p50_us": 120.0,
+    "stream_p99_us": 7703.0,
+    "stream_wire_bytes": 23575926,
+    "target_events_s": 100000,
+    "worker": {
+      "cpu_s": 0.12172100000000002,
+      "wall_s": 2.998820708
+    }
+  },
+  {
+    "achieved_events_s": 100022.31888021261,
+    "codec": "msgpack",
+    "gateway_cpu_s": 0.23162799999999995,
+    "rtt_n": 10000,
+    "rtt_p50_us": 19.959,
+    "rtt_p99_us": 113.708,
+    "single_request_bytes": 83,
+    "stream_n": 300000,
+    "stream_p50_us": 341.0,
+    "stream_p99_us": 17012.0,
+    "stream_wire_bytes": 33887239,
+    "target_events_s": 100000,
+    "worker": {
+      "cpu_s": 0.267195,
+      "wall_s": 2.99924
+    }
+  }
+]

@@ -1,0 +1,22 @@
+[package]
+name = "loom-can-dbc"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Loom DBC loader: can-dbc parser to an immutable compiled database plus a runtime signal codec"
+
+[dependencies]
+loom-can-frame = { path = "../loom-can-frame" }
+# DBC grammar/AST (plan D67). serde is not needed; "encodings" gives Windows-1252 decoding.
+can-dbc = { version = "10", default-features = false, features = ["encodings"] }
+# Only to read the line/column of a can-dbc parse error (same pest that can-dbc uses).
+pest = "2"
+# db_sha256 for session pinning.
+sha2 = "0.11"
+
+[dev-dependencies]
+proptest = "1"
+
+[lints]
+workspace = true

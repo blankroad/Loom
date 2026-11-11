@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hello",
+  "description": "`core.hello` params — first message on every connection.",
+  "type": "object",
+  "properties": {
+    "client": {
+      "description": "Client description.",
+      "$ref": "#/$defs/ClientInfo"
+    },
+    "client_id": {
+      "description": "Stable client id (`LOOM_CLIENT` + pid).",
+      "type": "string"
+    },
+    "proto": {
+      "description": "Protocol, e.g. `\"loom/1.0\"`.",
+      "type": "string"
+    },
+    "token": {
+      "description": "`daemon.json` token (agent); viewers authenticate with the cookie instead.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "want_role": {
+      "description": "Requested role; the server decides.",
+      "$ref": "#/$defs/Role"
+    }
+  },
+  "required": [
+    "proto",
+    "client_id",
+    "want_role",
+    "client"
+  ],
+  "$defs": {
+    "ClientInfo": {
+      "description": "Client self-description in `core.hello`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "`cli`, `web`, `tui`, `sdk` …",
+          "type": "string"
+        },
+        "tty": {
+          "description": "stdin and stdout are terminals (informational only, never an authority).",
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "description": "Client version.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "version"
+      ]
+    },
+    "Role": {
+      "description": "Connection role, assigned by the server (D2).",
+      "oneOf": [
+        {
+          "description": "`daemon.json` token holder (CLI). Writes carry origin = agent.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Web viewer (bootstrap cookie). Writes carry origin = user.",
+          "type": "string",
+          "const": "viewer"
+        },
+        {
+          "description": "Internal runner / test actor. Origin = script.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    }
+  }
+}

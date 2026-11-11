@@ -1,0 +1,713 @@
+{
+  "fetched_at": "2026-11-09T23:07:37.829420+00:00",
+  "crates": [
+    {
+      "name": "tokio",
+      "version": "1.54.1",
+      "license": "MIT",
+      "released_at": "2026-10-21T21:05:43.950213Z",
+      "downloads_total": 1169162556,
+      "recent_downloads": 299106295,
+      "repository": "https://github.com/tokio-rs/tokio",
+      "documentation": null,
+      "rust_version": "1.85",
+      "api": "https://crates.io/api/v1/crates/tokio",
+      "status": 200
+    },
+    {
+      "name": "axum",
+      "version": "0.8.9",
+      "license": "MIT",
+      "released_at": "2026-04-14T07:55:20.258398Z",
+      "downloads_total": 578465102,
+      "recent_downloads": 157898206,
+      "repository": "https://github.com/tokio-rs/axum",
+      "documentation": null,
+      "rust_version": "1.80",
+      "api": "https://crates.io/api/v1/crates/axum",
+      "status": 200
+    },
+    {
+      "name": "tokio-tungstenite",
+      "version": "0.30.0",
+      "license": "MIT",
+      "released_at": "2026-07-11T12:58:44.438987Z",
+      "downloads_total": 351929612,
+      "recent_downloads": 111596974,
+      "repository": "https://github.com/snapview/tokio-tungstenite",
+      "documentation": "https://docs.rs/tokio-tungstenite/0.30.0",
+      "rust_version": "1.85",
+      "api": "https://crates.io/api/v1/crates/tokio-tungstenite",
+      "status": 200
+    },
+    {
+      "name": "fastwebsockets",
+      "version": "0.8.1",
+      "license": "Apache-2.0",
+      "released_at": "2026-01-01T06:38:33.637833Z",
+      "downloads_total": 6239584,
+      "recent_downloads": 2086368,
+      "repository": "https://github.com/denoland/fastwebsockets",
+      "documentation": null,
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/fastwebsockets",
+      "status": 200
+    },
+    {
+      "name": "rust-embed",
+      "version": "8.13.0",
+      "license": "MIT",
+      "released_at": "2026-10-07T10:23:29.685454Z",
+      "downloads_total": 66800256,
+      "recent_downloads": 21189688,
+      "repository": "https://pyrossh.dev/repos/rust-embed",
+      "documentation": "https://docs.rs/rust-embed",
+      "rust_version": "1.80.0",
+      "api": "https://crates.io/api/v1/crates/rust-embed",
+      "status": 200
+    },
+    {
+      "name": "serde",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-07-18T23:05:13.266456Z",
+      "downloads_total": 1675153794,
+      "recent_downloads": 417825519,
+      "repository": "https://github.com/serde-rs/serde",
+      "documentation": "https://docs.rs/serde",
+      "rust_version": "1.56",
+      "api": "https://crates.io/api/v1/crates/serde",
+      "status": 200
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.154",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-10-11T15:31:46.076577Z",
+      "downloads_total": 1581119632,
+      "recent_downloads": 419470888,
+      "repository": "https://github.com/serde-rs/json",
+      "documentation": "https://docs.rs/serde_json",
+      "rust_version": "1.71",
+      "api": "https://crates.io/api/v1/crates/serde_json",
+      "status": 200
+    },
+    {
+      "name": "simd-json",
+      "version": "0.19.0",
+      "license": "Apache-2.0 OR MIT",
+      "released_at": "2026-10-27T22:19:36.419570Z",
+      "downloads_total": 24690597,
+      "recent_downloads": 6467131,
+      "repository": "https://github.com/simd-lite/simd-json",
+      "documentation": "https://docs.rs/simd-json",
+      "rust_version": "1.88",
+      "api": "https://crates.io/api/v1/crates/simd-json",
+      "status": 200
+    },
+    {
+      "name": "postcard",
+      "version": "1.1.3",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2025-07-24T15:55:57.238442Z",
+      "downloads_total": 90362760,
+      "recent_downloads": 38902566,
+      "repository": "https://github.com/jamesmunns/postcard",
+      "documentation": "https://docs.rs/postcard/",
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/postcard",
+      "status": 200
+    },
+    {
+      "name": "bincode",
+      "version": "3.0.0",
+      "license": "MIT",
+      "released_at": "2025-12-16T21:34:14.694603Z",
+      "downloads_total": 371301735,
+      "recent_downloads": 79425459,
+      "repository": "https://github.com/bincode-org/bincode",
+      "documentation": "https://docs.rs/bincode",
+      "rust_version": "1.85.0",
+      "api": "https://crates.io/api/v1/crates/bincode",
+      "status": 200
+    },
+    {
+      "name": "rmp-serde",
+      "version": "1.3.1",
+      "license": "MIT",
+      "released_at": "2025-12-23T23:54:42.671970Z",
+      "downloads_total": 150982711,
+      "recent_downloads": 31763886,
+      "repository": "https://github.com/3Hren/msgpack-rust",
+      "documentation": "https://docs.rs/rmp-serde",
+      "rust_version": "1.85",
+      "api": "https://crates.io/api/v1/crates/rmp-serde",
+      "status": 200
+    },
+    {
+      "name": "rkyv",
+      "version": "0.8.18",
+      "license": "MIT",
+      "released_at": "2026-08-05T12:01:41.931822Z",
+      "downloads_total": 183259434,
+      "recent_downloads": 42895282,
+      "repository": "https://github.com/rkyv/rkyv",
+      "documentation": "https://docs.rs/rkyv",
+      "rust_version": "1.81",
+      "api": "https://crates.io/api/v1/crates/rkyv",
+      "status": 200
+    },
+    {
+      "name": "prost",
+      "version": "0.14.4",
+      "license": "Apache-2.0",
+      "released_at": "2026-06-07T10:13:40.918481Z",
+      "downloads_total": 698225183,
+      "recent_downloads": 170292638,
+      "repository": "https://github.com/tokio-rs/prost",
+      "documentation": null,
+      "rust_version": "1.85",
+      "api": "https://crates.io/api/v1/crates/prost",
+      "status": 200
+    },
+    {
+      "name": "capnp",
+      "version": "0.27.3",
+      "license": "MIT",
+      "released_at": "2026-10-27T01:04:28.733013Z",
+      "downloads_total": 16099256,
+      "recent_downloads": 2558253,
+      "repository": "https://github.com/capnproto/capnproto-rust",
+      "documentation": "https://docs.rs/capnp/",
+      "rust_version": "1.81.0",
+      "api": "https://crates.io/api/v1/crates/capnp",
+      "status": 200
+    },
+    {
+      "name": "flatbuffers",
+      "version": "25.12.19",
+      "license": "Apache-2.0",
+      "released_at": "2025-12-19T23:16:16.576273Z",
+      "downloads_total": 123271928,
+      "recent_downloads": 31662800,
+      "repository": "https://github.com/google/flatbuffers",
+      "documentation": null,
+      "rust_version": "1.51",
+      "api": "https://crates.io/api/v1/crates/flatbuffers",
+      "status": 200
+    },
+    {
+      "name": "interprocess",
+      "version": "2.4.8",
+      "license": "0BSD OR Apache-2.0",
+      "released_at": "2026-11-08T15:11:42.801154Z",
+      "downloads_total": 17590667,
+      "recent_downloads": 4914935,
+      "repository": "https://github.com/kotauskas/interprocess",
+      "documentation": null,
+      "rust_version": "1.75",
+      "api": "https://crates.io/api/v1/crates/interprocess",
+      "status": 200
+    },
+    {
+      "name": "shared_memory",
+      "version": "0.12.4",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2022-03-01T15:28:47.012123Z",
+      "downloads_total": 5795570,
+      "recent_downloads": 921113,
+      "repository": "https://github.com/elast0ny/shared_memory-rs",
+      "documentation": "https://docs.rs/shared_memory",
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/shared_memory",
+      "status": 200
+    },
+    {
+      "name": "iceoryx2",
+      "version": "0.10.0",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-09-18T16:53:05.974365Z",
+      "downloads_total": 1009138,
+      "recent_downloads": 527746,
+      "repository": "https://github.com/eclipse-iceoryx/iceoryx2",
+      "documentation": null,
+      "rust_version": "1.89",
+      "api": "https://crates.io/api/v1/crates/iceoryx2",
+      "status": 200
+    },
+    {
+      "name": "jsonrpsee",
+      "version": "0.26.1",
+      "license": "MIT",
+      "released_at": "2026-09-30T11:48:25.314610Z",
+      "downloads_total": 27459162,
+      "recent_downloads": 3980638,
+      "repository": "https://github.com/paritytech/jsonrpsee",
+      "documentation": "https://docs.rs/jsonrpsee",
+      "rust_version": "1.87.0",
+      "api": "https://crates.io/api/v1/crates/jsonrpsee",
+      "status": 200
+    },
+    {
+      "name": "schemars",
+      "version": "1.2.3",
+      "license": "MIT",
+      "released_at": "2026-10-12T20:30:07.644403Z",
+      "downloads_total": 631196494,
+      "recent_downloads": 241971902,
+      "repository": "https://github.com/GREsau/schemars",
+      "documentation": null,
+      "rust_version": "1.74",
+      "api": "https://crates.io/api/v1/crates/schemars",
+      "status": 200
+    },
+    {
+      "name": "ts-rs",
+      "version": "12.0.1",
+      "license": "MIT",
+      "released_at": "2026-01-31T19:05:25.017774Z",
+      "downloads_total": 22414349,
+      "recent_downloads": 10309812,
+      "repository": "https://github.com/Aleph-Alpha/ts-rs",
+      "documentation": null,
+      "rust_version": "1.78.0",
+      "api": "https://crates.io/api/v1/crates/ts-rs",
+      "status": 200
+    },
+    {
+      "name": "specta",
+      "version": "1.0.5",
+      "license": "MIT",
+      "released_at": "2023-07-17T19:28:34.622914Z",
+      "downloads_total": 3758833,
+      "recent_downloads": 1824443,
+      "repository": "https://github.com/specta-rs/specta",
+      "documentation": "https://docs.rs/specta/latest/specta",
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/specta",
+      "status": 200
+    },
+    {
+      "name": "typify",
+      "version": "0.8.0",
+      "license": "Apache-2.0",
+      "released_at": "2026-09-09T18:45:36.250332Z",
+      "downloads_total": 34499090,
+      "recent_downloads": 7634293,
+      "repository": "https://github.com/oxidecomputer/typify",
+      "documentation": null,
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/typify",
+      "status": 200
+    },
+    {
+      "name": "rusqlite",
+      "version": "0.41.1",
+      "license": "MIT",
+      "released_at": "2026-10-28T17:58:27.732969Z",
+      "downloads_total": 149532350,
+      "recent_downloads": 58317929,
+      "repository": "https://github.com/rusqlite/rusqlite",
+      "documentation": "https://docs.rs/rusqlite/",
+      "rust_version": "1.89.0",
+      "api": "https://crates.io/api/v1/crates/rusqlite",
+      "status": 200
+    },
+    {
+      "name": "redb",
+      "version": "4.5.0",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-11-05T23:49:39.251731Z",
+      "downloads_total": 15669605,
+      "recent_downloads": 6784807,
+      "repository": "https://github.com/cberner/redb",
+      "documentation": null,
+      "rust_version": "1.90",
+      "api": "https://crates.io/api/v1/crates/redb",
+      "status": 200
+    },
+    {
+      "name": "arrow",
+      "version": "60.1.0",
+      "license": "Apache-2.0",
+      "released_at": "2026-10-28T08:49:53.696899Z",
+      "downloads_total": 97625451,
+      "recent_downloads": 27345405,
+      "repository": "https://github.com/apache/arrow-rs",
+      "documentation": null,
+      "rust_version": "1.88",
+      "api": "https://crates.io/api/v1/crates/arrow",
+      "status": 200
+    },
+    {
+      "name": "parquet",
+      "version": "60.1.0",
+      "license": "Apache-2.0",
+      "released_at": "2026-10-28T08:51:14.605722Z",
+      "downloads_total": 92577971,
+      "recent_downloads": 24101435,
+      "repository": "https://github.com/apache/arrow-rs",
+      "documentation": null,
+      "rust_version": "1.88",
+      "api": "https://crates.io/api/v1/crates/parquet",
+      "status": 200
+    },
+    {
+      "name": "zstd",
+      "version": "0.13.4",
+      "license": "BSD-3-Clause",
+      "released_at": "2026-11-01T14:12:07.712712Z",
+      "downloads_total": 470048966,
+      "recent_downloads": 117862691,
+      "repository": "https://github.com/gyscos/zstd-rs",
+      "documentation": "https://docs.rs/zstd",
+      "rust_version": "1.64",
+      "api": "https://crates.io/api/v1/crates/zstd",
+      "status": 200
+    },
+    {
+      "name": "lz4_flex",
+      "version": "0.14.0",
+      "license": "MIT",
+      "released_at": "2026-07-14T10:34:14.120407Z",
+      "downloads_total": 169985449,
+      "recent_downloads": 48087835,
+      "repository": "https://github.com/pseitz/lz4_flex",
+      "documentation": null,
+      "rust_version": "1.81",
+      "api": "https://crates.io/api/v1/crates/lz4_flex",
+      "status": 200
+    },
+    {
+      "name": "windows",
+      "version": "0.62.2",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2025-10-06T19:19:49.704461Z",
+      "downloads_total": 400025391,
+      "recent_downloads": 108364688,
+      "repository": "https://github.com/microsoft/windows-rs",
+      "documentation": "https://microsoft.github.io/windows-docs-rs/",
+      "rust_version": "1.82",
+      "api": "https://crates.io/api/v1/crates/windows",
+      "status": 200
+    },
+    {
+      "name": "win32job",
+      "version": "2.0.3",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2025-05-15T10:25:16.092815Z",
+      "downloads_total": 1683946,
+      "recent_downloads": 520892,
+      "repository": "https://github.com/ohadravid/win32job-rs",
+      "documentation": "https://docs.rs/crate/win32job",
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/win32job",
+      "status": 200
+    },
+    {
+      "name": "process-wrap",
+      "version": "8.2.2",
+      "license": "Apache-2.0 OR MIT",
+      "released_at": "2026-09-23T05:28:36.086484Z",
+      "downloads_total": 25442644,
+      "recent_downloads": 14754003,
+      "repository": "https://github.com/watchexec/process-wrap",
+      "documentation": "https://docs.rs/process-wrap",
+      "rust_version": "1.77.0",
+      "api": "https://crates.io/api/v1/crates/process-wrap",
+      "status": 200
+    },
+    {
+      "name": "clap",
+      "version": "4.6.7",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-09-14T18:40:28.474794Z",
+      "downloads_total": 1319137932,
+      "recent_downloads": 283083553,
+      "repository": "https://github.com/clap-rs/clap",
+      "documentation": null,
+      "rust_version": "1.85",
+      "api": "https://crates.io/api/v1/crates/clap",
+      "status": 200
+    },
+    {
+      "name": "tracing",
+      "version": "0.1.44",
+      "license": "MIT",
+      "released_at": "2025-12-18T14:26:12.360139Z",
+      "downloads_total": 1027670059,
+      "recent_downloads": 263523636,
+      "repository": "https://github.com/tokio-rs/tracing",
+      "documentation": null,
+      "rust_version": "1.65.0",
+      "api": "https://crates.io/api/v1/crates/tracing",
+      "status": 200
+    },
+    {
+      "name": "tracing-subscriber",
+      "version": "0.3.23",
+      "license": "MIT",
+      "released_at": "2026-03-13T10:04:15.571048Z",
+      "downloads_total": 733037558,
+      "recent_downloads": 188632209,
+      "repository": "https://github.com/tokio-rs/tracing",
+      "documentation": null,
+      "rust_version": "1.65.0",
+      "api": "https://crates.io/api/v1/crates/tracing-subscriber",
+      "status": 200
+    },
+    {
+      "name": "tikv-jemallocator",
+      "version": "0.7.0",
+      "license": "MIT/Apache-2.0",
+      "released_at": "2026-05-25T17:14:14.038227Z",
+      "downloads_total": 112698141,
+      "recent_downloads": 26209852,
+      "repository": "https://github.com/tikv/jemallocator",
+      "documentation": "https://docs.rs/jemallocator",
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/tikv-jemallocator",
+      "status": 200
+    },
+    {
+      "name": "mimalloc",
+      "version": "0.1.52",
+      "license": "MIT",
+      "released_at": "2026-05-22T13:15:21.565252Z",
+      "downloads_total": 73540667,
+      "recent_downloads": 25470947,
+      "repository": "https://github.com/purpleprotocol/mimalloc_rust",
+      "documentation": null,
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/mimalloc",
+      "status": 200
+    },
+    {
+      "name": "dhat",
+      "version": "0.3.3",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2024-02-04T03:47:29.691826Z",
+      "downloads_total": 15392567,
+      "recent_downloads": 4865666,
+      "repository": "https://github.com/nnethercote/dhat-rs",
+      "documentation": null,
+      "rust_version": null,
+      "api": "https://crates.io/api/v1/crates/dhat",
+      "status": 200
+    },
+    {
+      "name": "sysinfo",
+      "version": "0.40.1",
+      "license": "MIT",
+      "released_at": "2026-10-30T14:18:56.246395Z",
+      "downloads_total": 242665035,
+      "recent_downloads": 60972066,
+      "repository": "https://github.com/GuillaumeGomez/sysinfo",
+      "documentation": null,
+      "rust_version": "1.95",
+      "api": "https://crates.io/api/v1/crates/sysinfo",
+      "status": 200
+    },
+    {
+      "name": "cargo-dist",
+      "version": "0.34.0",
+      "license": "MIT OR Apache-2.0",
+      "released_at": "2026-11-02T05:59:48.259693Z",
+      "downloads_total": 189113,
+      "recent_downloads": 19212,
+      "repository": "https://github.com/axodotdev/cargo-dist",
+      "documentation": null,
+      "rust_version": "1.74",
+      "api": "https://crates.io/api/v1/crates/cargo-dist",
+      "status": 200
+    }
+  ],
+  "sources": [
+    {
+      "key": "tokio-pipe",
+      "url": "https://docs.rs/tokio/latest/tokio/net/windows/named_pipe/index.html",
+      "status": 200,
+      "chars": 2342
+    },
+    {
+      "key": "interprocess",
+      "url": "https://docs.rs/interprocess/latest/interprocess/local_socket/index.html",
+      "status": 200,
+      "chars": 6695
+    },
+    {
+      "key": "bincode",
+      "url": "https://github.com/bincode-org/bincode",
+      "status": 200,
+      "chars": 3565
+    },
+    {
+      "key": "postcard",
+      "url": "https://postcard.jamesmunns.com/wire-format",
+      "status": 200,
+      "chars": 11709
+    },
+    {
+      "key": "rmp-serde",
+      "url": "https://docs.rs/rmp-serde/latest/rmp_serde/",
+      "status": 200,
+      "chars": 3301
+    },
+    {
+      "key": "jsonrpsee",
+      "url": "https://docs.rs/jsonrpsee/latest/jsonrpsee/",
+      "status": 200,
+      "chars": 8030
+    },
+    {
+      "key": "schemars",
+      "url": "https://graham.cool/schemars/",
+      "status": 200,
+      "chars": 3096
+    },
+    {
+      "key": "ts-rs",
+      "url": "https://docs.rs/ts-rs/latest/ts_rs/",
+      "status": 200,
+      "chars": 6807
+    },
+    {
+      "key": "typify",
+      "url": "https://docs.rs/typify/latest/typify/",
+      "status": 200,
+      "chars": 5469
+    },
+    {
+      "key": "specta",
+      "url": "https://docs.rs/specta/latest/specta/",
+      "status": 200,
+      "chars": 5033
+    },
+    {
+      "key": "datamodel-code-generator",
+      "url": "https://github.com/koxudaxi/datamodel-code-generator",
+      "status": 200,
+      "chars": 24551
+    },
+    {
+      "key": "quicktype",
+      "url": "https://github.com/glideapps/quicktype",
+      "status": 200,
+      "chars": 13189
+    },
+    {
+      "key": "sqlite-wal",
+      "url": "https://sqlite.org/wal.html",
+      "status": 200,
+      "chars": 31463
+    },
+    {
+      "key": "sqlite-sync",
+      "url": "https://sqlite.org/pragma.html#pragma_synchronous",
+      "status": 200,
+      "chars": 83624
+    },
+    {
+      "key": "redb",
+      "url": "https://docs.rs/redb/latest/redb/",
+      "status": 200,
+      "chars": 5663
+    },
+    {
+      "key": "job-object",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects",
+      "status": 200,
+      "chars": 10298
+    },
+    {
+      "key": "job-limits",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information",
+      "status": 200,
+      "chars": 3777
+    },
+    {
+      "key": "windows-memory",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex",
+      "status": 200,
+      "chars": 3137
+    },
+    {
+      "key": "cgroup",
+      "url": "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "status": 200,
+      "chars": 129411
+    },
+    {
+      "key": "linux-status",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_status.5.html",
+      "status": 200,
+      "chars": 8084
+    },
+    {
+      "key": "prlimit",
+      "url": "https://man7.org/linux/man-pages/man2/prlimit.2.html",
+      "status": 200,
+      "chars": 21317
+    },
+    {
+      "key": "iceoryx2",
+      "url": "https://docs.rs/iceoryx2/latest/iceoryx2/",
+      "status": 200,
+      "chars": 16458
+    },
+    {
+      "key": "cargo-dist",
+      "url": "https://github.com/axodotdev/cargo-dist",
+      "status": 200,
+      "chars": 8603
+    },
+    {
+      "key": "jsonrpc",
+      "url": "https://www.jsonrpc.org/specification",
+      "status": 200,
+      "chars": 13116
+    },
+    {
+      "key": "canfd",
+      "url": "https://www.can-cia.org/can-knowledge/can-fd-the-basic-idea",
+      "status": 200,
+      "chars": 11478
+    },
+    {
+      "key": "iceoryx-platform",
+      "url": "https://github.com/eclipse-iceoryx/iceoryx2",
+      "status": 200,
+      "chars": 10201
+    },
+    {
+      "key": "bincode-current",
+      "url": "https://docs.rs/bincode/latest/bincode/",
+      "status": 200,
+      "chars": 8010
+    },
+    {
+      "key": "bincode2-source",
+      "url": "https://docs.rs/crate/bincode/2.0.1/source/src/lib.rs",
+      "status": 200,
+      "chars": 10089
+    },
+    {
+      "key": "axum-source",
+      "url": "https://docs.rs/axum/latest/src/axum/extract/ws.rs.html",
+      "status": 200,
+      "chars": 42886
+    },
+    {
+      "key": "shared-memory",
+      "url": "https://docs.rs/shared_memory/latest/shared_memory/",
+      "status": 200,
+      "chars": 1229
+    },
+    {
+      "key": "simd-json",
+      "url": "https://docs.rs/simd-json/latest/simd_json/",
+      "status": 200,
+      "chars": 12338
+    }
+  ]
+}

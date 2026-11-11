@@ -1,0 +1,5594 @@
+{
+  "crate": {
+    "id": "notify",
+    "name": "notify",
+    "updated_at": "2026-11-09T09:52:31.867673Z",
+    "versions": [
+      3758564,
+      3749667,
+      3628743,
+      3598257,
+      3527119,
+      3110802,
+      2337675,
+      2261344,
+      2027772,
+      1971186,
+      1669494,
+      1625591,
+      1402486,
+      1314926,
+      1186063,
+      876791,
+      876055,
+      823899,
+      801324,
+      801323,
+      713765,
+      611497,
+      602449,
+      542082,
+      515712,
+      424076,
+      414189,
+      404593,
+      386122,
+      382691,
+      377993,
+      377700,
+      366888,
+      366828,
+      342139,
+      332670,
+      300586,
+      254872,
+      201861,
+      201846,
+      183292,
+      173245,
+      159199,
+      157754,
+      152017,
+      149109,
+      137569,
+      132760,
+      132194,
+      129584,
+      105969,
+      105922,
+      102519,
+      72304,
+      70100,
+      48686,
+      44929,
+      39055,
+      36912,
+      31301,
+      29594,
+      28336,
+      28186,
+      24532,
+      21160,
+      19801,
+      19644,
+      18893,
+      18696,
+      17678,
+      17205,
+      16485,
+      15464,
+      14937,
+      13790,
+      13033,
+      12302,
+      11475,
+      11435,
+      10007,
+      7844,
+      5968,
+      5139,
+      4332,
+      2290,
+      1962,
+      1519,
+      1518,
+      1410
+    ],
+    "keywords": [
+      "events",
+      "filesystem",
+      "notify",
+      "watch"
+    ],
+    "categories": [
+      "filesystem"
+    ],
+    "badges": [],
+    "created_at": "2014-12-20T07:53:19.303362Z",
+    "downloads": 193099104,
+    "recent_downloads": 55937164,
+    "default_version": "8.2.2",
+    "num_versions": 89,
+    "yanked": false,
+    "max_version": "9.0.0-rc.8",
+    "newest_version": "9.0.0-rc.8",
+    "max_stable_version": "8.2.2",
+    "description": "Cross-platform filesystem notification library",
+    "homepage": "https://github.com/notify-rs/notify",
+    "documentation": "https://docs.rs/notify",
+    "repository": "https://github.com/notify-rs/notify.git",
+    "links": {
+      "version_downloads": "/api/v1/crates/notify/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/notify/owners",
+      "owner_team": "/api/v1/crates/notify/owner_team",
+      "owner_user": "/api/v1/crates/notify/owner_user",
+      "reverse_dependencies": "/api/v1/crates/notify/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 3758564,
+      "crate": "notify",
+      "num": "9.0.0-rc.8",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.8/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.8/readme",
+      "updated_at": "2026-11-09T09:52:31.867673Z",
+      "created_at": "2026-11-09T09:52:31.867673Z",
+      "downloads": 369,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "freebsd_inotify": [],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.8/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.8/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.8/authors"
+      },
+      "crate_size": 167176,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-11-09T09:52:31.867673Z"
+        }
+      ],
+      "checksum": "9eba4aae18a1495cd8eb448bdca59fd348db884b1cd7b6a899a8c82d78f9f0f6",
+      "rust_version": "1.91",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2024",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 14799,
+            "comment_lines": 683,
+            "files": 16
+          }
+        },
+        "total_code_lines": 14799,
+        "total_comment_lines": 683
+      }
+    },
+    {
+      "id": 3749667,
+      "crate": "notify",
+      "num": "8.2.2",
+      "dl_path": "/api/v1/crates/notify/8.2.2/download",
+      "readme_path": "/api/v1/crates/notify/8.2.2/readme",
+      "updated_at": "2026-11-08T12:13:41.067272Z",
+      "created_at": "2026-11-08T12:13:41.067272Z",
+      "downloads": 43493,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "fsevent-sys": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/8.2.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/8.2.2/downloads",
+        "authors": "/api/v1/crates/notify/8.2.2/authors"
+      },
+      "crate_size": 64058,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-11-08T12:13:41.067272Z"
+        }
+      ],
+      "checksum": "c41a04a5f59df9322cc657286dd2d79f90816119b22c5f847607c850110205ab",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 5296,
+            "comment_lines": 295,
+            "files": 10
+          }
+        },
+        "total_code_lines": 5296,
+        "total_comment_lines": 295
+      }
+    },
+    {
+      "id": 3628743,
+      "crate": "notify",
+      "num": "9.0.0-rc.7",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.7/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.7/readme",
+      "updated_at": "2026-10-27T21:36:51.200992Z",
+      "created_at": "2026-10-27T21:36:51.200992Z",
+      "downloads": 16517,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "freebsd_inotify": [],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.7/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.7/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.7/authors"
+      },
+      "crate_size": 134252,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-10-27T21:36:51.200992Z"
+        }
+      ],
+      "checksum": "9dc7e1571ebae4ac2247c2ea8f1e067055dae6495226489c78321a2e14b47966",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2024",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 11217,
+            "comment_lines": 592,
+            "files": 13
+          }
+        },
+        "total_code_lines": 11217,
+        "total_comment_lines": 592
+      }
+    },
+    {
+      "id": 3598257,
+      "crate": "notify",
+      "num": "8.2.1",
+      "dl_path": "/api/v1/crates/notify/8.2.1/download",
+      "readme_path": "/api/v1/crates/notify/8.2.1/readme",
+      "updated_at": "2026-10-25T00:01:33.279314Z",
+      "created_at": "2026-10-25T00:01:33.279314Z",
+      "downloads": 1703428,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "fsevent-sys": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/8.2.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/8.2.1/downloads",
+        "authors": "/api/v1/crates/notify/8.2.1/authors"
+      },
+      "crate_size": 61881,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-10-25T00:01:33.279314Z"
+        }
+      ],
+      "checksum": "82f812702fbc75d35416d3f884e04925be7e9498f4eceea2e24ba34559284674",
+      "rust_version": "1.85",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 5117,
+            "comment_lines": 278,
+            "files": 10
+          }
+        },
+        "total_code_lines": 5117,
+        "total_comment_lines": 278
+      }
+    },
+    {
+      "id": 3527119,
+      "crate": "notify",
+      "num": "9.0.0-rc.6",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.6/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.6/readme",
+      "updated_at": "2026-10-17T22:27:04.484962Z",
+      "created_at": "2026-10-17T22:27:04.484962Z",
+      "downloads": 231324,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "freebsd_inotify": [],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.6/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.6/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.6/authors"
+      },
+      "crate_size": 124609,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-10-17T22:27:04.484962Z"
+        }
+      ],
+      "checksum": "bb94cf3583e1483c23ceb47a5f7d56b3e8d7309b3e3727698a8c52a96993355e",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2024",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 10116,
+            "comment_lines": 542,
+            "files": 13
+          }
+        },
+        "total_code_lines": 10116,
+        "total_comment_lines": 542
+      }
+    },
+    {
+      "id": 3110802,
+      "crate": "notify",
+      "num": "9.0.0-rc.5",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.5/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.5/readme",
+      "updated_at": "2026-08-30T08:02:34.203338Z",
+      "created_at": "2026-08-30T08:02:34.203338Z",
+      "downloads": 269314,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "freebsd_inotify": [],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.5/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.5/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.5/authors"
+      },
+      "crate_size": 115091,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-08-30T08:02:34.203338Z"
+        }
+      ],
+      "checksum": "7768eb7201a1964d8eb10224e850df046ab584ee3c3d26e340a993d81f748148",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2024",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 8968,
+            "comment_lines": 511,
+            "files": 13
+          }
+        },
+        "total_code_lines": 8968,
+        "total_comment_lines": 511
+      }
+    },
+    {
+      "id": 2337675,
+      "crate": "notify",
+      "num": "9.0.0-rc.4",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.4/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.4/readme",
+      "updated_at": "2026-05-02T03:46:25.977335Z",
+      "created_at": "2026-05-02T03:46:25.977335Z",
+      "downloads": 364360,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.4/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.4/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.4/authors"
+      },
+      "crate_size": 99903,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-05-02T03:46:25.977335Z"
+        }
+      ],
+      "checksum": "b44b771d4dd781ef14c84078693e67495da6b47f609f72e8a4da8420a861240e",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 7705,
+            "comment_lines": 439,
+            "files": 11
+          }
+        },
+        "total_code_lines": 7705,
+        "total_comment_lines": 439
+      }
+    },
+    {
+      "id": 2261344,
+      "crate": "notify",
+      "num": "9.0.0-rc.3",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.3/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.3/readme",
+      "updated_at": "2026-04-15T17:12:12.971294Z",
+      "created_at": "2026-04-15T17:12:12.971294Z",
+      "downloads": 41169,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.3/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.3/authors"
+      },
+      "crate_size": 92799,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-04-15T17:12:12.971294Z"
+        }
+      ],
+      "checksum": "783683ce6e1059e3747190a6c05688db21e07a846bf90babb351365f9133fe3e",
+      "rust_version": "1.88",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 6867,
+            "comment_lines": 421,
+            "files": 10
+          }
+        },
+        "total_code_lines": 6867,
+        "total_comment_lines": 421
+      }
+    },
+    {
+      "id": 2027772,
+      "crate": "notify",
+      "num": "9.0.0-rc.2",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.2/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.2/readme",
+      "updated_at": "2026-02-14T11:09:37.358051Z",
+      "created_at": "2026-02-14T11:09:37.358051Z",
+      "downloads": 19062,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "futures": [
+          "dep:futures"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.2/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.2/authors"
+      },
+      "crate_size": 86054,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-02-14T11:09:37.358051Z"
+        }
+      ],
+      "checksum": "c8b6510a5042c64929d0278a8d24f5f90aa3a9b5be52e08e4f8bf7403adb01dc",
+      "rust_version": "1.85",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 6183,
+            "comment_lines": 408,
+            "files": 10
+          }
+        },
+        "total_code_lines": 6183,
+        "total_comment_lines": 408
+      }
+    },
+    {
+      "id": 1971186,
+      "crate": "notify",
+      "num": "9.0.0-rc.1",
+      "dl_path": "/api/v1/crates/notify/9.0.0-rc.1/download",
+      "readme_path": "/api/v1/crates/notify/9.0.0-rc.1/readme",
+      "updated_at": "2026-01-25T08:28:48.114334Z",
+      "created_at": "2026-01-25T08:28:48.114334Z",
+      "downloads": 3520,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "objc2-core-foundation",
+          "objc2-core-services"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/9.0.0-rc.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/9.0.0-rc.1/downloads",
+        "authors": "/api/v1/crates/notify/9.0.0-rc.1/authors"
+      },
+      "crate_size": 77100,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2026-01-25T08:28:48.114334Z"
+        }
+      ],
+      "checksum": "6d1f660da45085290c8c3cfde8e99b5992afd363f574e25d61692c27814e7a16",
+      "rust_version": "1.85",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 5521,
+            "comment_lines": 376,
+            "files": 10
+          }
+        },
+        "total_code_lines": 5521,
+        "total_comment_lines": 376
+      }
+    },
+    {
+      "id": 1669494,
+      "crate": "notify",
+      "num": "8.2.0",
+      "dl_path": "/api/v1/crates/notify/8.2.0/download",
+      "readme_path": "/api/v1/crates/notify/8.2.0/readme",
+      "updated_at": "2025-08-03T14:54:41.092775Z",
+      "created_at": "2025-08-03T14:54:41.092775Z",
+      "downloads": 74930402,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/8.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/8.2.0/downloads",
+        "authors": "/api/v1/crates/notify/8.2.0/authors"
+      },
+      "crate_size": 39067,
+      "published_by": {
+        "id": 5649,
+        "login": "dfaust",
+        "name": "Daniel Faust",
+        "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+        "url": "https://github.com/dfaust",
+        "github_username_matches": true,
+        "created_at": "2011-07-04T14:28:52Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 5649,
+            "login": "dfaust",
+            "name": "Daniel Faust",
+            "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+            "url": "https://github.com/dfaust",
+            "github_username_matches": true,
+            "created_at": "2011-07-04T14:28:52Z"
+          },
+          "time": "2025-08-03T14:54:41.092775Z"
+        }
+      ],
+      "checksum": "4d3d07927151ff8575b7087f245456e549fea62edf0ec4e565a5ee50c8402bc3",
+      "rust_version": "1.77",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2919,
+            "comment_lines": 271,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2919,
+        "total_comment_lines": 271
+      }
+    },
+    {
+      "id": 1625591,
+      "crate": "notify",
+      "num": "8.1.0",
+      "dl_path": "/api/v1/crates/notify/8.1.0/download",
+      "readme_path": "/api/v1/crates/notify/8.1.0/readme",
+      "updated_at": "2025-07-03T10:48:54.987821Z",
+      "created_at": "2025-07-03T10:48:54.987821Z",
+      "downloads": 1668556,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/8.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/8.1.0/downloads",
+        "authors": "/api/v1/crates/notify/8.1.0/authors"
+      },
+      "crate_size": 37843,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2025-07-03T10:48:54.987821Z"
+        }
+      ],
+      "checksum": "3163f59cd3fa0e9ef8c32f242966a7b9994fd7378366099593e0e73077cd8c97",
+      "rust_version": "1.77",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2820,
+            "comment_lines": 264,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2820,
+        "total_comment_lines": 264
+      }
+    },
+    {
+      "id": 1402486,
+      "crate": "notify",
+      "num": "8.0.0",
+      "dl_path": "/api/v1/crates/notify/8.0.0/download",
+      "readme_path": "/api/v1/crates/notify/8.0.0/readme",
+      "updated_at": "2025-01-10T14:34:44.890868Z",
+      "created_at": "2025-01-10T14:34:44.890868Z",
+      "downloads": 8744820,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/8.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/8.0.0/downloads",
+        "authors": "/api/v1/crates/notify/8.0.0/authors"
+      },
+      "crate_size": 35590,
+      "published_by": {
+        "id": 5649,
+        "login": "dfaust",
+        "name": "Daniel Faust",
+        "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+        "url": "https://github.com/dfaust",
+        "github_username_matches": true,
+        "created_at": "2011-07-04T14:28:52Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 5649,
+            "login": "dfaust",
+            "name": "Daniel Faust",
+            "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+            "url": "https://github.com/dfaust",
+            "github_username_matches": true,
+            "created_at": "2011-07-04T14:28:52Z"
+          },
+          "time": "2025-01-10T14:34:44.890868Z"
+        }
+      ],
+      "checksum": "2fee8403b3d66ac7b26aee6e40a897d85dc5ce26f44da36b8b73e987cc52e943",
+      "rust_version": "1.77",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2594,
+            "comment_lines": 249,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2594,
+        "total_comment_lines": 249
+      }
+    },
+    {
+      "id": 1314926,
+      "crate": "notify",
+      "num": "7.0.0",
+      "dl_path": "/api/v1/crates/notify/7.0.0/download",
+      "readme_path": "/api/v1/crates/notify/7.0.0/readme",
+      "updated_at": "2024-10-25T16:54:02.924437Z",
+      "created_at": "2024-10-25T16:54:02.924437Z",
+      "downloads": 11403763,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "serde": [
+          "notify-types/serde"
+        ],
+        "serialization-compat-6": [
+          "notify-types/serialization-compat-6"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/7.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/7.0.0/downloads",
+        "authors": "/api/v1/crates/notify/7.0.0/authors"
+      },
+      "crate_size": 35141,
+      "published_by": {
+        "id": 5649,
+        "login": "dfaust",
+        "name": "Daniel Faust",
+        "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+        "url": "https://github.com/dfaust",
+        "github_username_matches": true,
+        "created_at": "2011-07-04T14:28:52Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 5649,
+            "login": "dfaust",
+            "name": "Daniel Faust",
+            "avatar": "https://avatars.githubusercontent.com/u/893710?v=4",
+            "url": "https://github.com/dfaust",
+            "github_username_matches": true,
+            "created_at": "2011-07-04T14:28:52Z"
+          },
+          "time": "2024-10-25T16:54:02.924437Z"
+        }
+      ],
+      "checksum": "c533b4c39709f9ba5005d8002048266593c1cfaf3c5f0739d5b8ab0c6c504009",
+      "rust_version": "1.72",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2531,
+            "comment_lines": 246,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2531,
+        "total_comment_lines": 246
+      }
+    },
+    {
+      "id": 1186063,
+      "crate": "notify",
+      "num": "4.0.18",
+      "dl_path": "/api/v1/crates/notify/4.0.18/download",
+      "readme_path": "/api/v1/crates/notify/4.0.18/readme",
+      "updated_at": "2024-06-26T13:14:27.074624Z",
+      "created_at": "2024-06-26T13:14:27.074624Z",
+      "downloads": 1784086,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.18/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.18/downloads",
+        "authors": "/api/v1/crates/notify/4.0.18/authors"
+      },
+      "crate_size": 55443,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2024-06-26T13:14:27.074624Z"
+        }
+      ],
+      "checksum": "b72dd35279a5dc895a30965e247b0961ba36c233dc48454a2de8ccd459f1afd3",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2279,
+            "comment_lines": 189,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2279,
+        "total_comment_lines": 189
+      }
+    },
+    {
+      "id": 876791,
+      "crate": "notify",
+      "num": "6.1.1",
+      "dl_path": "/api/v1/crates/notify/6.1.1/download",
+      "readme_path": "/api/v1/crates/notify/6.1.1/readme",
+      "updated_at": "2023-08-21T09:32:26.351986Z",
+      "created_at": "2023-08-21T09:32:26.351986Z",
+      "downloads": 60893267,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/6.1.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/6.1.1/downloads",
+        "authors": "/api/v1/crates/notify/6.1.1/authors"
+      },
+      "crate_size": 40117,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-08-21T09:32:26.351986Z"
+        }
+      ],
+      "checksum": "6205bd8bb1e454ad2e27422015fb5e4f2bcc7e08fa8f27058670d208324a4d2d",
+      "rust_version": "1.60",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2830,
+            "comment_lines": 277,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2830,
+        "total_comment_lines": 277
+      }
+    },
+    {
+      "id": 876055,
+      "crate": "notify",
+      "num": "6.1.0",
+      "dl_path": "/api/v1/crates/notify/6.1.0/download",
+      "readme_path": "/api/v1/crates/notify/6.1.0/readme",
+      "updated_at": "2023-08-20T01:41:18.378024Z",
+      "created_at": "2023-08-20T01:41:18.378024Z",
+      "downloads": 20008,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/6.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/6.1.0/downloads",
+        "authors": "/api/v1/crates/notify/6.1.0/authors"
+      },
+      "crate_size": 40184,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-08-20T01:41:18.378024Z"
+        }
+      ],
+      "checksum": "3dbf4f3b058c29e9642cf53217e0531cbfc78bc24e0a212a9837b7415b9d9007",
+      "rust_version": "1.60",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2830,
+            "comment_lines": 277,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2830,
+        "total_comment_lines": 277
+      }
+    },
+    {
+      "id": 823899,
+      "crate": "notify",
+      "num": "6.0.1",
+      "dl_path": "/api/v1/crates/notify/6.0.1/download",
+      "readme_path": "/api/v1/crates/notify/6.0.1/readme",
+      "updated_at": "2023-06-15T22:59:52.113088Z",
+      "created_at": "2023-06-15T22:59:52.113088Z",
+      "downloads": 1131145,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/6.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/6.0.1/downloads",
+        "authors": "/api/v1/crates/notify/6.0.1/authors"
+      },
+      "crate_size": 36446,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-06-15T22:59:52.113088Z"
+        }
+      ],
+      "checksum": "5738a2795d57ea20abec2d6d76c6081186709c0024187cd5977265eda6598b51",
+      "rust_version": "1.60",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2728,
+            "comment_lines": 279,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2728,
+        "total_comment_lines": 279
+      }
+    },
+    {
+      "id": 801324,
+      "crate": "notify",
+      "num": "6.0.0",
+      "dl_path": "/api/v1/crates/notify/6.0.0/download",
+      "readme_path": "/api/v1/crates/notify/6.0.0/readme",
+      "updated_at": "2023-05-17T00:09:12.138606Z",
+      "created_at": "2023-05-17T00:09:12.138606Z",
+      "downloads": 592951,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/6.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/6.0.0/downloads",
+        "authors": "/api/v1/crates/notify/6.0.0/authors"
+      },
+      "crate_size": 36490,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-05-17T00:09:12.138606Z"
+        }
+      ],
+      "checksum": "4d9ba6c734de18ca27c8cef5cd7058aa4ac9f63596131e4c7e41e579319032a2",
+      "rust_version": "1.60",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2731,
+            "comment_lines": 279,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2731,
+        "total_comment_lines": 279
+      }
+    },
+    {
+      "id": 801323,
+      "crate": "notify",
+      "num": "5.2.0",
+      "dl_path": "/api/v1/crates/notify/5.2.0/download",
+      "readme_path": "/api/v1/crates/notify/5.2.0/readme",
+      "updated_at": "2023-05-17T00:08:16.987362Z",
+      "created_at": "2023-05-17T00:08:16.987362Z",
+      "downloads": 5082162,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.2.0/downloads",
+        "authors": "/api/v1/crates/notify/5.2.0/authors"
+      },
+      "crate_size": 37297,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-05-17T00:08:16.987362Z"
+        }
+      ],
+      "checksum": "729f63e1ca555a43fe3efa4f3efdf4801c479da85b432242a7b726f353c88486",
+      "rust_version": "1.56",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2799,
+            "comment_lines": 303,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2799,
+        "total_comment_lines": 303
+      }
+    },
+    {
+      "id": 713765,
+      "crate": "notify",
+      "num": "5.1.0",
+      "dl_path": "/api/v1/crates/notify/5.1.0/download",
+      "readme_path": "/api/v1/crates/notify/5.1.0/readme",
+      "updated_at": "2023-01-28T18:04:09.644937Z",
+      "created_at": "2023-01-28T18:04:09.644937Z",
+      "downloads": 3403392,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.1.0/downloads",
+        "authors": "/api/v1/crates/notify/5.1.0/authors"
+      },
+      "crate_size": 37269,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2023-01-28T18:04:09.644937Z"
+        }
+      ],
+      "checksum": "58ea850aa68a06e48fdb069c0ec44d0d64c8dbffa49bf3b6f7f0a901fdea1ba9",
+      "rust_version": "1.56",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2798,
+            "comment_lines": 303,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2798,
+        "total_comment_lines": 303
+      }
+    },
+    {
+      "id": 611497,
+      "crate": "notify",
+      "num": "5.0.0",
+      "dl_path": "/api/v1/crates/notify/5.0.0/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0/readme",
+      "updated_at": "2022-08-30T17:05:39.273042Z",
+      "created_at": "2022-08-30T17:05:39.273042Z",
+      "downloads": 3189928,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0/authors"
+      },
+      "crate_size": 37091,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2022-08-30T17:05:39.273042Z"
+        }
+      ],
+      "checksum": "ed2c66da08abae1c024c01d635253e402341b4060a12e99b31c7594063bf490a",
+      "rust_version": "1.56",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2793,
+            "comment_lines": 302,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2793,
+        "total_comment_lines": 302
+      }
+    },
+    {
+      "id": 602449,
+      "crate": "notify",
+      "num": "5.0.0-pre.16",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.16/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.16/readme",
+      "updated_at": "2022-08-14T12:33:02.783915Z",
+      "created_at": "2022-08-14T12:33:02.783915Z",
+      "downloads": 752192,
+      "features": {
+        "default": [
+          "macos_fsevent",
+          "crossbeam-channel"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.16/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.16/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.16/authors"
+      },
+      "crate_size": 36950,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2022-08-14T12:33:02.783915Z"
+        }
+      ],
+      "checksum": "530f6314d6904508082f4ea424a0275cf62d341e118b313663f266429cb19693",
+      "rust_version": "1.56",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2790,
+            "comment_lines": 302,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2790,
+        "total_comment_lines": 302
+      }
+    },
+    {
+      "id": 542082,
+      "crate": "notify",
+      "num": "5.0.0-pre.15",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.15/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.15/readme",
+      "updated_at": "2022-05-01T13:38:08.408612Z",
+      "created_at": "2022-05-01T13:38:08.408612Z",
+      "downloads": 695996,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.15/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.15/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.15/authors"
+      },
+      "crate_size": 57624,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2022-05-01T13:38:08.408612Z"
+        }
+      ],
+      "checksum": "553f9844ad0b0824605c20fb55a661679782680410abfb1a8144c2e7e437e7a7",
+      "rust_version": "1.56",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2711,
+            "comment_lines": 240,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2711,
+        "total_comment_lines": 240
+      }
+    },
+    {
+      "id": 515712,
+      "crate": "notify",
+      "num": "5.0.0-pre.14",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.14/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.14/readme",
+      "updated_at": "2022-03-13T21:10:59.397326Z",
+      "created_at": "2022-03-13T21:10:59.397326Z",
+      "downloads": 821971,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.14/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.14/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.14/authors"
+      },
+      "crate_size": 54485,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2022-03-13T21:10:59.397326Z"
+        }
+      ],
+      "checksum": "d13c22db70a63592e098fb51735bab36646821e6389a0ba171f3549facdf0b74",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2615,
+            "comment_lines": 239,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2615,
+        "total_comment_lines": 239
+      }
+    },
+    {
+      "id": 424076,
+      "crate": "notify",
+      "num": "5.0.0-pre.13",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.13/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.13/readme",
+      "updated_at": "2021-09-10T21:29:40.151674Z",
+      "created_at": "2021-09-10T21:29:40.151674Z",
+      "downloads": 405325,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.13/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.13/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.13/authors"
+      },
+      "crate_size": 52883,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-09-10T21:29:40.151674Z"
+        }
+      ],
+      "checksum": "245d358380e2352c2d020e8ee62baac09b3420f1f6c012a31326cfced4ad487d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2502,
+            "comment_lines": 229,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2502,
+        "total_comment_lines": 229
+      }
+    },
+    {
+      "id": 414189,
+      "crate": "notify",
+      "num": "5.0.0-pre.12",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.12/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.12/readme",
+      "updated_at": "2021-08-17T12:53:02.695821Z",
+      "created_at": "2021-08-17T12:53:02.695821Z",
+      "downloads": 139699,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.12/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.12/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.12/authors"
+      },
+      "crate_size": 52799,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-08-17T12:53:02.695821Z"
+        }
+      ],
+      "checksum": "20a629259bb2c87a884bb76f6086c8637919de6d074754341c12e5dd3aed6326",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2502,
+            "comment_lines": 229,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2502,
+        "total_comment_lines": 229
+      }
+    },
+    {
+      "id": 404593,
+      "crate": "notify",
+      "num": "5.0.0-pre.11",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.11/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.11/readme",
+      "updated_at": "2021-07-23T23:28:39.974270Z",
+      "created_at": "2021-07-23T23:28:39.974270Z",
+      "downloads": 501699,
+      "features": {
+        "default": [
+          "macos_fsevent"
+        ],
+        "macos_fsevent": [
+          "fsevent-sys"
+        ],
+        "macos_kqueue": [
+          "kqueue",
+          "mio"
+        ],
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.11/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.11/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.11/authors"
+      },
+      "crate_size": 52508,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-07-23T23:28:39.974270Z"
+        }
+      ],
+      "checksum": "c614e7ed2b1cf82ec99aeffd8cf6225ef5021b9951148eb161393c394855032c",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2478,
+            "comment_lines": 229,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2478,
+        "total_comment_lines": 229
+      }
+    },
+    {
+      "id": 386122,
+      "crate": "notify",
+      "num": "5.0.0-pre.10",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.10/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.10/readme",
+      "updated_at": "2021-06-04T18:22:21.682336Z",
+      "created_at": "2021-06-04T18:22:21.682336Z",
+      "downloads": 531514,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.10/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.10/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.10/authors"
+      },
+      "crate_size": 48888,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-06-04T18:22:21.682336Z"
+        }
+      ],
+      "checksum": "51f18203a26893ca1d3526cf58084025d5639f91c44f8b70ab3b724f60e819a0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2168,
+            "comment_lines": 172,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2168,
+        "total_comment_lines": 172
+      }
+    },
+    {
+      "id": 382691,
+      "crate": "notify",
+      "num": "5.0.0-pre.9",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.9/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.9/readme",
+      "updated_at": "2021-05-26T20:31:27.842701Z",
+      "created_at": "2021-05-26T20:31:27.842701Z",
+      "downloads": 390549,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.9/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.9/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.9/authors"
+      },
+      "crate_size": 48688,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-05-26T20:31:27.842701Z"
+        }
+      ],
+      "checksum": "b89869d77edd64db917d7903abeadc166f93686b342c56cc0ca51acb68441d09",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2162,
+            "comment_lines": 169,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2162,
+        "total_comment_lines": 169
+      }
+    },
+    {
+      "id": 377993,
+      "crate": "notify",
+      "num": "4.0.17",
+      "dl_path": "/api/v1/crates/notify/4.0.17/download",
+      "readme_path": "/api/v1/crates/notify/4.0.17/readme",
+      "updated_at": "2021-05-13T13:28:32.917531Z",
+      "created_at": "2021-05-13T13:28:32.917531Z",
+      "downloads": 6425509,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.17/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.17/downloads",
+        "authors": "/api/v1/crates/notify/4.0.17/authors"
+      },
+      "crate_size": 54419,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-05-13T13:28:32.917531Z"
+        }
+      ],
+      "checksum": "ae03c8c853dba7bfd23e571ff0cff7bc9dceb40a4cd684cd1681824183f45257",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2279,
+            "comment_lines": 189,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2279,
+        "total_comment_lines": 189
+      }
+    },
+    {
+      "id": 377700,
+      "crate": "notify",
+      "num": "5.0.0-pre.8",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.8/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.8/readme",
+      "updated_at": "2021-05-12T17:48:23.251626Z",
+      "created_at": "2021-05-12T17:48:23.251626Z",
+      "downloads": 138816,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.8/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.8/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.8/authors"
+      },
+      "crate_size": 47481,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-05-12T17:48:23.251626Z"
+        }
+      ],
+      "checksum": "46bbbcd078f1f00ddb7a9abe70b96e91229b44b0b3afdec610f8e5137f8f014b",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2170,
+            "comment_lines": 156,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2170,
+        "total_comment_lines": 156
+      }
+    },
+    {
+      "id": 366888,
+      "crate": "notify",
+      "num": "5.0.0-pre.7",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.7/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.7/readme",
+      "updated_at": "2021-04-15T10:54:44.964358Z",
+      "created_at": "2021-04-15T10:54:44.964358Z",
+      "downloads": 260811,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0 OR Artistic-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.7/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.7/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.7/authors"
+      },
+      "crate_size": 47521,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-04-15T10:54:44.964358Z"
+        }
+      ],
+      "checksum": "1ebe7699a0f8c5759450716ee03d231685c22b4fe8f406c42c22e0ad94d40ce7",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2153,
+            "comment_lines": 156,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2153,
+        "total_comment_lines": 156
+      }
+    },
+    {
+      "id": 366828,
+      "crate": "notify",
+      "num": "4.0.16",
+      "dl_path": "/api/v1/crates/notify/4.0.16/download",
+      "readme_path": "/api/v1/crates/notify/4.0.16/readme",
+      "updated_at": "2021-04-15T07:30:22.106883Z",
+      "created_at": "2021-04-15T07:30:22.106883Z",
+      "downloads": 288875,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.16/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.16/downloads",
+        "authors": "/api/v1/crates/notify/4.0.16/authors"
+      },
+      "crate_size": 53902,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-04-15T07:30:22.106883Z"
+        }
+      ],
+      "checksum": "2599080e87c9bd051ddb11b10074f4da7b1223298df65d4c2ec5bcf309af1533",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2271,
+            "comment_lines": 187,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2271,
+        "total_comment_lines": 187
+      }
+    },
+    {
+      "id": 342139,
+      "crate": "notify",
+      "num": "5.0.0-pre.6",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.6/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.6/readme",
+      "updated_at": "2021-02-20T11:09:58.490287Z",
+      "created_at": "2021-02-20T11:09:58.490287Z",
+      "downloads": 264655,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.6/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.6/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.6/authors"
+      },
+      "crate_size": 46915,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2021-02-20T11:09:58.490287Z"
+        }
+      ],
+      "checksum": "e5fd82b93434edb9c00ae65ee741e0e081cdc8c63346ab9f687935a629aaf4c3",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2145,
+            "comment_lines": 154,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2145,
+        "total_comment_lines": 154
+      }
+    },
+    {
+      "id": 332670,
+      "crate": "notify",
+      "num": "5.0.0-pre.5",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.5/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.5/readme",
+      "updated_at": "2021-01-28T09:48:15.727634Z",
+      "created_at": "2021-01-28T09:48:15.727634Z",
+      "downloads": 94138,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.5/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.5/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.5/authors"
+      },
+      "crate_size": 46651,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2021-01-28T09:48:15.727634Z"
+        }
+      ],
+      "checksum": "58e54552360d7b89a698eca6de3927205a8e03e8080dc13d779de5c7876e098b",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2140,
+            "comment_lines": 152,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2140,
+        "total_comment_lines": 152
+      }
+    },
+    {
+      "id": 300586,
+      "crate": "notify",
+      "num": "5.0.0-pre.4",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.4/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.4/readme",
+      "updated_at": "2020-10-31T11:45:32.165333Z",
+      "created_at": "2020-10-31T11:45:32.165333Z",
+      "downloads": 430764,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.4/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.4/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.4/authors"
+      },
+      "crate_size": 47077,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2020-10-31T11:45:32.165333Z"
+        }
+      ],
+      "checksum": "a8b946889dfdad884379cd56367d93b6d0ce8889cc027d26a69a3a31c0a03bb5",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2139,
+            "comment_lines": 150,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2139,
+        "total_comment_lines": 150
+      }
+    },
+    {
+      "id": 254872,
+      "crate": "notify",
+      "num": "5.0.0-pre.3",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.3/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.3/readme",
+      "updated_at": "2020-06-22T15:07:07.236760Z",
+      "created_at": "2020-06-22T15:07:07.236760Z",
+      "downloads": 387852,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.3/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.3/authors"
+      },
+      "crate_size": 47156,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 18031,
+            "login": "0xpr03",
+            "name": "Proc",
+            "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+            "url": "https://github.com/0xpr03",
+            "github_username_matches": true,
+            "created_at": "2011-12-22T15:01:46Z"
+          },
+          "time": "2020-06-22T15:07:07.236760Z"
+        }
+      ],
+      "checksum": "77d03607cf88b4b160ba0e9ed425fff3cee3b55ac813f0c685b3a3772da37d0e",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2146,
+            "comment_lines": 147,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2146,
+        "total_comment_lines": 147
+      }
+    },
+    {
+      "id": 201861,
+      "crate": "notify",
+      "num": "4.0.15",
+      "dl_path": "/api/v1/crates/notify/4.0.15/download",
+      "readme_path": "/api/v1/crates/notify/4.0.15/readme",
+      "updated_at": "2020-01-07T14:33:36.709126Z",
+      "created_at": "2020-01-07T14:33:36.709126Z",
+      "downloads": 2614791,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.15/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.15/downloads",
+        "authors": "/api/v1/crates/notify/4.0.15/authors"
+      },
+      "crate_size": 54853,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2020-01-07T14:33:36.709126Z"
+        }
+      ],
+      "checksum": "80ae4a7688d1fab81c5bf19c64fc8db920be8d519ce6336ed4e7efe024724dbd",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2273,
+            "comment_lines": 187,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2273,
+        "total_comment_lines": 187
+      }
+    },
+    {
+      "id": 201846,
+      "crate": "notify",
+      "num": "5.0.0-pre.2",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.2/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.2/readme",
+      "updated_at": "2020-01-07T13:09:26.445254Z",
+      "created_at": "2020-01-07T13:09:26.445254Z",
+      "downloads": 257550,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.2/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.2/authors"
+      },
+      "crate_size": 47928,
+      "published_by": {
+        "id": 51017,
+        "login": "JohnTitor",
+        "name": "Yuki Okushi",
+        "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+        "url": "https://github.com/JohnTitor",
+        "github_username_matches": true,
+        "created_at": "2017-01-10T11:29:51Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 51017,
+            "login": "JohnTitor",
+            "name": "Yuki Okushi",
+            "avatar": "https://avatars.githubusercontent.com/u/25030997?v=4",
+            "url": "https://github.com/JohnTitor",
+            "github_username_matches": true,
+            "created_at": "2017-01-10T11:29:51Z"
+          },
+          "time": "2020-01-07T13:09:26.445254Z"
+        }
+      ],
+      "checksum": "7b00c0b65188bffb5598c302e19b062feb94adef02c31f15622a163c95d673c3",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/notify-rs/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/notify-rs/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2146,
+            "comment_lines": 147,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2146,
+        "total_comment_lines": 147
+      }
+    },
+    {
+      "id": 183292,
+      "crate": "notify",
+      "num": "4.0.14",
+      "dl_path": "/api/v1/crates/notify/4.0.14/download",
+      "readme_path": "/api/v1/crates/notify/4.0.14/readme",
+      "updated_at": "2019-10-17T14:38:08.945296Z",
+      "created_at": "2019-10-17T14:38:08.945296Z",
+      "downloads": 261472,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.14/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.14/downloads",
+        "authors": "/api/v1/crates/notify/4.0.14/authors"
+      },
+      "crate_size": 55241,
+      "published_by": {
+        "id": 18031,
+        "login": "0xpr03",
+        "name": "Proc",
+        "avatar": "https://avatars.githubusercontent.com/u/1280209?v=4",
+        "url": "https://github.com/0xpr03",
+        "github_username_matches": true,
+        "created_at": "2011-12-22T15:01:46Z"
+      },
+      "audit_actions": [],
+      "checksum": "199628fc33b21bc767baa057490b00b382ecbae030803a7b36292422d15b778b",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2269,
+            "comment_lines": 187,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2269,
+        "total_comment_lines": 187
+      }
+    },
+    {
+      "id": 173245,
+      "crate": "notify",
+      "num": "4.0.13",
+      "dl_path": "/api/v1/crates/notify/4.0.13/download",
+      "readme_path": "/api/v1/crates/notify/4.0.13/readme",
+      "updated_at": "2019-09-01T15:41:12.810910Z",
+      "created_at": "2019-09-01T15:41:12.810910Z",
+      "downloads": 226075,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.13/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.13/downloads",
+        "authors": "/api/v1/crates/notify/4.0.13/authors"
+      },
+      "crate_size": 51604,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "1191efa2b8fe041decb55c238a125b7a1aeb6fad7a525133a02be5ec949ff3cb",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2256,
+            "comment_lines": 182,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2256,
+        "total_comment_lines": 182
+      }
+    },
+    {
+      "id": 159199,
+      "crate": "notify",
+      "num": "5.0.0-pre.1",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.1/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.1/readme",
+      "updated_at": "2019-06-29T15:43:13.308206Z",
+      "created_at": "2019-06-29T15:43:13.308206Z",
+      "downloads": 189948,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.1/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.1/authors"
+      },
+      "crate_size": 63780,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "d742ae493f34bd2e20ec2f3c1276fc1981343a8efd7ef12bca4368d0303bed50",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2734,
+            "comment_lines": 209,
+            "files": 12
+          }
+        },
+        "total_code_lines": 2734,
+        "total_comment_lines": 209
+      }
+    },
+    {
+      "id": 157754,
+      "crate": "notify",
+      "num": "5.0.0-pre.0",
+      "dl_path": "/api/v1/crates/notify/5.0.0-pre.0/download",
+      "readme_path": "/api/v1/crates/notify/5.0.0-pre.0/readme",
+      "updated_at": "2019-06-29T15:28:14.239381Z",
+      "created_at": "2019-06-22T09:41:18.298305Z",
+      "downloads": 4186,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/5.0.0-pre.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/5.0.0-pre.0/downloads",
+        "authors": "/api/v1/crates/notify/5.0.0-pre.0/authors"
+      },
+      "crate_size": 44109,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "2051c5408fd13b68082388d79732e4f9936482f9bbc2de09a999c0fee4769c21",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2065,
+            "comment_lines": 120,
+            "files": 10
+          }
+        },
+        "total_code_lines": 2065,
+        "total_comment_lines": 120
+      }
+    },
+    {
+      "id": 152017,
+      "crate": "notify",
+      "num": "4.0.12",
+      "dl_path": "/api/v1/crates/notify/4.0.12/download",
+      "readme_path": "/api/v1/crates/notify/4.0.12/readme",
+      "updated_at": "2019-05-22T14:01:45.443195Z",
+      "created_at": "2019-05-22T14:01:45.443195Z",
+      "downloads": 289598,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.12/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.12/downloads",
+        "authors": "/api/v1/crates/notify/4.0.12/authors"
+      },
+      "crate_size": 48182,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "3572d71f13ea8ed41867accd971fd564aa75934cf7a1fae03ddb8c74a8a49943",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2256,
+            "comment_lines": 182,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2256,
+        "total_comment_lines": 182
+      }
+    },
+    {
+      "id": 149109,
+      "crate": "notify",
+      "num": "4.0.11",
+      "dl_path": "/api/v1/crates/notify/4.0.11/download",
+      "readme_path": "/api/v1/crates/notify/4.0.11/readme",
+      "updated_at": "2019-05-07T22:37:57.006775Z",
+      "created_at": "2019-05-07T22:37:57.006775Z",
+      "downloads": 70407,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.11/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.11/downloads",
+        "authors": "/api/v1/crates/notify/4.0.11/authors"
+      },
+      "crate_size": 48159,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "ceb1a496a81dd6125f68ce772b41b83efe89a54d21768ed6d0c33c95832604e6",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2255,
+            "comment_lines": 181,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2255,
+        "total_comment_lines": 181
+      }
+    },
+    {
+      "id": 137569,
+      "crate": "notify",
+      "num": "4.0.10",
+      "dl_path": "/api/v1/crates/notify/4.0.10/download",
+      "readme_path": "/api/v1/crates/notify/4.0.10/readme",
+      "updated_at": "2019-03-06T11:46:47.649500Z",
+      "created_at": "2019-03-06T11:46:47.649500Z",
+      "downloads": 152977,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.10/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.10/downloads",
+        "authors": "/api/v1/crates/notify/4.0.10/authors"
+      },
+      "crate_size": 48124,
+      "published_by": {
+        "id": 411,
+        "login": "passcod",
+        "name": "Félix Saparelli",
+        "avatar": "https://avatars.githubusercontent.com/u/155787?v=4",
+        "url": "https://github.com/passcod",
+        "github_username_matches": true,
+        "created_at": "2009-11-20T04:13:31Z"
+      },
+      "audit_actions": [],
+      "checksum": "abb1581693e44d8a0ec347ef12289625063f52a1dddc3f3c9befd5fc59e88943",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2251,
+            "comment_lines": 181,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2251,
+        "total_comment_lines": 181
+      }
+    },
+    {
+      "id": 132760,
+      "crate": "notify",
+      "num": "4.0.9",
+      "dl_path": "/api/v1/crates/notify/4.0.9/download",
+      "readme_path": "/api/v1/crates/notify/4.0.9/readme",
+      "updated_at": "2019-02-09T07:59:36.276842Z",
+      "created_at": "2019-02-09T07:59:36.276842Z",
+      "downloads": 82211,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.9/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.9/downloads",
+        "authors": "/api/v1/crates/notify/4.0.9/authors"
+      },
+      "crate_size": 47992,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "9cc7ed2bd4b7edad3ee93b659c38e53dabb619f7274e127a0fab054ad2bb998d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2250,
+            "comment_lines": 181,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2250,
+        "total_comment_lines": 181
+      }
+    },
+    {
+      "id": 132194,
+      "crate": "notify",
+      "num": "4.0.8",
+      "dl_path": "/api/v1/crates/notify/4.0.8/download",
+      "readme_path": "/api/v1/crates/notify/4.0.8/readme",
+      "updated_at": "2019-02-06T03:49:51.921595Z",
+      "created_at": "2019-02-06T03:49:51.921595Z",
+      "downloads": 9771,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.8/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.8/downloads",
+        "authors": "/api/v1/crates/notify/4.0.8/authors"
+      },
+      "crate_size": 47693,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "c9b605e417814e88bb051c88a84f83655d6ad4fa32fc36d9a96296d86087692d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2292,
+            "comment_lines": 177,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2292,
+        "total_comment_lines": 177
+      }
+    },
+    {
+      "id": 129584,
+      "crate": "notify",
+      "num": "4.0.7",
+      "dl_path": "/api/v1/crates/notify/4.0.7/download",
+      "readme_path": "/api/v1/crates/notify/4.0.7/readme",
+      "updated_at": "2019-01-23T02:58:17.696065Z",
+      "created_at": "2019-01-23T02:58:17.696065Z",
+      "downloads": 47603,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.7/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.7/downloads",
+        "authors": "/api/v1/crates/notify/4.0.7/authors"
+      },
+      "crate_size": 43380,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "c968cf37cf949114b00d51b0b23536d1c3a4a3963767cf4c969c65a6af78dc7d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2292,
+            "comment_lines": 177,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2292,
+        "total_comment_lines": 177
+      }
+    },
+    {
+      "id": 105969,
+      "crate": "notify",
+      "num": "4.0.6",
+      "dl_path": "/api/v1/crates/notify/4.0.6/download",
+      "readme_path": "/api/v1/crates/notify/4.0.6/readme",
+      "updated_at": "2018-08-29T12:53:39.767357Z",
+      "created_at": "2018-08-29T12:53:39.767357Z",
+      "downloads": 205895,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.6/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.6/downloads",
+        "authors": "/api/v1/crates/notify/4.0.6/authors"
+      },
+      "crate_size": 42888,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "873ecfd8c174964ae30f401329d140142312c8e5590719cf1199d5f1717d8078",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2178,
+            "comment_lines": 177,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2178,
+        "total_comment_lines": 177
+      }
+    },
+    {
+      "id": 105922,
+      "crate": "notify",
+      "num": "4.0.5",
+      "dl_path": "/api/v1/crates/notify/4.0.5/download",
+      "readme_path": "/api/v1/crates/notify/4.0.5/readme",
+      "updated_at": "2018-08-29T12:30:30.089992Z",
+      "created_at": "2018-08-29T04:26:59.218693Z",
+      "downloads": 2935,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.5/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.5/downloads",
+        "authors": "/api/v1/crates/notify/4.0.5/authors"
+      },
+      "crate_size": 42620,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "5f75e0aebc6c753d831e7ed571a76cf146beaf4819ed38bece833378feef94df",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2154,
+            "comment_lines": 177,
+            "files": 8
+          }
+        },
+        "total_code_lines": 2154,
+        "total_comment_lines": 177
+      }
+    },
+    {
+      "id": 102519,
+      "crate": "notify",
+      "num": "4.0.4",
+      "dl_path": "/api/v1/crates/notify/4.0.4/download",
+      "readme_path": "/api/v1/crates/notify/4.0.4/readme",
+      "updated_at": "2018-08-05T21:33:36.878860Z",
+      "created_at": "2018-08-05T21:33:36.878860Z",
+      "downloads": 25336,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.4/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.4/downloads",
+        "authors": "/api/v1/crates/notify/4.0.4/authors"
+      },
+      "crate_size": 43692,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "d023ef40ca7680784b07be3f49913e1ea176da1b63949f2eb2fed96438bd7f42",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2279,
+            "comment_lines": 165,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2279,
+        "total_comment_lines": 165
+      }
+    },
+    {
+      "id": 72304,
+      "crate": "notify",
+      "num": "4.0.3",
+      "dl_path": "/api/v1/crates/notify/4.0.3/download",
+      "readme_path": "/api/v1/crates/notify/4.0.3/readme",
+      "updated_at": "2017-11-30T02:40:37.725577Z",
+      "created_at": "2017-11-26T10:32:42.443402Z",
+      "downloads": 146568,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.3/downloads",
+        "authors": "/api/v1/crates/notify/4.0.3/authors"
+      },
+      "crate_size": 43711,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "5c3812da3098f210a0bb440f9c008471a031aa4c1de07a264fdd75456c95a4eb",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2279,
+            "comment_lines": 165,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2279,
+        "total_comment_lines": 165
+      }
+    },
+    {
+      "id": 70100,
+      "crate": "notify",
+      "num": "4.0.2",
+      "dl_path": "/api/v1/crates/notify/4.0.2/download",
+      "readme_path": "/api/v1/crates/notify/4.0.2/readme",
+      "updated_at": "2017-11-30T03:03:00.889785Z",
+      "created_at": "2017-11-03T10:38:33.392480Z",
+      "downloads": 13060,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.2/downloads",
+        "authors": "/api/v1/crates/notify/4.0.2/authors"
+      },
+      "crate_size": 43589,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "745bdfd0d0764c71525e880c6d7662b721cb5658ddb2feaa71c3193ec359aef8",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2269,
+            "comment_lines": 165,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2269,
+        "total_comment_lines": 165
+      }
+    },
+    {
+      "id": 48686,
+      "crate": "notify",
+      "num": "4.0.1",
+      "dl_path": "/api/v1/crates/notify/4.0.1/download",
+      "readme_path": "/api/v1/crates/notify/4.0.1/readme",
+      "updated_at": "2017-11-30T03:54:33.088752Z",
+      "created_at": "2017-03-25T01:52:19.868290Z",
+      "downloads": 58779,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.1/downloads",
+        "authors": "/api/v1/crates/notify/4.0.1/authors"
+      },
+      "crate_size": 42439,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "298d4401ff2c6cebb7f8944c90288647c89ce59029d43b439444cf1067df55e1",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2257,
+            "comment_lines": 160,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2257,
+        "total_comment_lines": 160
+      }
+    },
+    {
+      "id": 44929,
+      "crate": "notify",
+      "num": "4.0.0",
+      "dl_path": "/api/v1/crates/notify/4.0.0/download",
+      "readme_path": "/api/v1/crates/notify/4.0.0/readme",
+      "updated_at": "2017-11-30T03:34:17.686993Z",
+      "created_at": "2017-02-07T08:46:07.714119Z",
+      "downloads": 9929,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/4.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/4.0.0/downloads",
+        "authors": "/api/v1/crates/notify/4.0.0/authors"
+      },
+      "crate_size": 41578,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "87c628262cc8a99209596ec610dcf199d6876a10cfa22e355acc5936d6f1fa63",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2237,
+            "comment_lines": 154,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2237,
+        "total_comment_lines": 154
+      }
+    },
+    {
+      "id": 39055,
+      "crate": "notify",
+      "num": "3.0.1",
+      "dl_path": "/api/v1/crates/notify/3.0.1/download",
+      "readme_path": "/api/v1/crates/notify/3.0.1/readme",
+      "updated_at": "2017-11-30T03:36:54.460763Z",
+      "created_at": "2016-12-05T06:18:38.913994Z",
+      "downloads": 18847,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/3.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/3.0.1/downloads",
+        "authors": "/api/v1/crates/notify/3.0.1/authors"
+      },
+      "crate_size": 41431,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "13fdd4a6894329b193f38f03a88823ce721275fdfdb29820c44a30515033524e",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2232,
+            "comment_lines": 153,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2232,
+        "total_comment_lines": 153
+      }
+    },
+    {
+      "id": 36912,
+      "crate": "notify",
+      "num": "3.0.0",
+      "dl_path": "/api/v1/crates/notify/3.0.0/download",
+      "readme_path": "/api/v1/crates/notify/3.0.0/readme",
+      "updated_at": "2017-11-30T04:08:31.049535Z",
+      "created_at": "2016-10-30T10:12:36.463793Z",
+      "downloads": 4466,
+      "features": {
+        "manual_tests": [],
+        "timing_tests": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/3.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/3.0.0/downloads",
+        "authors": "/api/v1/crates/notify/3.0.0/authors"
+      },
+      "crate_size": 41228,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2a29c8a989715f71d2e8272e335a34e657957040cc4a6ecaab218ab717c05835",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/notify",
+      "documentation": "https://docs.rs/notify",
+      "repository": "https://github.com/passcod/notify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2228,
+            "comment_lines": 136,
+            "files": 9
+          }
+        },
+        "total_code_lines": 2228,
+        "total_comment_lines": 136
+      }
+    },
+    {
+      "id": 31301,
+      "crate": "notify",
+      "num": "2.6.3",
+      "dl_path": "/api/v1/crates/notify/2.6.3/download",
+      "readme_path": "/api/v1/crates/notify/2.6.3/readme",
+      "updated_at": "2017-11-30T03:00:21.083984Z",
+      "created_at": "2016-08-04T22:19:44.111493Z",
+      "downloads": 68839,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.6.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.6.3/downloads",
+        "authors": "/api/v1/crates/notify/2.6.3/authors"
+      },
+      "crate_size": 21117,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "4e0e7eec936337952c4228b023007528a33b2fa039d96c2e8f32d764221a9c07",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": "https://crates.fyi/crates/notify",
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1234,
+            "comment_lines": 64,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1234,
+        "total_comment_lines": 64
+      }
+    },
+    {
+      "id": 29594,
+      "crate": "notify",
+      "num": "2.6.2",
+      "dl_path": "/api/v1/crates/notify/2.6.2/download",
+      "readme_path": "/api/v1/crates/notify/2.6.2/readme",
+      "updated_at": "2017-11-30T03:55:49.627967Z",
+      "created_at": "2016-07-05T07:30:00.795720Z",
+      "downloads": 6338,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.6.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.6.2/downloads",
+        "authors": "/api/v1/crates/notify/2.6.2/authors"
+      },
+      "crate_size": 21156,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "bac505dc907560332fe9b7d973d2bffe15dc66e11a737c8da12ad5293387e972",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": "https://crates.fyi/crates/notify",
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1234,
+            "comment_lines": 64,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1234,
+        "total_comment_lines": 64
+      }
+    },
+    {
+      "id": 28336,
+      "crate": "notify",
+      "num": "2.6.1",
+      "dl_path": "/api/v1/crates/notify/2.6.1/download",
+      "readme_path": "/api/v1/crates/notify/2.6.1/readme",
+      "updated_at": "2017-11-30T02:26:24.242498Z",
+      "created_at": "2016-06-08T22:39:53.538791Z",
+      "downloads": 6043,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.6.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.6.1/downloads",
+        "authors": "/api/v1/crates/notify/2.6.1/authors"
+      },
+      "crate_size": 20622,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "d4b1ea329ebba9f798bf71e7e35c117aea70bd4ddae286b280f01f57fa297487",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": "https://crates.fyi/crates/notify",
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1231,
+            "comment_lines": 57,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1231,
+        "total_comment_lines": 57
+      }
+    },
+    {
+      "id": 28186,
+      "crate": "notify",
+      "num": "2.6.0",
+      "dl_path": "/api/v1/crates/notify/2.6.0/download",
+      "readme_path": "/api/v1/crates/notify/2.6.0/readme",
+      "updated_at": "2017-11-30T02:33:42.386911Z",
+      "created_at": "2016-06-05T22:30:42.928085Z",
+      "downloads": 3231,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.6.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.6.0/downloads",
+        "authors": "/api/v1/crates/notify/2.6.0/authors"
+      },
+      "crate_size": 20498,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "5d3665c54e6c513c23ccb10fe1972a6fd6c0f05d82c95f9c92a49bf2666201c2",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": "https://crates.fyi/crates/notify",
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1221,
+            "comment_lines": 57,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1221,
+        "total_comment_lines": 57
+      }
+    },
+    {
+      "id": 24532,
+      "crate": "notify",
+      "num": "2.5.5",
+      "dl_path": "/api/v1/crates/notify/2.5.5/download",
+      "readme_path": "/api/v1/crates/notify/2.5.5/readme",
+      "updated_at": "2017-11-30T03:40:03.859130Z",
+      "created_at": "2016-03-27T01:30:39.092430Z",
+      "downloads": 12407,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.5/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.5/downloads",
+        "authors": "/api/v1/crates/notify/2.5.5/authors"
+      },
+      "crate_size": 18005,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "10d1f7ba7785f5cf6ad767d6f069e14b3d40b903cd4d6c862035a2a2298c927d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1127,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1127,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 21160,
+      "crate": "notify",
+      "num": "2.5.4",
+      "dl_path": "/api/v1/crates/notify/2.5.4/download",
+      "readme_path": "/api/v1/crates/notify/2.5.4/readme",
+      "updated_at": "2017-11-30T04:08:29.462505Z",
+      "created_at": "2016-01-23T00:01:26.888067Z",
+      "downloads": 8526,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.4/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.4/downloads",
+        "authors": "/api/v1/crates/notify/2.5.4/authors"
+      },
+      "crate_size": 17553,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "f4963bee7b30dad3ca4a6ba82cc5e691ec5b32b6d252050abcdbff4e9253e293",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1099,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1099,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 19801,
+      "crate": "notify",
+      "num": "2.5.3",
+      "dl_path": "/api/v1/crates/notify/2.5.3/download",
+      "readme_path": "/api/v1/crates/notify/2.5.3/readme",
+      "updated_at": "2017-11-30T03:56:24.158588Z",
+      "created_at": "2015-12-25T07:28:53.371585Z",
+      "downloads": 4518,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.3/downloads",
+        "authors": "/api/v1/crates/notify/2.5.3/authors"
+      },
+      "crate_size": 17534,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "6ab20aaf242886dce6f3080da919b5f41f1d2b91b1d6d136159144d16ca1af58",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1099,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1099,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 19644,
+      "crate": "notify",
+      "num": "2.5.2",
+      "dl_path": "/api/v1/crates/notify/2.5.2/download",
+      "readme_path": "/api/v1/crates/notify/2.5.2/readme",
+      "updated_at": "2017-11-30T04:08:30.987608Z",
+      "created_at": "2015-12-21T10:18:47.868133Z",
+      "downloads": 3204,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.2/downloads",
+        "authors": "/api/v1/crates/notify/2.5.2/authors"
+      },
+      "crate_size": 17512,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "5cd925952996259feed0d0cf8e51735a6c876f2eeddd79d767ec39e3ff5cbf9a",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1099,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1099,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 18893,
+      "crate": "notify",
+      "num": "2.5.1",
+      "dl_path": "/api/v1/crates/notify/2.5.1/download",
+      "readme_path": "/api/v1/crates/notify/2.5.1/readme",
+      "updated_at": "2017-11-30T03:34:52.937207Z",
+      "created_at": "2015-12-04T12:30:55.543669Z",
+      "downloads": 3699,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.1/downloads",
+        "authors": "/api/v1/crates/notify/2.5.1/authors"
+      },
+      "crate_size": 17019,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "b6ab0ab6cec21ba7890665bf328e5cc04534c030fa74556b9a93b4abc090a97d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1083,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1083,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 18696,
+      "crate": "notify",
+      "num": "2.5.0",
+      "dl_path": "/api/v1/crates/notify/2.5.0/download",
+      "readme_path": "/api/v1/crates/notify/2.5.0/readme",
+      "updated_at": "2017-11-30T03:55:40.645822Z",
+      "created_at": "2015-11-29T09:38:18.675394Z",
+      "downloads": 3253,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.5.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.5.0/downloads",
+        "authors": "/api/v1/crates/notify/2.5.0/authors"
+      },
+      "crate_size": 17000,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "199f73f1ba33435007731ef3a364914040a922d31915f23cb74e0e5334a3e9bf",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1083,
+            "comment_lines": 54,
+            "files": 7
+          }
+        },
+        "total_code_lines": 1083,
+        "total_comment_lines": 54
+      }
+    },
+    {
+      "id": 17678,
+      "crate": "notify",
+      "num": "2.4.1",
+      "dl_path": "/api/v1/crates/notify/2.4.1/download",
+      "readme_path": "/api/v1/crates/notify/2.4.1/readme",
+      "updated_at": "2017-11-30T03:40:00.865430Z",
+      "created_at": "2015-11-05T20:39:34.227690Z",
+      "downloads": 5342,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.4.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.4.1/downloads",
+        "authors": "/api/v1/crates/notify/2.4.1/authors"
+      },
+      "crate_size": 10828,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2e7bc25b4dadd2b244e7b07176768129712e6e543c193a2404ce975dc3ab6767",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 754,
+            "comment_lines": 22,
+            "files": 6
+          }
+        },
+        "total_code_lines": 754,
+        "total_comment_lines": 22
+      }
+    },
+    {
+      "id": 17205,
+      "crate": "notify",
+      "num": "2.4.0",
+      "dl_path": "/api/v1/crates/notify/2.4.0/download",
+      "readme_path": "/api/v1/crates/notify/2.4.0/readme",
+      "updated_at": "2017-11-30T03:34:07.847530Z",
+      "created_at": "2015-10-25T00:10:49.229481Z",
+      "downloads": 4063,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.4.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.4.0/downloads",
+        "authors": "/api/v1/crates/notify/2.4.0/authors"
+      },
+      "crate_size": 10876,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "cccf7dadb4a5ac9225a0d53a7bb1c2b96afe1d0fc4ad40c61620550b8c14ecf7",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 756,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 756,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 16485,
+      "crate": "notify",
+      "num": "2.3.3",
+      "dl_path": "/api/v1/crates/notify/2.3.3/download",
+      "readme_path": "/api/v1/crates/notify/2.3.3/readme",
+      "updated_at": "2017-11-30T03:55:37.000285Z",
+      "created_at": "2015-10-07T13:31:20.441720Z",
+      "downloads": 3175,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.3.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.3.3/downloads",
+        "authors": "/api/v1/crates/notify/2.3.3/authors"
+      },
+      "crate_size": 10791,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "7185634e6bb53ed35f65a09176f0341e2a0f72025aa3559348c608a6e618d475",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 761,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 761,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 15464,
+      "crate": "notify",
+      "num": "2.3.2",
+      "dl_path": "/api/v1/crates/notify/2.3.2/download",
+      "readme_path": "/api/v1/crates/notify/2.3.2/readme",
+      "updated_at": "2017-11-30T03:55:36.979608Z",
+      "created_at": "2015-09-07T15:54:59.127520Z",
+      "downloads": 3363,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.3.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.3.2/downloads",
+        "authors": "/api/v1/crates/notify/2.3.2/authors"
+      },
+      "crate_size": 10766,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "102a4160e73a2a87b9536865cb66951cbce60e2f02efef204edb2565a29757fe",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 761,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 761,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 14937,
+      "crate": "notify",
+      "num": "2.3.1",
+      "dl_path": "/api/v1/crates/notify/2.3.1/download",
+      "readme_path": "/api/v1/crates/notify/2.3.1/readme",
+      "updated_at": "2017-11-30T03:34:52.934887Z",
+      "created_at": "2015-08-24T07:57:08.813277Z",
+      "downloads": 3322,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.3.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.3.1/downloads",
+        "authors": "/api/v1/crates/notify/2.3.1/authors"
+      },
+      "crate_size": 10099,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2b0e9a6dd3d20d795e5439990c5e52a6840f4f1012f95d252d0d192959141339",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 760,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 760,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 13790,
+      "crate": "notify",
+      "num": "2.3.0",
+      "dl_path": "/api/v1/crates/notify/2.3.0/download",
+      "readme_path": "/api/v1/crates/notify/2.3.0/readme",
+      "updated_at": "2017-11-30T03:55:36.950883Z",
+      "created_at": "2015-07-28T12:40:34.598356Z",
+      "downloads": 3336,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.3.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.3.0/downloads",
+        "authors": "/api/v1/crates/notify/2.3.0/authors"
+      },
+      "crate_size": 10109,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "c09fb4329a502ec4a2a0fac1665a5672ea9d7861cf8481ee4fb2b2ec6752b2d4",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 760,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 760,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 13033,
+      "crate": "notify",
+      "num": "2.2.0",
+      "dl_path": "/api/v1/crates/notify/2.2.0/download",
+      "readme_path": "/api/v1/crates/notify/2.2.0/readme",
+      "updated_at": "2017-11-30T03:34:49.497794Z",
+      "created_at": "2015-07-12T03:11:31.146439Z",
+      "downloads": 3264,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.2.0/downloads",
+        "authors": "/api/v1/crates/notify/2.2.0/authors"
+      },
+      "crate_size": 10072,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "d80d317e7a3e0d5f2c1c19ce890111b7a1f732b16f109152bc0b9b1e72bb3eeb",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 759,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 759,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 12302,
+      "crate": "notify",
+      "num": "2.1.0",
+      "dl_path": "/api/v1/crates/notify/2.1.0/download",
+      "readme_path": "/api/v1/crates/notify/2.1.0/readme",
+      "updated_at": "2017-11-30T03:55:36.926405Z",
+      "created_at": "2015-06-26T08:05:56.883384Z",
+      "downloads": 3304,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.1.0/downloads",
+        "authors": "/api/v1/crates/notify/2.1.0/authors"
+      },
+      "crate_size": 9498,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "fbfe7c9e7b74df5e063b87766ce9c81c2bf12c790854cd0989c916c73cde2bed",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 804,
+            "comment_lines": 20,
+            "files": 6
+          }
+        },
+        "total_code_lines": 804,
+        "total_comment_lines": 20
+      }
+    },
+    {
+      "id": 11475,
+      "crate": "notify",
+      "num": "2.0.0",
+      "dl_path": "/api/v1/crates/notify/2.0.0/download",
+      "readme_path": "/api/v1/crates/notify/2.0.0/readme",
+      "updated_at": "2017-11-30T04:08:32.779787Z",
+      "created_at": "2015-06-08T12:01:43.532569Z",
+      "downloads": 5877,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.0.0/downloads",
+        "authors": "/api/v1/crates/notify/2.0.0/authors"
+      },
+      "crate_size": 9003,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2f528e083bcead419850f596183935de2de43d0edbfdef1bfbc7bda3ec683382",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify.git",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 731,
+            "comment_lines": 16,
+            "files": 5
+          }
+        },
+        "total_code_lines": 731,
+        "total_comment_lines": 16
+      }
+    },
+    {
+      "id": 11435,
+      "crate": "notify",
+      "num": "2.0.0-pre1",
+      "dl_path": "/api/v1/crates/notify/2.0.0-pre1/download",
+      "readme_path": "/api/v1/crates/notify/2.0.0-pre1/readme",
+      "updated_at": "2017-11-30T02:23:47.491608Z",
+      "created_at": "2015-06-07T06:30:38.139208Z",
+      "downloads": 3154,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/2.0.0-pre1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/2.0.0-pre1/downloads",
+        "authors": "/api/v1/crates/notify/2.0.0-pre1/authors"
+      },
+      "crate_size": 5754,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "e1f814a5990d2c1d13ee6bc181f82cbc3e78c898acef6c11586b6715da017d33",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 411,
+            "comment_lines": 5,
+            "files": 4
+          }
+        },
+        "total_code_lines": 411,
+        "total_comment_lines": 5
+      }
+    },
+    {
+      "id": 10007,
+      "crate": "notify",
+      "num": "1.2.2",
+      "dl_path": "/api/v1/crates/notify/1.2.2/download",
+      "readme_path": "/api/v1/crates/notify/1.2.2/readme",
+      "updated_at": "2017-11-30T04:08:30.936482Z",
+      "created_at": "2015-05-09T04:09:43.189543Z",
+      "downloads": 3564,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.2.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.2.2/downloads",
+        "authors": "/api/v1/crates/notify/1.2.2/authors"
+      },
+      "crate_size": 6070,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "3f0c1c335041b17b1c9083fca6625a2a6ea7e8728b9cef1201bc539e359b612d",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 526,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 526,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 7844,
+      "crate": "notify",
+      "num": "1.2.1",
+      "dl_path": "/api/v1/crates/notify/1.2.1/download",
+      "readme_path": "/api/v1/crates/notify/1.2.1/readme",
+      "updated_at": "2017-11-30T03:34:49.495699Z",
+      "created_at": "2015-04-03T01:06:04.557543Z",
+      "downloads": 3327,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.2.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.2.1/downloads",
+        "authors": "/api/v1/crates/notify/1.2.1/authors"
+      },
+      "crate_size": 6130,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "bf05396baf0841d0ec6f8cdd72da9bcd3b9f72ed77c64b6b25075d671d3418ff",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 526,
+            "comment_lines": 19,
+            "files": 4
+          }
+        },
+        "total_code_lines": 526,
+        "total_comment_lines": 19
+      }
+    },
+    {
+      "id": 5968,
+      "crate": "notify",
+      "num": "1.2.0",
+      "dl_path": "/api/v1/crates/notify/1.2.0/download",
+      "readme_path": "/api/v1/crates/notify/1.2.0/readme",
+      "updated_at": "2017-11-30T04:08:30.918891Z",
+      "created_at": "2015-03-05T08:14:34.629429Z",
+      "downloads": 3258,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.2.0/downloads",
+        "authors": "/api/v1/crates/notify/1.2.0/authors"
+      },
+      "crate_size": 6123,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "2bc404ab16c32db196b4373604b683d273d2e617347acf042eadfcb86de5d9fc",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 526,
+            "comment_lines": 19,
+            "files": 4
+          }
+        },
+        "total_code_lines": 526,
+        "total_comment_lines": 19
+      }
+    },
+    {
+      "id": 5139,
+      "crate": "notify",
+      "num": "1.1.3",
+      "dl_path": "/api/v1/crates/notify/1.1.3/download",
+      "readme_path": "/api/v1/crates/notify/1.1.3/readme",
+      "updated_at": "2017-11-30T03:34:54.335555Z",
+      "created_at": "2015-02-17T11:52:57.178311Z",
+      "downloads": 3196,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.1.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.1.3/downloads",
+        "authors": "/api/v1/crates/notify/1.1.3/authors"
+      },
+      "crate_size": 6120,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "705e2c9a1859a97c2f0b51bbbf56a14124f9a526e26ff0f8a7bc044fa0fedf92",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 527,
+            "comment_lines": 19,
+            "files": 4
+          }
+        },
+        "total_code_lines": 527,
+        "total_comment_lines": 19
+      }
+    },
+    {
+      "id": 4332,
+      "crate": "notify",
+      "num": "1.1.2",
+      "dl_path": "/api/v1/crates/notify/1.1.2/download",
+      "readme_path": "/api/v1/crates/notify/1.1.2/readme",
+      "updated_at": "2017-11-30T02:35:18.651014Z",
+      "created_at": "2015-02-02T12:37:25.431889Z",
+      "downloads": 3155,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.1.2/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.1.2/downloads",
+        "authors": "/api/v1/crates/notify/1.1.2/authors"
+      },
+      "crate_size": 5598,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "aa14ede513cbc90db069e0326091792f4bf0fde995fef6468851bb61df31e287",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 506,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 506,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 2290,
+      "crate": "notify",
+      "num": "1.1.1",
+      "dl_path": "/api/v1/crates/notify/1.1.1/download",
+      "readme_path": "/api/v1/crates/notify/1.1.1/readme",
+      "updated_at": "2017-11-30T03:34:54.321784Z",
+      "created_at": "2015-01-06T06:34:32.503792Z",
+      "downloads": 3198,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.1.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.1.1/downloads",
+        "authors": "/api/v1/crates/notify/1.1.1/authors"
+      },
+      "crate_size": 5562,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "18fff59dbf7a9c8ebb15f25c34cb2b0493ff495a7fbbdd9e7747698b47a2e696",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 506,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 506,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 1962,
+      "crate": "notify",
+      "num": "1.0.5",
+      "dl_path": "/api/v1/crates/notify/1.0.5/download",
+      "readme_path": "/api/v1/crates/notify/1.0.5/readme",
+      "updated_at": "2017-11-30T03:34:54.319803Z",
+      "created_at": "2015-01-03T06:36:51.074262Z",
+      "downloads": 3166,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.0.5/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.0.5/downloads",
+        "authors": "/api/v1/crates/notify/1.0.5/authors"
+      },
+      "crate_size": 5473,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "433501f992a6bcf6001d76a81c6c44df07663109b1ec8570bc427cc492371eef",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 488,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 488,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 1519,
+      "crate": "notify",
+      "num": "1.0.4",
+      "dl_path": "/api/v1/crates/notify/1.0.4/download",
+      "readme_path": "/api/v1/crates/notify/1.0.4/readme",
+      "updated_at": "2017-11-30T03:34:54.317808Z",
+      "created_at": "2014-12-22T22:50:29.314755Z",
+      "downloads": 3146,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.0.4/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.0.4/downloads",
+        "authors": "/api/v1/crates/notify/1.0.4/authors"
+      },
+      "crate_size": 5381,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "7ada81931a9c37c01a6b3596c7839e3ddc6c9c78f4d18c034d80cc3c0495070e",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 486,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 486,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 1518,
+      "crate": "notify",
+      "num": "1.0.3",
+      "dl_path": "/api/v1/crates/notify/1.0.3/download",
+      "readme_path": "/api/v1/crates/notify/1.0.3/readme",
+      "updated_at": "2017-11-30T03:34:54.315819Z",
+      "created_at": "2014-12-22T22:44:39.256148Z",
+      "downloads": 3137,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/1.0.3/dependencies",
+        "version_downloads": "/api/v1/crates/notify/1.0.3/downloads",
+        "authors": "/api/v1/crates/notify/1.0.3/authors"
+      },
+      "crate_size": 5359,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "e4378c9093bb8cebf8c102e595bcdc87b896aa51b4dd7a57b192d3b701bdfa29",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 484,
+            "comment_lines": 10,
+            "files": 4
+          }
+        },
+        "total_code_lines": 484,
+        "total_comment_lines": 10
+      }
+    },
+    {
+      "id": 1410,
+      "crate": "notify",
+      "num": "0.0.1",
+      "dl_path": "/api/v1/crates/notify/0.0.1/download",
+      "readme_path": "/api/v1/crates/notify/0.0.1/readme",
+      "updated_at": "2017-11-30T03:34:54.313870Z",
+      "created_at": "2014-12-20T07:53:19.326852Z",
+      "downloads": 3213,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "CC0-1.0",
+      "links": {
+        "dependencies": "/api/v1/crates/notify/0.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/notify/0.0.1/downloads",
+        "authors": "/api/v1/crates/notify/0.0.1/authors"
+      },
+      "crate_size": 461,
+      "published_by": null,
+      "audit_actions": [],
+      "checksum": "049348f68e0135daa530268a2695f8c5d67f46715835d5de0ccf71b62aecd705",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": null,
+      "description": "Cross-platform filesystem notification library",
+      "homepage": "https://github.com/passcod/rsnotify",
+      "documentation": null,
+      "repository": "https://github.com/passcod/rsnotify",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 3,
+            "comment_lines": 0,
+            "files": 1
+          }
+        },
+        "total_code_lines": 3,
+        "total_comment_lines": 0
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "events",
+      "keyword": "events",
+      "created_at": "2014-12-20T07:53:19.354774Z",
+      "crates_cnt": 393
+    },
+    {
+      "id": "filesystem",
+      "keyword": "filesystem",
+      "created_at": "2014-12-20T07:53:19.367140Z",
+      "crates_cnt": 1412
+    },
+    {
+      "id": "notify",
+      "keyword": "notify",
+      "created_at": "2014-12-20T07:53:19.379683Z",
+      "crates_cnt": 136
+    },
+    {
+      "id": "watch",
+      "keyword": "watch",
+      "created_at": "2014-12-20T07:53:19.391987Z",
+      "crates_cnt": 151
+    }
+  ],
+  "categories": [
+    {
+      "id": "filesystem",
+      "category": "Filesystem",
+      "slug": "filesystem",
+      "description": "Crates for dealing with files and filesystems.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 4638
+    }
+  ]
+}

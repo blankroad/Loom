@@ -1,0 +1,83 @@
+{
+  "retrieved_at": "2026-11-09T23:06:50.913104+00:00",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "cargo_home": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/.cargo-home",
+  "runs": [
+    {
+      "project": "v2-saleae-rs",
+      "phase": "cold-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release"
+      ],
+      "elapsed_s": 35.87454337498639,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-saleae-rs/cold-build.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-saleae-rs/target"
+    },
+    {
+      "project": "v2-saleae-rs",
+      "phase": "warm-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "elapsed_s": 0.17395695799496025,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-saleae-rs/warm-build.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-saleae-rs/target"
+    },
+    {
+      "project": "v2-saleae-rs",
+      "phase": "run",
+      "command": [
+        "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-saleae-rs/target/release/loom-saleae-rs-spike"
+      ],
+      "elapsed_s": 0.2637299580965191,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-saleae-rs/run.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-saleae-rs/target"
+    },
+    {
+      "project": "v2-evidence",
+      "phase": "cold-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release"
+      ],
+      "elapsed_s": 24.828044792055152,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-evidence/cold-build.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-evidence/target"
+    },
+    {
+      "project": "v2-evidence",
+      "phase": "warm-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "elapsed_s": 0.10329545894637704,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-evidence/warm-build.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-evidence/target"
+    },
+    {
+      "project": "v2-evidence",
+      "phase": "run",
+      "command": [
+        "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-evidence/target/release/loom-evidence-spike"
+      ],
+      "elapsed_s": 0.374981667031534,
+      "exit_code": 0,
+      "log": "spikes/explore/v2-evidence/run.log",
+      "cargo_target_dir": "/Users/ctmctm/Desktop/01_PROJECT/Loom/spikes/explore/v2-evidence/target"
+    }
+  ]
+}

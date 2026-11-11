@@ -1,0 +1,38 @@
+loom_tc_plan: 1
+tc: TC-1@sha256:a90459bf525f151d0bb158d9bc5b346a7b61871ffffc519d788afaddaa22cf04
+env: sim
+steps:
+  - id: S1
+    tc_step: 1
+    do: [{psu.out: {name: bench, state: "off"}}, {sleep: 2s}, {psu.out: {name: bench, state: "on"}}]
+  - id: S2
+    tc_step: 2
+    uart.expect: {port: dut, pattern: "login:", timeout: 30s}
+    expect:
+      - filter: {domain: uart, channel: dut, kinds: [uart.data], origins: [device]}
+        pred: {op: uart.text_contains, pattern: "login:"}
+        anchor: {step: S1, kind: psu.write, where: {field: /payload/state_out, op: "==", value: "on"}}
+        within_ms: 30000
+  - id: S3
+    tc_step: 3
+    can.sig.wait-for: {channel: ch0, cond: "VehState.PowerMode == 2", timeout: 5s}
+    expect:
+      - filter: {domain: can, channel: ch0, kinds: [can.signal], origins: [device]}
+        pred: {op: exists, where: {all: [{field: /payload/name, op: "==", value: VehState.PowerMode}, {field: /payload/value, op: "==", value: 2}]}}
+        anchor: {step: S2, kind: uart.expect_result}
+        within_ms: 5000
+  - id: S4
+    tc_step: 4
+    uds.dtc.list: {target: bcm, mask: 0x09}
+    expect:
+      - filter: {domain: uds, channel: bcm, kinds: [uds.rx], origins: [device]}
+        pred: {op: uds.dtc_absent, mask: 0x09}
+    on_fail: {goto: S5}
+  - id: S5
+    tc_step: 4
+    when: {step: S4, verdict: fail}
+    do: [{uds.dtc.clear: {target: bcm}}, {uds.dtc.list: {target: bcm, mask: 0x09}}]
+    expect:
+      - filter: {domain: uds, channel: bcm, kinds: [uds.rx], origins: [device]}
+        pred: {op: uds.dtc_absent, mask: 0x09}
+finally: [{psu.out: {name: bench, state: "off"}}]

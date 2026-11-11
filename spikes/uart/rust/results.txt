@@ -1,0 +1,27 @@
+pty_created=/dev/ttys024 raw_slave_configured=true
+open_115200=Err(Error { kind: Unknown, description: "Not a typewriter" })
+platform=macos arch=aarch64 slave=/dev/ttys024 exclusive=true
+second_plain_open=Ok(())
+dtr_false=Err(Error { kind: Unknown, description: "Not a typewriter" }) rts_false=Err(Error { kind: Unknown, description: "Not a typewriter" })
+set_break=Ok(()) clear_break=Ok(())
+roundtrip_00_ff=256_each_direction_exact
+empty_read=Err(Custom { kind: TimedOut, error: "Operation timed out" }) elapsed_ms=202.015
+pty_rx_bytes=4194304 fnv1a64=529aaa6348e22325 elapsed_ms=1008.116 mib_per_s=3.968
+after_set_exclusive_false_plain_open=Ok(())
+regex_compile pattern="^(a+)+$" us=377.541
+regex_find pattern="^(a+)+$" bytes=1024 iterations=100 mean_us=1.955
+regex_find pattern="^(a+)+$" bytes=16384 iterations=100 mean_us=28.110
+regex_find pattern="^(a+)+$" bytes=65536 iterations=100 mean_us=117.754
+regex_compile pattern="^(a|aa)+$" us=73.125
+regex_find pattern="^(a|aa)+$" bytes=1024 iterations=100 mean_us=1.843
+regex_find pattern="^(a|aa)+$" bytes=16384 iterations=100 mean_us=28.261
+regex_find pattern="^(a|aa)+$" bytes=65536 iterations=100 mean_us=113.843
+unsupported_backref=Err(Syntax(
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+regex parse error:
+    (a)\1
+       ^^
+error: backreferences are not supported
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+))
+unicode_expansion_rejected=true

@@ -1,0 +1,207 @@
+{
+  "crate": {
+    "id": "serde_jcs",
+    "name": "serde_jcs",
+    "updated_at": "2026-03-25T20:27:37.338647Z",
+    "versions": [
+      2168371,
+      304780
+    ],
+    "keywords": [
+      "serialization",
+      "json",
+      "serde"
+    ],
+    "categories": [
+      "encoding"
+    ],
+    "badges": [],
+    "created_at": "2020-11-13T07:12:47.840914Z",
+    "downloads": 6329336,
+    "recent_downloads": 4054472,
+    "default_version": "0.2.0",
+    "num_versions": 2,
+    "yanked": false,
+    "max_version": "0.2.0",
+    "newest_version": "0.2.0",
+    "max_stable_version": "0.2.0",
+    "description": "JSON Canonicalization Scheme (JCS) for Serde",
+    "homepage": "https://github.com/l1h3r/serde_jcs",
+    "documentation": "https://docs.rs/serde_jcs",
+    "repository": "https://github.com/l1h3r/serde_jcs",
+    "links": {
+      "version_downloads": "/api/v1/crates/serde_jcs/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/serde_jcs/owners",
+      "owner_team": "/api/v1/crates/serde_jcs/owner_team",
+      "owner_user": "/api/v1/crates/serde_jcs/owner_user",
+      "reverse_dependencies": "/api/v1/crates/serde_jcs/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 2168371,
+      "crate": "serde_jcs",
+      "num": "0.2.0",
+      "dl_path": "/api/v1/crates/serde_jcs/0.2.0/download",
+      "readme_path": "/api/v1/crates/serde_jcs/0.2.0/readme",
+      "updated_at": "2026-03-25T20:27:37.338647Z",
+      "created_at": "2026-03-25T20:27:37.338647Z",
+      "downloads": 3269669,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/serde_jcs/0.2.0/dependencies",
+        "version_downloads": "/api/v1/crates/serde_jcs/0.2.0/downloads",
+        "authors": "/api/v1/crates/serde_jcs/0.2.0/authors"
+      },
+      "crate_size": 12614,
+      "published_by": {
+        "id": 36813,
+        "login": "l1h3r",
+        "name": "Devin Turner",
+        "avatar": "https://avatars.githubusercontent.com/u/5410284?v=4",
+        "url": "https://github.com/l1h3r",
+        "github_username_matches": true,
+        "created_at": "2013-09-08T06:46:39Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 36813,
+            "login": "l1h3r",
+            "name": "Devin Turner",
+            "avatar": "https://avatars.githubusercontent.com/u/5410284?v=4",
+            "url": "https://github.com/l1h3r",
+            "github_username_matches": true,
+            "created_at": "2013-09-08T06:46:39Z"
+          },
+          "time": "2026-03-25T20:27:37.338647Z"
+        }
+      ],
+      "checksum": "d3a60f3fda61525e439ef6d67422118f11e986566997d9021c56867ad814a0aa",
+      "rust_version": "1.85",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2024",
+      "description": "JSON Canonicalization Scheme (JCS) for Serde",
+      "homepage": "https://github.com/l1h3r/serde_jcs",
+      "documentation": "https://docs.rs/serde_jcs",
+      "repository": "https://github.com/l1h3r/serde_jcs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 609,
+            "comment_lines": 16,
+            "files": 1
+          }
+        },
+        "total_code_lines": 609,
+        "total_comment_lines": 16
+      }
+    },
+    {
+      "id": 304780,
+      "crate": "serde_jcs",
+      "num": "0.1.0",
+      "dl_path": "/api/v1/crates/serde_jcs/0.1.0/download",
+      "readme_path": "/api/v1/crates/serde_jcs/0.1.0/readme",
+      "updated_at": "2020-11-13T07:12:47.840914Z",
+      "created_at": "2020-11-13T07:12:47.840914Z",
+      "downloads": 3059667,
+      "features": {},
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/serde_jcs/0.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/serde_jcs/0.1.0/downloads",
+        "authors": "/api/v1/crates/serde_jcs/0.1.0/authors"
+      },
+      "crate_size": 7830,
+      "published_by": {
+        "id": 36813,
+        "login": "l1h3r",
+        "name": "Devin Turner",
+        "avatar": "https://avatars.githubusercontent.com/u/5410284?v=4",
+        "url": "https://github.com/l1h3r",
+        "github_username_matches": true,
+        "created_at": "2013-09-08T06:46:39Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 36813,
+            "login": "l1h3r",
+            "name": "Devin Turner",
+            "avatar": "https://avatars.githubusercontent.com/u/5410284?v=4",
+            "url": "https://github.com/l1h3r",
+            "github_username_matches": true,
+            "created_at": "2013-09-08T06:46:39Z"
+          },
+          "time": "2020-11-13T07:12:47.840914Z"
+        }
+      ],
+      "checksum": "cacecf649bc1a7c5f0e299cc813977c6a78116abda2b93b1ee01735b71ead9a8",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "JSON Canonicalization Scheme (JCS) for Serde",
+      "homepage": null,
+      "documentation": null,
+      "repository": "https://github.com/l1h3r/serde_jcs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 351,
+            "comment_lines": 2,
+            "files": 3
+          }
+        },
+        "total_code_lines": 351,
+        "total_comment_lines": 2
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "serialization",
+      "keyword": "serialization",
+      "created_at": "2014-11-20T20:14:31.726180Z",
+      "crates_cnt": 1717
+    },
+    {
+      "id": "json",
+      "keyword": "json",
+      "created_at": "2014-11-21T08:29:54.507667Z",
+      "crates_cnt": 2151
+    },
+    {
+      "id": "serde",
+      "keyword": "serde",
+      "created_at": "2015-08-10T17:10:09.021436Z",
+      "crates_cnt": 1674
+    }
+  ],
+  "categories": [
+    {
+      "id": "encoding",
+      "category": "Encoding",
+      "slug": "encoding",
+      "description": "Encoding and/or decoding data from one data format to another.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 8211
+    }
+  ]
+}

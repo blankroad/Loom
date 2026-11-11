@@ -1,0 +1,83 @@
+{
+  "checked_at": "2026-11-09T23:07:31.618Z",
+  "sources": [
+    {
+      "id": "xterm_release",
+      "url": "https://api.github.com/repos/xtermjs/xterm.js/releases/tags/6.0.0",
+      "status": 200,
+      "bytes": 10987
+    },
+    {
+      "id": "xterm_webgl",
+      "url": "https://raw.githubusercontent.com/xtermjs/xterm.js/6.0.0/addons/addon-webgl/package.json",
+      "status": 200,
+      "bytes": 669
+    },
+    {
+      "id": "uplot_readme",
+      "url": "https://raw.githubusercontent.com/leeoniya/uPlot/master/README.md",
+      "status": 200,
+      "bytes": 11079
+    },
+    {
+      "id": "webgl_readme",
+      "url": "https://raw.githubusercontent.com/danchitnis/webgl-plot/master/README.md",
+      "status": 200,
+      "bytes": 7188
+    },
+    {
+      "id": "glide_readme",
+      "url": "https://raw.githubusercontent.com/glideapps/glide-data-grid/main/README.md",
+      "status": 200,
+      "bytes": 7672
+    },
+    {
+      "id": "dockview_readme",
+      "url": "https://raw.githubusercontent.com/dockview/dockview/main/README.md",
+      "status": 404,
+      "bytes": 14
+    },
+    {
+      "id": "flex_readme",
+      "url": "https://raw.githubusercontent.com/caplin/FlexLayout/master/README.md",
+      "status": 200,
+      "bytes": 29943
+    },
+    {
+      "id": "golden_readme",
+      "url": "https://raw.githubusercontent.com/golden-layout/golden-layout/master/README.md",
+      "status": 200,
+      "bytes": 1143
+    },
+    {
+      "id": "arrow_format",
+      "url": "https://arrow.apache.org/docs/format/Columnar.html",
+      "status": 200,
+      "bytes": 184301
+    },
+    {
+      "id": "schemars_readme",
+      "url": "https://raw.githubusercontent.com/GREsau/schemars/master/README.md",
+      "status": 200,
+      "bytes": 10072
+    },
+    {
+      "id": "tsrs_readme",
+      "url": "https://raw.githubusercontent.com/Aleph-Alpha/ts-rs/main/README.md",
+      "status": 200,
+      "bytes": 8528
+    },
+    {
+      "id": "specta_readme",
+      "url": "https://raw.githubusercontent.com/specta-rs/specta/main/README.md",
+      "status": 200,
+      "bytes": 10735
+    },
+    {
+      "id": "typeshare_readme",
+      "url": "https://raw.githubusercontent.com/1Password/typeshare/main/README.md",
+      "status": 200,
+      "bytes": 7280
+    }
+  ]
+}

@@ -1,0 +1,4627 @@
+{
+  "started_at": "2026-11-09T23:09:37.250Z",
+  "environment": {
+    "os": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64",
+    "cpus": [
+      "Apple M1",
+      "Apple M1",
+      "Apple M1",
+      "Apple M1",
+      "Apple M1",
+      "Apple M1",
+      "Apple M1",
+      "Apple M1"
+    ],
+    "ram_bytes": 17179869184,
+    "node": "v25.6.1",
+    "browser": "158.0.8127.18",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  "method": {
+    "seconds": 60,
+    "soak": 1800,
+    "rate": 10000,
+    "capacity": 2000000,
+    "compression": false,
+    "renderProxy": "next requestAnimationFrame after draw; not compositor presentation",
+    "latencySampling": "one descriptor per received WS batch, bounded 100k rolling samples; not all frame presentation"
+  },
+  "runs": [
+    {
+      "format": "json",
+      "renderer": "dom",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 630939,
+      "lastSeq": 630939,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 2,
+      "measurementDropped": 0,
+      "draws": 2933,
+      "decode_ms": {
+        "n": 5442,
+        "p50": 0.029999971389770508,
+        "p95": 0.06500005722045898,
+        "p99": 0.07999992370605469,
+        "max": 0.4200000762939453
+      },
+      "ingest_ms": {
+        "n": 5442,
+        "p50": 0.005000114440917969,
+        "p95": 0.029999971389770508,
+        "p99": 0.05500006675720215,
+        "max": 0.18000006675720215
+      },
+      "draw_ms": {
+        "n": 2796,
+        "p50": 0.315000057220459,
+        "p95": 0.5099999904632568,
+        "p99": 0.5900000333786011,
+        "max": 0.8100000619888306
+      },
+      "raf_interval_ms": {
+        "n": 3606,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5444,
+        "p50": 25.41650390625,
+        "p95": 33.123779296875,
+        "p99": 34.513427734375,
+        "max": 36.03369140625
+      },
+      "heap": {
+        "used": 54403909,
+        "total": 60825537
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 43,
+      "samples": [
+        {
+          "elapsed_ms": 13146.554999947548,
+          "received": 130132,
+          "heap": 52228214,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 23153.615000009537,
+          "received": 230100,
+          "heap": 51454895,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 33161.43999993801,
+          "received": 330255,
+          "heap": 52717678,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 43171.58499991894,
+          "received": 430262,
+          "heap": 53988518,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 53179.53499996662,
+          "received": 530461,
+          "heap": 53730646,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 63189.01999998093,
+          "received": 630503,
+          "heap": 53309324,
+          "nodes": 43
+        }
+      ],
+      "serverStats": {
+        "seq": 630503,
+        "generated": 630503,
+        "bytes": 33546178,
+        "maxMessage": 10822,
+        "dropped": 0,
+        "elapsed_ms": 63056.936767578125
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": -0.21142578125,
+      "stopLatency": null
+    },
+    {
+      "format": "json",
+      "renderer": "canvas",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 630779,
+      "lastSeq": 630779,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 2,
+      "measurementDropped": 0,
+      "draws": 2933,
+      "decode_ms": {
+        "n": 5423,
+        "p50": 0.02499997615814209,
+        "p95": 0.0700000524520874,
+        "p99": 0.08500003814697266,
+        "max": 0.10499989986419678
+      },
+      "ingest_ms": {
+        "n": 5423,
+        "p50": 0.004999995231628418,
+        "p95": 0.03000009059906006,
+        "p99": 0.059999942779541016,
+        "max": 0.24000000953674316
+      },
+      "draw_ms": {
+        "n": 2794,
+        "p50": 0.3250000476837158,
+        "p95": 0.5199999809265137,
+        "p99": 0.5950000286102295,
+        "max": 0.6950000524520874
+      },
+      "raf_interval_ms": {
+        "n": 3605,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5423,
+        "p50": 25.501708984375,
+        "p95": 33.29296875,
+        "p99": 34.66796875,
+        "max": 35.85498046875
+      },
+      "heap": {
+        "used": 53633350,
+        "total": 60548522
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 16,
+      "samples": [
+        {
+          "elapsed_ms": 13094.81500005722,
+          "received": 130045,
+          "heap": 51988146,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 23100.100000023842,
+          "received": 230007,
+          "heap": 51095488,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 33105.37000000477,
+          "received": 329995,
+          "heap": 53131151,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 43109.11500000954,
+          "received": 430048,
+          "heap": 54067395,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 53117.875,
+          "received": 530260,
+          "heap": 52128743,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 63125.69000005722,
+          "received": 630354,
+          "heap": 52660583,
+          "nodes": 16
+        }
+      ],
+      "serverStats": {
+        "seq": 630354,
+        "generated": 630354,
+        "bytes": 33541992,
+        "maxMessage": 10822,
+        "dropped": 0,
+        "elapsed_ms": 63036.7216796875
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": -0.598388671875,
+      "stopLatency": null
+    },
+    {
+      "format": "column",
+      "renderer": "dom",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 630835,
+      "lastSeq": 630835,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 3,
+      "measurementDropped": 0,
+      "draws": 2919,
+      "decode_ms": {
+        "n": 5426,
+        "p50": 0.004999995231628418,
+        "p95": 0.015000104904174805,
+        "p99": 0.02499997615814209,
+        "max": 0.1099998950958252
+      },
+      "ingest_ms": {
+        "n": 5426,
+        "p50": 0.004999995231628418,
+        "p95": 0.034999966621398926,
+        "p99": 0.060000061988830566,
+        "max": 0.1549999713897705
+      },
+      "draw_ms": {
+        "n": 2781,
+        "p50": 0.41499996185302734,
+        "p95": 0.6349999904632568,
+        "p99": 0.7250000238418579,
+        "max": 0.9250000715255737
+      },
+      "raf_interval_ms": {
+        "n": 3606,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5426,
+        "p50": 25.4609375,
+        "p95": 33.1298828125,
+        "p99": 34.408203125,
+        "max": 37.33837890625
+      },
+      "heap": {
+        "used": 51868357,
+        "total": 54271745
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 43,
+      "samples": [
+        {
+          "elapsed_ms": 13089.959999918938,
+          "received": 130078,
+          "heap": 51119627,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 23096.774999976158,
+          "received": 230097,
+          "heap": 51376415,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 33103.62999999523,
+          "received": 330209,
+          "heap": 51633011,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 43116.419999957085,
+          "received": 430202,
+          "heap": 51130939,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 53131.03499996662,
+          "received": 530333,
+          "heap": 51749491,
+          "nodes": 43
+        },
+        {
+          "elapsed_ms": 63140.924999952316,
+          "received": 630413,
+          "heap": 51808743,
+          "nodes": 43
+        }
+      ],
+      "serverStats": {
+        "seq": 630413,
+        "generated": 630413,
+        "bytes": 15221016,
+        "maxMessage": 4816,
+        "dropped": 0,
+        "elapsed_ms": 63060.268798828125
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": -1.0810546875,
+      "stopLatency": null
+    },
+    {
+      "format": "column",
+      "renderer": "canvas",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 630873,
+      "lastSeq": 630873,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 2,
+      "measurementDropped": 0,
+      "draws": 2913,
+      "decode_ms": {
+        "n": 5454,
+        "p50": 0.004999995231628418,
+        "p95": 0.019999980926513672,
+        "p99": 0.02499997615814209,
+        "max": 0.10500001907348633
+      },
+      "ingest_ms": {
+        "n": 5454,
+        "p50": 0.004999995231628418,
+        "p95": 0.034999966621398926,
+        "p99": 0.06999993324279785,
+        "max": 0.20500004291534424
+      },
+      "draw_ms": {
+        "n": 2776,
+        "p50": 0.43999993801116943,
+        "p95": 0.6449999809265137,
+        "p99": 0.7400000095367432,
+        "max": 0.9300000667572021
+      },
+      "raf_interval_ms": {
+        "n": 3606,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5456,
+        "p50": 25.37451171875,
+        "p95": 33.072998046875,
+        "p99": 34.243896484375,
+        "max": 35.945068359375
+      },
+      "heap": {
+        "used": 52413793,
+        "total": 54385781
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 16,
+      "samples": [
+        {
+          "elapsed_ms": 13078.81500005722,
+          "received": 129915,
+          "heap": 51561907,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 23084.44000005722,
+          "received": 229934,
+          "heap": 51188875,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 33091.04000008106,
+          "received": 330128,
+          "heap": 51971711,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 43104.00499999523,
+          "received": 430183,
+          "heap": 51849327,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 53110.50999999046,
+          "received": 530368,
+          "heap": 51390203,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 63121.545000076294,
+          "received": 630444,
+          "heap": 52235243,
+          "nodes": 16
+        }
+      ],
+      "serverStats": {
+        "seq": 630444,
+        "generated": 630444,
+        "bytes": 15222208,
+        "maxMessage": 4816,
+        "dropped": 0,
+        "elapsed_ms": 63050.210205078125
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": -1.535888671875,
+      "stopLatency": null
+    },
+    {
+      "format": "msgpack",
+      "renderer": "canvas",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 630975,
+      "lastSeq": 630975,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 2,
+      "measurementDropped": 0,
+      "draws": 2907,
+      "decode_ms": {
+        "n": 5448,
+        "p50": 0.02500009536743164,
+        "p95": 0.0700000524520874,
+        "p99": 0.10000002384185791,
+        "max": 0.9100000858306885
+      },
+      "ingest_ms": {
+        "n": 5448,
+        "p50": 0.004999995231628418,
+        "p95": 0.02499997615814209,
+        "p99": 0.04999995231628418,
+        "max": 0.16999995708465576
+      },
+      "draw_ms": {
+        "n": 2770,
+        "p50": 0.3999999761581421,
+        "p95": 0.5900000333786011,
+        "p99": 0.6649999618530273,
+        "max": 0.8049999475479126
+      },
+      "raf_interval_ms": {
+        "n": 3605,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5445,
+        "p50": 25.4033203125,
+        "p95": 33.0615234375,
+        "p99": 34.330078125,
+        "max": 35.89111328125
+      },
+      "heap": {
+        "used": 52241671,
+        "total": 58823719
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 16,
+      "samples": [
+        {
+          "elapsed_ms": 13091.740000009537,
+          "received": 130015,
+          "heap": 51762964,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 23098.700000047684,
+          "received": 229975,
+          "heap": 52177962,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 33106.700000047684,
+          "received": 330175,
+          "heap": 51779274,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 43115.37999999523,
+          "received": 430304,
+          "heap": 54032893,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 53127.34000003338,
+          "received": 530271,
+          "heap": 54889656,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 63138.89999997616,
+          "received": 630542,
+          "heap": 51385598,
+          "nodes": 16
+        }
+      ],
+      "serverStats": {
+        "seq": 630542,
+        "generated": 630542,
+        "bytes": 17506500,
+        "maxMessage": 5618,
+        "dropped": 0,
+        "elapsed_ms": 63055.951171875
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": -2.145751953125,
+      "stopLatency": null
+    },
+    {
+      "format": "column",
+      "renderer": "canvas",
+      "fixed": true,
+      "capacity": 2048,
+      "received": 630825,
+      "lastSeq": 630825,
+      "gaps": 0,
+      "gapRanges": [],
+      "maxPending": 2,
+      "measurementDropped": 0,
+      "draws": 2915,
+      "decode_ms": {
+        "n": 5458,
+        "p50": 0.004999995231628418,
+        "p95": 0.019999980926513672,
+        "p99": 0.02499997615814209,
+        "max": 0.10500001907348633
+      },
+      "ingest_ms": {
+        "n": 5458,
+        "p50": 0.004999995231628418,
+        "p95": 0.014999985694885254,
+        "p99": 0.03000009059906006,
+        "max": 0.06499993801116943
+      },
+      "draw_ms": {
+        "n": 2778,
+        "p50": 0.15500009059906006,
+        "p95": 0.39499998092651367,
+        "p99": 0.5750000476837158,
+        "max": 0.809999942779541
+      },
+      "raf_interval_ms": {
+        "n": 3606,
+        "p50": 16.665000000000873,
+        "p95": 16.67000000000189,
+        "p99": 16.67000000000553,
+        "max": 16.67000000000553
+      },
+      "generated_to_next_raf_ms": {
+        "n": 5460,
+        "p50": 25.039794921875,
+        "p95": 32.813720703125,
+        "p99": 33.893798828125,
+        "max": 36.48828125
+      },
+      "heap": {
+        "used": 4480457,
+        "total": 6963861
+      },
+      "arrayBufferBytes": 49152,
+      "domNodes": 16,
+      "samples": [
+        {
+          "elapsed_ms": 13068.084999918938,
+          "received": 130014,
+          "heap": 7175769,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 23075.644999980927,
+          "received": 230067,
+          "heap": 9793673,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 33084.25,
+          "received": 330164,
+          "heap": 4310155,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 43094.88499999046,
+          "received": 430314,
+          "heap": 4964763,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 53108.73000001907,
+          "received": 530376,
+          "heap": 3793443,
+          "nodes": 16
+        },
+        {
+          "elapsed_ms": 63123.53499996662,
+          "received": 630613,
+          "heap": 4471787,
+          "nodes": 16
+        }
+      ],
+      "serverStats": {
+        "seq": 630613,
+        "generated": 630613,
+        "bytes": 15226360,
+        "maxMessage": 4816,
+        "dropped": 0,
+        "elapsed_ms": 63062.241455078125
+      },
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": 0.7734375,
+      "stopLatency": null
+    }
+  ],
+  "terminal": [
+    {
+      "requestedWebgl": false,
+      "webgl": false,
+      "error": null,
+      "bytes": 4200000,
+      "parse_ms": 572.1200000047684,
+      "throughput_MiB_s": 7.001034973209932,
+      "completion_to_2raf_ms": 28.81500005722046
+    },
+    {
+      "requestedWebgl": true,
+      "webgl": true,
+      "error": null,
+      "bytes": 4200000,
+      "parse_ms": 570.6500000953674,
+      "throughput_MiB_s": 7.019069706890141,
+      "completion_to_2raf_ms": 30.774999976158142
+    }
+  ],
+  "gapTest": {
+    "metrics": {
+      "format": "column",
+      "renderer": "canvas",
+      "fixed": false,
+      "capacity": 2000000,
+      "received": 13611,
+      "lastSeq": 18648,
+      "gaps": 5037,
+      "gapRanges": [
+        {
+          "first_seq": 12544,
+          "last_seq": 17580,
+          "count": 5037,
+          "cause": "injected_viewer_credit_exhaustion"
+        }
+      ],
+      "maxPending": 3,
+      "measurementDropped": 0,
+      "draws": 61,
+      "decode_ms": {
+        "n": 169,
+        "p50": 0.004999995231628418,
+        "p95": 0.014999985694885254,
+        "p99": 0.020000100135803223,
+        "max": 0.04499995708465576
+      },
+      "ingest_ms": {
+        "n": 123,
+        "p50": 0.004999995231628418,
+        "p95": 0.020000100135803223,
+        "p99": 0.02499997615814209,
+        "max": 0.09000003337860107
+      },
+      "draw_ms": {
+        "n": 61,
+        "p50": 0.2799999713897705,
+        "p95": 0.38999998569488525,
+        "p99": 0.41999995708465576,
+        "max": 1.4350000619888306
+      },
+      "raf_interval_ms": {
+        "n": 111,
+        "p50": 16.664999999999992,
+        "p95": 16.670000000000073,
+        "p99": 16.670000000000073,
+        "max": 33.33000000000004
+      },
+      "generated_to_next_raf_ms": {
+        "n": 121,
+        "p50": 25.253662109375,
+        "p95": 32.998046875,
+        "p99": 57.04296875,
+        "max": 59.131103515625
+      },
+      "heap": {
+        "used": 58195100,
+        "total": 67087328
+      },
+      "arrayBufferBytes": 48000000,
+      "domNodes": 16,
+      "samples": [],
+      "serverStats": null,
+      "crossOriginIsolated": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+      "clockOffsetMs": 0.820556640625,
+      "stopLatency": null
+    },
+    "badge": "LIVE-DEGRADED display.gap=5037 | column/canvas | RX 13,611 | ring 2,000,000 | seq 18648"
+  },
+  "stopTest": {
+    "clicked": true,
+    "scope": "UI event dispatch only; no daemon or device"
+  },
+  "soak": {
+    "seconds": 60,
+    "samples": [
+      {
+        "seconds": 30,
+        "heap": {
+          "usedSize": 2350244,
+          "totalSize": 3457024,
+          "embedderHeapUsedSize": 1242248,
+          "backingStorageSize": 48508024
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 299986,
+          "lastSeq": 299986,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 2,
+          "measurementDropped": 0,
+          "draws": 1383,
+          "decode_ms": {
+            "n": 2727,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.020000100135803223,
+            "max": 0.10500001907348633
+          },
+          "ingest_ms": {
+            "n": 2727,
+            "p50": 0.004999995231628418,
+            "p95": 0.02499997615814209,
+            "p99": 0.04499995708465576,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 1383,
+            "p50": 0.4049999713897705,
+            "p95": 0.625,
+            "p99": 0.7250000238418579,
+            "max": 0.815000057220459
+          },
+          "raf_interval_ms": {
+            "n": 1800,
+            "p50": 16.665000000000873,
+            "p95": 16.67000000000189,
+            "p99": 16.67000000000189,
+            "max": 16.67000000000189
+          },
+          "generated_to_next_raf_ms": {
+            "n": 2725,
+            "p50": 25.47509765625,
+            "p95": 33.082763671875,
+            "p99": 34.325927734375,
+            "max": 35.45263671875
+          },
+          "heap": {
+            "used": 51080769,
+            "total": 52472957
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            }
+          ],
+          "serverStats": null,
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 60,
+        "heap": {
+          "usedSize": 2492584,
+          "totalSize": 3194880,
+          "embedderHeapUsedSize": 547984,
+          "backingStorageSize": 48508029
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 600216,
+          "lastSeq": 600216,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 2,
+          "measurementDropped": 0,
+          "draws": 2768,
+          "decode_ms": {
+            "n": 5460,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.10500001907348633
+          },
+          "ingest_ms": {
+            "n": 5460,
+            "p50": 0.004999995231628418,
+            "p95": 0.02500009536743164,
+            "p99": 0.059999942779541016,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 2768,
+            "p50": 0.41499996185302734,
+            "p95": 0.6200000047683716,
+            "p99": 0.7149999141693115,
+            "max": 0.815000057220459
+          },
+          "raf_interval_ms": {
+            "n": 3601,
+            "p50": 16.665000000000873,
+            "p95": 16.67000000000189,
+            "p99": 16.67000000000553,
+            "max": 16.67000000000553
+          },
+          "generated_to_next_raf_ms": {
+            "n": 5458,
+            "p50": 25.422119140625,
+            "p95": 33.0849609375,
+            "p99": 34.35302734375,
+            "max": 35.521484375
+          },
+          "heap": {
+            "used": 51550645,
+            "total": 53341309
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 299986,
+            "generated": 299986,
+            "bytes": 7243296,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 30013.80126953125
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 90,
+        "heap": {
+          "usedSize": 2608632,
+          "totalSize": 3457024,
+          "embedderHeapUsedSize": 548008,
+          "backingStorageSize": 48508029
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 900265,
+          "lastSeq": 900265,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 2,
+          "measurementDropped": 0,
+          "draws": 4157,
+          "decode_ms": {
+            "n": 8179,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 8179,
+            "p50": 0.004999995231628418,
+            "p95": 0.02500009536743164,
+            "p99": 0.060000061988830566,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 4157,
+            "p50": 0.41999995708465576,
+            "p95": 0.6200000047683716,
+            "p99": 0.7149999141693115,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 5402,
+            "p50": 16.665000000000873,
+            "p95": 16.67000000000189,
+            "p99": 16.67000000000553,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 8177,
+            "p50": 25.424560546875,
+            "p95": 33.07470703125,
+            "p99": 34.377685546875,
+            "max": 35.521484375
+          },
+          "heap": {
+            "used": 52320409,
+            "total": 53750909
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 600216,
+            "generated": 600216,
+            "bytes": 14492544,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 60028.6435546875
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 120,
+        "heap": {
+          "usedSize": 2780784,
+          "totalSize": 3719168,
+          "embedderHeapUsedSize": 1107832,
+          "backingStorageSize": 48512957
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 1200697,
+          "lastSeq": 1200697,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 3,
+          "measurementDropped": 0,
+          "draws": 5541,
+          "decode_ms": {
+            "n": 10912,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 10912,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.060000061988830566,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 5541,
+            "p50": 0.4099999666213989,
+            "p95": 0.625,
+            "p99": 0.7300000190734863,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 7204,
+            "p50": 16.665000000000873,
+            "p95": 16.67000000000189,
+            "p99": 16.670000000012806,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 10910,
+            "p50": 25.403564453125,
+            "p95": 33.104248046875,
+            "p99": 34.426513671875,
+            "max": 40.033447265625
+          },
+          "heap": {
+            "used": 53209521,
+            "total": 55721917
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 900464,
+            "generated": 900464,
+            "bytes": 21742016,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 90046.99926757812
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 150,
+        "heap": {
+          "usedSize": 2807428,
+          "totalSize": 3719168,
+          "embedderHeapUsedSize": 901808,
+          "backingStorageSize": 48512885
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 1500983,
+          "lastSeq": 1500983,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 3,
+          "measurementDropped": 0,
+          "draws": 6934,
+          "decode_ms": {
+            "n": 13637,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 13637,
+            "p50": 0.004999995231628418,
+            "p95": 0.02500009536743164,
+            "p99": 0.06499993801116943,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 6934,
+            "p50": 0.39499998092651367,
+            "p95": 0.6200000047683716,
+            "p99": 0.7200000286102295,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 9005,
+            "p50": 16.665000000000873,
+            "p95": 16.67000000000189,
+            "p99": 16.670000000012806,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 13633,
+            "p50": 25.39453125,
+            "p95": 33.11328125,
+            "p99": 34.487548828125,
+            "max": 40.033447265625
+          },
+          "heap": {
+            "used": 52628569,
+            "total": 54919029
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 1200697,
+            "generated": 1200697,
+            "bytes": 28991320,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 120074.99169921875
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 180,
+        "heap": {
+          "usedSize": 3030172,
+          "totalSize": 4046848,
+          "embedderHeapUsedSize": 870288,
+          "backingStorageSize": 48513125
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 1801289,
+          "lastSeq": 1801289,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 3,
+          "measurementDropped": 0,
+          "draws": 8332,
+          "decode_ms": {
+            "n": 16383,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 16383,
+            "p50": 0.004999995231628418,
+            "p95": 0.02500009536743164,
+            "p99": 0.060000061988830566,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 8332,
+            "p50": 0.38999998569488525,
+            "p95": 0.6100000143051147,
+            "p99": 0.7100000381469727,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 10808,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.670000000012806,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 16381,
+            "p50": 25.36328125,
+            "p95": 33.078369140625,
+            "p99": 34.45654296875,
+            "max": 40.033447265625
+          },
+          "heap": {
+            "used": 52868213,
+            "total": 56295525
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 1500983,
+            "generated": 1500983,
+            "bytes": 36241784,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 150100.86499023438
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 210,
+        "heap": {
+          "usedSize": 3039644,
+          "totalSize": 4046848,
+          "embedderHeapUsedSize": 1211728,
+          "backingStorageSize": 48508029
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 2101523,
+          "lastSeq": 2101523,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 3,
+          "measurementDropped": 0,
+          "draws": 9725,
+          "decode_ms": {
+            "n": 19119,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 19119,
+            "p50": 0.004999995231628418,
+            "p95": 0.02500009536743164,
+            "p99": 0.06499993801116943,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 9725,
+            "p50": 0.39499998092651367,
+            "p95": 0.6099998950958252,
+            "p99": 0.7049999237060547,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 12610,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.670000000012806,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 19117,
+            "p50": 25.376220703125,
+            "p95": 33.065185546875,
+            "p99": 34.426513671875,
+            "max": 40.033447265625
+          },
+          "heap": {
+            "used": 53866929,
+            "total": 56355965
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 1801289,
+            "generated": 1801289,
+            "bytes": 43493064,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 180132.59521484375
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 240,
+        "heap": {
+          "usedSize": 3051060,
+          "totalSize": 4046848,
+          "embedderHeapUsedSize": 942728,
+          "backingStorageSize": 48513057
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 2401999,
+          "lastSeq": 2401999,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 11109,
+          "decode_ms": {
+            "n": 21859,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 21859,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 11109,
+            "p50": 0.3950001001358032,
+            "p95": 0.6100000143051147,
+            "p99": 0.7000000476837158,
+            "max": 0.9049999713897705
+          },
+          "raf_interval_ms": {
+            "n": 14412,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.670000000012806,
+            "max": 16.670000000012806
+          },
+          "generated_to_next_raf_ms": {
+            "n": 21855,
+            "p50": 25.400634765625,
+            "p95": 33.07470703125,
+            "p99": 34.400390625,
+            "max": 41.3583984375
+          },
+          "heap": {
+            "used": 53484321,
+            "total": 57524257
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 2101523,
+            "generated": 2101523,
+            "bytes": 50742456,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 210168.84228515625
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 270,
+        "heap": {
+          "usedSize": 3388080,
+          "totalSize": 4227072,
+          "embedderHeapUsedSize": 548256,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 2702252,
+          "lastSeq": 2702252,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 12497,
+          "decode_ms": {
+            "n": 24595,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 24595,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 12497,
+            "p50": 0.4049999713897705,
+            "p95": 0.6150000095367432,
+            "p99": 0.7100000381469727,
+            "max": 1.0299999713897705
+          },
+          "raf_interval_ms": {
+            "n": 16214,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.670000000012806,
+            "max": 16.67000000004191
+          },
+          "generated_to_next_raf_ms": {
+            "n": 24593,
+            "p50": 25.39453125,
+            "p95": 33.087890625,
+            "p99": 34.391357421875,
+            "max": 50.351806640625
+          },
+          "heap": {
+            "used": 54762709,
+            "total": 57715769
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 2401999,
+            "generated": 2401999,
+            "bytes": 57997720,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 240204.97241210938
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 300,
+        "heap": {
+          "usedSize": 3410124,
+          "totalSize": 4489216,
+          "embedderHeapUsedSize": 924912,
+          "backingStorageSize": 48513057
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 3002740,
+          "lastSeq": 3002740,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 13882,
+          "decode_ms": {
+            "n": 27330,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 27330,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.21499991416931152
+          },
+          "draw_ms": {
+            "n": 13882,
+            "p50": 0.40500009059906006,
+            "p95": 0.625,
+            "p99": 0.7199999094009399,
+            "max": 1.0299999713897705
+          },
+          "raf_interval_ms": {
+            "n": 18016,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 16.67000000004191
+          },
+          "generated_to_next_raf_ms": {
+            "n": 27326,
+            "p50": 25.4013671875,
+            "p95": 33.082763671875,
+            "p99": 34.388671875,
+            "max": 50.351806640625
+          },
+          "heap": {
+            "used": 56422341,
+            "total": 59047969
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 2702252,
+            "generated": 2702252,
+            "bytes": 65247568,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 270241.93212890625
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 330,
+        "heap": {
+          "usedSize": 3472584,
+          "totalSize": 4423680,
+          "embedderHeapUsedSize": 1352648,
+          "backingStorageSize": 48513153
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 3303140,
+          "lastSeq": 3303140,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 15267,
+          "decode_ms": {
+            "n": 30062,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 30062,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 15267,
+            "p50": 0.40500009059906006,
+            "p95": 0.625,
+            "p99": 0.7250000238418579,
+            "max": 1.0299999713897705
+          },
+          "raf_interval_ms": {
+            "n": 19819,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 16.67000000004191
+          },
+          "generated_to_next_raf_ms": {
+            "n": 30058,
+            "p50": 25.39794921875,
+            "p95": 33.073974609375,
+            "p99": 34.400146484375,
+            "max": 50.351806640625
+          },
+          "heap": {
+            "used": 56353025,
+            "total": 59457665
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 3002740,
+            "generated": 3002740,
+            "bytes": 72503040,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 300276.2648925781
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 360,
+        "heap": {
+          "usedSize": 3461068,
+          "totalSize": 4161536,
+          "embedderHeapUsedSize": 548232,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 3603406,
+          "lastSeq": 3603406,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 16655,
+          "decode_ms": {
+            "n": 32783,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 32783,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 16655,
+            "p50": 0.4100000858306885,
+            "p95": 0.6349999904632568,
+            "p99": 0.7400000095367432,
+            "max": 1.0299999713897705
+          },
+          "raf_interval_ms": {
+            "n": 21621,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 16.67000000004191
+          },
+          "generated_to_next_raf_ms": {
+            "n": 32781,
+            "p50": 25.426025390625,
+            "p95": 33.083984375,
+            "p99": 34.413330078125,
+            "max": 50.351806640625
+          },
+          "heap": {
+            "used": 57166317,
+            "total": 61991993
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 3303140,
+            "generated": 3303140,
+            "bytes": 79756352,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 330316.53076171875
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 390,
+        "heap": {
+          "usedSize": 3972096,
+          "totalSize": 4898816,
+          "embedderHeapUsedSize": 1329744,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 3904001,
+          "lastSeq": 3904001,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 18042,
+          "decode_ms": {
+            "n": 35521,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 35521,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 18042,
+            "p50": 0.4099999666213989,
+            "p95": 0.6349999904632568,
+            "p99": 0.75,
+            "max": 1.0299999713897705
+          },
+          "raf_interval_ms": {
+            "n": 23424,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 33.3300000000163
+          },
+          "generated_to_next_raf_ms": {
+            "n": 35519,
+            "p50": 25.42333984375,
+            "p95": 33.10400390625,
+            "p99": 34.42626953125,
+            "max": 55.453369140625
+          },
+          "heap": {
+            "used": 55770201,
+            "total": 64449593
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 3603406,
+            "generated": 3603406,
+            "bytes": 87006272,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 360353.0908203125
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 420,
+        "heap": {
+          "usedSize": 3966852,
+          "totalSize": 4898816,
+          "embedderHeapUsedSize": 1220592,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 4204591,
+          "lastSeq": 4204591,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 4,
+          "measurementDropped": 0,
+          "draws": 19426,
+          "decode_ms": {
+            "n": 38260,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 38260,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 19426,
+            "p50": 0.41499996185302734,
+            "p95": 0.6400001049041748,
+            "p99": 0.7599999904632568,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 25227,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 33.3300000000163
+          },
+          "generated_to_next_raf_ms": {
+            "n": 38258,
+            "p50": 25.4306640625,
+            "p95": 33.120361328125,
+            "p99": 34.430908203125,
+            "max": 62.05712890625
+          },
+          "heap": {
+            "used": 57224761,
+            "total": 64285753
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 3904001,
+            "generated": 3904001,
+            "bytes": 94264360,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 390413.1525878906
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 450,
+        "heap": {
+          "usedSize": 3958948,
+          "totalSize": 4636672,
+          "embedderHeapUsedSize": 548784,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 4505382,
+          "lastSeq": 4505382,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 20812,
+          "decode_ms": {
+            "n": 40989,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 40989,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 20812,
+            "p50": 0.4099999666213989,
+            "p95": 0.6449999809265137,
+            "p99": 0.7599999904632568,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 27030,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 33.3300000000163
+          },
+          "generated_to_next_raf_ms": {
+            "n": 40988,
+            "p50": 25.434326171875,
+            "p95": 33.123291015625,
+            "p99": 34.435546875,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 58670041,
+            "total": 64973881
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 4204591,
+            "generated": 4204591,
+            "bytes": 101522344,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 420478.8349609375
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 480,
+        "heap": {
+          "usedSize": 3964496,
+          "totalSize": 4636672,
+          "embedderHeapUsedSize": 548808,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 4806024,
+          "lastSeq": 4806024,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 22199,
+          "decode_ms": {
+            "n": 43725,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 43725,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 22199,
+            "p50": 0.4099999666213989,
+            "p95": 0.6449999809265137,
+            "p99": 0.7599999904632568,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 28832,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 33.3300000000163
+          },
+          "generated_to_next_raf_ms": {
+            "n": 43722,
+            "p50": 25.434814453125,
+            "p95": 33.131103515625,
+            "p99": 34.44287109375,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 56233689,
+            "total": 64781849
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 4505382,
+            "generated": 4505382,
+            "bytes": 108784992,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 450547.0192871094
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 510,
+        "heap": {
+          "usedSize": 4055652,
+          "totalSize": 4718592,
+          "embedderHeapUsedSize": 548984,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 5106492,
+          "lastSeq": 5106492,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 23591,
+          "decode_ms": {
+            "n": 46462,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 46462,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06500005722045898,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 23591,
+            "p50": 0.4049999713897705,
+            "p95": 0.6449999809265137,
+            "p99": 0.755000114440918,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 30634,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 46460,
+            "p50": 25.438720703125,
+            "p95": 33.13427734375,
+            "p99": 34.46630859375,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 58348401,
+            "total": 65481785
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 4806024,
+            "generated": 4806024,
+            "bytes": 116044176,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 480603.341796875
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 540,
+        "heap": {
+          "usedSize": 4055664,
+          "totalSize": 4718592,
+          "embedderHeapUsedSize": 549168,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 5407142,
+          "lastSeq": 5407142,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 24977,
+          "decode_ms": {
+            "n": 49197,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 49197,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 24977,
+            "p50": 0.3999999761581421,
+            "p95": 0.6399999856948853,
+            "p99": 0.7549999952316284,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 32437,
+            "p50": 16.66500000000815,
+            "p95": 16.670000000012806,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 49196,
+            "p50": 25.434814453125,
+            "p95": 33.123779296875,
+            "p99": 34.44677734375,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 59554417,
+            "total": 65449017
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 5106492,
+            "generated": 5106492,
+            "bytes": 123299200,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 510666.9460449219
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 570,
+        "heap": {
+          "usedSize": 4802220,
+          "totalSize": 5488640,
+          "embedderHeapUsedSize": 549344,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 5707954,
+          "lastSeq": 5707954,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 26362,
+          "decode_ms": {
+            "n": 51935,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 51935,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 26362,
+            "p50": 0.39499998092651367,
+            "p95": 0.6399999856948853,
+            "p99": 0.75,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 34240,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 51932,
+            "p50": 25.42626953125,
+            "p95": 33.126953125,
+            "p99": 34.435546875,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 62066773,
+            "total": 67468897
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 5407142,
+            "generated": 5407142,
+            "bytes": 130558560,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 540728.5505371094
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 600,
+        "heap": {
+          "usedSize": 4802392,
+          "totalSize": 5488640,
+          "embedderHeapUsedSize": 549600,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 6008561,
+          "lastSeq": 6008561,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 27752,
+          "decode_ms": {
+            "n": 54663,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 54663,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 27752,
+            "p50": 0.39499998092651367,
+            "p95": 0.6399999856948853,
+            "p99": 0.75,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 36042,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 54659,
+            "p50": 25.424560546875,
+            "p95": 33.1142578125,
+            "p99": 34.42822265625,
+            "max": 74.441650390625
+          },
+          "heap": {
+            "used": 62063709,
+            "total": 67562553
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 5707954,
+            "generated": 5707954,
+            "bytes": 137821856,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 570797.4333496094
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 630,
+        "heap": {
+          "usedSize": 4802432,
+          "totalSize": 5488640,
+          "embedderHeapUsedSize": 549776,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 6309211,
+          "lastSeq": 6309211,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 29141,
+          "decode_ms": {
+            "n": 57395,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 57395,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 29141,
+            "p50": 0.38999998569488525,
+            "p95": 0.6349999904632568,
+            "p99": 0.7450000047683716,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 37844,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 57391,
+            "p50": 25.417236328125,
+            "p95": 33.1064453125,
+            "p99": 34.422607421875,
+            "max": 80.689208984375
+          },
+          "heap": {
+            "used": 59428745,
+            "total": 71691321
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 630992.814999938,
+              "received": 6309211,
+              "heap": 53319845,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 6008561,
+            "generated": 6008561,
+            "bytes": 145080072,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 600863.7124023438
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 660,
+        "heap": {
+          "usedSize": 4808608,
+          "totalSize": 5750784,
+          "embedderHeapUsedSize": 1056936,
+          "backingStorageSize": 48512841
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 6609934,
+          "lastSeq": 6609934,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 5,
+          "measurementDropped": 0,
+          "draws": 30525,
+          "decode_ms": {
+            "n": 60129,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 60129,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 30525,
+            "p50": 0.39499998092651367,
+            "p95": 0.6349999904632568,
+            "p99": 0.7400000095367432,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 39647,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 60127,
+            "p50": 25.423828125,
+            "p95": 33.1103515625,
+            "p99": 34.416259765625,
+            "max": 83.064697265625
+          },
+          "heap": {
+            "used": 60835753,
+            "total": 72286025
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 630992.814999938,
+              "received": 6309211,
+              "heap": 53319845,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 661065.6150000095,
+              "received": 6609934,
+              "heap": 53330901,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 6309211,
+            "generated": 6309211,
+            "bytes": 152339384,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 630927.8764648438
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 690,
+        "heap": {
+          "usedSize": 4802512,
+          "totalSize": 5488640,
+          "embedderHeapUsedSize": 550144,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 6910811,
+          "lastSeq": 6910811,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 6,
+          "measurementDropped": 0,
+          "draws": 31909,
+          "decode_ms": {
+            "n": 62862,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 62862,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 31909,
+            "p50": 0.39499998092651367,
+            "p95": 0.6399999856948853,
+            "p99": 0.7450000047683716,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 41450,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 62858,
+            "p50": 25.421875,
+            "p95": 33.1064453125,
+            "p99": 34.412109375,
+            "max": 83.41796875
+          },
+          "heap": {
+            "used": 60610305,
+            "total": 72690745
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 630992.814999938,
+              "received": 6309211,
+              "heap": 53319845,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 661065.6150000095,
+              "received": 6609934,
+              "heap": 53330901,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 691155.7199999094,
+              "received": 6910811,
+              "heap": 53319925,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 6609934,
+            "generated": 6609934,
+            "bytes": 159600480,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 661000.6926269531
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 720,
+        "heap": {
+          "usedSize": 4799948,
+          "totalSize": 5488640,
+          "embedderHeapUsedSize": 550320,
+          "backingStorageSize": 48507961
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 7211640,
+          "lastSeq": 7211640,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 6,
+          "measurementDropped": 0,
+          "draws": 33299,
+          "decode_ms": {
+            "n": 65598,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 65598,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 33299,
+            "p50": 0.3999999761581421,
+            "p95": 0.6399999856948853,
+            "p99": 0.75,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 43253,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 65595,
+            "p50": 25.426513671875,
+            "p95": 33.107666015625,
+            "p99": 34.42529296875,
+            "max": 95.369384765625
+          },
+          "heap": {
+            "used": 62447045,
+            "total": 73542713
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 630992.814999938,
+              "received": 6309211,
+              "heap": 53319845,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 661065.6150000095,
+              "received": 6609934,
+              "heap": 53330901,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 691155.7199999094,
+              "received": 6910811,
+              "heap": 53319925,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 721235.6599999666,
+              "received": 7211640,
+              "heap": 53317361,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 6910811,
+            "generated": 6910811,
+            "bytes": 166865256,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 691090.7905273438
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      },
+      {
+        "seconds": 750,
+        "heap": {
+          "usedSize": 4949716,
+          "totalSize": 5881856,
+          "embedderHeapUsedSize": 1336504,
+          "backingStorageSize": 48513345
+        },
+        "metrics": {
+          "format": "column",
+          "renderer": "canvas",
+          "fixed": false,
+          "capacity": 2000000,
+          "received": 7513170,
+          "lastSeq": 7513170,
+          "gaps": 0,
+          "gapRanges": [],
+          "maxPending": 6,
+          "measurementDropped": 0,
+          "draws": 34685,
+          "decode_ms": {
+            "n": 68308,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000104904174805,
+            "p99": 0.02499997615814209,
+            "max": 0.16999995708465576
+          },
+          "ingest_ms": {
+            "n": 68308,
+            "p50": 0.004999995231628418,
+            "p95": 0.029999971389770508,
+            "p99": 0.06499993801116943,
+            "max": 0.2200000286102295
+          },
+          "draw_ms": {
+            "n": 34685,
+            "p50": 0.39499998092651367,
+            "p95": 0.6399999856948853,
+            "p99": 0.7450000047683716,
+            "max": 1.1100000143051147
+          },
+          "raf_interval_ms": {
+            "n": 45061,
+            "p50": 16.66500000000815,
+            "p95": 16.67000000004191,
+            "p99": 16.67000000004191,
+            "max": 50
+          },
+          "generated_to_next_raf_ms": {
+            "n": 68306,
+            "p50": 25.4326171875,
+            "p95": 33.123291015625,
+            "p99": 34.456298828125,
+            "max": 95.369384765625
+          },
+          "heap": {
+            "used": 63944437,
+            "total": 74182393
+          },
+          "arrayBufferBytes": 48000000,
+          "domNodes": 16,
+          "samples": [
+            {
+              "elapsed_ms": 30078.774999976158,
+              "received": 299986,
+              "heap": 50869165,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 60093.65999996662,
+              "received": 600216,
+              "heap": 51010057,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 90111.97499990463,
+              "received": 900265,
+              "heap": 51126105,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 120139.97499990463,
+              "received": 1200697,
+              "heap": 51303185,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 150165.8449999094,
+              "received": 1500983,
+              "heap": 51329757,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 180197.5,
+              "received": 1801289,
+              "heap": 51560457,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 210233.80999994278,
+              "received": 2101523,
+              "heap": 51557197,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 240269.9699999094,
+              "received": 2401999,
+              "heap": 51574613,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 270306.9049999714,
+              "received": 2702252,
+              "heap": 51905717,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 300341.24500000477,
+              "received": 3002740,
+              "heap": 51932701,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 330381.5199999809,
+              "received": 3303140,
+              "heap": 51995265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 360418.00999999046,
+              "received": 3603406,
+              "heap": 51978481,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 390478.03999996185,
+              "received": 3904001,
+              "heap": 52489509,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 420543.7300000191,
+              "received": 4204591,
+              "heap": 52484265,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 450611.94499993324,
+              "received": 4505382,
+              "heap": 52476361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 480668.27499997616,
+              "received": 4806024,
+              "heap": 52491797,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 510731.8449999094,
+              "received": 5106492,
+              "heap": 52573065,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 540793.3899999857,
+              "received": 5407142,
+              "heap": 52573077,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 570862.3199999332,
+              "received": 5707954,
+              "heap": 53329665,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 600928.6849999428,
+              "received": 6008561,
+              "heap": 53319805,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 630992.814999938,
+              "received": 6309211,
+              "heap": 53319845,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 661065.6150000095,
+              "received": 6609934,
+              "heap": 53330901,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 691155.7199999094,
+              "received": 6910811,
+              "heap": 53319925,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 721235.6599999666,
+              "received": 7211640,
+              "heap": 53317361,
+              "nodes": 16
+            },
+            {
+              "elapsed_ms": 751398.2799999714,
+              "received": 7513170,
+              "heap": 53513073,
+              "nodes": 16
+            }
+          ],
+          "serverStats": {
+            "seq": 7211640,
+            "generated": 7211640,
+            "bytes": 174128928,
+            "maxMessage": 4816,
+            "dropped": 0,
+            "elapsed_ms": 721170.7126464844
+          },
+          "crossOriginIsolated": true,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+          "clockOffsetMs": 0.85400390625,
+          "stopLatency": null
+        }
+      }
+    ]
+  }
+}

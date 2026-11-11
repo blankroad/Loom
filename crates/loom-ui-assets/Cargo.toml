@@ -1,0 +1,21 @@
+[package]
+name = "loom-ui-assets"
+description = "Loom web UI static assets (ui/dist) embedded for loomd, with security headers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum = { workspace = true }
+# Crate-local until CORE adds them to [workspace.dependencies] (docs/impl/requests/ui-core.md).
+rust-embed = { version = "8.13.0", features = ["include-exclude", "debug-embed"] }
+mime_guess = "2.0.5"
+
+[dev-dependencies]
+tokio = { workspace = true }
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+
+[lints]
+workspace = true

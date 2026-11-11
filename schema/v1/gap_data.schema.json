@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GapData",
+  "description": "Payload of the three loss events `display.gap` / `record.gap` / `source.gap` (A13).",
+  "type": "object",
+  "properties": {
+    "bytes": {
+      "description": "Lost bytes when known.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cause": {
+      "description": "Cause (`slow_client`, `ipc_backpressure`, `disk_full`, `driver_overrun`, `gateway_restart` …).",
+      "type": "string"
+    },
+    "count": {
+      "description": "Number of lost events.",
+      "$ref": "#/$defs/GapCount"
+    },
+    "detail": {
+      "description": "Extra detail (domain summary, e.g. top CAN ids)."
+    },
+    "producer_range": {
+      "description": "Source range (losses before the hub never invent stream seqs).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProducerRange"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "seq_range": {
+      "description": "Stream range when known (display gaps after the hub).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SeqRange"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "count",
+    "cause"
+  ],
+  "$defs": {
+    "GapCount": {
+      "description": "Exact loss count as canonical decimal string, or \"unknown\".",
+      "type": "string",
+      "pattern": "^(unknown|0|[1-9][0-9]{0,19})$"
+    },
+    "ProducerRange": {
+      "description": "Inclusive source-seq range of one producer epoch.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "First source seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_epoch": {
+          "description": "Producer epoch.",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer id.",
+          "type": "string"
+        },
+        "to": {
+          "description": "Last source seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "producer_id",
+        "producer_epoch",
+        "from",
+        "to"
+      ]
+    },
+    "SeqRange": {
+      "description": "Inclusive stream-seq range.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "First seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        },
+        "to": {
+          "description": "Last seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

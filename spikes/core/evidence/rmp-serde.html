@@ -1,0 +1,286 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="MessagePack + Serde"><title>rmp_serde - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-009149e2.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="rmp_serde" data-themes="" data-resource-suffix="-20261028-1.101.0-nightly-92ffebece" data-rustdoc-version="1.101.0-nightly (92ffebece 2026-10-28)" data-channel="nightly" data-search-js="search-835b9732.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20261028-1.101.0-nightly-92ffebece.js"></script><script defer src="/-/rustdoc.static/main-1814ead3.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "rmp-serde",
+            "version": "1.3.1"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="Serde support for MessagePack">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">rmp-serde-1.3.1</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        rmp-serde 1.3.1
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/rmp-serde/1.3.1/rmp_serde/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/rmp-serde/latest" class="pure-menu-link description" title="See rmp-serde in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.101.0-nightly (92ffebece 2026-10-28)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 29 October 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/3Hren/msgpack-rust" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/rmp-serde" class="pure-menu-link" title="See rmp-serde in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/rmp-serde/latest/source/" title="Browse source of rmp-serde-1.3.1" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/3Hren" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> 3Hren
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/kornelski" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> kornelski
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/rmp/^0.8.14/" class="pure-menu-link">
+                rmp ^0.8.14
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.228/" class="pure-menu-link">
+                serde ^1.0.228
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.228/" class="pure-menu-link">
+                serde ^1.0.228
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_bytes/^0.11.19/" class="pure-menu-link">
+                serde_bytes ^0.11.19
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/rmp-serde/latest/menus/releases/rmp_serde/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/rmp-serde/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/rmp-serde/latest/menus/platforms/rmp_serde/"><li class="pure-menu-item">
+            <a href="/crate/rmp-serde/latest/target-redirect/rmp_serde/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/rmp-serde/latest/features" title="Browse available feature flags of rmp-serde-1.3.1" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/rmp-serde/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate rmp_serde</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rmp_serde/index.html">rmp_<wbr>serde</a><span class="version">1.3.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#messagepack--serde" title="MessagePack + Serde">MessagePack + Serde</a><ul><li><a href="#motivating-example" title="Motivating example">Motivating example</a></li><li><a href="#type-based-serialization-and-deserialization" title="Type-based Serialization and Deserialization">Type-based Serialization and Deserialization</a></li><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#efficient-storage-of-u8-types" title="Efficient storage of `&#38;[u8]` types">Efficient storage of <code>&amp;[u8]</code> types</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#constants" title="Constants">Constants</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>rmp_<wbr>serde</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rmp_serde/lib.rs.html#1-331">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="messagepack--serde"><a class="doc-anchor" href="#messagepack--serde">§</a>MessagePack + Serde</h2>
+<p>This crate connects Rust MessagePack library with <a href="https://serde.rs/"><code>serde</code></a> providing an ability to
+easily serialize and deserialize both Rust built-in types, the standard library and custom data
+structures.</p>
+<h3 id="motivating-example"><a class="doc-anchor" href="#motivating-example">§</a>Motivating example</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>buf = rmp_serde::to_vec(<span class="kw-2">&amp;</span>(<span class="number">42</span>, <span class="string">"the Answer"</span>)).unwrap();
+
+<span class="macro">assert_eq!</span>(
+    <span class="macro">vec!</span>[<span class="number">0x92</span>, <span class="number">0x2a</span>, <span class="number">0xaa</span>, <span class="number">0x74</span>, <span class="number">0x68</span>, <span class="number">0x65</span>, <span class="number">0x20</span>, <span class="number">0x41</span>, <span class="number">0x6e</span>, <span class="number">0x73</span>, <span class="number">0x77</span>, <span class="number">0x65</span>, <span class="number">0x72</span>],
+    buf
+);
+
+<span class="macro">assert_eq!</span>((<span class="number">42</span>, <span class="string">"the Answer"</span>), rmp_serde::from_slice(<span class="kw-2">&amp;</span>buf).unwrap());</code></pre></div><h3 id="type-based-serialization-and-deserialization"><a class="doc-anchor" href="#type-based-serialization-and-deserialization">§</a>Type-based Serialization and Deserialization</h3>
+<p>Serde provides a mechanism for low boilerplate serialization &amp; deserialization of values to and
+from MessagePack via the serialization API.</p>
+<p>To be able to serialize a piece of data, it must implement the <code>serde::Serialize</code> trait. To be
+able to deserialize a piece of data, it must implement the <code>serde::Deserialize</code> trait. Serde
+provides an annotation to automatically generate the code for these
+traits: <code>#[derive(Serialize, Deserialize)]</code>.</p>
+<h3 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>rmp_serde::{Deserializer, Serializer};
+
+<span class="attr">#[derive(Debug, PartialEq, Deserialize, Serialize)]
+</span><span class="kw">struct </span>Human {
+    age: u32,
+    name: String,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
+    <span class="kw">let </span>val = Human {
+        age: <span class="number">42</span>,
+        name: <span class="string">"John"</span>.into(),
+    };
+
+    val.serialize(<span class="kw-2">&amp;mut </span>Serializer::new(<span class="kw-2">&amp;mut </span>buf)).unwrap();
+}</code></pre></div><h3 id="efficient-storage-of-u8-types"><a class="doc-anchor" href="#efficient-storage-of-u8-types">§</a>Efficient storage of <code>&amp;[u8]</code> types</h3>
+<p>MessagePack can efficiently store binary data. However, Serde’s standard derived implementations <em>do not</em> use binary representations by default. Serde prefers to represent types like <code>&amp;[u8; N]</code> or <code>Vec&lt;u8&gt;</code> as arrays of objects of arbitrary/unknown type, and not as slices of bytes. This creates about a 50% overhead in storage size.</p>
+<p>Wrap your data in <a href="https://lib.rs/crates/serde_bytes"><code>serde_bytes</code></a> to store blobs quickly and efficiently. Alternatively, <a href="https://docs.rs/rmp-serde/latest/rmp_serde/encode/struct.Serializer.html#method.with_bytes">configure an override in <code>rmp_serde</code> to force use of byte slices</a>.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.from_read"><code>pub use crate::decode::<a class="fn" href="decode/fn.from_read.html" title="fn rmp_serde::decode::from_read">from_read</a>;</code></dt><dt id="reexport.Deserializer"><code>pub use crate::decode::<a class="struct" href="decode/struct.Deserializer.html" title="struct rmp_serde::decode::Deserializer">Deserializer</a>;</code></dt><dt id="reexport.to_vec"><code>pub use crate::encode::<a class="fn" href="encode/fn.to_vec.html" title="fn rmp_serde::encode::to_vec">to_vec</a>;</code></dt><dt id="reexport.to_vec_named"><code>pub use crate::encode::<a class="fn" href="encode/fn.to_vec_named.html" title="fn rmp_serde::encode::to_vec_named">to_vec_named</a>;</code></dt><dt id="reexport.Serializer"><code>pub use crate::encode::<a class="struct" href="encode/struct.Serializer.html" title="struct rmp_serde::encode::Serializer">Serializer</a>;</code></dt><dt id="reexport.from_slice"><code>pub use crate::decode::<a class="fn" href="decode/fn.from_slice.html" title="fn rmp_serde::decode::from_slice">from_slice</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="config/index.html" title="mod rmp_serde::config">config</a></dt><dd>Change MessagePack behavior with configuration wrappers.</dd><dt><a class="mod" href="decode/index.html" title="mod rmp_serde::decode">decode</a></dt><dd>Generic MessagePack deserialization.</dd><dt><a class="mod" href="encode/index.html" title="mod rmp_serde::encode">encode</a></dt><dd>Serialize a Rust data structure into MessagePack data.</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.MSGPACK_EXT_STRUCT_NAME.html" title="constant rmp_serde::MSGPACK_EXT_STRUCT_NAME">MSGPACK_<wbr>EXT_<wbr>STRUCT_<wbr>NAME</a></dt><dd>Hack used to serialize MessagePack Extension types.</dd></dl></section></div></main></div></body></html>

@@ -1,0 +1,17 @@
+spec: "1.0"
+devices:
+  scope:
+    eom:
+      TCPIP INSTR: {q: "\n", r: "\n"}
+    dialogues:
+      - {q: "*IDN?", r: "LOOM,SCOPE-SIM,1,0"}
+      - {q: ":WAV:DATA?", r: "#14\x00\x01\x02\x03"}
+      - {q: ":WAV:PRE?", r: "0,0,4,1,0.001,0,0,0.1,0,0"}
+    properties:
+      source:
+        default: 1
+        getter: {q: ":WAV:SOUR?", r: "CHAN{:d}"}
+        setter: {q: ":WAV:SOUR CHAN{:d}"}
+        specs: {valid: [1, 2], type: int}
+resources:
+  TCPIP::localhost::INSTR: {device: scope}

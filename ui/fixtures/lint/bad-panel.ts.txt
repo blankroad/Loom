@@ -1,0 +1,13 @@
+// UI-T07 lint fixture: a panel that tries to reach a device or the daemon on its own.
+// e2e/m1/t07-security.spec.ts lints this text AS IF it were src/panels/bad/badPanel.ts;
+// every line marked BAD must be reported by the I-UI1 rules (eslint.config.js panelBans).
+import { createNetClient } from '../../net'; // BAD: no-restricted-imports
+import { RowStore } from '../../store/rowStore'; // BAD: no-restricted-imports
+
+export async function leak(): Promise<unknown[]> {
+  const ws = new WebSocket('ws://localhost:7420/rpc'); // BAD: no-restricted-globals
+  const r = await fetch('/api/v1/raw/x'); // BAD: no-restricted-globals
+  const port = await navigator.serial.requestPort(); // BAD: no-restricted-properties
+  const usb = await navigator.usb.requestDevice({ filters: [] }); // BAD: no-restricted-properties
+  return [createNetClient, RowStore, ws, r, port, usb];
+}

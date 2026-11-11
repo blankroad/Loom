@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Response",
+  "description": "JSON-RPC 2.0 response: exactly one of `result` / `error`.",
+  "type": "object",
+  "properties": {
+    "error": {
+      "description": "Error on failure.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RpcError"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "description": "Echoed id (`null` if the request id could not be read).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "jsonrpc": {
+      "description": "Always `\"2.0\"`.",
+      "type": "string"
+    },
+    "result": {
+      "description": "Result on success."
+    }
+  },
+  "required": [
+    "jsonrpc"
+  ],
+  "$defs": {
+    "Id": {
+      "description": "JSON-RPC request id.",
+      "anyOf": [
+        {
+          "description": "Integer id.",
+          "type": "integer",
+          "format": "int64"
+        },
+        {
+          "description": "String id.",
+          "type": "string"
+        }
+      ]
+    },
+    "RpcError": {
+      "description": "JSON-RPC error object.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Code (spec range or Loom application code).",
+          "type": "integer",
+          "format": "int64"
+        },
+        "data": {
+          "description": "Extra data (Loom puts the `ErrorBody` here)."
+        },
+        "message": {
+          "description": "Message.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ]
+    }
+  }
+}

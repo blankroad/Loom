@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SafeStateItem",
+  "description": "안전 상태 동작 하나.",
+  "type": "object",
+  "properties": {
+    "blocked": {
+      "description": "An interlock currently blocks it.",
+      "type": "boolean",
+      "default": false
+    },
+    "channel": {
+      "description": "Channel.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "description": "Button text.",
+      "type": "string"
+    },
+    "domain": {
+      "description": "Domain.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Id (`<domain>.<name>`).",
+      "type": "string"
+    },
+    "kind": {
+      "description": "복구 또는 비상 출력 차단 동작.",
+      "$ref": "#/$defs/SafeStateKind",
+      "default": "recover"
+    },
+    "method": {
+      "description": "Method executed (origin = user).",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "domain",
+    "method",
+    "description"
+  ],
+  "$defs": {
+    "SafeStateKind": {
+      "description": "One safe-state recovery action (`core.safe_state.list` result item, A15).",
+      "oneOf": [
+        {
+          "description": "일반 복구 동작(구버전 기본값).",
+          "type": "string",
+          "const": "recover"
+        },
+        {
+          "description": "명시적으로 선언한 비상 출력 차단.",
+          "type": "string",
+          "const": "emergency_off"
+        }
+      ]
+    }
+  }
+}

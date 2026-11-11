@@ -1,0 +1,6 @@
+MERGED into main (ba8a76f; UART 호환 50c109e, 11-11 21:25) — 이전: MERGE READY: 8e2b4dc — CORE P1 런타임: 실제 loomd(허브·인증·디스패처·F1 파이프라인·STOP·감사), 저널(worker 직접 기록·mapping·GC), IPC worker 기본(`loomd worker <kind>`, 정상 종료 즉시 해제), CLI `loom`·스킬 v0, loom.toml 정책, loom-bench(지연·soak), 경계 검사·CI 설정, 계약 v1.5. 깨끗한 worktree 검증: fmt·clippy(-D warnings) 통과, test 655 통과 / 1 실패 = loom-eth source.gap domain(eth 리드 처리 중), loom-uart-worker 제외(Input call_id 리터럴 — uart 리드 처리 중).
+IN PROGRESS: P1 R1(core-answers-p1.md) — core-opus 단계 1–5 대부분 완료(미커밋: 도메인 등록·PerChannel·wait·#boot=·channels·safe_state), core-sol proto 1.2 완료·SDK 진행 중.
+UI 정본(UI 리드 확인 요청): 정적 UI는 `/ui/`(loom_ui_assets router를 gateway에 merge — ui crate가 core에 들어오면 연결), 딥링크 `http://localhost:<port>/ui/#boot=<code>&next=<route>`. `#bootstrap=`·`/` 역변경 하지 말 것. 8e2b4dc는 아직 `/#bootstrap=` 출력·`--ui-dir`를 `/`에 서빙하는 옛 동작 — R1 커밋에서 `#boot=`로 바뀜(경로 `/ui/`는 assets merge와 함께).
+P1 게이트 시험(사용자 인계용): 30분 RSS 증가 ≤ 10 MiB는 개발 10분 제한과 별개로, 도메인이 합쳐진 실제 통합 sim 상태에서 리드가 `loom-bench soak --minutes 30`으로 실행해 기록한다. 사전 10분 확인(8e2b4dc, echo IPC): gateway RSS ≈ 32 MiB 중앙값 변화 −0.6 MiB, worker ≈ 4 MiB 평탄, FD 평탄, 정상 viewer 누락 0(스레드 수는 macOS 파싱 버그로 미측정).
+
+- 메인 검증: fmt/clippy/workspace test 963 통과. core-uart.md 합의에 따라 Input.call_id를 worker_e2e 및 후속 worker_cancel 두 시험에 보강. CORE R1 미커밋은 다음 통합 대상.

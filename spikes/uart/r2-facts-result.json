@@ -1,0 +1,30 @@
+{
+  "os": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.15.0",
+  "pyserial": "3.5",
+  "second_exclusive": {
+    "accepted": false,
+    "error": "[Errno 35] Could not exclusively lock port /dev/ttys048: [Errno 35] Resource temporarily unavailable"
+  },
+  "second_default": {
+    "accepted": true
+  },
+  "mock_tcdrain": {
+    "write_timeout_ms": 10,
+    "flush_elapsed_ms": 88.073,
+    "synthetic": true
+  },
+  "regex_end_without_newline": true,
+  "regex_partial_then_extended": {
+    "first_chunk_matches": true,
+    "extended_stream_matches": false
+  },
+  "regex_adversarial": {
+    "exceeded_200ms": true,
+    "child_terminated": true
+  },
+  "ring_rx_only_minutes": {
+    "115200_8N1": 24.273,
+    "921600_8N1": 3.034
+  }
+}

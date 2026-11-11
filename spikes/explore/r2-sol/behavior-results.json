@@ -1,0 +1,62 @@
+{
+  "retrieved_at": "2026-11-09T14:36:25.142922+00:00",
+  "ssh": {
+    "status": "pass",
+    "connections": 1,
+    "exec_channels": 2,
+    "events": [
+      {
+        "channel": "job1",
+        "kind": "request",
+        "origin": "agent"
+      },
+      {
+        "channel": "job2",
+        "kind": "request",
+        "origin": "agent"
+      },
+      {
+        "channel": "job1",
+        "kind": "stdout",
+        "origin": "device",
+        "data": "job1:begin\n",
+        "exit_status_at_read": null
+      },
+      {
+        "channel": "job2",
+        "kind": "stdout",
+        "origin": "device",
+        "data": "job2:begin\n",
+        "exit_status_at_read": null
+      },
+      {
+        "channel": "job1",
+        "kind": "completed",
+        "stderr": "job1:stderr\n",
+        "exit_status": 0
+      },
+      {
+        "channel": "job2",
+        "kind": "completed",
+        "stderr": "job2:stderr\n",
+        "exit_status": 0
+      }
+    ],
+    "scope": "API streaming before exit only; event list is local evidence, not a Loom viewer"
+  },
+  "status_poll_math": {
+    "kind": "analytical model, NOT benchmark",
+    "poll_period_ms": 1000,
+    "uniform_event_phase_samples": 1000,
+    "detection_ms_max": 1000,
+    "detection_ms_p95": 950,
+    "fraction_within_500ms": 0.5,
+    "transport_and_render_added": false
+  },
+  "dlt_wire": {
+    "length": 29,
+    "prefix_hex": "2500001d",
+    "storage_magic_hex": "444c5401",
+    "parsed_as_storage": "ValueError: DLT-Pattern is not found in the data: b'%\\x00\\x00\\x1d' / Beginning of Storage Header must be b'DLT\\x01'"
+  }
+}

@@ -1,0 +1,23 @@
+[package]
+name = "loom-uds"
+description = "Loom UDS domain (gateway piece): registration, classify hook and risk table, TargetSession model, event payload types."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+loom-proto = { workspace = true }
+loom-domain-api = { workspace = true }
+loom-uds-codec = { path = "../loom-uds-codec" }
+loom-uds-sim = { path = "../loom-uds-sim" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+hex = { workspace = true }
+
+[dev-dependencies]
+loom-testkit = { workspace = true }
+
+[lints]
+workspace = true

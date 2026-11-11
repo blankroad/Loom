@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "review_lines": 173,
+  "required_sections": 7,
+  "broken_links": [],
+  "read_inputs": [
+    "docs/plan/core/r1-opus.md",
+    "docs/plan/core/r1-sol.md",
+    "docs/plan/02-core-principle.md",
+    "docs/plan/00-master-plan.md",
+    "docs/plan/_xteam/can-core.md",
+    "docs/plan/_xteam/uart-core.md",
+    "docs/plan/_xteam/uds-core.md",
+    "docs/plan/_xteam/core-test.md",
+    "docs/plan/_xteam/core-ui.md",
+    "docs/plan/_xteam/test-domains.md",
+    "docs/plan/_xteam/ui-test.md",
+    "docs/plan/_xteam/ui-panel-template.md"
+  ],
+  "review_sha256": "810d10afcd8e01e60a598b309b2fe8ac97018eb3054658898a6b85c778701938",
+  "scope": "리뷰 형식·로컬 링크·리뷰 hash. 입력 문서 전체 hash 수집은 제외. 제품 동작·Rust 보조probe 통과를 뜻하지 않음."
+}

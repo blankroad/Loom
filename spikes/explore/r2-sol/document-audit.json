@@ -1,0 +1,43 @@
+{
+  "audited_at": "2026-11-09T14:45:18.386440+00:00",
+  "review_lines": 399,
+  "r1_unchanged": {
+    "docs/plan/explore/r1-opus.md": true,
+    "docs/plan/explore/r1-sol.md": true
+  },
+  "sections": [
+    [
+      "1",
+      "틀린 사실"
+    ],
+    [
+      "2",
+      "평가 이견"
+    ],
+    [
+      "3",
+      "빠진 것"
+    ],
+    [
+      "4",
+      "더 나은 선택"
+    ],
+    [
+      "5",
+      "합의 가능한 부분"
+    ],
+    [
+      "6",
+      "핵심 원칙 점검"
+    ],
+    [
+      "7",
+      "쟁점 목록"
+    ]
+  ],
+  "local_links": "pass",
+  "fact_items": 10,
+  "score_rows_verified": 18,
+  "end_marker": "pass",
+  "status": "pass"
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TimeResult",
+  "description": "`core.time` result: daemon receive (d1) and send (d2) monotonic times, so the client can remove\nserver processing time from the offset estimate (CR-UI-03).",
+  "type": "object",
+  "properties": {
+    "clock_id": {
+      "description": "Monotonic clock domain id.",
+      "type": "string"
+    },
+    "recv_mono_ns": {
+      "description": "d1: daemon monotonic ns when the request was received.",
+      "$ref": "#/$defs/U64"
+    },
+    "send_mono_ns": {
+      "description": "d2: daemon monotonic ns when the reply was sent.",
+      "$ref": "#/$defs/U64"
+    },
+    "wall_ns": {
+      "description": "Daemon wall time (ns).",
+      "$ref": "#/$defs/U64"
+    }
+  },
+  "required": [
+    "recv_mono_ns",
+    "send_mono_ns",
+    "wall_ns",
+    "clock_id"
+  ],
+  "$defs": {
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

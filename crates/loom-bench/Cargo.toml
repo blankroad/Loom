@@ -1,0 +1,24 @@
+[package]
+name = "loom-bench"
+description = "Latency harness: core gate (worker ingest → viewer) and CLI round trip (plan §9.4, C16)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "loom-bench"
+path = "src/main.rs"
+
+[dependencies]
+loom-gateway.workspace = true
+loom-proto.workspace = true
+loom-worker-sdk.workspace = true
+tokio.workspace = true
+tungstenite.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

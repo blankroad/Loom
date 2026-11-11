@@ -1,0 +1,467 @@
+{
+  "retrieved_at": "2026-11-09T14:14:37.471536+00:00",
+  "note": "Atom latest branch commit; issue dates HTML observed, not response-time metric",
+  "repos": [
+    {
+      "repo": "pyocd/pyOCD",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-11-02T13:23:02Z",
+        "title": "ci: pin ubuntu runner to 24.04",
+        "url": "https://github.com/pyocd/pyOCD/commit/0ce0fbd201010d617d7a4e3582c39b8e8561e33d",
+        "source": "https://github.com/pyocd/pyOCD/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-09T13:15:37Z",
+        "2026-11-09T11:08:59Z",
+        "2026-11-04T12:41:41Z",
+        "2026-11-02T01:12:07Z",
+        "2026-10-14T12:37:16Z"
+      ],
+      "issue_source": "https://github.com/pyocd/pyOCD/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "square/pylink",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-11-06T17:45:43Z",
+        "title": "Draft 2.1.0 Release",
+        "url": "https://github.com/square/pylink/commit/1904c4775d6b5606a21a5d9d975cef2ba78074bc",
+        "source": "https://github.com/square/pylink/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-04T21:49:36Z",
+        "2026-09-14T16:44:47Z",
+        "2026-09-14T16:44:24Z",
+        "2026-07-09T11:31:16Z",
+        "2026-04-06T21:13:25Z"
+      ],
+      "issue_source": "https://github.com/square/pylink/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "cs01/pygdbmi",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2023-07-05T17:10:09Z",
+        "title": "Add pwndbg-gui to Projects list",
+        "url": "https://github.com/cs01/pygdbmi/commit/d570d7157f6fa081208bc82269a8efff87505708",
+        "source": "https://github.com/cs01/pygdbmi/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2025-12-11T20:27:53Z",
+        "2025-11-26T20:18:11Z",
+        "2025-11-22T09:33:32Z",
+        "2024-09-06T05:25:09Z",
+        "2024-09-06T05:09:56Z"
+      ],
+      "issue_source": "https://github.com/cs01/pygdbmi/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "pyvisa/pyvisa",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-10-26T11:12:28Z",
+        "title": "Read the full HP block header when its length holds the termchar (#996)",
+        "url": "https://github.com/pyvisa/pyvisa/commit/a5b56ab857115e44e59f240f99207b305f77c459",
+        "source": "https://github.com/pyvisa/pyvisa/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-10-13T18:14:37Z",
+        "2026-10-13T08:53:24Z",
+        "2026-08-21T06:34:23Z",
+        "2026-07-10T21:44:02Z",
+        "2026-07-10T15:53:22Z"
+      ],
+      "issue_source": "https://github.com/pyvisa/pyvisa/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "pyvisa/pyvisa-py",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-11-02T21:03:09Z",
+        "title": "[pre-commit.ci] pre-commit autoupdate (#692)",
+        "url": "https://github.com/pyvisa/pyvisa-py/commit/f38042328c4701c4720a383d74174a9093a3c03a",
+        "source": "https://github.com/pyvisa/pyvisa-py/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-07T21:34:05Z",
+        "2026-11-07T19:59:53Z",
+        "2026-10-26T18:41:40Z",
+        "2026-10-26T14:41:46Z",
+        "2026-10-26T14:03:01Z"
+      ],
+      "issue_source": "https://github.com/pyvisa/pyvisa-py/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "pyvisa/pyvisa-sim",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-11-02T21:02:55Z",
+        "title": "[pre-commit.ci] pre-commit autoupdate (#248)",
+        "url": "https://github.com/pyvisa/pyvisa-sim/commit/a7d335c23236424f6747ed153d8d1efc83fa72b0",
+        "source": "https://github.com/pyvisa/pyvisa-sim/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-09-28T21:22:01Z",
+        "2026-06-10T14:16:10Z",
+        "2025-09-21T20:24:33Z",
+        "2025-09-02T20:58:11Z",
+        "2025-04-07T20:13:10Z"
+      ],
+      "issue_source": "https://github.com/pyvisa/pyvisa-sim/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "hardbyte/python-can",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-11-08T23:55:54Z",
+        "title": "Bump the github-actions group across 1 directory with 6 updates (#2124)",
+        "url": "https://github.com/hardbyte/python-can/commit/2a45350e3c23cd6ddeb71fc1d1c58dbaf311f263",
+        "source": "https://github.com/hardbyte/python-can/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-05T23:05:02Z",
+        "2026-11-03T09:25:30Z",
+        "2026-10-21T17:58:42Z",
+        "2026-10-16T10:35:23Z",
+        "2026-09-24T21:59:49Z"
+      ],
+      "issue_source": "https://github.com/hardbyte/python-can/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "c4deszes/ldfparser",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2025-03-11T18:59:29Z",
+        "title": "Repository misuse LFS bandwidth consumed (#144)",
+        "url": "https://github.com/c4deszes/ldfparser/commit/2de76f53d1d9c3be536f24d4239f6cd476e3d87a",
+        "source": "https://github.com/c4deszes/ldfparser/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2025-04-23T11:00:30Z",
+        "2025-01-28T15:53:01Z",
+        "2025-01-27T08:51:29Z",
+        "2024-11-04T18:48:46Z",
+        "2024-04-28T09:23:40Z"
+      ],
+      "issue_source": "https://github.com/c4deszes/ldfparser/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "chrizog/someipy",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-02-26T17:37:29Z",
+        "title": "Adds __hash__ fun to Method class",
+        "url": "https://github.com/chrizog/someipy/commit/fd6bf2cc78fce4e988354fd2d1de28ae584cdb64",
+        "source": "https://github.com/chrizog/someipy/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-06-22T17:11:43Z",
+        "2026-05-11T08:44:13Z",
+        "2026-05-11T08:41:34Z",
+        "2026-01-10T10:26:27Z",
+        "2025-11-01T10:01:35Z"
+      ],
+      "issue_source": "https://github.com/chrizog/someipy/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "secdev/scapy",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-11-08T19:56:14Z",
+        "title": "contrib/tcpros: read field lengths in place instead of re-slicing (#5…",
+        "url": "https://github.com/secdev/scapy/commit/d2a43b525e145969fae36e42adfb4de8341fbcb8",
+        "source": "https://github.com/secdev/scapy/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-08T19:56:16Z",
+        "2026-11-04T12:38:54Z",
+        "2026-11-03T20:30:48Z",
+        "2026-10-30T16:02:48Z",
+        "2026-10-29T09:27:17Z"
+      ],
+      "issue_source": "https://github.com/secdev/scapy/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "kbandla/dpkt",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2024-05-05T16:48:10Z",
+        "title": "Fix 608",
+        "url": "https://github.com/kbandla/dpkt/commit/4f8958eb4b375b38d0ab6ffadf2da9b24395394d",
+        "source": "https://github.com/kbandla/dpkt/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-10-10T10:55:11Z",
+        "2026-10-10T10:54:58Z",
+        "2026-10-10T10:48:07Z",
+        "2026-09-14T16:52:40Z",
+        "2026-07-24T14:42:42Z"
+      ],
+      "issue_source": "https://github.com/kbandla/dpkt/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "KimiNewt/pyshark",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-03-22T14:39:09Z",
+        "title": "Merge pull request #730 from kmikov/patch-1",
+        "url": "https://github.com/KimiNewt/pyshark/commit/91441d3eee47e50e552ac2436df2ec89abad07b0",
+        "source": "https://github.com/KimiNewt/pyshark/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-09-19T15:42:27Z",
+        "2026-07-24T23:30:36Z",
+        "2026-05-28T15:27:05Z",
+        "2026-03-22T14:35:35Z",
+        "2026-03-19T19:07:03Z"
+      ],
+      "issue_source": "https://github.com/KimiNewt/pyshark/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "bmwcarit/python-dlt",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-09-07T14:37:06Z",
+        "title": "Fix ruff failures",
+        "url": "https://github.com/bmwcarit/python-dlt/commit/323a8f252488c82ece6191909aa697cfff948e4e",
+        "source": "https://github.com/bmwcarit/python-dlt/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-05-08T15:20:07Z",
+        "2026-05-08T12:20:57Z",
+        "2025-02-10T10:16:16Z",
+        "2024-04-12T10:57:14Z",
+        "2023-05-21T11:25:49Z"
+      ],
+      "issue_source": "https://github.com/bmwcarit/python-dlt/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "COVESA/dlt-daemon",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-11-05T19:33:40Z",
+        "title": "fix: dlt-kpi qnx build (#921)",
+        "url": "https://github.com/COVESA/dlt-daemon/commit/144703c39f2031e8e38ee32fc3a9d2e3cb097b28",
+        "source": "https://github.com/COVESA/dlt-daemon/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-05T19:33:44Z",
+        "2026-11-05T19:33:42Z",
+        "2026-11-05T12:10:18Z",
+        "2026-10-31T04:51:18Z",
+        "2026-10-08T05:10:03Z"
+      ],
+      "issue_source": "https://github.com/COVESA/dlt-daemon/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "mikiepure/pydlt",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2025-03-07T17:56:37Z",
+        "title": "Merge pull request #25 from mikiepure/develop",
+        "url": "https://github.com/mikiepure/pydlt/commit/1bf71c290c4de19299763c953e5196350b10e0b6",
+        "source": "https://github.com/mikiepure/pydlt/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-03-02T06:40:24Z",
+        "2025-07-04T21:11:25Z",
+        "2025-05-01T13:20:36Z",
+        "2025-03-08T15:38:34Z"
+      ],
+      "issue_source": "https://github.com/mikiepure/pydlt/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "christoph2/pyxcp",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-11-06T02:22:11Z",
+        "title": "dllif.py: Fix loader",
+        "url": "https://github.com/christoph2/pyxcp/commit/049d68a13572e40dfafeddc960786f1491996dcd",
+        "source": "https://github.com/christoph2/pyxcp/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-09T10:56:40Z",
+        "2026-10-31T02:36:07Z",
+        "2026-10-26T14:22:38Z",
+        "2026-10-01T18:58:02Z",
+        "2026-08-28T01:29:37Z"
+      ],
+      "issue_source": "https://github.com/christoph2/pyxcp/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "christoph2/pyA2L",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-11-03T23:47:31Z",
+        "title": "Bump pypa/cibuildwheel from 4.3.4 to 4.3.5",
+        "url": "https://github.com/christoph2/pyA2L/commit/3ef9a67111c4de1f9129a7a190593a24c3dcfc74",
+        "source": "https://github.com/christoph2/pyA2L/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-09-03T16:01:46Z",
+        "2026-08-17T09:38:03Z",
+        "2026-03-02T16:47:59Z",
+        "2026-03-02T16:46:19Z",
+        "2026-03-02T16:45:54Z"
+      ],
+      "issue_source": "https://github.com/christoph2/pyA2L/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "eblot/pyftdi",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-06-02T16:12:31Z",
+        "title": "Merge pull request #435 from eblot/ft4232h_followup",
+        "url": "https://github.com/eblot/pyftdi/commit/25d77b02960dd42c018ac7c463b6a5500b95b5b6",
+        "source": "https://github.com/eblot/pyftdi/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-10-20T10:01:59Z",
+        "2026-08-20T21:36:23Z",
+        "2026-07-19T21:32:36Z",
+        "2026-07-15T15:21:12Z",
+        "2026-06-17T10:01:37Z"
+      ],
+      "issue_source": "https://github.com/eblot/pyftdi/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "saleae/logic2-automation",
+      "default_branch": "develop",
+      "last_commit": {
+        "date": "2026-05-04T17:41:56Z",
+        "title": "Merge pull request #48 from lucasrangit/lucasrangit-patch-1",
+        "url": "https://github.com/saleae/logic2-automation/commit/ee5e1ceebfb63c285828eb337f597f133f7125e4",
+        "source": "https://github.com/saleae/logic2-automation/commits/develop.atom"
+      },
+      "issue_dates_observed": [
+        "2026-05-20T18:01:53Z",
+        "2026-05-05T01:14:14Z",
+        "2026-05-04T18:11:23Z",
+        "2026-05-04T18:10:47Z",
+        "2026-05-04T18:09:10Z"
+      ],
+      "issue_source": "https://github.com/saleae/logic2-automation/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "pymodbus-dev/pymodbus",
+      "default_branch": "dev",
+      "last_commit": {
+        "date": "2026-11-08T19:02:49Z",
+        "title": "Decode frames arriving together before buffer cap (#3084)",
+        "url": "https://github.com/pymodbus-dev/pymodbus/commit/c50599b80752255517c2370cf3b62b0cb8c61f32",
+        "source": "https://github.com/pymodbus-dev/pymodbus/commits/dev.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-08T19:02:51Z",
+        "2026-11-03T11:33:56Z",
+        "2026-10-15T10:52:37Z",
+        "2026-10-12T19:57:50Z",
+        "2026-10-12T19:06:54Z"
+      ],
+      "issue_source": "https://github.com/pymodbus-dev/pymodbus/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "trezor/cython-hidapi",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-03-15T23:33:35Z",
+        "title": "fix buffer overflow on negative max_length and add malloc null checks",
+        "url": "https://github.com/trezor/cython-hidapi/commit/2924f2c76a6b34ecfa45818d3c2cb5087e1c7a39",
+        "source": "https://github.com/trezor/cython-hidapi/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-02T13:24:31Z",
+        "2026-10-25T01:42:00Z",
+        "2026-07-14T14:28:40Z",
+        "2026-05-15T17:08:31Z",
+        "2026-03-07T18:47:29Z"
+      ],
+      "issue_source": "https://github.com/trezor/cython-hidapi/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "ronf/asyncssh",
+      "default_branch": "develop",
+      "last_commit": {
+        "date": "2026-11-07T20:11:59Z",
+        "title": "Skip argument conversion for disabled SSH log messages",
+        "url": "https://github.com/ronf/asyncssh/commit/f1d1c7505468e3ebfd4eda90d831934e20f69bdf",
+        "source": "https://github.com/ronf/asyncssh/commits/develop.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-08T17:47:41Z",
+        "2026-11-08T00:29:56Z",
+        "2026-11-07T23:40:38Z",
+        "2026-11-07T20:18:03Z",
+        "2026-10-31T23:02:45Z"
+      ],
+      "issue_source": "https://github.com/ronf/asyncssh/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "paramiko/paramiko",
+      "default_branch": "main",
+      "last_commit": {
+        "date": "2026-10-18T02:36:52Z",
+        "title": "Cut 5.1.0",
+        "url": "https://github.com/paramiko/paramiko/commit/0e9ccb91e0f9a68f2587233d523ad7fe46e730fe",
+        "source": "https://github.com/paramiko/paramiko/commits/main.atom"
+      },
+      "issue_dates_observed": [
+        "2026-11-07T21:24:54Z",
+        "2026-11-07T17:58:33Z",
+        "2026-11-04T18:13:49Z",
+        "2026-11-04T08:47:01Z",
+        "2026-10-30T11:59:58Z"
+      ],
+      "issue_source": "https://github.com/paramiko/paramiko/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "openatx/adbutils",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-08-10T02:12:06Z",
+        "title": "refactor: remove useless shebang (#204)",
+        "url": "https://github.com/openatx/adbutils/commit/2382f08ba9394c6a3410ed25ffb89c02801850ec",
+        "source": "https://github.com/openatx/adbutils/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-02-15T14:39:51Z",
+        "2026-01-28T14:31:24Z",
+        "2025-11-13T02:15:21Z",
+        "2025-11-02T21:13:03Z",
+        "2025-10-30T09:15:52Z"
+      ],
+      "issue_source": "https://github.com/openatx/adbutils/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "willhyper/pyplin",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2018-03-13T23:37:12Z",
+        "title": "markdown code",
+        "url": "https://github.com/willhyper/pyplin/commit/bf0046809202d55618eff5b79175e78b56cde9e0",
+        "source": "https://github.com/willhyper/pyplin/commits/master.atom"
+      },
+      "issue_dates_observed": [],
+      "issue_source": "https://github.com/willhyper/pyplin/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    },
+    {
+      "repo": "richClubb/python-lin",
+      "default_branch": "master",
+      "last_commit": {
+        "date": "2026-06-02T07:52:29Z",
+        "title": "Update README.md",
+        "url": "https://github.com/richClubb/python-lin/commit/72cdbf8abd85567e36e79b66cab9de6321d97374",
+        "source": "https://github.com/richClubb/python-lin/commits/master.atom"
+      },
+      "issue_dates_observed": [
+        "2026-02-13T08:44:15Z",
+        "2021-08-20T09:09:39Z",
+        "2020-05-14T16:22:26Z",
+        "2020-02-04T09:46:27Z",
+        "2020-01-14T14:11:26Z"
+      ],
+      "issue_source": "https://github.com/richClubb/python-lin/issues?q=is%3Aissue+sort%3Aupdated-desc"
+    }
+  ]
+}

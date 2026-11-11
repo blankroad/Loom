@@ -1,0 +1,12 @@
+[package]
+name = "loom-can-frame"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Loom CAN / CAN FD frame types shared by CAN worker, ISO-TP and DBC codec"
+
+[dependencies]
+
+[lints]
+workspace = true

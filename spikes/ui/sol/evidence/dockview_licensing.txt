@@ -1,0 +1,173 @@
+Skip to main content
+⭐️ If you like Dockview, give it a star on GitHub
+Dockview
+Search
+⌘
+K
+Newsletter
+Docs
+API
+Blog
+Examples
+Demo
+Licensing
+Overview
+Introduction
+Licensing
+Quickstart
+Installation
+Enterprise setup
+What's new
+CORE FEATURES
+Core concepts
+Panels
+Groups
+Drag & Drop
+State
+Sizing and layout
+Theming
+Events
+Nested instances
+Scrolling
+Locking
+Watermark
+Security
+AUXILIARY COMPONENTS
+Splitview
+Gridview
+Paneview
+KEYBOARD & ACCESSIBILITY
+Accessibility
+Focus navigation
+Keyboard navigation
+ENTERPRISE
+RELEASES
+Licensing
+Dockview
+Free
+MIT licensed, open source
+
+Everything you need to build a complete docking layout.
+
+Get started
+Dockview Enterprise
+Commercial licence
+Free 30-day trial
+
+Enterprise-ready docking engine, direct support and priority feature requests.
+
+Purchase a licence →
+Contact us
+or start a free 30-day trial
+Layout​
+Feature	Dockview	Dockview Enterprise
+Dockable grid	✓	✓
+Nested layouts	✓	✓
+Watermark	✓	✓
+Tabs and headers​
+Feature	Dockview	Dockview Enterprise
+Tab strip position	✓	✓
+Headerless groups	✓	✓
+Full-width single tab	✓	✓
+Custom tab components	✓	✓
+Header action slots	✓	✓
+Tab overflow menu	✓	✓
+Advanced overflow: search and recent-first ordering		✓
+Animated tab dragging	✓	✓
+Multi-row tabs		✓
+Pinned tabs		✓
+Tab group chips	✓	✓
+Custom chip renderer	✓	✓
+Tab context menus	✓	✓
+Chip context menus	✓	✓
+Drag and drop​
+Feature	Dockview	Dockview Enterprise
+Tab drag and drop	✓	✓
+Group drag and drop	✓	✓
+External drag and drop	✓	✓
+Touch and pen support	✓	✓
+Per-feature opt-out	✓	✓
+Edge drop zones	✓	✓
+DnD backend strategy	✓	✓
+Custom drop overlay	✓	✓
+Custom group drag preview	✓	✓
+DnD compass		✓
+Smart guides		✓
+Groups and windows​
+Feature	Dockview	Dockview Enterprise
+Maximize and restore	✓	✓
+Floating groups	✓	✓
+Floating group bounds	✓	✓
+Floating group drag handle	✓	✓
+Popout windows	✓	✓
+Custom popout URL	✓	✓
+Edge groups	✓	✓
+Auto-hide edge groups		✓
+Dock to edge groups		✓
+Locked groups and panels	✓	✓
+Sizing​
+Feature	Dockview	Dockview Enterprise
+Drag-to-resize splitters	✓	✓
+Size constraints	✓	✓
+Auto-resize	✓	✓
+Borderless mode	✓	✓
+Rendering​
+Feature	Dockview	Dockview Enterprise
+Render modes	✓	✓
+Custom scrollbars	✓	✓
+Strict CSP support	✓	✓
+State and persistence​
+Feature	Dockview	Dockview Enterprise
+Save and restore layouts	✓	✓
+Full state capture	✓	✓
+Custom panel state	✓	✓
+Empty state behaviour	✓	✓
+Layout history		✓
+Theming​
+Feature	Dockview	Dockview Enterprise
+Built-in themes	✓	✓
+CSS variable theming	✓	✓
+Tab group colour palette	✓	✓
+API and events​
+Feature	Dockview	Dockview Enterprise
+Programmatic layout control	✓	✓
+Directional placement	✓	✓
+Panel and group APIs	✓	✓
+Active panel tracking	✓	✓
+Panel lifecycle events	✓	✓
+Runtime option updates	✓	✓
+Custom UI messages	✓	✓
+Full event surface	✓	✓
+Keyboard focus navigation	✓	✓
+Accessibility​
+Feature	Dockview	Dockview Enterprise
+ARIA roles and labels	✓	✓
+Screen-reader announcements	✓	✓
+Focus indicators	✓	✓
+Spatial keyboard navigation		✓
+Keyboard docking		✓
+Framework support​
+Feature	Dockview	Dockview Enterprise
+React	✓	✓
+Vue 3	✓	✓
+Angular	✓	✓
+TypeScript	✓	✓
+See also​
+Quickstart: get a layout on screen in a few lines
+Theming: built-in themes and CSS-variable customisation
+Documentation
+Get Started
+What's new
+Demo
+Dockview
+Sitemap
+Licensing
+Contact us
+Privacy policy
+Cookie settings
+Follow
+GitHub
+LinkedIn
+Copyright © 2026 Dockview Ltd
+Dockview Ltd, registered in England and Wales (no. 17326398).
+Newsletter

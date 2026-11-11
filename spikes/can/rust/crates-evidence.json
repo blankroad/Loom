@@ -1,0 +1,3152 @@
+{
+  "checked_at": "2026-11-09T23:05:07.794Z",
+  "method": "crates.io API returned403; official sparse index plus published crate archives",
+  "crates": {
+    "rtnetlink": {
+      "version": "0.24.0",
+      "released": "2026-11-04T02:32:08Z",
+      "rust_version": "1.85",
+      "features": {
+        "default": [
+          "tokio_socket"
+        ],
+        "smol_socket": [
+          "netlink-proto/smol_socket",
+          "async-global-executor"
+        ],
+        "test_as_root": [],
+        "tokio_socket": [
+          "netlink-proto/tokio_socket",
+          "tokio"
+        ]
+      },
+      "checksum": "3ebb223efd6a02c17e119412e8a06640abead288a44256e642377e1c09d2134c",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/rtnetlink/rtnetlink-0.24.0.crate",
+      "license": "MIT",
+      "repository": "https://github.com/rust-netlink/rtnetlink",
+      "archive_sha256": "3ebb223efd6a02c17e119412e8a06640abead288a44256e642377e1c09d2134c"
+    },
+    "netlink-packet-route": {
+      "version": "0.34.0",
+      "released": "2026-11-03T05:16:11Z",
+      "rust_version": "1.77",
+      "features": {},
+      "checksum": "d3c407d8e95c0128ee5729728482a369f3ba9a0d9ba8335c20949a8d8989cf6b",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/netlink-packet-route/netlink-packet-route-0.34.0.crate",
+      "license": "MIT",
+      "repository": "https://github.com/rust-netlink/netlink-packet-route",
+      "archive_sha256": "d3c407d8e95c0128ee5729728482a369f3ba9a0d9ba8335c20949a8d8989cf6b"
+    },
+    "socketcan": {
+      "version": "4.0.0",
+      "released": "2026-09-05T22:58:14Z",
+      "rust_version": "1.89",
+      "features": {
+        "default": [
+          "netlink",
+          "dump"
+        ],
+        "dump": [],
+        "netlink": [
+          "neli"
+        ],
+        "netlink_tests": [
+          "netlink"
+        ],
+        "utils": [
+          "clap",
+          "anyhow",
+          "netlink"
+        ],
+        "vcan_tests": [
+          "netlink"
+        ]
+      },
+      "features2": {
+        "enumerate": [
+          "dep:udev"
+        ],
+        "serde": [
+          "dep:serde",
+          "bitflags/serde"
+        ],
+        "smol": [
+          "dep:smol",
+          "futures"
+        ],
+        "tokio": [
+          "dep:tokio",
+          "futures"
+        ]
+      },
+      "checksum": "472e000403167b1e2f65cfcf8ff235fe94b911f9bd9bdbc1f48047b8a1cf49aa",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/socketcan/socketcan-4.0.0.crate",
+      "license": "MIT",
+      "repository": "https://github.com/mbr/socketcan-rs",
+      "archive_sha256": "472e000403167b1e2f65cfcf8ff235fe94b911f9bd9bdbc1f48047b8a1cf49aa"
+    },
+    "pcan-basic": {
+      "status": 404
+    },
+    "pcan-basic-sys": {
+      "status": 404
+    },
+    "pcan": {
+      "status": 404
+    },
+    "vxlapi": {
+      "status": 404
+    },
+    "vxlapi-sys": {
+      "version": "2.1.0",
+      "released": "2026-08-12T23:49:31Z",
+      "features": {},
+      "checksum": "0b50f10b96521eaf64775c6393639e96d1a31bb97ae31c5deb37f31e18129369",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/vxlapi-sys/vxlapi-sys-2.1.0.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/YutaroNakagama/uds-vecu",
+      "archive_sha256": "0b50f10b96521eaf64775c6393639e96d1a31bb97ae31c5deb37f31e18129369"
+    },
+    "isotp": {
+      "status": 404
+    },
+    "automotive": {
+      "version": "0.6.0",
+      "released": "2026-11-06T12:54:04Z",
+      "features": {
+        "default": [],
+        "test-doip": []
+      },
+      "features2": {
+        "all": [
+          "all-adapters",
+          "serde"
+        ],
+        "all-adapters": [
+          "default-adapters",
+          "vector-xl",
+          "j2534",
+          "peak"
+        ],
+        "default-adapters": [
+          "panda",
+          "socketcan"
+        ],
+        "j2534": [
+          "dep:libloading",
+          "dep:winreg"
+        ],
+        "panda": [
+          "dep:rusb"
+        ],
+        "peak": [
+          "dep:rusb"
+        ],
+        "serde": [
+          "dep:serde",
+          "arrayvec/serde"
+        ],
+        "socketcan": [
+          "dep:libc"
+        ],
+        "test-j2534": [
+          "j2534"
+        ],
+        "test-panda": [
+          "panda"
+        ],
+        "test-peak": [
+          "peak"
+        ],
+        "test-socketcan": [
+          "socketcan"
+        ],
+        "test-vcan": [
+          "socketcan"
+        ],
+        "test-vector": [
+          "vector-xl"
+        ],
+        "vector-xl": [
+          "dep:bindgen",
+          "dep:libloading"
+        ]
+      },
+      "checksum": "7ec49d6617326d90d966a268c876647dc374abb1dabbdad54928e3fa2ab02ba8",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/automotive/automotive-0.6.0.crate",
+      "license": "MIT",
+      "repository": "https://github.com/I-CAN-hack/automotive",
+      "archive_sha256": "7ec49d6617326d90d966a268c876647dc374abb1dabbdad54928e3fa2ab02ba8"
+    },
+    "ecu_diagnostics": {
+      "version": "0.107.5",
+      "released": "2026-08-21T13:15:20Z",
+      "features": {},
+      "features2": {
+        "default": [
+          "passthru",
+          "socketcan",
+          "slcan"
+        ],
+        "passthru": [
+          "dep:libloading",
+          "dep:shellexpand",
+          "dep:winreg",
+          "dep:serde_json",
+          "dep:j2534_rust"
+        ],
+        "pcan-usb": [
+          "dep:libloading",
+          "dep:winapi",
+          "dep:enum-repr"
+        ],
+        "serde": [
+          "dep:serde",
+          "bitflags/serde",
+          "automotive_diag/serde"
+        ],
+        "slcan": [
+          "dep:serialport"
+        ],
+        "socketcan": [
+          "dep:socketcan-isotp",
+          "dep:socketcan"
+        ]
+      },
+      "checksum": "54cfcd5d212b63b20c929a23227d1dd4d8faa76c38a712ba638aa3fc0cb1806a",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/ecu_diagnostics/ecu_diagnostics-0.107.5.crate",
+      "license": "GPL-3.0-only",
+      "repository": "https://github.com/rnd-ash/ecu_diagnostics",
+      "archive_sha256": "54cfcd5d212b63b20c929a23227d1dd4d8faa76c38a712ba638aa3fc0cb1806a"
+    },
+    "can_decode": {
+      "version": "0.7.2",
+      "released": "2026-05-27T21:41:43Z",
+      "features": {},
+      "checksum": "ee15cd65fe9658282fe6fce2e567bee770dd622ab08a9aad2a49516f56d43c68",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/can_decode/can_decode-0.7.2.crate",
+      "license": "MIT",
+      "repository": "https://github.com/PurdueElectricRacing/can_decode",
+      "archive_sha256": "ee15cd65fe9658282fe6fce2e567bee770dd622ab08a9aad2a49516f56d43c68"
+    },
+    "dbc-codegen": {
+      "version": "0.4.0",
+      "released": "2026-09-22T18:35:33Z",
+      "rust_version": "1.88",
+      "features": {
+        "std": []
+      },
+      "checksum": "e956541b8e71f4914fab0b6b1dda6f6d5c261ea53ab1c0fcac155050a5df971a",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/dbc-codegen/dbc-codegen-0.4.0.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/oxibus/dbc-codegen",
+      "archive_sha256": "e956541b8e71f4914fab0b6b1dda6f6d5c261ea53ab1c0fcac155050a5df971a"
+    },
+    "can-dbc": {
+      "version": "10.0.0",
+      "released": "2026-07-15T21:44:57Z",
+      "rust_version": "1.83",
+      "features": {
+        "encodings": [
+          "can-dbc-pest/encodings"
+        ]
+      },
+      "features2": {
+        "default": [
+          "serde",
+          "encodings"
+        ],
+        "serde": [
+          "dep:serde"
+        ],
+        "with-serde": [
+          "serde"
+        ]
+      },
+      "checksum": "e39bde77280df32da397aaabc992cd252639af9cec2dff19f293668a9c0c162f",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/can-dbc/can-dbc-10.0.0.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/oxibus/can-dbc",
+      "archive_sha256": "e39bde77280df32da397aaabc992cd252639af9cec2dff19f293668a9c0c162f"
+    },
+    "socketcan-isotp": {
+      "version": "1.0.2",
+      "released": "2023-06-28T21:11:39Z",
+      "features": {},
+      "checksum": "52cfc29f743f392f6ea9a99c4d700db9125df222e2e8f5066285ce8f59a9ff7d",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/socketcan-isotp/socketcan-isotp-1.0.2.crate",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/marcelbuesing/socketcan-isotp.git",
+      "archive_sha256": "52cfc29f743f392f6ea9a99c4d700db9125df222e2e8f5066285ce8f59a9ff7d"
+    },
+    "mdf4": {
+      "version": "0.0.1",
+      "released": "2022-12-09T22:47:11Z",
+      "features": {},
+      "checksum": "403f0d6eb4439889f7f4b6e36eb8d349b468eb2ca91a15c6f45e2bce5df6d1d8",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/mdf4/mdf4-0.0.1.crate",
+      "license": "MIT",
+      "repository": "https://github.com/mxcd/mdf4",
+      "archive_sha256": "403f0d6eb4439889f7f4b6e36eb8d349b468eb2ca91a15c6f45e2bce5df6d1d8"
+    },
+    "blf": {
+      "status": 404
+    },
+    "can-blf": {
+      "status": 404
+    },
+    "mdf": {
+      "version": "0.2.0",
+      "released": "2025-07-02T17:18:26Z",
+      "features": {},
+      "checksum": "c67c8c231247041f567e8c1af35f0baa013ce6bf7bd56fc82dbcc93c53b489e7",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/mdf/mdf-0.2.0.crate",
+      "license": "MIT",
+      "repository": null,
+      "archive_sha256": "c67c8c231247041f567e8c1af35f0baa013ce6bf7bd56fc82dbcc93c53b489e7"
+    },
+    "crossbeam-channel": {
+      "version": "0.5.17",
+      "released": "2026-09-05T17:47:21Z",
+      "rust_version": "1.60",
+      "features": {
+        "default": [
+          "std"
+        ],
+        "std": [
+          "crossbeam-utils/std"
+        ]
+      },
+      "checksum": "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/crossbeam-channel/crossbeam-channel-0.5.17.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/crossbeam-rs/crossbeam",
+      "archive_sha256": "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1"
+    },
+    "libloading": {
+      "version": "0.9.0",
+      "released": "2025-11-05T23:15:12Z",
+      "rust_version": "1.88.0",
+      "features": {
+        "default": [
+          "std"
+        ],
+        "std": []
+      },
+      "checksum": "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/libloading/libloading-0.9.0.crate",
+      "license": "ISC",
+      "repository": "https://github.com/nagisa/rust_libloading/",
+      "archive_sha256": "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
+    },
+    "tokio": {
+      "version": "1.54.1",
+      "released": "2026-10-21T21:05:43Z",
+      "rust_version": "1.85",
+      "features": {
+        "default": [],
+        "fs": [],
+        "full": [
+          "fs",
+          "io-util",
+          "io-std",
+          "macros",
+          "net",
+          "parking_lot",
+          "process",
+          "rt",
+          "rt-multi-thread",
+          "signal",
+          "sync",
+          "time"
+        ],
+        "io-std": [],
+        "io-util": [
+          "bytes"
+        ],
+        "macros": [
+          "tokio-macros"
+        ],
+        "net": [
+          "libc",
+          "mio/os-poll",
+          "mio/os-ext",
+          "mio/net",
+          "socket2",
+          "windows-sys/Win32_Foundation",
+          "windows-sys/Win32_Security",
+          "windows-sys/Win32_Storage_FileSystem",
+          "windows-sys/Win32_System_Pipes",
+          "windows-sys/Win32_System_SystemServices"
+        ],
+        "process": [
+          "bytes",
+          "libc",
+          "mio/os-poll",
+          "mio/os-ext",
+          "mio/net",
+          "signal-hook-registry",
+          "windows-sys/Win32_Foundation",
+          "windows-sys/Win32_System_Threading",
+          "windows-sys/Win32_System_WindowsProgramming"
+        ],
+        "rt": [],
+        "rt-multi-thread": [
+          "rt"
+        ],
+        "schedule-latency": [],
+        "signal": [
+          "libc",
+          "mio/os-poll",
+          "mio/net",
+          "mio/os-ext",
+          "signal-hook-registry",
+          "windows-sys/Win32_Foundation",
+          "windows-sys/Win32_System_Console"
+        ],
+        "sync": [],
+        "test-util": [
+          "rt",
+          "sync",
+          "time"
+        ],
+        "time": []
+      },
+      "features2": {
+        "io-uring": [
+          "dep:io-uring",
+          "libc",
+          "mio/os-poll",
+          "mio/os-ext",
+          "dep:slab"
+        ],
+        "taskdump": [
+          "dep:backtrace"
+        ]
+      },
+      "checksum": "b52fd3255258d26fac7264ab5a76b53c13367136dc011d3d6ad4f8ed070396a3",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/tokio/tokio-1.54.1.crate",
+      "license": "MIT",
+      "repository": "https://github.com/tokio-rs/tokio",
+      "archive_sha256": "b52fd3255258d26fac7264ab5a76b53c13367136dc011d3d6ad4f8ed070396a3"
+    },
+    "mdfr": {
+      "status": 404
+    },
+    "bindgen": {
+      "version": "0.73.2",
+      "released": "2026-09-08T10:00:58Z",
+      "rust_version": "1.71.0",
+      "features": {
+        "__testing_only_extra_assertions": [],
+        "__testing_only_libclang_16": [],
+        "__testing_only_libclang_20": [],
+        "__testing_only_libclang_22": [],
+        "libcpp": [
+          "clang-sys/libcpp"
+        ],
+        "runtime": [
+          "clang-sys/runtime"
+        ],
+        "static": [
+          "clang-sys/static"
+        ]
+      },
+      "features2": {
+        "__cli": [
+          "dep:clap",
+          "dep:clap_complete"
+        ],
+        "default": [
+          "logging",
+          "prettyplease",
+          "runtime"
+        ],
+        "experimental": [
+          "dep:annotate-snippets"
+        ],
+        "logging": [
+          "dep:log"
+        ]
+      },
+      "checksum": "787ef8ef523575546b106a58213d6e6b06198a05c2f757258c68a74273670cfa",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/bindgen/bindgen-0.73.2.crate",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/rust-lang/rust-bindgen",
+      "archive_sha256": "787ef8ef523575546b106a58213d6e6b06198a05c2f757258c68a74273670cfa"
+    },
+    "windows": {
+      "version": "0.62.2",
+      "released": "2025-10-06T19:19:49Z",
+      "rust_version": "1.82",
+      "features": {
+        "AI": [
+          "Foundation"
+        ],
+        "AI_Actions": [
+          "AI"
+        ],
+        "AI_Actions_Hosting": [
+          "AI_Actions"
+        ],
+        "AI_Actions_Provider": [
+          "AI_Actions"
+        ],
+        "AI_Agents": [
+          "AI"
+        ],
+        "AI_Agents_Mcp": [
+          "AI_Agents"
+        ],
+        "AI_MachineLearning": [
+          "AI"
+        ],
+        "ApplicationModel": [
+          "Foundation"
+        ],
+        "ApplicationModel_Activation": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_AppExtensions": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_AppService": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Appointments": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Appointments_AppointmentsProvider": [
+          "ApplicationModel_Appointments"
+        ],
+        "ApplicationModel_Appointments_DataProvider": [
+          "ApplicationModel_Appointments"
+        ],
+        "ApplicationModel_Background": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Calls": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Calls_Background": [
+          "ApplicationModel_Calls"
+        ],
+        "ApplicationModel_Calls_Provider": [
+          "ApplicationModel_Calls"
+        ],
+        "ApplicationModel_Chat": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_CommunicationBlocking": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Contacts": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Contacts_DataProvider": [
+          "ApplicationModel_Contacts"
+        ],
+        "ApplicationModel_Contacts_Provider": [
+          "ApplicationModel_Contacts"
+        ],
+        "ApplicationModel_ConversationalAgent": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Core": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_DataTransfer": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_DataTransfer_DragDrop": [
+          "ApplicationModel_DataTransfer"
+        ],
+        "ApplicationModel_DataTransfer_DragDrop_Core": [
+          "ApplicationModel_DataTransfer_DragDrop"
+        ],
+        "ApplicationModel_DataTransfer_ShareTarget": [
+          "ApplicationModel_DataTransfer"
+        ],
+        "ApplicationModel_Email": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Email_DataProvider": [
+          "ApplicationModel_Email"
+        ],
+        "ApplicationModel_ExtendedExecution": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_ExtendedExecution_Foreground": [
+          "ApplicationModel_ExtendedExecution"
+        ],
+        "ApplicationModel_Holographic": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_LockScreen": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_PackageExtensions": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Payments": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Payments_Provider": [
+          "ApplicationModel_Payments"
+        ],
+        "ApplicationModel_Preview": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Preview_Holographic": [
+          "ApplicationModel_Preview"
+        ],
+        "ApplicationModel_Preview_InkWorkspace": [
+          "ApplicationModel_Preview"
+        ],
+        "ApplicationModel_Preview_Notes": [
+          "ApplicationModel_Preview"
+        ],
+        "ApplicationModel_Resources": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Resources_Core": [
+          "ApplicationModel_Resources"
+        ],
+        "ApplicationModel_Resources_Management": [
+          "ApplicationModel_Resources"
+        ],
+        "ApplicationModel_Search": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Search_Core": [
+          "ApplicationModel_Search"
+        ],
+        "ApplicationModel_UserActivities": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_UserActivities_Core": [
+          "ApplicationModel_UserActivities"
+        ],
+        "ApplicationModel_UserDataAccounts": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_UserDataAccounts_Provider": [
+          "ApplicationModel_UserDataAccounts"
+        ],
+        "ApplicationModel_UserDataAccounts_SystemAccess": [
+          "ApplicationModel_UserDataAccounts"
+        ],
+        "ApplicationModel_UserDataTasks": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_UserDataTasks_DataProvider": [
+          "ApplicationModel_UserDataTasks"
+        ],
+        "ApplicationModel_VoiceCommands": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Wallet": [
+          "ApplicationModel"
+        ],
+        "ApplicationModel_Wallet_System": [
+          "ApplicationModel_Wallet"
+        ],
+        "Data": [
+          "Foundation"
+        ],
+        "Data_Html": [
+          "Data"
+        ],
+        "Data_Json": [
+          "Data"
+        ],
+        "Data_Pdf": [
+          "Data"
+        ],
+        "Data_Text": [
+          "Data"
+        ],
+        "Data_Xml": [
+          "Data"
+        ],
+        "Data_Xml_Dom": [
+          "Data_Xml"
+        ],
+        "Data_Xml_Xsl": [
+          "Data_Xml"
+        ],
+        "Devices": [
+          "Foundation"
+        ],
+        "Devices_Adc": [
+          "Devices"
+        ],
+        "Devices_Adc_Provider": [
+          "Devices_Adc"
+        ],
+        "Devices_Background": [
+          "Devices"
+        ],
+        "Devices_Bluetooth": [
+          "Devices"
+        ],
+        "Devices_Bluetooth_Advertisement": [
+          "Devices_Bluetooth"
+        ],
+        "Devices_Bluetooth_Background": [
+          "Devices_Bluetooth"
+        ],
+        "Devices_Bluetooth_GenericAttributeProfile": [
+          "Devices_Bluetooth"
+        ],
+        "Devices_Bluetooth_Rfcomm": [
+          "Devices_Bluetooth"
+        ],
+        "Devices_Custom": [
+          "Devices"
+        ],
+        "Devices_Display": [
+          "Devices"
+        ],
+        "Devices_Display_Core": [
+          "Devices_Display"
+        ],
+        "Devices_Enumeration": [
+          "Devices"
+        ],
+        "Devices_Enumeration_Pnp": [
+          "Devices_Enumeration"
+        ],
+        "Devices_Geolocation": [
+          "Devices"
+        ],
+        "Devices_Geolocation_Geofencing": [
+          "Devices_Geolocation"
+        ],
+        "Devices_Geolocation_Provider": [
+          "Devices_Geolocation"
+        ],
+        "Devices_Gpio": [
+          "Devices"
+        ],
+        "Devices_Gpio_Provider": [
+          "Devices_Gpio"
+        ],
+        "Devices_Haptics": [
+          "Devices"
+        ],
+        "Devices_HumanInterfaceDevice": [
+          "Devices"
+        ],
+        "Devices_I2c": [
+          "Devices"
+        ],
+        "Devices_I2c_Provider": [
+          "Devices_I2c"
+        ],
+        "Devices_Input": [
+          "Devices"
+        ],
+        "Devices_Input_Preview": [
+          "Devices_Input"
+        ],
+        "Devices_Lights": [
+          "Devices"
+        ],
+        "Devices_Lights_Effects": [
+          "Devices_Lights"
+        ],
+        "Devices_Midi": [
+          "Devices"
+        ],
+        "Devices_PointOfService": [
+          "Devices"
+        ],
+        "Devices_PointOfService_Provider": [
+          "Devices_PointOfService"
+        ],
+        "Devices_Portable": [
+          "Devices"
+        ],
+        "Devices_Power": [
+          "Devices"
+        ],
+        "Devices_Printers": [
+          "Devices"
+        ],
+        "Devices_Printers_Extensions": [
+          "Devices_Printers"
+        ],
+        "Devices_Pwm": [
+          "Devices"
+        ],
+        "Devices_Pwm_Provider": [
+          "Devices_Pwm"
+        ],
+        "Devices_Radios": [
+          "Devices"
+        ],
+        "Devices_Scanners": [
+          "Devices"
+        ],
+        "Devices_Sensors": [
+          "Devices"
+        ],
+        "Devices_Sensors_Custom": [
+          "Devices_Sensors"
+        ],
+        "Devices_SerialCommunication": [
+          "Devices"
+        ],
+        "Devices_SmartCards": [
+          "Devices"
+        ],
+        "Devices_Sms": [
+          "Devices"
+        ],
+        "Devices_Spi": [
+          "Devices"
+        ],
+        "Devices_Spi_Provider": [
+          "Devices_Spi"
+        ],
+        "Devices_Usb": [
+          "Devices"
+        ],
+        "Devices_WiFi": [
+          "Devices"
+        ],
+        "Devices_WiFiDirect": [
+          "Devices"
+        ],
+        "Devices_WiFiDirect_Services": [
+          "Devices_WiFiDirect"
+        ],
+        "Foundation": [],
+        "Foundation_Collections": [
+          "Foundation"
+        ],
+        "Foundation_Diagnostics": [
+          "Foundation"
+        ],
+        "Foundation_Metadata": [
+          "Foundation"
+        ],
+        "Foundation_Numerics": [
+          "Foundation"
+        ],
+        "Gaming": [
+          "Foundation"
+        ],
+        "Gaming_Input": [
+          "Gaming"
+        ],
+        "Gaming_Input_Custom": [
+          "Gaming_Input"
+        ],
+        "Gaming_Input_ForceFeedback": [
+          "Gaming_Input"
+        ],
+        "Gaming_Input_Preview": [
+          "Gaming_Input"
+        ],
+        "Gaming_Preview": [
+          "Gaming"
+        ],
+        "Gaming_Preview_GamesEnumeration": [
+          "Gaming_Preview"
+        ],
+        "Gaming_UI": [
+          "Gaming"
+        ],
+        "Gaming_XboxLive": [
+          "Gaming"
+        ],
+        "Gaming_XboxLive_Storage": [
+          "Gaming_XboxLive"
+        ],
+        "Globalization": [
+          "Foundation"
+        ],
+        "Globalization_Collation": [
+          "Globalization"
+        ],
+        "Globalization_DateTimeFormatting": [
+          "Globalization"
+        ],
+        "Globalization_Fonts": [
+          "Globalization"
+        ],
+        "Globalization_NumberFormatting": [
+          "Globalization"
+        ],
+        "Globalization_PhoneNumberFormatting": [
+          "Globalization"
+        ],
+        "Graphics": [
+          "Foundation"
+        ],
+        "Graphics_Capture": [
+          "Graphics"
+        ],
+        "Graphics_DirectX": [
+          "Graphics"
+        ],
+        "Graphics_DirectX_Direct3D11": [
+          "Graphics_DirectX"
+        ],
+        "Graphics_Display": [
+          "Graphics"
+        ],
+        "Graphics_Display_Core": [
+          "Graphics_Display"
+        ],
+        "Graphics_Effects": [
+          "Graphics"
+        ],
+        "Graphics_Holographic": [
+          "Graphics"
+        ],
+        "Graphics_Imaging": [
+          "Graphics"
+        ],
+        "Graphics_Printing": [
+          "Graphics"
+        ],
+        "Graphics_Printing3D": [
+          "Graphics"
+        ],
+        "Graphics_Printing_OptionDetails": [
+          "Graphics_Printing"
+        ],
+        "Graphics_Printing_PrintSupport": [
+          "Graphics_Printing"
+        ],
+        "Graphics_Printing_PrintTicket": [
+          "Graphics_Printing"
+        ],
+        "Graphics_Printing_ProtectedPrint": [
+          "Graphics_Printing"
+        ],
+        "Graphics_Printing_Workflow": [
+          "Graphics_Printing"
+        ],
+        "Management": [
+          "Foundation"
+        ],
+        "Management_Core": [
+          "Management"
+        ],
+        "Management_Deployment": [
+          "Management"
+        ],
+        "Management_Deployment_Preview": [
+          "Management_Deployment"
+        ],
+        "Management_Policies": [
+          "Management"
+        ],
+        "Management_Setup": [
+          "Management"
+        ],
+        "Management_Update": [
+          "Management"
+        ],
+        "Management_Workplace": [
+          "Management"
+        ],
+        "Media": [
+          "Foundation"
+        ],
+        "Media_AppBroadcasting": [
+          "Media"
+        ],
+        "Media_AppRecording": [
+          "Media"
+        ],
+        "Media_Audio": [
+          "Media"
+        ],
+        "Media_Capture": [
+          "Media"
+        ],
+        "Media_Capture_Core": [
+          "Media_Capture"
+        ],
+        "Media_Capture_Frames": [
+          "Media_Capture"
+        ],
+        "Media_Casting": [
+          "Media"
+        ],
+        "Media_ClosedCaptioning": [
+          "Media"
+        ],
+        "Media_ContentRestrictions": [
+          "Media"
+        ],
+        "Media_Control": [
+          "Media"
+        ],
+        "Media_Core": [
+          "Media"
+        ],
+        "Media_Core_Preview": [
+          "Media_Core"
+        ],
+        "Media_Devices": [
+          "Media"
+        ],
+        "Media_Devices_Core": [
+          "Media_Devices"
+        ],
+        "Media_DialProtocol": [
+          "Media"
+        ],
+        "Media_Editing": [
+          "Media"
+        ],
+        "Media_Effects": [
+          "Media"
+        ],
+        "Media_FaceAnalysis": [
+          "Media"
+        ],
+        "Media_Import": [
+          "Media"
+        ],
+        "Media_MediaProperties": [
+          "Media"
+        ],
+        "Media_Miracast": [
+          "Media"
+        ],
+        "Media_Ocr": [
+          "Media"
+        ],
+        "Media_PlayTo": [
+          "Media"
+        ],
+        "Media_Playback": [
+          "Media"
+        ],
+        "Media_Playlists": [
+          "Media"
+        ],
+        "Media_Protection": [
+          "Media"
+        ],
+        "Media_Protection_PlayReady": [
+          "Media_Protection"
+        ],
+        "Media_Render": [
+          "Media"
+        ],
+        "Media_SpeechRecognition": [
+          "Media"
+        ],
+        "Media_SpeechSynthesis": [
+          "Media"
+        ],
+        "Media_Streaming": [
+          "Media"
+        ],
+        "Media_Streaming_Adaptive": [
+          "Media_Streaming"
+        ],
+        "Media_Transcoding": [
+          "Media"
+        ],
+        "Networking": [
+          "Foundation"
+        ],
+        "Networking_BackgroundTransfer": [
+          "Networking"
+        ],
+        "Networking_Connectivity": [
+          "Networking"
+        ],
+        "Networking_NetworkOperators": [
+          "Networking"
+        ],
+        "Networking_Proximity": [
+          "Networking"
+        ],
+        "Networking_PushNotifications": [
+          "Networking"
+        ],
+        "Networking_ServiceDiscovery": [
+          "Networking"
+        ],
+        "Networking_ServiceDiscovery_Dnssd": [
+          "Networking_ServiceDiscovery"
+        ],
+        "Networking_Sockets": [
+          "Networking"
+        ],
+        "Networking_Vpn": [
+          "Networking"
+        ],
+        "Networking_XboxLive": [
+          "Networking"
+        ],
+        "Perception": [
+          "Foundation"
+        ],
+        "Perception_Automation": [
+          "Perception"
+        ],
+        "Perception_Automation_Core": [
+          "Perception_Automation"
+        ],
+        "Perception_People": [
+          "Perception"
+        ],
+        "Perception_Spatial": [
+          "Perception"
+        ],
+        "Perception_Spatial_Preview": [
+          "Perception_Spatial"
+        ],
+        "Perception_Spatial_Surfaces": [
+          "Perception_Spatial"
+        ],
+        "Security": [
+          "Foundation"
+        ],
+        "Security_Authentication": [
+          "Security"
+        ],
+        "Security_Authentication_Identity": [
+          "Security_Authentication"
+        ],
+        "Security_Authentication_Identity_Core": [
+          "Security_Authentication_Identity"
+        ],
+        "Security_Authentication_OnlineId": [
+          "Security_Authentication"
+        ],
+        "Security_Authentication_Web": [
+          "Security_Authentication"
+        ],
+        "Security_Authentication_Web_Core": [
+          "Security_Authentication_Web"
+        ],
+        "Security_Authentication_Web_Provider": [
+          "Security_Authentication_Web"
+        ],
+        "Security_Authorization": [
+          "Security"
+        ],
+        "Security_Authorization_AppCapabilityAccess": [
+          "Security_Authorization"
+        ],
+        "Security_Credentials": [
+          "Security"
+        ],
+        "Security_Credentials_UI": [
+          "Security_Credentials"
+        ],
+        "Security_Cryptography": [
+          "Security"
+        ],
+        "Security_Cryptography_Certificates": [
+          "Security_Cryptography"
+        ],
+        "Security_Cryptography_Core": [
+          "Security_Cryptography"
+        ],
+        "Security_Cryptography_DataProtection": [
+          "Security_Cryptography"
+        ],
+        "Security_DataProtection": [
+          "Security"
+        ],
+        "Security_EnterpriseData": [
+          "Security"
+        ],
+        "Security_ExchangeActiveSyncProvisioning": [
+          "Security"
+        ],
+        "Security_Isolation": [
+          "Security"
+        ],
+        "Services": [
+          "Foundation"
+        ],
+        "Services_Maps": [
+          "Services"
+        ],
+        "Services_Maps_Guidance": [
+          "Services_Maps"
+        ],
+        "Services_Maps_LocalSearch": [
+          "Services_Maps"
+        ],
+        "Services_Maps_OfflineMaps": [
+          "Services_Maps"
+        ],
+        "Services_Store": [
+          "Services"
+        ],
+        "Services_TargetedContent": [
+          "Services"
+        ],
+        "Storage": [
+          "Foundation"
+        ],
+        "Storage_AccessCache": [
+          "Storage"
+        ],
+        "Storage_BulkAccess": [
+          "Storage"
+        ],
+        "Storage_Compression": [
+          "Storage"
+        ],
+        "Storage_FileProperties": [
+          "Storage"
+        ],
+        "Storage_Pickers": [
+          "Storage"
+        ],
+        "Storage_Pickers_Provider": [
+          "Storage_Pickers"
+        ],
+        "Storage_Provider": [
+          "Storage"
+        ],
+        "Storage_Search": [
+          "Storage"
+        ],
+        "Storage_Streams": [
+          "Storage"
+        ],
+        "System": [
+          "Foundation"
+        ],
+        "System_Diagnostics": [
+          "System"
+        ],
+        "System_Diagnostics_DevicePortal": [
+          "System_Diagnostics"
+        ],
+        "System_Diagnostics_Telemetry": [
+          "System_Diagnostics"
+        ],
+        "System_Diagnostics_TraceReporting": [
+          "System_Diagnostics"
+        ],
+        "System_Display": [
+          "System"
+        ],
+        "System_Implementation": [
+          "System"
+        ],
+        "System_Implementation_FileExplorer": [
+          "System_Implementation"
+        ],
+        "System_Inventory": [
+          "System"
+        ],
+        "System_Power": [
+          "System"
+        ],
+        "System_Profile": [
+          "System"
+        ],
+        "System_Profile_SystemManufacturers": [
+          "System_Profile"
+        ],
+        "System_RemoteDesktop": [
+          "System"
+        ],
+        "System_RemoteDesktop_Input": [
+          "System_RemoteDesktop"
+        ],
+        "System_RemoteDesktop_Provider": [
+          "System_RemoteDesktop"
+        ],
+        "System_RemoteSystems": [
+          "System"
+        ],
+        "System_Threading": [
+          "System"
+        ],
+        "System_Threading_Core": [
+          "System_Threading"
+        ],
+        "System_Update": [
+          "System"
+        ],
+        "System_UserProfile": [
+          "System"
+        ],
+        "UI": [
+          "Foundation"
+        ],
+        "UI_Accessibility": [
+          "UI"
+        ],
+        "UI_ApplicationSettings": [
+          "UI"
+        ],
+        "UI_Composition": [
+          "UI"
+        ],
+        "UI_Composition_Core": [
+          "UI_Composition"
+        ],
+        "UI_Composition_Desktop": [
+          "UI_Composition"
+        ],
+        "UI_Composition_Diagnostics": [
+          "UI_Composition"
+        ],
+        "UI_Composition_Effects": [
+          "UI_Composition"
+        ],
+        "UI_Composition_Interactions": [
+          "UI_Composition"
+        ],
+        "UI_Composition_Scenes": [
+          "UI_Composition"
+        ],
+        "UI_Core": [
+          "UI"
+        ],
+        "UI_Core_AnimationMetrics": [
+          "UI_Core"
+        ],
+        "UI_Core_Preview": [
+          "UI_Core"
+        ],
+        "UI_Input": [
+          "UI"
+        ],
+        "UI_Input_Core": [
+          "UI_Input"
+        ],
+        "UI_Input_Inking": [
+          "UI_Input"
+        ],
+        "UI_Input_Inking_Analysis": [
+          "UI_Input_Inking"
+        ],
+        "UI_Input_Inking_Core": [
+          "UI_Input_Inking"
+        ],
+        "UI_Input_Inking_Preview": [
+          "UI_Input_Inking"
+        ],
+        "UI_Input_Preview": [
+          "UI_Input"
+        ],
+        "UI_Input_Preview_Injection": [
+          "UI_Input_Preview"
+        ],
+        "UI_Input_Preview_Text": [
+          "UI_Input_Preview"
+        ],
+        "UI_Input_Spatial": [
+          "UI_Input"
+        ],
+        "UI_Notifications": [
+          "UI"
+        ],
+        "UI_Notifications_Management": [
+          "UI_Notifications"
+        ],
+        "UI_Notifications_Preview": [
+          "UI_Notifications"
+        ],
+        "UI_Popups": [
+          "UI"
+        ],
+        "UI_Shell": [
+          "UI"
+        ],
+        "UI_StartScreen": [
+          "UI"
+        ],
+        "UI_Text": [
+          "UI"
+        ],
+        "UI_Text_Core": [
+          "UI_Text"
+        ],
+        "UI_UIAutomation": [
+          "UI"
+        ],
+        "UI_UIAutomation_Core": [
+          "UI_UIAutomation"
+        ],
+        "UI_ViewManagement": [
+          "UI"
+        ],
+        "UI_ViewManagement_Core": [
+          "UI_ViewManagement"
+        ],
+        "UI_WebUI": [
+          "UI"
+        ],
+        "UI_WindowManagement": [
+          "UI"
+        ],
+        "UI_WindowManagement_Preview": [
+          "UI_WindowManagement"
+        ],
+        "Wdk": [
+          "Win32_Foundation"
+        ],
+        "Wdk_Devices": [
+          "Wdk"
+        ],
+        "Wdk_Devices_Bluetooth": [
+          "Wdk_Devices"
+        ],
+        "Wdk_Devices_HumanInterfaceDevice": [
+          "Wdk_Devices"
+        ],
+        "Wdk_Foundation": [
+          "Wdk"
+        ],
+        "Wdk_Graphics": [
+          "Wdk"
+        ],
+        "Wdk_Graphics_Direct3D": [
+          "Wdk_Graphics"
+        ],
+        "Wdk_NetworkManagement": [
+          "Wdk"
+        ],
+        "Wdk_NetworkManagement_Ndis": [
+          "Wdk_NetworkManagement"
+        ],
+        "Wdk_NetworkManagement_WindowsFilteringPlatform": [
+          "Wdk_NetworkManagement"
+        ],
+        "Wdk_Storage": [
+          "Wdk"
+        ],
+        "Wdk_Storage_FileSystem": [
+          "Wdk_Storage"
+        ],
+        "Wdk_Storage_FileSystem_Minifilters": [
+          "Wdk_Storage_FileSystem"
+        ],
+        "Wdk_System": [
+          "Wdk"
+        ],
+        "Wdk_System_IO": [
+          "Wdk_System"
+        ],
+        "Wdk_System_Memory": [
+          "Wdk_System"
+        ],
+        "Wdk_System_OfflineRegistry": [
+          "Wdk_System"
+        ],
+        "Wdk_System_Registry": [
+          "Wdk_System"
+        ],
+        "Wdk_System_SystemInformation": [
+          "Wdk_System"
+        ],
+        "Wdk_System_SystemServices": [
+          "Wdk_System"
+        ],
+        "Wdk_System_Threading": [
+          "Wdk_System"
+        ],
+        "Web": [
+          "Foundation"
+        ],
+        "Web_AtomPub": [
+          "Web"
+        ],
+        "Web_Http": [
+          "Web"
+        ],
+        "Web_Http_Diagnostics": [
+          "Web_Http"
+        ],
+        "Web_Http_Filters": [
+          "Web_Http"
+        ],
+        "Web_Http_Headers": [
+          "Web_Http"
+        ],
+        "Web_Syndication": [
+          "Web"
+        ],
+        "Web_UI": [
+          "Web"
+        ],
+        "Web_UI_Interop": [
+          "Web_UI"
+        ],
+        "Win32": [
+          "Win32_Foundation"
+        ],
+        "Win32_AI": [
+          "Win32"
+        ],
+        "Win32_AI_MachineLearning": [
+          "Win32_AI"
+        ],
+        "Win32_AI_MachineLearning_DirectML": [
+          "Win32_AI_MachineLearning"
+        ],
+        "Win32_AI_MachineLearning_WinML": [
+          "Win32_AI_MachineLearning"
+        ],
+        "Win32_Data": [
+          "Win32"
+        ],
+        "Win32_Data_HtmlHelp": [
+          "Win32_Data"
+        ],
+        "Win32_Data_RightsManagement": [
+          "Win32_Data"
+        ],
+        "Win32_Data_Xml": [
+          "Win32_Data"
+        ],
+        "Win32_Data_Xml_MsXml": [
+          "Win32_Data_Xml"
+        ],
+        "Win32_Data_Xml_XmlLite": [
+          "Win32_Data_Xml"
+        ],
+        "Win32_Devices": [
+          "Win32"
+        ],
+        "Win32_Devices_AllJoyn": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Beep": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_BiometricFramework": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Bluetooth": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Cdrom": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Communication": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_DeviceAccess": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_DeviceAndDriverInstallation": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_DeviceQuery": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Display": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Dvd": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Enumeration": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Enumeration_Pnp": [
+          "Win32_Devices_Enumeration"
+        ],
+        "Win32_Devices_Fax": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_FunctionDiscovery": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Geolocation": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_HumanInterfaceDevice": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_ImageAcquisition": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Nfc": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Nfp": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_PortableDevices": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Properties": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Pwm": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Sensors": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_SerialCommunication": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Tapi": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_Usb": [
+          "Win32_Devices"
+        ],
+        "Win32_Devices_WebServicesOnDevices": [
+          "Win32_Devices"
+        ],
+        "Win32_Foundation": [
+          "Win32"
+        ],
+        "Win32_Gaming": [
+          "Win32"
+        ],
+        "Win32_Globalization": [
+          "Win32"
+        ],
+        "Win32_Graphics": [
+          "Win32"
+        ],
+        "Win32_Graphics_CompositionSwapchain": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_DXCore": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct2D": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct2D_Common": [
+          "Win32_Graphics_Direct2D"
+        ],
+        "Win32_Graphics_Direct3D": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D10": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D11": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D11on12": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D12": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D9": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D9on12": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Direct3D_Dxc": [
+          "Win32_Graphics_Direct3D"
+        ],
+        "Win32_Graphics_Direct3D_Fxc": [
+          "Win32_Graphics_Direct3D"
+        ],
+        "Win32_Graphics_DirectComposition": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_DirectDraw": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_DirectManipulation": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_DirectWrite": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Dwm": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Dxgi": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Dxgi_Common": [
+          "Win32_Graphics_Dxgi"
+        ],
+        "Win32_Graphics_Gdi": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_GdiPlus": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Hlsl": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Imaging": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Imaging_D2D": [
+          "Win32_Graphics_Imaging"
+        ],
+        "Win32_Graphics_OpenGL": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Printing": [
+          "Win32_Graphics"
+        ],
+        "Win32_Graphics_Printing_PrintTicket": [
+          "Win32_Graphics_Printing"
+        ],
+        "Win32_Management": [
+          "Win32"
+        ],
+        "Win32_Management_MobileDeviceManagementRegistration": [
+          "Win32_Management"
+        ],
+        "Win32_Media": [
+          "Win32"
+        ],
+        "Win32_Media_Audio": [
+          "Win32_Media"
+        ],
+        "Win32_Media_Audio_Apo": [
+          "Win32_Media_Audio"
+        ],
+        "Win32_Media_Audio_DirectMusic": [
+          "Win32_Media_Audio"
+        ],
+        "Win32_Media_Audio_DirectSound": [
+          "Win32_Media_Audio"
+        ],
+        "Win32_Media_Audio_Endpoints": [
+          "Win32_Media_Audio"
+        ],
+        "Win32_Media_Audio_XAudio2": [
+          "Win32_Media_Audio"
+        ],
+        "Win32_Media_DeviceManager": [
+          "Win32_Media"
+        ],
+        "Win32_Media_DirectShow": [
+          "Win32_Media"
+        ],
+        "Win32_Media_DirectShow_Tv": [
+          "Win32_Media_DirectShow"
+        ],
+        "Win32_Media_DirectShow_Xml": [
+          "Win32_Media_DirectShow"
+        ],
+        "Win32_Media_DxMediaObjects": [
+          "Win32_Media"
+        ],
+        "Win32_Media_KernelStreaming": [
+          "Win32_Media"
+        ],
+        "Win32_Media_LibrarySharingServices": [
+          "Win32_Media"
+        ],
+        "Win32_Media_MediaFoundation": [
+          "Win32_Media"
+        ],
+        "Win32_Media_MediaPlayer": [
+          "Win32_Media"
+        ],
+        "Win32_Media_Multimedia": [
+          "Win32_Media"
+        ],
+        "Win32_Media_PictureAcquisition": [
+          "Win32_Media"
+        ],
+        "Win32_Media_Speech": [
+          "Win32_Media"
+        ],
+        "Win32_Media_Streaming": [
+          "Win32_Media"
+        ],
+        "Win32_Media_WindowsMediaFormat": [
+          "Win32_Media"
+        ],
+        "Win32_NetworkManagement": [
+          "Win32"
+        ],
+        "Win32_NetworkManagement_Dhcp": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_Dns": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_InternetConnectionWizard": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_IpHelper": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_MobileBroadband": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_Multicast": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_Ndis": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_NetBios": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_NetManagement": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_NetShell": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_NetworkDiagnosticsFramework": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_NetworkPolicyServer": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_P2P": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_QoS": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_Rras": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_Snmp": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WNet": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WebDav": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WiFi": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WindowsConnectNow": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WindowsConnectionManager": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WindowsFilteringPlatform": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WindowsFirewall": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_NetworkManagement_WindowsNetworkVirtualization": [
+          "Win32_NetworkManagement"
+        ],
+        "Win32_Networking": [
+          "Win32"
+        ],
+        "Win32_Networking_ActiveDirectory": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_BackgroundIntelligentTransferService": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_Clustering": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_HttpServer": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_Ldap": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_NetworkListManager": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_RemoteDifferentialCompression": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_WebSocket": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_WinHttp": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_WinInet": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_WinSock": [
+          "Win32_Networking"
+        ],
+        "Win32_Networking_WindowsWebServices": [
+          "Win32_Networking"
+        ],
+        "Win32_Security": [
+          "Win32"
+        ],
+        "Win32_Security_AppLocker": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Authentication": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Authentication_Identity": [
+          "Win32_Security_Authentication"
+        ],
+        "Win32_Security_Authentication_Identity_Provider": [
+          "Win32_Security_Authentication_Identity"
+        ],
+        "Win32_Security_Authorization": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Authorization_UI": [
+          "Win32_Security_Authorization"
+        ],
+        "Win32_Security_ConfigurationSnapin": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Credentials": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Cryptography": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Cryptography_Catalog": [
+          "Win32_Security_Cryptography"
+        ],
+        "Win32_Security_Cryptography_Certificates": [
+          "Win32_Security_Cryptography"
+        ],
+        "Win32_Security_Cryptography_Sip": [
+          "Win32_Security_Cryptography"
+        ],
+        "Win32_Security_Cryptography_UI": [
+          "Win32_Security_Cryptography"
+        ],
+        "Win32_Security_DiagnosticDataQuery": [
+          "Win32_Security"
+        ],
+        "Win32_Security_DirectoryServices": [
+          "Win32_Security"
+        ],
+        "Win32_Security_EnterpriseData": [
+          "Win32_Security"
+        ],
+        "Win32_Security_ExtensibleAuthenticationProtocol": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Isolation": [
+          "Win32_Security"
+        ],
+        "Win32_Security_LicenseProtection": [
+          "Win32_Security"
+        ],
+        "Win32_Security_NetworkAccessProtection": [
+          "Win32_Security"
+        ],
+        "Win32_Security_Tpm": [
+          "Win32_Security"
+        ],
+        "Win32_Security_WinTrust": [
+          "Win32_Security"
+        ],
+        "Win32_Security_WinWlx": [
+          "Win32_Security"
+        ],
+        "Win32_Storage": [
+          "Win32"
+        ],
+        "Win32_Storage_Cabinets": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_CloudFilters": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Compression": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_DataDeduplication": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_DistributedFileSystem": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_EnhancedStorage": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_FileHistory": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_FileServerResourceManager": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_FileSystem": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Imapi": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_IndexServer": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_InstallableFileSystems": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_IscsiDisc": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Jet": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Nvme": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_OfflineFiles": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_OperationRecorder": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Packaging": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Packaging_Appx": [
+          "Win32_Storage_Packaging"
+        ],
+        "Win32_Storage_Packaging_Opc": [
+          "Win32_Storage_Packaging"
+        ],
+        "Win32_Storage_ProjectedFileSystem": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_StructuredStorage": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Vhd": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_VirtualDiskService": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Vss": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Xps": [
+          "Win32_Storage"
+        ],
+        "Win32_Storage_Xps_Printing": [
+          "Win32_Storage_Xps"
+        ],
+        "Win32_System": [
+          "Win32"
+        ],
+        "Win32_System_AddressBook": [
+          "Win32_System"
+        ],
+        "Win32_System_Antimalware": [
+          "Win32_System"
+        ],
+        "Win32_System_ApplicationInstallationAndServicing": [
+          "Win32_System"
+        ],
+        "Win32_System_ApplicationVerifier": [
+          "Win32_System"
+        ],
+        "Win32_System_AssessmentTool": [
+          "Win32_System"
+        ],
+        "Win32_System_ClrHosting": [
+          "Win32_System"
+        ],
+        "Win32_System_Com": [
+          "Win32_System"
+        ],
+        "Win32_System_Com_CallObj": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_ChannelCredentials": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_Events": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_Marshal": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_StructuredStorage": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_UI": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_Com_Urlmon": [
+          "Win32_System_Com"
+        ],
+        "Win32_System_ComponentServices": [
+          "Win32_System"
+        ],
+        "Win32_System_Console": [
+          "Win32_System"
+        ],
+        "Win32_System_Contacts": [
+          "Win32_System"
+        ],
+        "Win32_System_CorrelationVector": [
+          "Win32_System"
+        ],
+        "Win32_System_DataExchange": [
+          "Win32_System"
+        ],
+        "Win32_System_DeploymentServices": [
+          "Win32_System"
+        ],
+        "Win32_System_DesktopSharing": [
+          "Win32_System"
+        ],
+        "Win32_System_DeveloperLicensing": [
+          "Win32_System"
+        ],
+        "Win32_System_Diagnostics": [
+          "Win32_System"
+        ],
+        "Win32_System_Diagnostics_Ceip": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_ClrProfiling": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_Debug": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_Debug_ActiveScript": [
+          "Win32_System_Diagnostics_Debug"
+        ],
+        "Win32_System_Diagnostics_Debug_Extensions": [
+          "Win32_System_Diagnostics_Debug"
+        ],
+        "Win32_System_Diagnostics_Etw": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_ProcessSnapshotting": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_ToolHelp": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_Diagnostics_TraceLogging": [
+          "Win32_System_Diagnostics"
+        ],
+        "Win32_System_DistributedTransactionCoordinator": [
+          "Win32_System"
+        ],
+        "Win32_System_Environment": [
+          "Win32_System"
+        ],
+        "Win32_System_ErrorReporting": [
+          "Win32_System"
+        ],
+        "Win32_System_EventCollector": [
+          "Win32_System"
+        ],
+        "Win32_System_EventLog": [
+          "Win32_System"
+        ],
+        "Win32_System_EventNotificationService": [
+          "Win32_System"
+        ],
+        "Win32_System_GroupPolicy": [
+          "Win32_System"
+        ],
+        "Win32_System_HostCompute": [
+          "Win32_System"
+        ],
+        "Win32_System_HostComputeNetwork": [
+          "Win32_System"
+        ],
+        "Win32_System_HostComputeSystem": [
+          "Win32_System"
+        ],
+        "Win32_System_Hypervisor": [
+          "Win32_System"
+        ],
+        "Win32_System_IO": [
+          "Win32_System"
+        ],
+        "Win32_System_Iis": [
+          "Win32_System"
+        ],
+        "Win32_System_Ioctl": [
+          "Win32_System"
+        ],
+        "Win32_System_JobObjects": [
+          "Win32_System"
+        ],
+        "Win32_System_Js": [
+          "Win32_System"
+        ],
+        "Win32_System_Kernel": [
+          "Win32_System"
+        ],
+        "Win32_System_LibraryLoader": [
+          "Win32_System"
+        ],
+        "Win32_System_Mailslots": [
+          "Win32_System"
+        ],
+        "Win32_System_Mapi": [
+          "Win32_System"
+        ],
+        "Win32_System_Memory": [
+          "Win32_System"
+        ],
+        "Win32_System_Memory_NonVolatile": [
+          "Win32_System_Memory"
+        ],
+        "Win32_System_MessageQueuing": [
+          "Win32_System"
+        ],
+        "Win32_System_MixedReality": [
+          "Win32_System"
+        ],
+        "Win32_System_Mmc": [
+          "Win32_System"
+        ],
+        "Win32_System_Ole": [
+          "Win32_System"
+        ],
+        "Win32_System_ParentalControls": [
+          "Win32_System"
+        ],
+        "Win32_System_PasswordManagement": [
+          "Win32_System"
+        ],
+        "Win32_System_Performance": [
+          "Win32_System"
+        ],
+        "Win32_System_Performance_HardwareCounterProfiling": [
+          "Win32_System_Performance"
+        ],
+        "Win32_System_Pipes": [
+          "Win32_System"
+        ],
+        "Win32_System_Power": [
+          "Win32_System"
+        ],
+        "Win32_System_ProcessStatus": [
+          "Win32_System"
+        ],
+        "Win32_System_RealTimeCommunications": [
+          "Win32_System"
+        ],
+        "Win32_System_Recovery": [
+          "Win32_System"
+        ],
+        "Win32_System_Registry": [
+          "Win32_System"
+        ],
+        "Win32_System_RemoteAssistance": [
+          "Win32_System"
+        ],
+        "Win32_System_RemoteDesktop": [
+          "Win32_System"
+        ],
+        "Win32_System_RemoteManagement": [
+          "Win32_System"
+        ],
+        "Win32_System_RestartManager": [
+          "Win32_System"
+        ],
+        "Win32_System_Restore": [
+          "Win32_System"
+        ],
+        "Win32_System_Rpc": [
+          "Win32_System"
+        ],
+        "Win32_System_Search": [
+          "Win32_System"
+        ],
+        "Win32_System_Search_Common": [
+          "Win32_System_Search"
+        ],
+        "Win32_System_SecurityCenter": [
+          "Win32_System"
+        ],
+        "Win32_System_ServerBackup": [
+          "Win32_System"
+        ],
+        "Win32_System_Services": [
+          "Win32_System"
+        ],
+        "Win32_System_SettingsManagementInfrastructure": [
+          "Win32_System"
+        ],
+        "Win32_System_SetupAndMigration": [
+          "Win32_System"
+        ],
+        "Win32_System_Shutdown": [
+          "Win32_System"
+        ],
+        "Win32_System_SideShow": [
+          "Win32_System"
+        ],
+        "Win32_System_StationsAndDesktops": [
+          "Win32_System"
+        ],
+        "Win32_System_SubsystemForLinux": [
+          "Win32_System"
+        ],
+        "Win32_System_SystemInformation": [
+          "Win32_System"
+        ],
+        "Win32_System_SystemServices": [
+          "Win32_System"
+        ],
+        "Win32_System_TaskScheduler": [
+          "Win32_System"
+        ],
+        "Win32_System_Threading": [
+          "Win32_System"
+        ],
+        "Win32_System_Time": [
+          "Win32_System"
+        ],
+        "Win32_System_TpmBaseServices": [
+          "Win32_System"
+        ],
+        "Win32_System_TransactionServer": [
+          "Win32_System"
+        ],
+        "Win32_System_UpdateAgent": [
+          "Win32_System"
+        ],
+        "Win32_System_UpdateAssessment": [
+          "Win32_System"
+        ],
+        "Win32_System_UserAccessLogging": [
+          "Win32_System"
+        ],
+        "Win32_System_Variant": [
+          "Win32_System"
+        ],
+        "Win32_System_VirtualDosMachines": [
+          "Win32_System"
+        ],
+        "Win32_System_WinRT": [
+          "Win32_System"
+        ],
+        "Win32_System_WinRT_AllJoyn": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Composition": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_CoreInputView": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Direct3D11": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Display": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Graphics": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Graphics_Capture": [
+          "Win32_System_WinRT_Graphics"
+        ],
+        "Win32_System_WinRT_Graphics_Direct2D": [
+          "Win32_System_WinRT_Graphics"
+        ],
+        "Win32_System_WinRT_Graphics_Imaging": [
+          "Win32_System_WinRT_Graphics"
+        ],
+        "Win32_System_WinRT_Holographic": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Isolation": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_ML": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Media": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Metadata": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Pdf": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Printing": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Shell": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WinRT_Storage": [
+          "Win32_System_WinRT"
+        ],
+        "Win32_System_WindowsProgramming": [
+          "Win32_System"
+        ],
+        "Win32_System_WindowsSync": [
+          "Win32_System"
+        ],
+        "Win32_System_Wmi": [
+          "Win32_System"
+        ],
+        "Win32_UI": [
+          "Win32"
+        ],
+        "Win32_UI_Accessibility": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Animation": [
+          "Win32_UI"
+        ],
+        "Win32_UI_ColorSystem": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Controls": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Controls_Dialogs": [
+          "Win32_UI_Controls"
+        ],
+        "Win32_UI_Controls_RichEdit": [
+          "Win32_UI_Controls"
+        ],
+        "Win32_UI_HiDpi": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Input": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Input_Ime": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_Ink": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_KeyboardAndMouse": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_Pointer": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_Radial": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_Touch": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_Input_XboxController": [
+          "Win32_UI_Input"
+        ],
+        "Win32_UI_InteractionContext": [
+          "Win32_UI"
+        ],
+        "Win32_UI_LegacyWindowsEnvironmentFeatures": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Magnification": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Notifications": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Ribbon": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Shell": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Shell_Common": [
+          "Win32_UI_Shell"
+        ],
+        "Win32_UI_Shell_PropertiesSystem": [
+          "Win32_UI_Shell"
+        ],
+        "Win32_UI_TabletPC": [
+          "Win32_UI"
+        ],
+        "Win32_UI_TextServices": [
+          "Win32_UI"
+        ],
+        "Win32_UI_WindowsAndMessaging": [
+          "Win32_UI"
+        ],
+        "Win32_UI_Wpf": [
+          "Win32_UI"
+        ],
+        "Win32_Web": [
+          "Win32"
+        ],
+        "Win32_Web_InternetExplorer": [
+          "Win32_Web"
+        ],
+        "default": [
+          "std"
+        ],
+        "docs": [],
+        "std": [
+          "windows-collections/std",
+          "windows-core/std",
+          "windows-future/std",
+          "windows-numerics/std"
+        ]
+      },
+      "checksum": "527fadee13e0c05939a6a05d5bd6eec6cd2e3dbd648b9f8e447c6518133d8580",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/windows/windows-0.62.2.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "archive_sha256": "527fadee13e0c05939a6a05d5bd6eec6cd2e3dbd648b9f8e447c6518133d8580"
+    },
+    "thread-priority": {
+      "version": "3.1.1",
+      "released": "2026-06-20T19:44:49Z",
+      "rust_version": "1.85",
+      "features": {},
+      "checksum": "8d2e834949be5111506bb252643498af1514f600d9e1dceedaa42afae155b67f",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/thread-priority/thread-priority-3.1.1.crate",
+      "license": "MIT",
+      "repository": "https://github.com/iddm/thread-priority",
+      "archive_sha256": "8d2e834949be5111506bb252643498af1514f600d9e1dceedaa42afae155b67f"
+    },
+    "smoltcp": {
+      "version": "0.14.0",
+      "released": "2026-08-17T01:47:21Z",
+      "rust_version": "1.91",
+      "features": {
+        "_netsim": [],
+        "_proto-fragmentation": [],
+        "assembler-max-segment-count-1": [],
+        "assembler-max-segment-count-16": [],
+        "assembler-max-segment-count-2": [],
+        "assembler-max-segment-count-3": [],
+        "assembler-max-segment-count-32": [],
+        "assembler-max-segment-count-4": [],
+        "assembler-max-segment-count-8": [],
+        "async": [],
+        "auto-icmp-echo-reply": [],
+        "dns-max-name-size-128": [],
+        "dns-max-name-size-255": [],
+        "dns-max-name-size-64": [],
+        "dns-max-result-count-1": [],
+        "dns-max-result-count-16": [],
+        "dns-max-result-count-2": [],
+        "dns-max-result-count-3": [],
+        "dns-max-result-count-32": [],
+        "dns-max-result-count-4": [],
+        "dns-max-result-count-8": [],
+        "dns-max-server-count-1": [],
+        "dns-max-server-count-16": [],
+        "dns-max-server-count-2": [],
+        "dns-max-server-count-3": [],
+        "dns-max-server-count-32": [],
+        "dns-max-server-count-4": [],
+        "dns-max-server-count-8": [],
+        "fragmentation-buffer-size-1024": [],
+        "fragmentation-buffer-size-1500": [],
+        "fragmentation-buffer-size-16384": [],
+        "fragmentation-buffer-size-2048": [],
+        "fragmentation-buffer-size-256": [],
+        "fragmentation-buffer-size-32768": [],
+        "fragmentation-buffer-size-4096": [],
+        "fragmentation-buffer-size-512": [],
+        "fragmentation-buffer-size-65536": [],
+        "fragmentation-buffer-size-8192": [],
+        "iface-max-addr-count-1": [],
+        "iface-max-addr-count-2": [],
+        "iface-max-addr-count-3": [],
+        "iface-max-addr-count-4": [],
+        "iface-max-addr-count-5": [],
+        "iface-max-addr-count-6": [],
+        "iface-max-addr-count-7": [],
+        "iface-max-addr-count-8": [],
+        "iface-max-multicast-group-count-1": [],
+        "iface-max-multicast-group-count-1024": [],
+        "iface-max-multicast-group-count-128": [],
+        "iface-max-multicast-group-count-16": [],
+        "iface-max-multicast-group-count-2": [],
+        "iface-max-multicast-group-count-256": [],
+        "iface-max-multicast-group-count-3": [],
+        "iface-max-multicast-group-count-32": [],
+        "iface-max-multicast-group-count-4": [],
+        "iface-max-multicast-group-count-5": [],
+        "iface-max-multicast-group-count-512": [],
+        "iface-max-multicast-group-count-6": [],
+        "iface-max-multicast-group-count-64": [],
+        "iface-max-multicast-group-count-7": [],
+        "iface-max-multicast-group-count-8": [],
+        "iface-max-prefix-count-1": [],
+        "iface-max-prefix-count-2": [],
+        "iface-max-prefix-count-3": [],
+        "iface-max-prefix-count-4": [],
+        "iface-max-prefix-count-5": [],
+        "iface-max-prefix-count-6": [],
+        "iface-max-prefix-count-7": [],
+        "iface-max-prefix-count-8": [],
+        "iface-max-route-count-0": [],
+        "iface-max-route-count-1": [],
+        "iface-max-route-count-1024": [],
+        "iface-max-route-count-128": [],
+        "iface-max-route-count-16": [],
+        "iface-max-route-count-2": [],
+        "iface-max-route-count-256": [],
+        "iface-max-route-count-3": [],
+        "iface-max-route-count-32": [],
+        "iface-max-route-count-4": [],
+        "iface-max-route-count-5": [],
+        "iface-max-route-count-512": [],
+        "iface-max-route-count-6": [],
+        "iface-max-route-count-64": [],
+        "iface-max-route-count-7": [],
+        "iface-max-route-count-8": [],
+        "iface-max-sixlowpan-address-context-count-1": [],
+        "iface-max-sixlowpan-address-context-count-1024": [],
+        "iface-max-sixlowpan-address-context-count-128": [],
+        "iface-max-sixlowpan-address-context-count-16": [],
+        "iface-max-sixlowpan-address-context-count-2": [],
+        "iface-max-sixlowpan-address-context-count-256": [],
+        "iface-max-sixlowpan-address-context-count-3": [],
+        "iface-max-sixlowpan-address-context-count-32": [],
+        "iface-max-sixlowpan-address-context-count-4": [],
+        "iface-max-sixlowpan-address-context-count-5": [],
+        "iface-max-sixlowpan-address-context-count-512": [],
+        "iface-max-sixlowpan-address-context-count-6": [],
+        "iface-max-sixlowpan-address-context-count-64": [],
+        "iface-max-sixlowpan-address-context-count-7": [],
+        "iface-max-sixlowpan-address-context-count-8": [],
+        "iface-neighbor-cache-count-1": [],
+        "iface-neighbor-cache-count-1024": [],
+        "iface-neighbor-cache-count-128": [],
+        "iface-neighbor-cache-count-16": [],
+        "iface-neighbor-cache-count-2": [],
+        "iface-neighbor-cache-count-256": [],
+        "iface-neighbor-cache-count-3": [],
+        "iface-neighbor-cache-count-32": [],
+        "iface-neighbor-cache-count-4": [],
+        "iface-neighbor-cache-count-5": [],
+        "iface-neighbor-cache-count-512": [],
+        "iface-neighbor-cache-count-6": [],
+        "iface-neighbor-cache-count-64": [],
+        "iface-neighbor-cache-count-7": [],
+        "iface-neighbor-cache-count-8": [],
+        "ipv6-hbh-max-options-1": [],
+        "ipv6-hbh-max-options-16": [],
+        "ipv6-hbh-max-options-2": [],
+        "ipv6-hbh-max-options-3": [],
+        "ipv6-hbh-max-options-32": [],
+        "ipv6-hbh-max-options-4": [],
+        "ipv6-hbh-max-options-8": [],
+        "medium-ethernet": [
+          "socket"
+        ],
+        "medium-ieee802154": [
+          "socket",
+          "proto-sixlowpan"
+        ],
+        "medium-ip": [
+          "socket"
+        ],
+        "multicast": [],
+        "packetmeta-id": [],
+        "proto-dhcpv4": [
+          "proto-ipv4"
+        ],
+        "proto-dns": [],
+        "proto-ipsec": [
+          "proto-ipsec-ah",
+          "proto-ipsec-esp"
+        ],
+        "proto-ipsec-ah": [],
+        "proto-ipsec-esp": [],
+        "proto-ipv4": [],
+        "proto-ipv4-fragmentation": [
+          "proto-ipv4",
+          "_proto-fragmentation"
+        ],
+        "proto-ipv6": [],
+        "proto-ipv6-fragmentation": [
+          "proto-ipv6",
+          "_proto-fragmentation"
+        ],
+        "proto-ipv6-hbh": [
+          "proto-ipv6"
+        ],
+        "proto-ipv6-routing": [
+          "proto-ipv6"
+        ],
+        "proto-ipv6-slaac": [
+          "proto-ipv6"
+        ],
+        "proto-rpl": [
+          "proto-ipv6-hbh",
+          "proto-ipv6-routing"
+        ],
+        "proto-sixlowpan": [
+          "proto-ipv6"
+        ],
+        "proto-sixlowpan-fragmentation": [
+          "proto-sixlowpan",
+          "_proto-fragmentation"
+        ],
+        "reassembly-buffer-count-1": [],
+        "reassembly-buffer-count-16": [],
+        "reassembly-buffer-count-2": [],
+        "reassembly-buffer-count-3": [],
+        "reassembly-buffer-count-32": [],
+        "reassembly-buffer-count-4": [],
+        "reassembly-buffer-count-8": [],
+        "reassembly-buffer-size-1024": [],
+        "reassembly-buffer-size-1500": [],
+        "reassembly-buffer-size-16384": [],
+        "reassembly-buffer-size-2048": [],
+        "reassembly-buffer-size-256": [],
+        "reassembly-buffer-size-32768": [],
+        "reassembly-buffer-size-4096": [],
+        "reassembly-buffer-size-512": [],
+        "reassembly-buffer-size-65536": [],
+        "reassembly-buffer-size-8192": [],
+        "rpl-parents-buffer-count-16": [],
+        "rpl-parents-buffer-count-2": [],
+        "rpl-parents-buffer-count-32": [],
+        "rpl-parents-buffer-count-4": [],
+        "rpl-parents-buffer-count-8": [],
+        "rpl-relations-buffer-count-1": [],
+        "rpl-relations-buffer-count-128": [],
+        "rpl-relations-buffer-count-16": [],
+        "rpl-relations-buffer-count-2": [],
+        "rpl-relations-buffer-count-32": [],
+        "rpl-relations-buffer-count-4": [],
+        "rpl-relations-buffer-count-64": [],
+        "rpl-relations-buffer-count-8": [],
+        "segmentation-offload": [],
+        "socket": [],
+        "socket-dhcpv4": [
+          "socket",
+          "medium-ethernet",
+          "proto-dhcpv4"
+        ],
+        "socket-dns": [
+          "socket",
+          "proto-dns"
+        ],
+        "socket-icmp": [
+          "socket"
+        ],
+        "socket-mdns": [
+          "socket-dns"
+        ],
+        "socket-raw": [
+          "socket"
+        ],
+        "socket-tcp": [
+          "socket"
+        ],
+        "socket-tcp-cubic": [],
+        "socket-tcp-pause-synack": [
+          "socket-tcp"
+        ],
+        "socket-tcp-reno": [],
+        "socket-udp": [
+          "socket"
+        ],
+        "verbose": []
+      },
+      "features2": {
+        "alloc": [
+          "managed/alloc",
+          "defmt?/alloc"
+        ],
+        "default": [
+          "std",
+          "log",
+          "medium-ethernet",
+          "medium-ip",
+          "medium-ieee802154",
+          "phy-raw_socket",
+          "phy-tuntap_interface",
+          "proto-ipv4",
+          "proto-dhcpv4",
+          "proto-ipv6",
+          "proto-ipv6-slaac",
+          "proto-dns",
+          "proto-ipv4-fragmentation",
+          "proto-sixlowpan-fragmentation",
+          "socket-raw",
+          "socket-icmp",
+          "socket-udp",
+          "socket-tcp",
+          "socket-dhcpv4",
+          "socket-dns",
+          "socket-mdns",
+          "packetmeta-id",
+          "async",
+          "multicast",
+          "auto-icmp-echo-reply"
+        ],
+        "defmt": [
+          "dep:defmt",
+          "heapless/defmt"
+        ],
+        "phy-raw_socket": [
+          "std",
+          "libc"
+        ],
+        "phy-tuntap_interface": [
+          "std",
+          "libc"
+        ],
+        "std": [
+          "managed/std",
+          "alloc"
+        ]
+      },
+      "checksum": "b6f8b28ad56c6e35524a37dd492af5d1a47e31e1a4d175cd12f89c075f01980f",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/smoltcp/smoltcp-0.14.0.crate",
+      "license": "0BSD",
+      "repository": "https://github.com/smoltcp-rs/smoltcp.git",
+      "archive_sha256": "b6f8b28ad56c6e35524a37dd492af5d1a47e31e1a4d175cd12f89c075f01980f"
+    },
+    "zstd": {
+      "version": "0.14.3",
+      "released": "2026-10-16T16:59:51Z",
+      "rust_version": "1.64",
+      "features": {
+        "arrays": [
+          "zstd-safe/arrays"
+        ],
+        "bindgen": [
+          "zstd-safe/bindgen"
+        ],
+        "cmake": [
+          "zstd-safe/cmake"
+        ],
+        "debug": [
+          "zstd-safe/debug"
+        ],
+        "default": [
+          "legacy",
+          "arrays",
+          "zdict_builder"
+        ],
+        "doc-cfg": [],
+        "experimental": [
+          "zstd-safe/experimental"
+        ],
+        "fat-lto": [
+          "zstd-safe/fat-lto"
+        ],
+        "legacy": [
+          "zstd-safe/legacy"
+        ],
+        "no_asm": [
+          "zstd-safe/no_asm"
+        ],
+        "pkg-config": [
+          "zstd-safe/pkg-config"
+        ],
+        "thin": [
+          "zstd-safe/thin"
+        ],
+        "thin-lto": [
+          "zstd-safe/thin-lto"
+        ],
+        "vendored": [
+          "zstd-safe/vendored"
+        ],
+        "wasm": [],
+        "with-rust-allocator": [
+          "zstd-safe/with-rust-allocator"
+        ],
+        "zdict_builder": [
+          "zstd-safe/zdict_builder"
+        ],
+        "zstdmt": [
+          "zstd-safe/zstdmt"
+        ]
+      },
+      "checksum": "db3ae9bf90af6e40197bef767eeefc46ad6397420fe873830bd85e5fbbfb3c70",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/zstd/zstd-0.14.3.crate",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/gyscos/zstd-rs",
+      "archive_sha256": "db3ae9bf90af6e40197bef767eeefc46ad6397420fe873830bd85e5fbbfb3c70"
+    },
+    "arrow": {
+      "version": "60.1.0",
+      "released": "2026-10-28T08:49:53Z",
+      "rust_version": "1.88",
+      "features": {
+        "async": [
+          "arrow-array/async"
+        ],
+        "canonical_extension_types": [
+          "arrow-schema/canonical_extension_types"
+        ],
+        "chrono-tz": [
+          "arrow-array/chrono-tz"
+        ],
+        "csv": [
+          "arrow-csv"
+        ],
+        "default": [
+          "csv",
+          "ipc",
+          "json"
+        ],
+        "ffi": [
+          "arrow-schema/ffi",
+          "arrow-data/ffi",
+          "arrow-array/ffi"
+        ],
+        "force_validate": [
+          "arrow-array/force_validate",
+          "arrow-data/force_validate"
+        ],
+        "ipc": [
+          "arrow-ipc"
+        ],
+        "ipc_compression": [
+          "ipc",
+          "arrow-ipc/lz4",
+          "arrow-ipc/zstd"
+        ],
+        "json": [
+          "arrow-json"
+        ],
+        "pool": [
+          "arrow-array/pool"
+        ],
+        "prettyprint": [
+          "arrow-cast/prettyprint"
+        ]
+      },
+      "features2": {
+        "pyarrow": [
+          "ffi",
+          "dep:arrow-pyarrow"
+        ],
+        "pyarrow-experimental-inspect": [
+          "pyarrow",
+          "arrow-pyarrow/experimental-inspect"
+        ],
+        "test_utils": [
+          "dep:rand",
+          "dep:half"
+        ]
+      },
+      "checksum": "d965156f2220e94dcf676e04322b7b0b41c97e85cb3e1c365b8e56d0f70be999",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/arrow/arrow-60.1.0.crate",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/apache/arrow-rs",
+      "archive_sha256": "d965156f2220e94dcf676e04322b7b0b41c97e85cb3e1c365b8e56d0f70be999"
+    },
+    "parquet": {
+      "version": "60.1.0",
+      "released": "2026-10-28T08:51:14Z",
+      "rust_version": "1.88",
+      "features": {
+        "arrow": [
+          "base64",
+          "arrow-array",
+          "arrow-buffer",
+          "arrow-data",
+          "arrow-schema",
+          "arrow-select",
+          "arrow-ipc"
+        ],
+        "async": [
+          "futures",
+          "tokio"
+        ],
+        "cli": [
+          "json",
+          "base64",
+          "clap",
+          "arrow-csv",
+          "serde"
+        ],
+        "experimental": [
+          "variant_experimental"
+        ],
+        "flate2-rust_backend": [
+          "flate2/rust_backend"
+        ],
+        "flate2-rust_backened": [
+          "flate2-rust_backend"
+        ],
+        "flate2-zlib-rs": [
+          "flate2/zlib-rs"
+        ],
+        "geospatial": [
+          "parquet-geospatial"
+        ],
+        "json": [
+          "serde_json",
+          "base64"
+        ],
+        "lz4": [
+          "lz4_flex"
+        ],
+        "test_common": [
+          "arrow/test_utils"
+        ],
+        "variant_experimental": [
+          "arrow",
+          "parquet-variant",
+          "parquet-variant-compute"
+        ]
+      },
+      "features2": {
+        "arrow_canonical_extension_types": [
+          "arrow-schema?/canonical_extension_types"
+        ],
+        "crc": [
+          "dep:crc32fast"
+        ],
+        "default": [
+          "arrow",
+          "snap",
+          "brotli",
+          "flate2-zlib-rs",
+          "lz4",
+          "zstd",
+          "base64",
+          "simdutf8"
+        ],
+        "encryption": [
+          "dep:ring"
+        ],
+        "object_store": [
+          "dep:object_store",
+          "async"
+        ],
+        "simdutf8": [
+          "dep:simdutf8"
+        ],
+        "zstd": [
+          "dep:zstd"
+        ]
+      },
+      "checksum": "806eaa0f1c0436dcb43bee8e6a82bf2efff90521a60172f8281cb9ef577b43a4",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/parquet/parquet-60.1.0.crate",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/apache/arrow-rs",
+      "archive_sha256": "806eaa0f1c0436dcb43bee8e6a82bf2efff90521a60172f8281cb9ef577b43a4"
+    },
+    "can-iso-tp": {
+      "version": "0.2.0",
+      "released": "2026-03-17T12:01:01Z",
+      "features": {
+        "alloc": [],
+        "default": [
+          "std"
+        ],
+        "std": [
+          "alloc"
+        ]
+      },
+      "features2": {
+        "defmt": [
+          "dep:defmt"
+        ],
+        "isotp-interface": [
+          "dep:can-isotp-interface"
+        ],
+        "uds": [
+          "dep:can-uds"
+        ]
+      },
+      "checksum": "7e3cc33fd363c3f532f0105fcdd22481b646a6607a5a27320b391a1a64832b93",
+      "archive_status": 200,
+      "url": "https://static.crates.io/crates/can-iso-tp/can-iso-tp-0.2.0.crate",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/conroy-cheers/can-iso-tp",
+      "archive_sha256": "7e3cc33fd363c3f532f0105fcdd22481b646a6607a5a27320b391a1a64832b93"
+    },
+    "autors-blf": {
+      "version": "0.1.1",
+      "released": "2026-08-03T07:09:23Z",
+      "yanked": false,
+      "checksum": "9c3d55570d292a8d67bed2f15538ea03b2d37bd81545af290b681ea1884695bb",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/H2O2-IO/autors",
+      "archive_sha256": "9c3d55570d292a8d67bed2f15538ea03b2d37bd81545af290b681ea1884695bb"
+    },
+    "autors-asc": {
+      "version": "0.1.1",
+      "released": "2026-08-03T07:09:11Z",
+      "yanked": false,
+      "checksum": "e389de61574e15f99bc001141162c818409c287efe783bb16e99fc3be141439d",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/H2O2-IO/autors",
+      "archive_sha256": "e389de61574e15f99bc001141162c818409c287efe783bb16e99fc3be141439d"
+    },
+    "asammdf": {
+      "version": "0.1.0",
+      "released": "2024-07-01T13:25:57Z",
+      "yanked": false,
+      "checksum": "f42365e222795bfcf5c598ddaeb3664c24e0ccc78f6c886028deba8adc4cc3fb",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/H2O2-IO/asammdf",
+      "archive_sha256": "f42365e222795bfcf5c598ddaeb3664c24e0ccc78f6c886028deba8adc4cc3fb"
+    },
+    "peak-can-sys": {
+      "version": "0.2.0",
+      "released": "2025-12-19T02:05:29Z",
+      "yanked": false,
+      "checksum": "4a8f97c948e9782e0def40374d6e8fad3f4dceb00bdf555dc15f8a27c87efafe",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/TuEmb/peak-can-sys",
+      "archive_sha256": "4a8f97c948e9782e0def40374d6e8fad3f4dceb00bdf555dc15f8a27c87efafe"
+    },
+    "canparse": {
+      "version": "0.1.4",
+      "released": "2019-07-29T00:41:55Z",
+      "yanked": false,
+      "checksum": "fee87221d4a3133ec0583b3d666b47334436bfe7a5204d1194b2688d354210fe",
+      "license": "MIT/Apache-2.0",
+      "repository": "https://github.com/jmagnuson/canparse",
+      "archive_sha256": "fee87221d4a3133ec0583b3d666b47334436bfe7a5204d1194b2688d354210fe"
+    },
+    "isotp-rs": {
+      "version": "0.2.1",
+      "released": "2024-10-25T07:46:06Z",
+      "yanked": true,
+      "checksum": "ef3de383834cd6e71f39aedb4fe21b32156524b2357d29ac670f326dd3f83040",
+      "license": "GPL-3.0",
+      "repository": "https://github.com/zhuyu4839/isotp-rs",
+      "archive_sha256": "ef3de383834cd6e71f39aedb4fe21b32156524b2357d29ac670f326dd3f83040"
+    }
+  }
+}

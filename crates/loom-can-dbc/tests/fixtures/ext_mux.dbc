@@ -1,0 +1,20 @@
+// Hand-written fixture: extended multiplexing with nesting and ranges (SG_MUL_VAL_).
+// M1 (bits 0..3) selects; M2 (bits 4..7) is itself multiplexed by M1 == 1.
+// S1: M2 in 0..2, S2: M2 == 3, S3: M1 == 0. S1/S2/S3 share bits on purpose (exclusive branches).
+VERSION ""
+
+BU_: ECU GW
+
+BO_ 500 ExtMux: 8 ECU
+ SG_ M1 M : 0|4@1+ (1,0) [0|0] "" GW
+ SG_ M2 m1M : 4|4@1+ (1,0) [0|0] "" GW
+ SG_ S1 m0 : 8|8@1+ (1,0) [0|0] "" GW
+ SG_ S2 m3 : 8|16@1+ (1,0) [0|0] "" GW
+ SG_ S3 m0 : 8|8@1+ (1,0) [0|0] "" GW
+
+BA_DEF_ SG_ "GenSigStartValue" INT 0 1000;
+BA_DEF_DEF_ "GenSigStartValue" 0;
+SG_MUL_VAL_ 500 M2 M1 1-1;
+SG_MUL_VAL_ 500 S1 M2 0-2;
+SG_MUL_VAL_ 500 S2 M2 3-3;
+SG_MUL_VAL_ 500 S3 M1 0-0;

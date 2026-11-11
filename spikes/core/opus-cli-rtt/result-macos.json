@@ -1,0 +1,3 @@
+{"n":300,"cli_bytes":1019088,
+ "spawn_help_only_ms":{"p50":2.19,"p95":2.81,"p99":2.97,"max":3.04},
+ "spawn_connect_hello_rpc_exit_ms":{"p50":2.78,"p95":3.30,"p99":3.53,"max":4.28}}

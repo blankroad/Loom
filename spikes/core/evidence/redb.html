@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="redb"><title>redb - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-5c590327.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="redb" data-themes="" data-resource-suffix="-20261104-1.101.0-nightly-2d20b42b8" data-rustdoc-version="1.101.0-nightly (2d20b42b8 2026-11-04)" data-channel="nightly" data-search-js="search-835b9732.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20261104-1.101.0-nightly-2d20b42b8.js"></script><script defer src="/-/rustdoc.static/main-b2682d9c.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-101b5a15.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "redb",
+            "version": "4.5.0"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="Rust Embedded DataBase">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">redb-4.5.0</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        redb 4.5.0
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/redb/4.5.0/redb/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/redb/latest" class="pure-menu-link description" title="See redb in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a> OR <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.101.0-nightly (2d20b42b8 2026-11-04)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 05 November 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://www.redb.org" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-house " aria-hidden="true"></span> Homepage
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://github.com/cberner/redb" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/redb" class="pure-menu-link" title="See redb in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/redb/latest/source/" title="Browse source of redb-4.5.0" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/cberner" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> cberner
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/chrono/^0.4.41/" class="pure-menu-link">
+                chrono ^0.4.41
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/log/^0.4.17/" class="pure-menu-link">
+                log ^0.4.17
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uuid/^1.17.0/" class="pure-menu-link">
+                uuid ^1.17.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/rand/^0.10.1/" class="pure-menu-link">
+                rand ^0.10.1
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/redb/=2.6.0/" class="pure-menu-link">
+                redb =2.6.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tempfile/^3.5.0/" class="pure-menu-link">
+                tempfile ^3.5.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uuid/^1.17.0/" class="pure-menu-link">
+                uuid ^1.17.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/libc/^0.2.174/" class="pure-menu-link">
+                libc ^0.2.174
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/libc/^0.2.174/" class="pure-menu-link">
+                libc ^0.2.174
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/redb/latest/menus/releases/redb/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/redb/latest" class="pure-menu-link">
+                                        <b>77.55%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/redb/latest/menus/platforms/redb/"><li class="pure-menu-item">
+            <a href="/crate/redb/latest/target-redirect/redb/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/redb/latest/features" title="Browse available feature flags of redb-4.5.0" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/redb/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate redb</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../redb/index.html">redb</a><span class="version">4.5.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#redb" title="redb">redb</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#example" title="Example">Example</a></li><li><a href="#crate-features" title="Crate features">Crate features</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>redb</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/redb/lib.rs.html#1-164">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="redb"><a class="doc-anchor" href="#redb">§</a>redb</h2>
+<p>A simple, portable, high-performance, ACID, embedded key-value store.</p>
+<p>redb is written in pure Rust and is loosely inspired by <a href="https://www.lmdb.tech/doc/">lmdb</a>. Data is stored in a collection
+of copy-on-write B+trees. For more details, see the <a href="https://github.com/cberner/redb/blob/master/docs/design.md">design doc</a>.</p>
+<h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
+<ul>
+<li>Zero-copy, thread-safe, <code>BTreeMap</code> based API</li>
+<li>Fully ACID-compliant transactions</li>
+<li>MVCC support for concurrent readers &amp; writer, without blocking</li>
+<li>Crash-safe by default</li>
+<li>Savepoints and rollbacks</li>
+<li>Multi-process access to one database, with a single or several writer processes</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>redb::{Database, Error, ReadableDatabase, ReadableTable, TableDefinition};
+
+<span class="kw">const </span>TABLE: TableDefinition&lt;<span class="kw-2">&amp;</span>str, u64&gt; = TableDefinition::new(<span class="string">"my_data"</span>);
+
+<span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">let </span>file = tempfile::NamedTempFile::new().unwrap();
+    <span class="kw">let </span>db = Database::create(file.path())<span class="question-mark">?</span>;
+    <span class="kw">let </span>write_txn = db.begin_write()<span class="question-mark">?</span>;
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>table = write_txn.open_table(TABLE)<span class="question-mark">?</span>;
+        table.insert(<span class="string">"my_key"</span>, <span class="kw-2">&amp;</span><span class="number">123</span>)<span class="question-mark">?</span>;
+    }
+    write_txn.commit()<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>read_txn = db.begin_read()<span class="question-mark">?</span>;
+    <span class="kw">let </span>table = read_txn.open_table(TABLE)<span class="question-mark">?</span>;
+    <span class="macro">assert_eq!</span>(table.get_owned(<span class="string">"my_key"</span>)<span class="question-mark">?</span>.unwrap().value(), <span class="number">123</span>);
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div><h2 id="crate-features"><a class="doc-anchor" href="#crate-features">§</a>Crate features</h2>
+<ul>
+<li><code>std</code>: enabled by default. With <code>experimental-api-5</code> on, disable it to build redb as a
+<code>no_std</code> crate; see the README for what that mode requires and leaves out.</li>
+</ul>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="backends/index.html" title="mod redb::backends">backends</a></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.AccessGuard.html" title="struct redb::AccessGuard">Access<wbr>Guard</a></dt><dd>Scoped accessor to data in the database</dd><dt><a class="struct" href="struct.AccessGuardMut.html" title="struct redb::AccessGuardMut">Access<wbr>Guard<wbr>Mut</a></dt><dt><a class="struct" href="struct.AccessGuardMutInPlace.html" title="struct redb::AccessGuardMutInPlace">Access<wbr>Guard<wbr>MutIn<wbr>Place</a></dt><dt><a class="struct" href="struct.Builder.html" title="struct redb::Builder">Builder</a></dt><dd>Configuration builder of a redb <a href="struct.Database.html" title="struct redb::Database">Database</a>.</dd><dt><a class="struct" href="struct.CacheStats.html" title="struct redb::CacheStats">Cache<wbr>Stats</a></dt><dd>Information regarding the usage of the in-memory cache</dd><dt><a class="struct" href="struct.Cursor.html" title="struct redb::Cursor">Cursor</a></dt><dd>A read-only cursor over a table, pointing at a gap between two entries.</dd><dt><a class="struct" href="struct.CursorMut.html" title="struct redb::CursorMut">Cursor<wbr>Mut</a></dt><dd>A cursor over a <a href="struct.Table.html" title="struct redb::Table"><code>Table</code></a>, pointing at a gap between two entries, with
+support for inserting new entries into that gap and removing the entries
+around it.</dd><dt><a class="struct" href="struct.Database.html" title="struct redb::Database">Database</a></dt><dd>Opened redb database file</dd><dt><a class="struct" href="struct.DatabaseStats.html" title="struct redb::DatabaseStats">Database<wbr>Stats</a></dt><dd>Informational storage stats about the database</dd><dt><a class="struct" href="struct.ExtractIf.html" title="struct redb::ExtractIf">Extract<wbr>If</a></dt><dt><a class="struct" href="struct.MultimapRange.html" title="struct redb::MultimapRange">Multimap<wbr>Range</a></dt><dd>An iterator over the entries of a multimap table in a range of keys, in key order</dd><dt><a class="struct" href="struct.MultimapTable.html" title="struct redb::MultimapTable">Multimap<wbr>Table</a></dt><dd>A multimap table</dd><dt><a class="struct" href="struct.MultimapTableDefinition.html" title="struct redb::MultimapTableDefinition">Multimap<wbr>Table<wbr>Definition</a></dt><dd>Defines the name and types of a multimap table</dd><dt><a class="struct" href="struct.MultimapValue.html" title="struct redb::MultimapValue">Multimap<wbr>Value</a></dt><dt><a class="struct" href="struct.OccupiedEntry.html" title="struct redb::OccupiedEntry">Occupied<wbr>Entry</a></dt><dd>A view into an occupied entry in a <a href="struct.Table.html" title="struct redb::Table"><code>Table</code></a>. It is part of the <a href="enum.Entry.html" title="enum redb::Entry"><code>Entry</code></a> enum.</dd><dt><a class="struct" href="struct.OwnedAccessGuard.html" title="struct redb::OwnedAccessGuard">Owned<wbr>Access<wbr>Guard</a></dt><dd>An <a href="struct.AccessGuard.html" title="struct redb::AccessGuard"><code>AccessGuard</code></a> which also keeps the transaction alive</dd><dt><a class="struct" href="struct.OwnedMultimapRange.html" title="struct redb::OwnedMultimapRange">Owned<wbr>Multimap<wbr>Range</a></dt><dd>A <a href="struct.MultimapRange.html" title="struct redb::MultimapRange"><code>MultimapRange</code></a> which also keeps the transaction alive</dd><dt><a class="struct" href="struct.OwnedMultimapValue.html" title="struct redb::OwnedMultimapValue">Owned<wbr>Multimap<wbr>Value</a></dt><dd>A <a href="struct.MultimapValue.html" title="struct redb::MultimapValue"><code>MultimapValue</code></a> which also keeps the transaction alive</dd><dt><a class="struct" href="struct.OwnedRange.html" title="struct redb::OwnedRange">Owned<wbr>Range</a></dt><dd>A <a href="struct.Range.html" title="struct redb::Range"><code>Range</code></a> which also keeps the transaction alive</dd><dt><a class="struct" href="struct.Range.html" title="struct redb::Range">Range</a></dt><dd>An iterator over the entries of a table in a range of keys, in key order</dd><dt><a class="struct" href="struct.ReadOnlyDatabase.html" title="struct redb::ReadOnlyDatabase">Read<wbr>Only<wbr>Database</a></dt><dd>A redb database opened in read-only mode</dd><dt><a class="struct" href="struct.ReadOnlyMultimapTable.html" title="struct redb::ReadOnlyMultimapTable">Read<wbr>Only<wbr>Multimap<wbr>Table</a></dt><dd>A read-only multimap table</dd><dt><a class="struct" href="struct.ReadOnlyTable.html" title="struct redb::ReadOnlyTable">Read<wbr>Only<wbr>Table</a></dt><dd>A read-only table</dd><dt><a class="struct" href="struct.ReadOnlyUntypedMultimapTable.html" title="struct redb::ReadOnlyUntypedMultimapTable">Read<wbr>Only<wbr>Untyped<wbr>Multimap<wbr>Table</a></dt><dd>A read-only untyped multimap table</dd><dt><a class="struct" href="struct.ReadOnlyUntypedTable.html" title="struct redb::ReadOnlyUntypedTable">Read<wbr>Only<wbr>Untyped<wbr>Table</a></dt><dd>A read-only untyped table</dd><dt><a class="struct" href="struct.ReadTransaction.html" title="struct redb::ReadTransaction">Read<wbr>Transaction</a></dt><dd>A read-only transaction</dd><dt><a class="struct" href="struct.RepairSession.html" title="struct redb::RepairSession">Repair<wbr>Session</a></dt><dt><a class="struct" href="struct.Savepoint.html" title="struct redb::Savepoint">Savepoint</a></dt><dd>A database savepoint</dd><dt><a class="struct" href="struct.Table.html" title="struct redb::Table">Table</a></dt><dd>A table containing key-value mappings</dd><dt><a class="struct" href="struct.TableDefinition.html" title="struct redb::TableDefinition">Table<wbr>Definition</a></dt><dd>Defines the name and types of a table</dd><dt><a class="struct" href="struct.TableStats.html" title="struct redb::TableStats">Table<wbr>Stats</a></dt><dd>Informational storage stats about a table</dd><dt><a class="struct" href="struct.TypeName.html" title="struct redb::TypeName">Type<wbr>Name</a></dt><dt><a class="struct" href="struct.UntypedMultimapTableHandle.html" title="struct redb::UntypedMultimapTableHandle">Untyped<wbr>Multimap<wbr>Table<wbr>Handle</a></dt><dt><a class="struct" href="struct.UntypedTableHandle.html" title="struct redb::UntypedTableHandle">Untyped<wbr>Table<wbr>Handle</a></dt><dt><a class="struct" href="struct.VacantEntry.html" title="struct redb::VacantEntry">Vacant<wbr>Entry</a></dt><dd>A view into a vacant entry in a <a href="struct.Table.html" title="struct redb::Table"><code>Table</code></a>. It is part of the <a href="enum.Entry.html" title="enum redb::Entry"><code>Entry</code></a> enum.</dd><dt><a class="struct" href="struct.WriteTransaction.html" title="struct redb::WriteTransaction">Write<wbr>Transaction</a></dt><dd>A read/write transaction</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.BackendError.html" title="enum redb::BackendError">Backend<wbr>Error</a></dt><dd>Errors reported by a <a href="trait.StorageBackend.html" title="trait redb::StorageBackend"><code>crate::StorageBackend</code></a> locking operation.</dd><dt><a class="enum" href="enum.CommitError.html" title="enum redb::CommitError">Commit<wbr>Error</a></dt><dd>Errors related to committing transactions</dd><dt><a class="enum" href="enum.CompactionError.html" title="enum redb::CompactionError">Compaction<wbr>Error</a></dt><dd>Errors related to compaction</dd><dt><a class="enum" href="enum.ConcurrencyMode.html" title="enum redb::ConcurrencyMode">Concurrency<wbr>Mode</a></dt><dd>How processes share a database: the regime a writer operates under. Whether a given handle
+writes is chosen by <code>open()</code> or <code>open_read_only()</code>, not by the mode.</dd><dt><a class="enum" href="enum.CursorError.html" title="enum redb::CursorError">Cursor<wbr>Error</a></dt><dd>Errors related to cursors</dd><dt><a class="enum" href="enum.DatabaseError.html" title="enum redb::DatabaseError">Database<wbr>Error</a></dt><dd>Errors related to opening a database</dd><dt><a class="enum" href="enum.Durability.html" title="enum redb::Durability">Durability</a></dt><dt><a class="enum" href="enum.Entry.html" title="enum redb::Entry">Entry</a></dt><dd>A view into a single entry in a <a href="struct.Table.html" title="struct redb::Table"><code>Table</code></a>, which may either be vacant or occupied.</dd><dt><a class="enum" href="enum.Error.html" title="enum redb::Error">Error</a></dt><dd>Superset of all other errors that can occur. Convenience enum so that users can convert all errors into a single type</dd><dt><a class="enum" href="enum.SavepointError.html" title="enum redb::SavepointError">Savepoint<wbr>Error</a></dt><dd>Errors related to savepoints</dd><dt><a class="enum" href="enum.SetDurabilityError.html" title="enum redb::SetDurabilityError">SetDurability<wbr>Error</a></dt><dd>Errors related to setting a transaction’s durability</dd><dt><a class="enum" href="enum.StorageError.html" title="enum redb::StorageError">Storage<wbr>Error</a></dt><dd>General errors directly from the storage layer</dd><dt><a class="enum" href="enum.TableError.html" title="enum redb::TableError">Table<wbr>Error</a></dt><dd>Errors related to opening tables</dd><dt><a class="enum" href="enum.TransactionError.html" title="enum redb::TransactionError">Transaction<wbr>Error</a></dt><dd>Errors related to transactions</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Key.html" title="trait redb::Key">Key</a></dt><dd>Trait which allows the type to be used as a key in a redb table</dd><dt><a class="trait" href="trait.MultimapTableHandle.html" title="trait redb::MultimapTableHandle">Multimap<wbr>Table<wbr>Handle</a></dt><dt><a class="trait" href="trait.MutInPlaceValue.html" title="trait redb::MutInPlaceValue">MutIn<wbr>Place<wbr>Value</a></dt><dd>Implementing this trait indicates that the type can be mutated in-place as a &amp;mut <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html" title="primitive u8">u8</a>.
+This enables the <code>.insert_reserve()</code> method on Table</dd><dt><a class="trait" href="trait.ReadableDatabase.html" title="trait redb::ReadableDatabase">Readable<wbr>Database</a></dt><dt><a class="trait" href="trait.ReadableMultimapTable.html" title="trait redb::ReadableMultimapTable">Readable<wbr>Multimap<wbr>Table</a></dt><dt><a class="trait" href="trait.ReadableTable.html" title="trait redb::ReadableTable">Readable<wbr>Table</a></dt><dt><a class="trait" href="trait.ReadableTableMetadata.html" title="trait redb::ReadableTableMetadata">Readable<wbr>Table<wbr>Metadata</a></dt><dt><a class="trait" href="trait.StorageBackend.html" title="trait redb::StorageBackend">Storage<wbr>Backend</a></dt><dd>Implements persistent storage for a database.</dd><dt><a class="trait" href="trait.TableHandle.html" title="trait redb::TableHandle">Table<wbr>Handle</a></dt><dt><a class="trait" href="trait.Value.html" title="trait redb::Value">Value</a></dt><dd>Types that implement this trait can be used as values in a redb table</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.Result.html" title="type redb::Result">Result</a></dt></dl><script type="text/json" id="notable-traits-data">{"IntoIter<T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div></code></pre>","Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.reference.html\">&amp;'a T</a>;</div></code></pre>","IterMut<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.reference.html\">&amp;'a mut T</a>;</div></code></pre>"}</script></section></div></main></div></body></html>

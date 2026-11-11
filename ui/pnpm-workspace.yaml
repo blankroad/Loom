@@ -1,0 +1,3 @@
+# esbuild ships platform binaries as optionalDependencies; its postinstall check is not needed.
+allowBuilds:
+  esbuild: false

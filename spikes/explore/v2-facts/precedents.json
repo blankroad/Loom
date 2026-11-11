@@ -1,0 +1,29 @@
+[
+  {
+    "package": "robotframework",
+    "version": "7.5.1",
+    "release_date": "2026-11-02T21:35:32.447296Z",
+    "license": "Apache License 2.0",
+    "url": "https://pypi.org/pypi/robotframework/json",
+    "project_urls": {
+      "Documentation": "https://robotframework.org/robotframework",
+      "Download": "https://pypi.org/project/robotframework",
+      "Homepage": "https://robotframework.org",
+      "Issue Tracker": "https://github.com/robotframework/robotframework/issues",
+      "Release Notes": "https://github.com/robotframework/robotframework/blob/master/doc/releasenotes/rf-7.5.1.rst",
+      "Slack": "http://slack.robotframework.org",
+      "Source": "https://github.com/robotframework/robotframework"
+    }
+  },
+  {
+    "package": "playwright",
+    "version": "1.65.0",
+    "release_date": "2026-11-09T21:09:30.436311Z",
+    "license": "Apache-2.0",
+    "url": "https://pypi.org/pypi/playwright/json",
+    "project_urls": {
+      "Release notes": "https://github.com/microsoft/playwright-python/releases",
+      "homepage": "https://github.com/Microsoft/playwright-python"
+    }
+  }
+]

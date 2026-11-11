@@ -1,0 +1,405 @@
+{
+  "retrieved_at": "2026-11-09T14:46:48.124634+00:00",
+  "sources": [
+    {
+      "id": "downloads",
+      "url": "https://sigrok.org/wiki/Downloads",
+      "status": 200,
+      "file": "downloads.txt",
+      "bytes": 45188,
+      "sha256": "044bbf69d1aa4ba03ab8dc0e67641fd4188e424ae7b35e5efd1973ee2f3a281f"
+    },
+    {
+      "id": "demo-wiki",
+      "url": "https://sigrok.org/wiki/Demo_device",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "homebrew",
+      "url": "https://formulae.brew.sh/api/formula/sigrok-cli.json",
+      "status": 200,
+      "file": "homebrew.txt",
+      "bytes": 6574,
+      "sha256": "369f4f0ad7f1ee5f6e0b948da562c2f1a642333f46ba9ab4e1e81074fe8f0551"
+    },
+    {
+      "id": "libsigrok-brew",
+      "url": "https://formulae.brew.sh/api/formula/libsigrok.json",
+      "status": 200,
+      "file": "libsigrok-brew.txt",
+      "bytes": 5821,
+      "sha256": "34ac0c4086a358d16238c0258fb51098ee02f4cc98a61e826bb805a00b8d76d5"
+    },
+    {
+      "id": "cli-man",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/doc/sigrok-cli.1",
+      "status": 200,
+      "file": "cli-man.txt",
+      "bytes": 20302,
+      "sha256": "c799333a5d0db9f6cb272c1717f791dab9e01315fa6e959cc05fd6ff0e0a0402"
+    },
+    {
+      "id": "cli-input",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/input.c",
+      "status": 200,
+      "file": "cli-input.txt",
+      "bytes": 6756,
+      "sha256": "c8a03c4f169062ff8e2a5fd5bd295e904064b89bd977bcd1290934e850089894"
+    },
+    {
+      "id": "cli-output",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/output.c",
+      "status": 200,
+      "file": "cli-output.txt",
+      "bytes": 1179,
+      "sha256": "59128207f469ca25ecbaaf836843ba6743e6dd2cd8e85e2153fdbbdbd09b0cd6"
+    },
+    {
+      "id": "cli-decode",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/decode.c",
+      "status": 200,
+      "file": "cli-decode.txt",
+      "bytes": 24919,
+      "sha256": "0e83210582da2e03f157807b487b72cd6e7bc6e09568ca108b50990957906f02"
+    },
+    {
+      "id": "cli-session",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/session.c",
+      "status": 200,
+      "file": "cli-session.txt",
+      "bytes": 23553,
+      "sha256": "6c30e4d3274fd815cec3496cf43dd7f475874ec7122b4c96f0304f87c6454d70"
+    },
+    {
+      "id": "cli-main",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/master/main.c",
+      "status": 200,
+      "file": "cli-main.txt",
+      "bytes": 8254,
+      "sha256": "941b65aee47d5c156f0aec8d331c0e374fc3f0c6d45fc50893243ebdfd294c48"
+    },
+    {
+      "id": "lib-make-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/Makefile.am",
+      "status": 200,
+      "file": "lib-make-052.txt",
+      "bytes": 28463,
+      "sha256": "ca06d681b4534cedf784dc57355adaa41c6c01832d224da037cb3e69390fb9a7"
+    },
+    {
+      "id": "demo-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/demo/api.c",
+      "status": 200,
+      "file": "demo-052.txt",
+      "bytes": 18374,
+      "sha256": "e3bfed8686a83048f0b368128614d06c28f06cc4eea1e0ec7b6d901b1c51a30b"
+    },
+    {
+      "id": "demo-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/demo/api.c",
+      "status": 200,
+      "file": "demo-master.txt",
+      "bytes": 18094,
+      "sha256": "328bd9f6b6c9a9b91392baf44506b6dc26d0a1830c3479d181fd4e59210b50d0"
+    },
+    {
+      "id": "hantek-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/hantek-6xxx/api.c",
+      "status": 200,
+      "file": "hantek-052.txt",
+      "bytes": 20016,
+      "sha256": "04e85c4c7f9fd1d05ce008892275917f0261b681c135df76a7b159f2bb8eef88"
+    },
+    {
+      "id": "hantek-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/hantek-6xxx/api.c",
+      "status": 200,
+      "file": "hantek-master.txt",
+      "bytes": 20708,
+      "sha256": "63e93995dcdb1edc9e13b7ea95a45dda89453801b4b39cc1d42020c12ae013c0"
+    },
+    {
+      "id": "kingst-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/kingst-la2016/api.c",
+      "status": 200,
+      "file": "kingst-master.txt",
+      "bytes": 29576,
+      "sha256": "558fbdb41e7e5fa24a4b3d60155308c0850eff5b7ef0842c321195bd020cc2c9"
+    },
+    {
+      "id": "kingst-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/kingst-la2016/api.c",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "dslogic-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/dreamsourcelab-dslogic/api.c",
+      "status": 200,
+      "file": "dslogic-master.txt",
+      "bytes": 15313,
+      "sha256": "dc4e5d0bb039fd70026b4934fb8a66f3872ef91dbde41350f4f94430fa399257"
+    },
+    {
+      "id": "rigol-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/rigol-ds/api.c",
+      "status": 200,
+      "file": "rigol-master.txt",
+      "bytes": 33305,
+      "sha256": "df31c9760655c36e966c36cd4ba46ef31b945df6616542a6ac87e3831fd9e755"
+    },
+    {
+      "id": "siglent-master",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/siglent-sds/api.c",
+      "status": 200,
+      "file": "siglent-master.txt",
+      "bytes": 27245,
+      "sha256": "dea0603f2173ae9f7ec89f77f962458a6623e55d5464c5e73adc3aad2c5a2fe1"
+    },
+    {
+      "id": "kingst-wiki",
+      "url": "https://sigrok.org/wiki/Kingst_LA2016",
+      "status": 200,
+      "file": "kingst-wiki.txt",
+      "bytes": 36897,
+      "sha256": "e5926b3cb2d36a1b741f768b02b607e8283c2f9e147c1aea7c43260654bb7081"
+    },
+    {
+      "id": "dslogic-wiki",
+      "url": "https://sigrok.org/wiki/DreamSourceLab_DSLogic",
+      "status": 200,
+      "file": "dslogic-wiki.txt",
+      "bytes": 32253,
+      "sha256": "30e800aa53e70ff743753af11e8fce83fbb615d1d9bb67a092be3467137c10fd"
+    },
+    {
+      "id": "hantek-bl",
+      "url": "https://sigrok.org/wiki/Hantek_6022BL",
+      "status": 200,
+      "file": "hantek-bl.txt",
+      "bytes": 50133,
+      "sha256": "4fb1eea8815f3dcec9c5f2d3df750c8fa332f37b247dad42a97937256f0e0821"
+    },
+    {
+      "id": "fx2",
+      "url": "https://sigrok.org/wiki/Fx2lafw",
+      "status": 200,
+      "file": "fx2.txt",
+      "bytes": 45346,
+      "sha256": "6d6b5aad4b6c30d777a0fefc34e3486a8f32b271ed1c387deebd9782b7e37c36"
+    },
+    {
+      "id": "dwfpy-pypi",
+      "url": "https://pypi.org/pypi/dwfpy/json",
+      "status": 200,
+      "file": "dwfpy-pypi.txt",
+      "bytes": 14638,
+      "sha256": "d1f202165eec8eacc836bc2ca5e7c890486fb20630ab26534a15a0d6d7319d56"
+    },
+    {
+      "id": "ad3",
+      "url": "https://digilent.com/shop/analog-discovery-3/",
+      "status": 200,
+      "file": "ad3.txt",
+      "bytes": 253428,
+      "sha256": "22ab5d5edfce0ed7605c52d08c3f56473d41ea36ca95fd61c2159fb6ce1aef81"
+    },
+    {
+      "id": "waveforms-downloads",
+      "url": "https://digilent.com/reference/software/waveforms/waveforms-3/start",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "waveforms-notes",
+      "url": "https://digilent.com/reference/software/waveforms/waveforms-3/reference-manual",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "rigol-price",
+      "url": "https://www.rigolna.com/products/digital-oscilloscopes/dho800/",
+      "status": 200,
+      "file": "rigol-price.txt",
+      "bytes": 361324,
+      "sha256": "288a032306324b38a37b4e9b23ea6530258f4c34ce60633ac19b0b58bc44e380"
+    },
+    {
+      "id": "siglent-price",
+      "url": "https://www.siglentna.com/digital-oscilloscopes/sds800x-hd/",
+      "status": 200,
+      "file": "siglent-price.txt",
+      "bytes": 122512,
+      "sha256": "d75690335a0096f9cc603f452aed5233a0f3824d13c5f805186a9eac43f05b01"
+    },
+    {
+      "id": "rigol-guide",
+      "url": "https://download.rigol.com/en/Manual/Digital%20Oscilloscope/DHO800/DHO800900_ProgrammingGuide_EN.pdf",
+      "status": 200,
+      "file": "rigol-guide.pdf",
+      "bytes": 5933787,
+      "sha256": "e252bc1cd14f7d543e6955832a07679e7005f178fcbb3a9fb0213ac20ce22f8d"
+    },
+    {
+      "id": "siglent-guide",
+      "url": "https://www.siglent.com/wp-content/uploads/2024/09/SDS800XHD_Series_ProgrammingGuide_EN11G.pdf",
+      "status": 200,
+      "file": "siglent-guide.pdf",
+      "bytes": 10917046,
+      "sha256": "9063254852074c8476e93f434d20ca43fc8e926167c13d410a9f21e68bdc43cf"
+    },
+    {
+      "id": "hantek-download",
+      "url": "https://www.hantek.com/download?key=yhsc&pid=0&sid=0&word=2000",
+      "status": 200,
+      "file": "hantek-download.txt",
+      "bytes": 42444,
+      "sha256": "964f72c3e636d64b18595a63483a0c79d225f06adf81878067d0d6594d1f9830"
+    },
+    {
+      "id": "pyvisa-py",
+      "url": "https://pyvisa-py.readthedocs.io/en/latest/installation.html",
+      "status": 200,
+      "file": "pyvisa-py.txt",
+      "bytes": 12803,
+      "sha256": "5793daea6c05e4571ae19ec9163e7620c7915fa65b5df9900699a3bc681f6952"
+    },
+    {
+      "id": "cli-decode-072",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/sigrok-cli-0.7.2/decode.c",
+      "status": 200,
+      "file": "cli-decode-072.txt",
+      "sha256": "f2fc8af880cabc7e83574c626f8e3ca10eff4c658db5bd9e42fd192aacae53a1"
+    },
+    {
+      "id": "cli-session-072",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/sigrok-cli-0.7.2/session.c",
+      "status": 200,
+      "file": "cli-session-072.txt",
+      "sha256": "b25e05e37ce2e4684c3e5866f819413ce1f9c794b75054bc8cf7f919a9216d70"
+    },
+    {
+      "id": "cli-man-072",
+      "url": "https://raw.githubusercontent.com/sigrokproject/sigrok-cli/sigrok-cli-0.7.2/doc/sigrok-cli.1",
+      "status": 200,
+      "file": "cli-man-072.txt",
+      "sha256": "e3f06dfef230760a012dc1e5d37e049fe8ba4e6bdb718b8230b28da7ca64a5f9"
+    },
+    {
+      "id": "demo-protocol-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/demo/protocol.c",
+      "status": 200,
+      "file": "demo-protocol-052.txt",
+      "sha256": "5247c5ba2e4376d96a5a502f68fa2df8a6099fdb53b859afc426334b0118b8d5"
+    },
+    {
+      "id": "demo-header-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/demo/protocol.h",
+      "status": 200,
+      "file": "demo-header-052.txt",
+      "sha256": "118cc7aa7bd4d4ae6bcb15f7d9131e76fd41a2af29a20742c003e8fc439c266a"
+    },
+    {
+      "id": "rigol-protocol",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/rigol-ds/protocol.c",
+      "status": 200,
+      "file": "rigol-protocol.txt",
+      "sha256": "a76eacc5f108bea82794d775b2e546aa9d471d41331528498f4b0304271dddd8"
+    },
+    {
+      "id": "siglent-protocol",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/siglent-sds/protocol.c",
+      "status": 200,
+      "file": "siglent-protocol.txt",
+      "sha256": "b71378380295c210269d5cba391ef4ea7e92e99d09f1d897db866f4f529e7a9d"
+    },
+    {
+      "id": "dwf-latest-manual",
+      "url": "https://files.digilent.com/manuals/WaveForms/3.25.1/main.html",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "dwf-3243-manual",
+      "url": "https://files.digilent.com/manuals/WaveForms/3.24.3/main.html",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "dwf-release",
+      "url": "https://files.digilent.com/Software/WaveForms3/ReleaseNotes.txt",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "ad3-reference",
+      "url": "https://digilent.com/reference/test-and-measurement/analog-discovery-3/reference-manual",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "ad3-facts",
+      "url": "https://digilent.com/blog/analog-discovery-3-just-the-facts/",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "hantek-user",
+      "url": "https://www.hantek.com/uploadpic/hantek/files/20250326/DSO2000%20Series%20Digital%20Storage%20Oscilloscope%20User%20Manual20250326154940.pdf",
+      "status": 200,
+      "file": "hantek-user.pdf",
+      "sha256": "b0ed1396b35085a0fcd4fcddd2db4ee274fa3d839f219a7782ee776a04303f1e"
+    },
+    {
+      "id": "hantek-catalogue",
+      "url": "https://www.hantek.com/uploadpic/hantek/files/20230915/Hantek%20Catalogue%202023.pdf",
+      "status": 200,
+      "file": "hantek-catalogue.pdf",
+      "sha256": "e10f82de52fba92a345a55c7b739ccea7c7f7616936dfe3b7d470723c6d9cc40"
+    },
+    {
+      "id": "hantek-scpi",
+      "url": "https://www.hantek.com/uploadpic/hantek/files/20211231/DSO2000%20Series%C2%A0SCPI%C2%A0Programmers%C2%A0Manual.pdf",
+      "status": 200,
+      "file": "hantek-scpi.pdf"
+    },
+    {
+      "id": "dwf-cask",
+      "url": "https://formulae.brew.sh/api/cask/waveforms.json",
+      "status": 200,
+      "file": "dwf-cask.txt"
+    },
+    {
+      "id": "lib-config",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/device.c",
+      "status": 200,
+      "file": "lib-config.txt"
+    },
+    {
+      "id": "output-srzip",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/output/srzip.c",
+      "status": 200,
+      "file": "output-srzip.txt"
+    },
+    {
+      "id": "ad3-sigrok",
+      "url": "https://sigrok.org/wiki/Digilent_Analog_Discovery_3",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "fx2-driver-052",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/libsigrok-0.5.2/src/hardware/fx2lafw/api.c",
+      "status": 200,
+      "file": "fx2-driver-052.txt"
+    },
+    {
+      "id": "rigol-user",
+      "url": "https://www.rigol.com/dam/global/downloads/brochures/en/user-manual/oscillosopes/DHO800_UserGuide_EN.pdf",
+      "status": 200,
+      "file": "rigol-user.pdf"
+    },
+    {
+      "id": "supported-hardware",
+      "url": "https://sigrok.org/wiki/Supported_hardware",
+      "status": 200,
+      "file": "supported-hardware.txt"
+    },
+    {
+      "id": "digilent-driver",
+      "url": "https://raw.githubusercontent.com/sigrokproject/libsigrok/master/src/hardware/digilent-ad/api.c",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ]
+}

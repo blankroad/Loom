@@ -1,0 +1,2974 @@
+{
+  "crate": {
+    "id": "fs4",
+    "name": "fs4",
+    "updated_at": "2026-04-28T05:30:17.691355Z",
+    "versions": [
+      2318573,
+      2298438,
+      2293921,
+      2289834,
+      1474800,
+      1456836,
+      1358281,
+      1331955,
+      1327035,
+      1294503,
+      1218577,
+      1216667,
+      1170405,
+      1139663,
+      1100866,
+      1076556,
+      1063467,
+      1063384,
+      911980,
+      837651,
+      812048,
+      792073,
+      715433,
+      578363,
+      577519,
+      577516,
+      577027,
+      475316,
+      475307,
+      475300,
+      475298,
+      475297
+    ],
+    "keywords": [
+      "file",
+      "lock",
+      "duplicate",
+      "flock",
+      "fs2"
+    ],
+    "categories": [
+      "asynchronous",
+      "external-ffi-bindings",
+      "filesystem"
+    ],
+    "badges": [],
+    "created_at": "2021-12-31T12:10:21.897583Z",
+    "downloads": 80034827,
+    "recent_downloads": 21310260,
+    "default_version": "1.1.0",
+    "num_versions": 32,
+    "yanked": false,
+    "max_version": "1.1.0",
+    "newest_version": "1.1.0",
+    "max_stable_version": "1.1.0",
+    "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+    "homepage": null,
+    "documentation": "https://docs.rs/fs4",
+    "repository": "https://github.com/al8n/fs4",
+    "links": {
+      "version_downloads": "/api/v1/crates/fs4/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/fs4/owners",
+      "owner_team": "/api/v1/crates/fs4/owner_team",
+      "owner_user": "/api/v1/crates/fs4/owner_user",
+      "reverse_dependencies": "/api/v1/crates/fs4/reverse_dependencies"
+    },
+    "exact_match": false,
+    "trustpub_only": false
+  },
+  "versions": [
+    {
+      "id": 2318573,
+      "crate": "fs4",
+      "num": "1.1.0",
+      "dl_path": "/api/v1/crates/fs4/1.1.0/download",
+      "readme_path": "/api/v1/crates/fs4/1.1.0/readme",
+      "updated_at": "2026-04-28T05:30:17.691355Z",
+      "created_at": "2026-04-28T05:30:17.691355Z",
+      "downloads": 8671153,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/1.1.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/1.1.0/downloads",
+        "authors": "/api/v1/crates/fs4/1.1.0/authors"
+      },
+      "crate_size": 44781,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2026-04-28T05:30:17.691355Z"
+        }
+      ],
+      "checksum": "7e72ed92b67c146290f88e9c89d60ca163ea417a446f61ffd7b72df3e7f1dfd5",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 2199,
+            "comment_lines": 132,
+            "files": 36
+          }
+        },
+        "total_code_lines": 2199,
+        "total_comment_lines": 132
+      }
+    },
+    {
+      "id": 2298438,
+      "crate": "fs4",
+      "num": "1.0.2",
+      "dl_path": "/api/v1/crates/fs4/1.0.2/download",
+      "readme_path": "/api/v1/crates/fs4/1.0.2/readme",
+      "updated_at": "2026-04-23T23:24:30.487783Z",
+      "created_at": "2026-04-23T23:24:30.487783Z",
+      "downloads": 10175,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/1.0.2/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/1.0.2/downloads",
+        "authors": "/api/v1/crates/fs4/1.0.2/authors"
+      },
+      "crate_size": 42495,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2026-04-23T23:24:30.487783Z"
+        }
+      ],
+      "checksum": "4f8fa43de52e33bb8fc545448eb07d6e6248971c5d6b4947937e9395f6ff339d",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1978,
+            "comment_lines": 127,
+            "files": 36
+          }
+        },
+        "total_code_lines": 1978,
+        "total_comment_lines": 127
+      }
+    },
+    {
+      "id": 2293921,
+      "crate": "fs4",
+      "num": "1.0.1",
+      "dl_path": "/api/v1/crates/fs4/1.0.1/download",
+      "readme_path": "/api/v1/crates/fs4/1.0.1/readme",
+      "updated_at": "2026-04-23T00:11:59.299030Z",
+      "created_at": "2026-04-23T00:11:59.299030Z",
+      "downloads": 2917,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/1.0.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/1.0.1/downloads",
+        "authors": "/api/v1/crates/fs4/1.0.1/authors"
+      },
+      "crate_size": 41228,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2026-04-23T00:11:59.299030Z"
+        }
+      ],
+      "checksum": "6b6586049770567845c3091bca401cf6f70d418dcd3d01a1e897db0da7765429",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1970,
+            "comment_lines": 94,
+            "files": 36
+          }
+        },
+        "total_code_lines": 1970,
+        "total_comment_lines": 94
+      }
+    },
+    {
+      "id": 2289834,
+      "crate": "fs4",
+      "num": "1.0.0",
+      "dl_path": "/api/v1/crates/fs4/1.0.0/download",
+      "readme_path": "/api/v1/crates/fs4/1.0.0/readme",
+      "updated_at": "2026-04-22T04:16:08.082986Z",
+      "created_at": "2026-04-22T04:16:08.082986Z",
+      "downloads": 3105,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/1.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/1.0.0/downloads",
+        "authors": "/api/v1/crates/fs4/1.0.0/authors"
+      },
+      "crate_size": 37712,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2026-04-22T04:16:08.082986Z"
+        }
+      ],
+      "checksum": "d30c8899ca6ce4566c407ee75aa6331c666bddaca6ed846e7712d2db0ecdcd46",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1810,
+            "comment_lines": 75,
+            "files": 36
+          }
+        },
+        "total_code_lines": 1810,
+        "total_comment_lines": 75
+      }
+    },
+    {
+      "id": 1474800,
+      "crate": "fs4",
+      "num": "0.13.1",
+      "dl_path": "/api/v1/crates/fs4/0.13.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.13.1/readme",
+      "updated_at": "2025-03-08T07:55:58.680118Z",
+      "created_at": "2025-03-08T07:55:58.680118Z",
+      "downloads": 34576134,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.13.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.13.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.13.1/authors"
+      },
+      "crate_size": 28794,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2025-03-08T07:55:58.680118Z"
+        }
+      ],
+      "checksum": "8640e34b88f7652208ce9e88b1a37a2ae95227d84abec377ccd3c5cfeb141ed4",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1738,
+            "comment_lines": 44,
+            "files": 35
+          }
+        },
+        "total_code_lines": 1738,
+        "total_comment_lines": 44
+      }
+    },
+    {
+      "id": 1456836,
+      "crate": "fs4",
+      "num": "0.13.0",
+      "dl_path": "/api/v1/crates/fs4/0.13.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.13.0/readme",
+      "updated_at": "2025-02-23T04:34:30.674989Z",
+      "created_at": "2025-02-23T04:34:30.674989Z",
+      "downloads": 89583,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.13.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.13.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.13.0/authors"
+      },
+      "crate_size": 28710,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2025-02-23T04:34:30.674989Z"
+        }
+      ],
+      "checksum": "be058769cf1633370c3d0dac6bb9b223b8f18900cf808abadf7843192e706238",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1738,
+            "comment_lines": 44,
+            "files": 35
+          }
+        },
+        "total_code_lines": 1738,
+        "total_comment_lines": 44
+      }
+    },
+    {
+      "id": 1358281,
+      "crate": "fs4",
+      "num": "0.12.0",
+      "dl_path": "/api/v1/crates/fs4/0.12.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.12.0/readme",
+      "updated_at": "2024-11-30T14:04:19.713175Z",
+      "created_at": "2024-11-30T14:04:19.713175Z",
+      "downloads": 3929802,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err2": [
+          "dep:fs-err2",
+          "fs-err2/io_safety"
+        ],
+        "fs-err2-tokio": [
+          "fs-err2",
+          "fs-err2/tokio"
+        ],
+        "fs-err3": [
+          "dep:fs-err3"
+        ],
+        "fs-err3-tokio": [
+          "fs-err3",
+          "fs-err3/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.12.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.12.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.12.0/authors"
+      },
+      "crate_size": 19854,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-30T14:04:19.713175Z"
+        }
+      ],
+      "checksum": "c29c30684418547d476f0b48e84f4821639119c483b1eccd566c8cd0cd05f521",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1696,
+            "comment_lines": 44,
+            "files": 35
+          }
+        },
+        "total_code_lines": 1696,
+        "total_comment_lines": 44
+      }
+    },
+    {
+      "id": 1331955,
+      "crate": "fs4",
+      "num": "0.11.1",
+      "dl_path": "/api/v1/crates/fs4/0.11.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.11.1/readme",
+      "updated_at": "2024-11-07T18:22:17.540534Z",
+      "created_at": "2024-11-07T18:22:17.540534Z",
+      "downloads": 381507,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err": [
+          "dep:fs-err",
+          "fs-err/io_safety"
+        ],
+        "fs-err-tokio": [
+          "fs-err",
+          "fs-err/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.11.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.11.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.11.1/authors"
+      },
+      "crate_size": 19443,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-07T18:22:17.540534Z"
+        }
+      ],
+      "checksum": "e871a4cfa68bb224863b53149d973df1ac8d1ed2fa1d1bfc37ac1bb65dd37207",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1562,
+            "comment_lines": 43,
+            "files": 29
+          }
+        },
+        "total_code_lines": 1562,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 1327035,
+      "crate": "fs4",
+      "num": "0.11.0",
+      "dl_path": "/api/v1/crates/fs4/0.11.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.11.0/readme",
+      "updated_at": "2024-11-04T14:22:20.952320Z",
+      "created_at": "2024-11-04T14:22:20.952320Z",
+      "downloads": 25155,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err": [
+          "dep:fs-err",
+          "fs-err/io_safety"
+        ],
+        "fs-err-tokio": [
+          "fs-err",
+          "fs-err/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.11.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.11.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.11.0/authors"
+      },
+      "crate_size": 19446,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-04T14:22:20.952320Z"
+        }
+      ],
+      "checksum": "adc91b3da7f1a7968b00f9f65a4971252f6a927d3cb9eec05d91cbeaff678f9a",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1562,
+            "comment_lines": 43,
+            "files": 29
+          }
+        },
+        "total_code_lines": 1562,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 1294503,
+      "crate": "fs4",
+      "num": "0.10.0",
+      "dl_path": "/api/v1/crates/fs4/0.10.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.10.0/readme",
+      "updated_at": "2024-11-04T14:22:38.543183Z",
+      "created_at": "2024-10-08T09:09:52.483811Z",
+      "downloads": 146539,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err": [
+          "dep:fs-err",
+          "fs-err/io_safety"
+        ],
+        "fs-err-tokio": [
+          "fs-err",
+          "fs-err/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.10.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.10.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.10.0/authors"
+      },
+      "crate_size": 19660,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-10-08T09:09:52.483811Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-04T10:11:50.444740Z"
+        },
+        {
+          "action": "unyank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-04T10:11:56.891758Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-11-04T14:22:38.545239Z"
+        }
+      ],
+      "checksum": "ec6fcfb3c0c1d71612528825042261419d5dade9678c39a781e05b63677d9b32",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1673,
+            "comment_lines": 48,
+            "files": 29
+          }
+        },
+        "total_code_lines": 1673,
+        "total_comment_lines": 48
+      }
+    },
+    {
+      "id": 1218577,
+      "crate": "fs4",
+      "num": "0.9.1",
+      "dl_path": "/api/v1/crates/fs4/0.9.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.9.1/readme",
+      "updated_at": "2024-07-30T05:22:17.782910Z",
+      "created_at": "2024-07-30T05:22:17.782910Z",
+      "downloads": 2066739,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err": [
+          "dep:fs-err",
+          "fs-err/io_safety"
+        ],
+        "fs-err-tokio": [
+          "fs-err",
+          "fs-err/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.9.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.9.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.9.1/authors"
+      },
+      "crate_size": 19021,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-07-30T05:22:17.782910Z"
+        }
+      ],
+      "checksum": "e8c6b3bd49c37d2aa3f3f2220233b29a7cd23f79d1fe70e5337d25fb390793de",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1558,
+            "comment_lines": 43,
+            "files": 29
+          }
+        },
+        "total_code_lines": 1558,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 1216667,
+      "crate": "fs4",
+      "num": "0.9.0",
+      "dl_path": "/api/v1/crates/fs4/0.9.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.9.0/readme",
+      "updated_at": "2024-07-30T05:24:25.539664Z",
+      "created_at": "2024-07-27T18:46:44.370396Z",
+      "downloads": 1706,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "fs-err": [
+          "dep:fs-err",
+          "fs-err/io_safety"
+        ],
+        "fs-err-tokio": [
+          "fs-err",
+          "fs-err/tokio"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.9.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.9.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.9.0/authors"
+      },
+      "crate_size": 18916,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-07-27T18:46:44.370396Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-07-30T05:24:25.541147Z"
+        }
+      ],
+      "checksum": "eff1b43de0569d91f75d415e790ddef2c4d6b4e7b81933a180cf15c9d58880a1",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1558,
+            "comment_lines": 43,
+            "files": 29
+          }
+        },
+        "total_code_lines": 1558,
+        "total_comment_lines": 43
+      }
+    },
+    {
+      "id": 1170405,
+      "crate": "fs4",
+      "num": "0.8.4",
+      "dl_path": "/api/v1/crates/fs4/0.8.4/download",
+      "readme_path": "/api/v1/crates/fs4/0.8.4/readme",
+      "updated_at": "2024-06-11T06:58:10.976409Z",
+      "created_at": "2024-06-11T06:58:10.976409Z",
+      "downloads": 11721153,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.8.4/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.8.4/downloads",
+        "authors": "/api/v1/crates/fs4/0.8.4/authors"
+      },
+      "crate_size": 18620,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-06-11T06:58:10.976409Z"
+        }
+      ],
+      "checksum": "f7e180ac76c23b45e767bd7ae9579bc0bb458618c4bc71835926e098e61d15f8",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1800,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1800,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 1139663,
+      "crate": "fs4",
+      "num": "0.8.3",
+      "dl_path": "/api/v1/crates/fs4/0.8.3/download",
+      "readme_path": "/api/v1/crates/fs4/0.8.3/readme",
+      "updated_at": "2024-05-09T09:32:58.189031Z",
+      "created_at": "2024-05-09T09:32:58.189031Z",
+      "downloads": 381765,
+      "features": {
+        "async-std": [
+          "dep:async-std"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.8.3/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.8.3/downloads",
+        "authors": "/api/v1/crates/fs4/0.8.3/authors"
+      },
+      "crate_size": 18502,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-05-09T09:32:58.189031Z"
+        }
+      ],
+      "checksum": "73969b81e8bc90a3828d913dd3973d80771bfb9d7fbe1a78a79122aad456af15",
+      "rust_version": "1.75.0",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1382,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1382,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 1100866,
+      "crate": "fs4",
+      "num": "0.8.2",
+      "dl_path": "/api/v1/crates/fs4/0.8.2/download",
+      "readme_path": "/api/v1/crates/fs4/0.8.2/readme",
+      "updated_at": "2024-04-02T08:37:51.229012Z",
+      "created_at": "2024-04-02T08:37:51.229012Z",
+      "downloads": 1287409,
+      "features": {
+        "async-std": [
+          "dep:async-std",
+          "async-trait"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.8.2/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.8.2/downloads",
+        "authors": "/api/v1/crates/fs4/0.8.2/authors"
+      },
+      "crate_size": 18180,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-04-02T08:37:51.229012Z"
+        }
+      ],
+      "checksum": "21dabded2e32cd57ded879041205c60a4a4c4bab47bd0fd2fa8b01f30849f02b",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1381,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1381,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 1076556,
+      "crate": "fs4",
+      "num": "0.8.1",
+      "dl_path": "/api/v1/crates/fs4/0.8.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.8.1/readme",
+      "updated_at": "2024-03-08T15:14:13.244583Z",
+      "created_at": "2024-03-08T15:14:13.244583Z",
+      "downloads": 119709,
+      "features": {
+        "async-std": [
+          "dep:async-std",
+          "async-trait"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.8.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.8.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.8.1/authors"
+      },
+      "crate_size": 18260,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-03-08T15:14:13.244583Z"
+        }
+      ],
+      "checksum": "57b1e34e369d7f0151309821497440bd0266b86c77ccd69717c3b67e5eaeffe4",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1381,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1381,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 1063467,
+      "crate": "fs4",
+      "num": "0.8.0",
+      "dl_path": "/api/v1/crates/fs4/0.8.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.8.0/readme",
+      "updated_at": "2024-02-25T17:44:27.285622Z",
+      "created_at": "2024-02-25T17:44:27.285622Z",
+      "downloads": 18138,
+      "features": {
+        "async-std": [
+          "dep:async-std",
+          "async-trait"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.8.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.8.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.8.0/authors"
+      },
+      "crate_size": 18253,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-02-25T17:44:27.285622Z"
+        }
+      ],
+      "checksum": "3d15c33be2d8e5bc0e6229c8c20905d69d6074c92c64c9b3485560b6d6dc1b68",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 1063384,
+      "crate": "fs4",
+      "num": "0.7.1",
+      "dl_path": "/api/v1/crates/fs4/0.7.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.7.1/readme",
+      "updated_at": "2024-02-25T17:44:36.347683Z",
+      "created_at": "2024-02-25T16:01:46.149807Z",
+      "downloads": 1925,
+      "features": {
+        "async-std": [
+          "dep:async-std",
+          "async-trait"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio",
+          "async-trait"
+        ]
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.7.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.7.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.7.1/authors"
+      },
+      "crate_size": 18254,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-02-25T16:01:46.149807Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2024-02-25T17:44:36.350594Z"
+        }
+      ],
+      "checksum": "522f0b256a6c0710bb1983af35384a86d0cb5734444c97080826b1a366dc7790",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 911980,
+      "crate": "fs4",
+      "num": "0.7.0",
+      "dl_path": "/api/v1/crates/fs4/0.7.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.7.0/readme",
+      "updated_at": "2023-09-30T20:01:09.620782Z",
+      "created_at": "2023-09-30T20:01:09.620782Z",
+      "downloads": 5214702,
+      "features": {
+        "async-std": [
+          "dep:async-std",
+          "async-trait"
+        ],
+        "default": [
+          "sync"
+        ],
+        "smol": [
+          "dep:smol",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio": [
+          "dep:tokio",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.7.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.7.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.7.0/authors"
+      },
+      "crate_size": 18207,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2023-09-30T20:01:09.620782Z"
+        }
+      ],
+      "checksum": "29f9df8a11882c4e3335eb2d18a0137c505d9ca927470b0cac9c6f0ae07d28f7",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 837651,
+      "crate": "fs4",
+      "num": "0.6.6",
+      "dl_path": "/api/v1/crates/fs4/0.6.6/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.6/readme",
+      "updated_at": "2023-07-03T12:52:17.310338Z",
+      "created_at": "2023-07-03T12:52:17.310338Z",
+      "downloads": 8159120,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.6/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.6/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.6/authors"
+      },
+      "crate_size": 17750,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2023-07-03T12:52:17.310338Z"
+        }
+      ],
+      "checksum": "2eeb4ed9e12f43b7fa0baae3f9cdda28352770132ef2e09a23760c29cae8bd47",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 812048,
+      "crate": "fs4",
+      "num": "0.6.5",
+      "dl_path": "/api/v1/crates/fs4/0.6.5/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.5/readme",
+      "updated_at": "2023-05-31T05:07:00.578839Z",
+      "created_at": "2023-05-31T05:07:00.578839Z",
+      "downloads": 2186887,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.5/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.5/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.5/authors"
+      },
+      "crate_size": 17764,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2023-05-31T05:07:00.578839Z"
+        }
+      ],
+      "checksum": "7672706608ecb74ab2e055c68327ffc25ae4cac1e12349204fd5fb0f3487cce2",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 792073,
+      "crate": "fs4",
+      "num": "0.6.4",
+      "dl_path": "/api/v1/crates/fs4/0.6.4/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.4/readme",
+      "updated_at": "2023-05-04T06:10:51.767913Z",
+      "created_at": "2023-05-04T06:10:51.767913Z",
+      "downloads": 149365,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.4/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.4/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.4/authors"
+      },
+      "crate_size": 17746,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2023-05-04T06:10:51.767913Z"
+        }
+      ],
+      "checksum": "a7f5b6908aecca5812a4569056285e58c666588c9573ee59765bf1d3692699e2",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1379,
+            "comment_lines": 82,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1379,
+        "total_comment_lines": 82
+      }
+    },
+    {
+      "id": 715433,
+      "crate": "fs4",
+      "num": "0.6.3",
+      "dl_path": "/api/v1/crates/fs4/0.6.3/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.3/readme",
+      "updated_at": "2023-01-31T02:13:58.577285Z",
+      "created_at": "2023-01-31T02:13:58.577285Z",
+      "downloads": 555878,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.3/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.3/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.3/authors"
+      },
+      "crate_size": 18132,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2023-01-31T02:13:58.577285Z"
+        }
+      ],
+      "checksum": "8ea55201cc351fdb478217c0fb641b59813da9b4efe4c414a9d8f989a657d149",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1417,
+            "comment_lines": 84,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1417,
+        "total_comment_lines": 84
+      }
+    },
+    {
+      "id": 578363,
+      "crate": "fs4",
+      "num": "0.6.2",
+      "dl_path": "/api/v1/crates/fs4/0.6.2/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.2/readme",
+      "updated_at": "2022-07-04T16:15:34.958160Z",
+      "created_at": "2022-07-04T16:15:34.958160Z",
+      "downloads": 54160,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.2/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.2/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.2/authors"
+      },
+      "crate_size": 18146,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2022-07-04T16:15:34.958160Z"
+        }
+      ],
+      "checksum": "e9813c3dc174931eff4bd78609debba56465b7c1da888576d21636b601a46790",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1417,
+            "comment_lines": 84,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1417,
+        "total_comment_lines": 84
+      }
+    },
+    {
+      "id": 577519,
+      "crate": "fs4",
+      "num": "0.6.1",
+      "dl_path": "/api/v1/crates/fs4/0.6.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.1/readme",
+      "updated_at": "2022-07-03T01:56:29.320682Z",
+      "created_at": "2022-07-03T01:56:29.320682Z",
+      "downloads": 1935,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.1/authors"
+      },
+      "crate_size": 18373,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2022-07-03T01:56:29.320682Z"
+        }
+      ],
+      "checksum": "b0861ce700212a8dbd9740f611c126f192ef800da9bdc813c9fb08ea07f1d4d7",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1442,
+            "comment_lines": 85,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1442,
+        "total_comment_lines": 85
+      }
+    },
+    {
+      "id": 577516,
+      "crate": "fs4",
+      "num": "0.6.0",
+      "dl_path": "/api/v1/crates/fs4/0.6.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.6.0/readme",
+      "updated_at": "2022-07-03T01:48:54.724583Z",
+      "created_at": "2022-07-03T01:48:54.724583Z",
+      "downloads": 2037,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.6.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.6.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.6.0/authors"
+      },
+      "crate_size": 18380,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2022-07-03T01:48:54.724583Z"
+        }
+      ],
+      "checksum": "e100308558fbc16d2b109be053765418788bbf6acca413d55424d3da4e2f28d6",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "No libc, pure Rust cross-platform file locks and file duplication. Original fs2, now supports async and replace libc by rustix.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1442,
+            "comment_lines": 85,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1442,
+        "total_comment_lines": 85
+      }
+    },
+    {
+      "id": 577027,
+      "crate": "fs4",
+      "num": "0.5.5",
+      "dl_path": "/api/v1/crates/fs4/0.5.5/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.5/readme",
+      "updated_at": "2022-07-04T07:09:49.892112Z",
+      "created_at": "2022-07-02T00:50:34.788956Z",
+      "downloads": 1898,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": true,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.5/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.5/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.5/authors"
+      },
+      "crate_size": 22248,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2022-07-02T00:50:34.788956Z"
+        },
+        {
+          "action": "yank",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2022-07-04T07:09:49.896091Z"
+        }
+      ],
+      "checksum": "15db7070ad11d5d652498c0b5d49428a3150ffe8c0c5b8d90a26030664e70ad0",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1906,
+            "comment_lines": 125,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1906,
+        "total_comment_lines": 125
+      }
+    },
+    {
+      "id": 475316,
+      "crate": "fs4",
+      "num": "0.5.4",
+      "dl_path": "/api/v1/crates/fs4/0.5.4/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.4/readme",
+      "updated_at": "2021-12-31T13:26:47.137705Z",
+      "created_at": "2021-12-31T13:26:47.137705Z",
+      "downloads": 202419,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.4/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.4/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.4/authors"
+      },
+      "crate_size": 21369,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2021-12-31T13:26:47.137705Z"
+        }
+      ],
+      "checksum": "cef5c93884e5cef757f63446122c2f420713c3e03f85540d09485b9415983b4a",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1761,
+            "comment_lines": 124,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1761,
+        "total_comment_lines": 124
+      }
+    },
+    {
+      "id": 475307,
+      "crate": "fs4",
+      "num": "0.5.3",
+      "dl_path": "/api/v1/crates/fs4/0.5.3/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.3/readme",
+      "updated_at": "2021-12-31T12:41:08.384761Z",
+      "created_at": "2021-12-31T12:41:08.384761Z",
+      "downloads": 1868,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.3/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.3/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.3/authors"
+      },
+      "crate_size": 21374,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2021-12-31T12:41:08.384761Z"
+        }
+      ],
+      "checksum": "cffdb0b310f6661e8dbc460ada5f0728e128ac81e1dbf0c4965368111e32d979",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1761,
+            "comment_lines": 124,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1761,
+        "total_comment_lines": 124
+      }
+    },
+    {
+      "id": 475300,
+      "crate": "fs4",
+      "num": "0.5.2",
+      "dl_path": "/api/v1/crates/fs4/0.5.2/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.2/readme",
+      "updated_at": "2021-12-31T12:25:45.720680Z",
+      "created_at": "2021-12-31T12:25:45.720680Z",
+      "downloads": 1869,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.2/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.2/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.2/authors"
+      },
+      "crate_size": 21359,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2021-12-31T12:25:45.720680Z"
+        }
+      ],
+      "checksum": "9363aaded8c960f0edca00729f050a737d35c7aad4f6130eb7350006b708c84a",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1761,
+            "comment_lines": 124,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1761,
+        "total_comment_lines": 124
+      }
+    },
+    {
+      "id": 475298,
+      "crate": "fs4",
+      "num": "0.5.1",
+      "dl_path": "/api/v1/crates/fs4/0.5.1/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.1/readme",
+      "updated_at": "2021-12-31T12:15:42.632108Z",
+      "created_at": "2021-12-31T12:15:42.632108Z",
+      "downloads": 1863,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.1/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.1/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.1/authors"
+      },
+      "crate_size": 21275,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2021-12-31T12:15:42.632108Z"
+        }
+      ],
+      "checksum": "f950baaa3eac639192b3def82717e6c2d0387ba79d6e7bd0f78d539597fb7438",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs4",
+      "repository": "https://github.com/al8n/fs4-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1767,
+            "comment_lines": 124,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1767,
+        "total_comment_lines": 124
+      }
+    },
+    {
+      "id": 475297,
+      "crate": "fs4",
+      "num": "0.5.0",
+      "dl_path": "/api/v1/crates/fs4/0.5.0/download",
+      "readme_path": "/api/v1/crates/fs4/0.5.0/readme",
+      "updated_at": "2021-12-31T12:10:21.897583Z",
+      "created_at": "2021-12-31T12:10:21.897583Z",
+      "downloads": 1874,
+      "features": {
+        "default": [
+          "sync"
+        ],
+        "smol-async": [
+          "smol",
+          "async-trait"
+        ],
+        "std-async": [
+          "async-std/async-io",
+          "async-trait"
+        ],
+        "sync": [],
+        "tokio-async": [
+          "tokio/fs",
+          "async-trait"
+        ]
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT/Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/fs4/0.5.0/dependencies",
+        "version_downloads": "/api/v1/crates/fs4/0.5.0/downloads",
+        "authors": "/api/v1/crates/fs4/0.5.0/authors"
+      },
+      "crate_size": 21256,
+      "published_by": {
+        "id": 119762,
+        "login": "al8n",
+        "name": "Al Liu",
+        "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+        "url": "https://github.com/al8n",
+        "github_username_matches": true,
+        "created_at": "2018-08-13T15:43:12Z"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 119762,
+            "login": "al8n",
+            "name": "Al Liu",
+            "avatar": "https://avatars.githubusercontent.com/u/42351146?v=4",
+            "url": "https://github.com/al8n",
+            "github_username_matches": true,
+            "created_at": "2018-08-13T15:43:12Z"
+          },
+          "time": "2021-12-31T12:10:21.897583Z"
+        }
+      ],
+      "checksum": "ac5b1e85c409f91408ccd1a7311bedcb17f4b22b2a236a03b3d0152385e7c129",
+      "rust_version": null,
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2021",
+      "description": "Cross-platform file locks and file duplication. Original fs2, now supports async.",
+      "homepage": null,
+      "documentation": "https://docs.rs/fs3",
+      "repository": "https://github.com/al8n/fs3-rs",
+      "trustpub_data": null,
+      "linecounts": {
+        "languages": {
+          "Rust": {
+            "code_lines": 1767,
+            "comment_lines": 124,
+            "files": 20
+          }
+        },
+        "total_code_lines": 1767,
+        "total_comment_lines": 124
+      }
+    }
+  ],
+  "keywords": [
+    {
+      "id": "file",
+      "keyword": "file",
+      "created_at": "2014-11-20T20:07:58.726767Z",
+      "crates_cnt": 870
+    },
+    {
+      "id": "lock",
+      "keyword": "lock",
+      "created_at": "2015-03-09T21:06:51.686561Z",
+      "crates_cnt": 170
+    },
+    {
+      "id": "duplicate",
+      "keyword": "duplicate",
+      "created_at": "2015-09-02T04:59:27.102413Z",
+      "crates_cnt": 72
+    },
+    {
+      "id": "flock",
+      "keyword": "flock",
+      "created_at": "2015-09-02T04:59:27.112331Z",
+      "crates_cnt": 14
+    },
+    {
+      "id": "fs2",
+      "keyword": "fs2",
+      "created_at": "2022-07-02T00:50:34.788956Z",
+      "crates_cnt": 1
+    }
+  ],
+  "categories": [
+    {
+      "id": "asynchronous",
+      "category": "Asynchronous",
+      "slug": "asynchronous",
+      "description": "Crates to help you deal with events independently of the main program flow, using techniques like futures, promises, waiting, or eventing.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 12786
+    },
+    {
+      "id": "external-ffi-bindings",
+      "category": "External FFI bindings",
+      "slug": "external-ffi-bindings",
+      "description": "Direct Rust FFI bindings to libraries written in other languages; often denoted by a -sys suffix. Safe and idiomatic wrappers are in the API bindings category.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 2591
+    },
+    {
+      "id": "filesystem",
+      "category": "Filesystem",
+      "slug": "filesystem",
+      "description": "Crates for dealing with files and filesystems.",
+      "created_at": "2017-01-17T19:13:05.112025Z",
+      "crates_cnt": 4638
+    }
+  ]
+}

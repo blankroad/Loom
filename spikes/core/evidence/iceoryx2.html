@@ -1,0 +1,772 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="iceoryx2"><title>iceoryx2 - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-203241e4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="iceoryx2" data-themes="" data-resource-suffix="-20260917-1.100.0-nightly-330d31712" data-rustdoc-version="1.100.0-nightly (330d31712 2026-09-17)" data-channel="nightly" data-search-js="search-b167f383.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20260917-1.100.0-nightly-330d31712.js"></script><script defer src="/-/rustdoc.static/main-1814ead3.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "iceoryx2",
+            "version": "0.10.0"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="iceoryx2: Lock-Free Zero-Copy Interprocess Communication">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">iceoryx2-0.10.0</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        iceoryx2 0.10.0
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/iceoryx2/0.10.0/iceoryx2/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/iceoryx2/latest" class="pure-menu-link description" title="See iceoryx2 in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a> OR <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.100.0-nightly (330d31712 2026-09-17)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 18 September 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://iceoryx.io" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-house " aria-hidden="true"></span> Homepage
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://github.com/eclipse-iceoryx/iceoryx2" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/iceoryx2" class="pure-menu-link" title="See iceoryx2 in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/iceoryx2/latest/source/" title="Browse source of iceoryx2-0.10.0" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/elBoberido" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> elBoberido
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/elfenpiff" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> elfenpiff
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/budrus" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> budrus
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/dkroenke" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> dkroenke
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/flatbuffers/^25.12.19/" class="pure-menu-link">
+                flatbuffers ^25.12.19
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-concurrency/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-concurrency ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-container/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-container ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-derive-macros/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-derive-macros ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-elementary/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-elementary ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-elementary-traits/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-elementary-traits ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-flatbuffers/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-flatbuffers ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-lock-free/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-lock-free ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-loggers/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-loggers ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-memory/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-memory ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-posix/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-posix ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-print/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-print ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-system-types/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-system-types ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-cal/^0.10.0/" class="pure-menu-link">
+                iceoryx2-cal ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-log/^0.10.0/" class="pure-menu-link">
+                iceoryx2-log ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-pal-configuration/^0.10.0/" class="pure-menu-link">
+                iceoryx2-pal-configuration ^0.10.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.203/" class="pure-menu-link">
+                serde ^1.0.203
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tiny-fn/^0.1.6/" class="pure-menu-link">
+                tiny-fn ^0.1.6
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/toml/^0.9.8/" class="pure-menu-link">
+                toml ^0.9.8
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-loggers/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-loggers ^0.10.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/iceoryx2-bb-testing/^0.10.0/" class="pure-menu-link">
+                iceoryx2-bb-testing ^0.10.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/iceoryx2/latest/menus/releases/iceoryx2/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/iceoryx2/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/iceoryx2/latest/menus/platforms/iceoryx2/"><li class="pure-menu-item">
+            <a href="/crate/iceoryx2/latest/target-redirect/iceoryx2/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/iceoryx2/latest/features" title="Browse available feature flags of iceoryx2-0.10.0" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/iceoryx2/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate iceoryx2</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../iceoryx2/index.html">iceoryx2</a><span class="version">0.10.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#iceoryx2" title="iceoryx2">iceoryx2</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#publish-subscribe" title="Publish-Subscribe">Publish-Subscribe</a></li><li><a href="#request-response" title="Request-Response">Request-Response</a></li><li><a href="#events" title="Events">Events</a></li><li><a href="#blackboard" title="Blackboard">Blackboard</a></li></ul></li><li><a href="#quality-of-services" title="Quality Of Services">Quality Of Services</a><ul><li><a href="#publish-subscribe-1" title="Publish-Subscribe">Publish-Subscribe</a></li><li><a href="#request-response-1" title="Request-Response">Request-Response</a></li><li><a href="#event" title="Event">Event</a></li><li><a href="#blackboard-1" title="Blackboard">Blackboard</a></li></ul></li><li><a href="#port-behavior" title="Port Behavior">Port Behavior</a></li><li><a href="#feature-flags" title="Feature Flags">Feature Flags</a></li><li><a href="#custom-configuration" title="Custom Configuration">Custom Configuration</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>iceoryx2</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/iceoryx2/lib.rs.html#13-587">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="iceoryx2"><a class="doc-anchor" href="#iceoryx2">§</a>iceoryx2</h2>
+<p>iceoryx2 is a cutting-edge service-oriented zero-copy lock-free inter-process communication
+middleware. Designed to support various
+<a href="service/messaging_pattern/enum.MessagingPattern.html" title="enum iceoryx2::service::messaging_pattern::MessagingPattern"><code>MessagingPattern</code></a>s
+iceoryx2 empowers developers with
+the flexibility of:</p>
+<ul>
+<li>Publish-Subscribe</li>
+<li>Events</li>
+<li>Request-Response</li>
+<li>Blackboard</li>
+<li>Pipeline (planned)</li>
+</ul>
+<p>For a comprehensive list of all planned features, please refer to the
+<a href="https://github.com/eclipse-iceoryx/iceoryx2/blob/main/ROADMAP.md">GitHub Roadmap</a>.</p>
+<p>Services are uniquely identified by name and
+<a href="service/messaging_pattern/enum.MessagingPattern.html" title="enum iceoryx2::service::messaging_pattern::MessagingPattern"><code>MessagingPattern</code></a>. They can be instantiated with
+diverse quality-of-service settings and are envisioned to be deployable in a <code>no_std</code> and
+safety-critical environment in the future.</p>
+<p>Moreover, iceoryx2 offers configuration options that enable multiple service setups to coexist
+on the same machine or even within the same process without interference. This versatility
+allows iceoryx2 to seamlessly integrate with other frameworks simultaneously.</p>
+<p>iceoryx2 traces its lineage back to the
+<a href="https://github.com/eclipse-iceoryx/iceoryx">eclipse iceoryx</a> project, addressing a major
+drawback – the central daemon. iceoryx2 embraces a fully decentralized architecture,
+eliminating the need for a central daemon entirely.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Each service is uniquely identified by a <a href="service/service_name/struct.ServiceName.html" title="struct iceoryx2::service::service_name::ServiceName"><code>ServiceName</code></a>.
+Initiating communication requires the creation of a service, which serves as a port factory.
+With this factory, endpoints for the service can be created, enabling seamless communication.</p>
+<p>For more detailed examples, explore the
+<a href="https://github.com/eclipse-iceoryx/iceoryx2/tree/main/examples">GitHub example folder</a>.</p>
+<h3 id="publish-subscribe"><a class="doc-anchor" href="#publish-subscribe">§</a>Publish-Subscribe</h3>
+<p>Explore a simple publish-subscribe setup where the subscriber continuously receives data from
+the publisher until the processes are gracefully terminated by the user with <code>CTRL+C</code>.</p>
+<p><strong>Subscriber (Process 1)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="comment">// create our port factory by creating or opening the service
+</span><span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .publish_subscribe::&lt;u64&gt;()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>subscriber = service.subscriber_builder().create()<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(sample) = subscriber.receive()<span class="question-mark">? </span>{
+        <span class="macro">println!</span>(<span class="string">"received: {:?}"</span>, <span class="kw-2">*</span>sample);
+    }
+}</code></pre></div>
+<p><strong>Publisher (Process 2)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="comment">// create our port factory by creating or opening the service
+</span><span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .publish_subscribe::&lt;u64&gt;()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>publisher = service.publisher_builder().create()<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    <span class="kw">let </span>sample = publisher.loan_uninit()<span class="question-mark">?</span>;
+    <span class="kw">let </span>sample = sample.write_payload(<span class="number">1234</span>);
+    sample.send()<span class="question-mark">?</span>;
+}
+</code></pre></div><h3 id="request-response"><a class="doc-anchor" href="#request-response">§</a>Request-Response</h3>
+<p>This is a simple request-response example where a client sends a request, and the server
+responds with multiple replies until the processes are gracefully terminated by the user
+with <code>CTRL+C</code></p>
+<p><strong>Client (Process 1)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>service = node
+    .service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .request_response::&lt;u64, u64&gt;()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>client = service.client_builder().create()<span class="question-mark">?</span>;
+
+<span class="comment">// sending first request by using slower, inefficient copy API
+</span><span class="kw">let </span><span class="kw-2">mut </span>pending_response = client.send_copy(<span class="number">1234</span>)<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    <span class="comment">// acquire all responses to our request from our buffer that were sent by the servers
+    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(response) = pending_response.receive()<span class="question-mark">? </span>{
+        <span class="macro">println!</span>(<span class="string">"  received response: {:?}"</span>, <span class="kw-2">*</span>response);
+    }
+
+    <span class="comment">// send all other requests by using zero copy API
+    </span><span class="kw">let </span>request = client.loan_uninit()<span class="question-mark">?</span>;
+    <span class="kw">let </span>request = request.write_payload(<span class="number">5678</span>);
+
+    pending_response = request.send()<span class="question-mark">?</span>;
+}</code></pre></div>
+<p><strong>Server (Process 2)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_millis(<span class="number">100</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>service = node
+    .service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .request_response::&lt;u64, u64&gt;()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>server = service.server_builder().create()<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(active_request) = server.receive()<span class="question-mark">? </span>{
+        <span class="macro">println!</span>(<span class="string">"received request: {:?}"</span>, <span class="kw-2">*</span>active_request);
+
+        <span class="comment">// use zero copy API, send out some responses to demonstrate the streaming API
+        </span><span class="kw">for </span>n <span class="kw">in </span><span class="number">0</span>..<span class="number">4 </span>{
+            <span class="kw">let </span>response = active_request.loan_uninit()<span class="question-mark">?</span>;
+            <span class="kw">let </span>response = response.write_payload(n <span class="kw">as _</span>);
+            <span class="macro">println!</span>(<span class="string">"  send response: {:?}"</span>, <span class="kw-2">*</span>response);
+            response.send()<span class="question-mark">?</span>;
+        }
+    }
+}</code></pre></div><h3 id="events"><a class="doc-anchor" href="#events">§</a>Events</h3>
+<p>Explore a straightforward event setup, where the listener patiently awaits events from the
+notifier. This continuous event listening continues until the user gracefully terminates
+the processes by pressing <code>CTRL+C</code>.</p>
+<p><strong>Listener (Process 1)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>event = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"MyEventName"</span>.try_into()<span class="question-mark">?</span>)
+    .event()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span><span class="kw-2">mut </span>listener = event.listener_builder().create()<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(Duration::ZERO).is_ok() {
+    listener.timed_wait(|event| {
+        <span class="macro">println!</span>(<span class="string">"event was triggered with id: {:?} {} times"</span>, event.id, event.count);
+    }, CYCLE_TIME);
+}
+</code></pre></div>
+<p><strong>Notifier (Process 2)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>event = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"MyEventName"</span>.try_into()<span class="question-mark">?</span>)
+    .event()
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>notifier = event.notifier_builder().create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span><span class="kw-2">mut </span>counter: usize = <span class="number">0</span>;
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    counter += <span class="number">1</span>;
+    notifier.notify_with_custom_event_id(EventId::new(counter))<span class="question-mark">?</span>;
+
+    <span class="macro">println!</span>(<span class="string">"Trigger event with id {} ..."</span>, counter);
+}
+</code></pre></div><h3 id="blackboard"><a class="doc-anchor" href="#blackboard">§</a>Blackboard</h3>
+<p>Explore a simple blackboard setup with one key-value pair which is continuously updated by the
+writer and read by the reader until the processes are gracefully terminated with <code>CTRL+C</code>.</p>
+<p><strong>Reader (Process 1)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="comment">// create our port factory by creating the service
+</span><span class="kw">type </span>KeyType = u32;
+<span class="kw">let </span>service = node
+    .service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .blackboard_creator::&lt;KeyType&gt;()
+    .add::&lt;u64&gt;(<span class="number">0</span>, <span class="number">0</span>)
+    .create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>reader = service.reader_builder().create()<span class="question-mark">?</span>;
+<span class="kw">let </span>entry_handle = reader.entry::&lt;u64&gt;(<span class="kw-2">&amp;</span><span class="number">0</span>)<span class="question-mark">?</span>;
+
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    <span class="macro">println!</span>(<span class="string">"read: {}"</span>, entry_handle.get());
+}</code></pre></div>
+<p><strong>Writer (Process 2)</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">const </span>CYCLE_TIME: Duration = Duration::from_secs(<span class="number">1</span>);
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="comment">// create our port factory by opening the service
+</span><span class="kw">type </span>KeyType = u32;
+<span class="kw">let </span>service = node
+    .service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .blackboard_opener::&lt;KeyType&gt;()
+    .open()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>writer = service.writer_builder().create()<span class="question-mark">?</span>;
+<span class="kw">let </span>entry_handle_mut = writer.entry::&lt;u64&gt;(<span class="kw-2">&amp;</span><span class="number">0</span>)<span class="question-mark">?</span>;
+
+<span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0</span>;
+<span class="kw">while </span>node.wait(CYCLE_TIME).is_ok() {
+    counter += <span class="number">1</span>;
+    entry_handle_mut.update_with_copy(counter);
+}
+</code></pre></div><h2 id="quality-of-services"><a class="doc-anchor" href="#quality-of-services">§</a>Quality Of Services</h2>
+<p>Quality of service settings, or service settings, play a crucial role in determining memory
+allocation in a worst-case scenario. These settings can be configured during the creation of
+a service, immediately after defining the
+<a href="service/messaging_pattern/enum.MessagingPattern.html" title="enum iceoryx2::service::messaging_pattern::MessagingPattern"><code>MessagingPattern</code></a>. In cases where the service
+already exists, these settings are interpreted as minimum requirements, ensuring a flexible
+and dynamic approach to memory management.</p>
+<h3 id="publish-subscribe-1"><a class="doc-anchor" href="#publish-subscribe-1">§</a>Publish-Subscribe</h3>
+<p>For a detailed documentation see the
+<a href="service/builder/publish_subscribe/struct.Builder.html" title="struct iceoryx2::service::builder::publish_subscribe::Builder"><code>publish_subscribe::Builder</code></a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"PubSubQos"</span>.try_into()<span class="question-mark">?</span>)
+    .publish_subscribe::&lt;u64&gt;()
+    <span class="comment">// when the subscriber buffer is full the oldest data is overridden with the newest
+    </span>.enable_safe_overflow(<span class="bool-val">true</span>)
+    <span class="comment">// how many samples a subscriber can borrow in parallel
+    </span>.subscriber_max_borrowed_samples(<span class="number">2</span>)
+    <span class="comment">// the maximum history size a subscriber can request
+    </span>.history_size(<span class="number">3</span>)
+    <span class="comment">// the maximum buffer size of a subscriber
+    </span>.subscriber_max_buffer_size(<span class="number">4</span>)
+    <span class="comment">// the maximum amount of subscribers of this service
+    </span>.max_subscribers(<span class="number">5</span>)
+    <span class="comment">// the maximum amount of publishers of this service
+    </span>.max_publishers(<span class="number">2</span>)
+    .create()<span class="question-mark">?</span>;
+</code></pre></div><h3 id="request-response-1"><a class="doc-anchor" href="#request-response-1">§</a>Request-Response</h3>
+<p>For a detailed documentation see the
+<a href="service/builder/request_response/struct.Builder.html" title="struct iceoryx2::service::builder::request_response::Builder"><code>request_response::Builder</code></a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"ReqResQos"</span>.try_into()<span class="question-mark">?</span>)
+    .request_response::&lt;u64, u64&gt;()
+    <span class="comment">// overrides the alignment of the request payload
+    </span>.request_payload_alignment(Alignment::new(<span class="number">128</span>).unwrap())
+    <span class="comment">// overrides the alignment of the response payload
+    </span>.response_payload_alignment(Alignment::new(<span class="number">128</span>).unwrap())
+    <span class="comment">// when the server buffer is full the oldest data is overridden with the newest
+    </span>.enable_safe_overflow_for_requests(<span class="bool-val">true</span>)
+    <span class="comment">// when the client buffer is full the oldest data is overridden with the newest
+    </span>.enable_safe_overflow_for_responses(<span class="bool-val">true</span>)
+    <span class="comment">// allows to send requests without expecting an answer
+    </span>.enable_fire_and_forget_requests(<span class="bool-val">true</span>)
+    <span class="comment">// how many requests can a client send in parallel
+    </span>.max_active_requests_per_client(<span class="number">2</span>)
+    <span class="comment">// how many request payload objects can be loaned in parallel
+    </span>.max_loaned_requests(<span class="number">1</span>)
+    <span class="comment">// the max buffer size for incoming responses per request
+    </span>.max_response_buffer_size(<span class="number">4</span>)
+    <span class="comment">// the max number of servers
+    </span>.max_servers(<span class="number">2</span>)
+    <span class="comment">// the max number of clients
+    </span>.max_clients(<span class="number">10</span>)
+    .create()<span class="question-mark">?</span>;
+</code></pre></div><h3 id="event"><a class="doc-anchor" href="#event">§</a>Event</h3>
+<p>For a detailed documentation see the
+<a href="service/builder/event/struct.Builder.html" title="struct iceoryx2::service::builder::event::Builder"><code>event::Builder</code></a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::time::Duration;
+<span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>event = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"EventQos"</span>.try_into()<span class="question-mark">?</span>)
+    .event()
+    <span class="comment">// the maximum amount of notifiers of this service
+    </span>.max_notifiers(<span class="number">2</span>)
+    <span class="comment">// the maximum amount of listeners of this service
+    </span>.max_listeners(<span class="number">2</span>)
+    <span class="comment">// defines the maximum supported event id value
+    // WARNING: an increased value can have a significant performance impact on some
+    //          configurations that use a bitset as event tracking mechanism
+    </span>.event_id_max_value(<span class="number">256</span>)
+    <span class="comment">// optional event id that is emitted when a new notifier was created
+    </span>.notifier_created_event(EventId::new(<span class="number">255</span>))
+    <span class="comment">// optional event id that is emitted when a notifier is dropped
+    </span>.notifier_dropped_event(EventId::new(<span class="number">0</span>))
+    <span class="comment">// optional event id that is emitted when a notifier is identified as dead
+    </span>.notifier_dead_event(EventId::new(<span class="number">254</span>))
+    <span class="comment">// the deadline of the service defines how long a listener has to wait at most until
+    // a signal will be received
+    </span>.deadline(Duration::from_secs(<span class="number">1</span>))
+    .create()<span class="question-mark">?</span>;</code></pre></div><h3 id="blackboard-1"><a class="doc-anchor" href="#blackboard-1">§</a>Blackboard</h3>
+<p>For a detailed documentation see the
+<a href="service/builder/blackboard/struct.Creator.html" title="struct iceoryx2::service::builder::blackboard::Creator"><code>blackboard::Creator</code></a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">type </span>KeyType = u64;
+<span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .blackboard_creator::&lt;KeyType&gt;()
+    <span class="comment">// the maximum amount of readers of this service
+    </span>.max_readers(<span class="number">4</span>)
+    <span class="comment">// the maximum amount of nodes that are able to open this service
+    </span>.max_nodes(<span class="number">5</span>)
+    .add::&lt;u64&gt;(<span class="number">0</span>, <span class="number">0</span>)
+    .create()<span class="question-mark">?</span>;
+</code></pre></div><h2 id="port-behavior"><a class="doc-anchor" href="#port-behavior">§</a>Port Behavior</h2>
+<p>Certain ports in iceoryx2 provide users with the flexibility to define custom behaviors in
+specific situations.
+Custom port behaviors can be specified during the creation of a port,
+utilizing the port factory or service, immediately following the specification of the port
+type. This feature enhances the adaptability of iceoryx2 to diverse use cases and scenarios.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iceoryx2::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>node = NodeBuilder::new().create::&lt;ipc::Service&gt;()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>service = node.service_builder(<span class="kw-2">&amp;</span><span class="string">"My/Funk/ServiceName"</span>.try_into()<span class="question-mark">?</span>)
+    .publish_subscribe::&lt;u64&gt;()
+    .enable_safe_overflow(<span class="bool-val">false</span>)
+    .open_or_create()<span class="question-mark">?</span>;
+
+<span class="kw">let </span>publisher = service.publisher_builder()
+    <span class="comment">// the maximum amount of samples this publisher can loan in parallel
+    </span>.max_loaned_samples(<span class="number">2</span>)
+    <span class="comment">// defines the behavior when a sample could not be delivered when the subscriber buffer is
+    // full, only useful in an non-overflow scenario
+    </span>.backpressure_strategy(BackpressureStrategy::DiscardData)
+    .create()<span class="question-mark">?</span>;
+</code></pre></div><h2 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature Flags</h2>
+<ul>
+<li><code>std</code> - Build for platforms that have <code>std</code> support</li>
+<li><code>dev_permissions</code> - The permissions of all resources will be set to read, write, execute
+for everyone. This shall not be used in production and is meant to be enabled in a docker
+environment with inconsistent user configuration.</li>
+</ul>
+<h2 id="custom-configuration"><a class="doc-anchor" href="#custom-configuration">§</a>Custom Configuration</h2>
+<p>iceoryx2 offers the flexibility to configure default quality of service settings, paths, and
+file suffixes through a custom configuration file.</p>
+<p>For in-depth details and examples, please visit the
+<a href="https://github.com/eclipse-iceoryx/iceoryx2/tree/main/config">GitHub config folder</a>.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="active_request/index.html" title="mod iceoryx2::active_request">active_<wbr>request</a></dt><dd>Represents a “connection” to a <a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a> that corresponds to a
+previously received <a href="request_mut/struct.RequestMut.html" title="struct iceoryx2::request_mut::RequestMut"><code>RequestMut</code></a>.</dd><dt><a class="mod" href="config/index.html" title="mod iceoryx2::config">config</a></dt><dd>Handles iceoryx2s global configuration</dd><dt><a class="mod" href="constants/index.html" title="mod iceoryx2::constants">constants</a></dt><dd>Constants that define limits and properties of an iceoryx2 system</dd><dt><a class="mod" href="identifiers/index.html" title="mod iceoryx2::identifiers">identifiers</a></dt><dd>Defines unique ids for every entity in iceoryx2.</dd><dt><a class="mod" href="node/index.html" title="mod iceoryx2::node">node</a></dt><dd>Central instance that owns all service entities and can handle incoming event in an event loop
+The <a href="node/struct.Node.html" title="struct iceoryx2::node::Node"><code>Node</code></a> is the central entry point of iceoryx2. It is the owner of all communication
+entities and provides additional memory to them to perform reference counting amongst other
+things.</dd><dt><a class="mod" href="pending_response/index.html" title="mod iceoryx2::pending_response">pending_<wbr>response</a></dt><dd>Represents a “connection” to a <a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a> that corresponds to a
+previously sent <a href="request_mut/struct.RequestMut.html" title="struct iceoryx2::request_mut::RequestMut"><code>RequestMut</code></a>.</dd><dt><a class="mod" href="port/index.html" title="mod iceoryx2::port">port</a></dt><dd>The ports or communication endpoints of iceoryx2</dd><dt><a class="mod" href="prelude/index.html" title="mod iceoryx2::prelude">prelude</a></dt><dd>Loads a meaningful subset to cover 90% of the iceoryx2 communication use cases.</dd><dt><a class="mod" href="request_mut/index.html" title="mod iceoryx2::request_mut">request_<wbr>mut</a></dt><dd>The payload that is sent by a <a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a> to a
+<a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a>.</dd><dt><a class="mod" href="request_mut_uninit/index.html" title="mod iceoryx2::request_mut_uninit">request_<wbr>mut_<wbr>uninit</a></dt><dd>The uninitialized payload that is sent by a <a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a> to a
+<a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a>.</dd><dt><a class="mod" href="response/index.html" title="mod iceoryx2::response">response</a></dt><dd>The answer a <a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a> receives from a
+<a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a> on a <a href="request_mut/struct.RequestMut.html" title="struct iceoryx2::request_mut::RequestMut"><code>RequestMut</code></a>.</dd><dt><a class="mod" href="response_mut/index.html" title="mod iceoryx2::response_mut">response_<wbr>mut</a></dt><dd>The answer a <a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a> allocates to respond to
+a received <a href="request_mut/struct.RequestMut.html" title="struct iceoryx2::request_mut::RequestMut"><code>RequestMut</code></a> from a
+<a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a></dd><dt><a class="mod" href="response_mut_uninit/index.html" title="mod iceoryx2::response_mut_uninit">response_<wbr>mut_<wbr>uninit</a></dt><dd>The uninitialized answer a <a href="port/server/struct.Server.html" title="struct iceoryx2::port::server::Server"><code>Server</code></a> allocates to respond to
+a received <a href="request_mut/struct.RequestMut.html" title="struct iceoryx2::request_mut::RequestMut"><code>RequestMut</code></a> from a
+<a href="port/client/struct.Client.html" title="struct iceoryx2::port::client::Client"><code>Client</code></a></dd><dt><a class="mod" href="sample/index.html" title="mod iceoryx2::sample">sample</a></dt><dd>The payload that is received by a <a href="port/subscriber/struct.Subscriber.html" title="struct iceoryx2::port::subscriber::Subscriber"><code>Subscriber</code></a>.</dd><dt><a class="mod" href="sample_mut/index.html" title="mod iceoryx2::sample_mut">sample_<wbr>mut</a></dt><dd>The payload that is sent by a <a href="port/publisher/struct.Publisher.html" title="struct iceoryx2::port::publisher::Publisher"><code>Publisher</code></a>.</dd><dt><a class="mod" href="sample_mut_uninit/index.html" title="mod iceoryx2::sample_mut_uninit">sample_<wbr>mut_<wbr>uninit</a></dt><dd>The uninitialized payload that is sent by a <a href="port/publisher/struct.Publisher.html" title="struct iceoryx2::port::publisher::Publisher"><code>Publisher</code></a>.</dd><dt><a class="mod" href="service/index.html" title="mod iceoryx2::service">service</a></dt><dd>The foundation of communication the service with its
+<a href="service/messaging_pattern/enum.MessagingPattern.html" title="enum iceoryx2::service::messaging_pattern::MessagingPattern"><code>MessagingPattern</code></a></dd><dt><a class="mod" href="signal_handling_mode/index.html" title="mod iceoryx2::signal_handling_mode">signal_<wbr>handling_<wbr>mode</a></dt><dd>Defines how constructs like the <a href="node/struct.Node.html" title="struct iceoryx2::node::Node"><code>Node</code></a> or the
+<a href="waitset/struct.WaitSet.html" title="struct iceoryx2::waitset::WaitSet"><code>WaitSet</code></a> shall handle system signals.</dd><dt><a class="mod" href="unique_id_generator/index.html" title="mod iceoryx2::unique_id_generator">unique_<wbr>id_<wbr>generator</a></dt><dd>Mechanism to generate unique IDs.</dd><dt><a class="mod" href="waitset/index.html" title="mod iceoryx2::waitset">waitset</a></dt><dd>Event handling mechanism to wait on multiple <a href="port/listener/struct.Listener.html" title="struct iceoryx2::port::listener::Listener"><code>Listener</code></a>s
+in one call, realizing the reactor pattern. (Event multiplexer)
+A <a href="waitset/struct.WaitSet.html" title="struct iceoryx2::waitset::WaitSet"><code>WaitSet</code></a> is an implementation of an event multiplexer
+(Reactor of the reactor design pattern). It allows the user to attach notifications,
+deadlines or intervals.</dd></dl><script type="text/json" id="notable-traits-data">{"&[u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/alloc/io/read/trait.Read.html\" title=\"trait alloc::io::read::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>]</div>"}</script></section></div></main></div></body></html>

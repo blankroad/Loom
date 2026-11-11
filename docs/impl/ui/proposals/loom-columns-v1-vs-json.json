@@ -1,0 +1,956 @@
+{
+  "note": "Node only. Equal 10000 full D3 rows per profile; independent <=200-row/65536-byte framing. No browser/daemon/render measurement.",
+  "measuredAt": "2026-11-11T10:29:00.282Z",
+  "node": "v25.6.1",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M1",
+  "warmups": 3,
+  "repetitions": 25,
+  "gc": "Enabled; no forced GC, heap/RSS or host-load isolation. Rotating five-mode order. CPU sampling after timings.",
+  "work": "Field modes normalize seq/mono/wall to BigInt, read id/len, decode JSON hex/base64 through Node Buffer vs borrowed columns raw, read origin/request_id, checksum byte length/endpoints. D3 modes return already parsed JSON records vs decode+materializeAll, consume row counts/cursors; no gratuitous JSON clone. JSON.parse lacks schema/semantic validation performed by columns.",
+  "wire": "UTF-8 JSON-RPC core.events envelope or whole columns ArrayBuffer, excludes WebSocket framing/TLS/compression. Encoding/splitting/roundtrip verification outside timing. Columns also enforces 4 MiB expansion budget.",
+  "elapsedMs": 64692.852249999996,
+  "results": [
+    {
+      "profile": "can-classic-8",
+      "rows": 10000,
+      "exampleD3": {
+        "schema_version": 1,
+        "session_id": "session-α",
+        "domain": "can",
+        "kind": "can.frame",
+        "producer_id": "pcan:ch0",
+        "producer_epoch": "9007199254740993",
+        "source_seq": "3",
+        "epoch": "9",
+        "seq": "5",
+        "ts": {
+          "mono_ns": "9007199254940993",
+          "wall_ns": "1800000000000200000",
+          "clock_id": "host-boot-1",
+          "source": "hardware",
+          "quality": "calibrated"
+        },
+        "origin": "device",
+        "payload": {
+          "id": 258,
+          "ext": false,
+          "fd": false,
+          "brs": false,
+          "esi": false,
+          "rtr": false,
+          "dlc": 8,
+          "len": 8,
+          "bytes": {
+            "encoding": "hex",
+            "data": "0001020304050607"
+          },
+          "device_ts": {
+            "value_ns": "9007199254940993",
+            "source": "hardware",
+            "clock_id": "pcan"
+          },
+          "frame_index": 2,
+          "isotp": {
+            "endpoint": "ecu1",
+            "request_id": "isotp:2"
+          }
+        },
+        "channel": "ch0",
+        "dir": "rx",
+        "client_id": "client:2",
+        "actor_id": "run:bench",
+        "external_actor": "canoe",
+        "original_origin": "script",
+        "generation": 7,
+        "job_id": "job:bench",
+        "purpose": "replay",
+        "env": "bench",
+        "risk": "R1",
+        "test_session": "test:bench",
+        "test_step": "step:1",
+        "quality": [
+          "simulated"
+        ],
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 1.5,
+            "unit": "ms"
+          }
+        ],
+        "request_id": "request:2"
+      },
+      "splitSearchRejections": {
+        "json-wire": 602,
+        "columns-wire": 154,
+        "columns-Expanded row budget": 467
+      },
+      "json": {
+        "frames": 152,
+        "wireBytes": 9878596,
+        "bytesPerRow": 987.8596,
+        "minFrameBytes": 33698,
+        "maxFrameBytes": 65247,
+        "minRowsPerFrame": 34,
+        "maxRowsPerFrame": 66
+      },
+      "columns": {
+        "frames": 157,
+        "wireBytes": 6905218,
+        "bytesPerRow": 690.5218,
+        "minFrameBytes": 11890,
+        "maxFrameBytes": 44188,
+        "minRowsPerFrame": 16,
+        "maxRowsPerFrame": 64
+      },
+      "timings": {
+        "json-fields": {
+          "medianMs": 38.973041999997804,
+          "p95Ms": 65.75612499999988,
+          "minMs": 36.548125000001164,
+          "maxMs": 75.35074999999779,
+          "samplesMs": [
+            37.116792000000714,
+            37.657124999997905,
+            38.36804100000154,
+            65.75612499999988,
+            48.38645800000086,
+            52.03308399999514,
+            36.97291699999914,
+            45.61316699999588,
+            38.973041999997804,
+            39.96891699999833,
+            41.80825000000186,
+            37.286040999999386,
+            44.49933300000703,
+            38.630959000001894,
+            37.08116600000358,
+            38.66362500000105,
+            37.02287499999511,
+            36.548125000001164,
+            42.120083000001614,
+            39.5804169999974,
+            37.015166999997746,
+            56.06333299999824,
+            38.76541699999507,
+            75.35074999999779,
+            40.45970800000214
+          ]
+        },
+        "columns-fields": {
+          "medianMs": 71.6540840000016,
+          "p95Ms": 91.1102499999979,
+          "minMs": 59.834875000000466,
+          "maxMs": 98.4298340000023,
+          "samplesMs": [
+            63.3952500000014,
+            98.4298340000023,
+            63.633333999998285,
+            82.42108300000109,
+            85.7198750000025,
+            79.99654200000077,
+            73.61654100000305,
+            86.0824169999978,
+            75.45483299999614,
+            73.50816599999962,
+            90.42587500000081,
+            75.12670799999614,
+            71.6540840000016,
+            62.96270899999945,
+            70.24279199999728,
+            65.79037500000413,
+            82.68341599999985,
+            59.834875000000466,
+            67.82274999999936,
+            68.05649999999878,
+            63.15904199999932,
+            69.62425000000076,
+            66.86424999999872,
+            91.1102499999979,
+            63.401958000002196
+          ]
+        },
+        "json-d3": {
+          "medianMs": 36.36054200000217,
+          "p95Ms": 49.68587500000285,
+          "minMs": 32.616500000003725,
+          "maxMs": 50.93274999999994,
+          "samplesMs": [
+            36.36054200000217,
+            49.68587500000285,
+            35.56929200000013,
+            35.969167000002926,
+            34.360749999999825,
+            50.93274999999994,
+            35.081042000005255,
+            33.81412499999715,
+            39.95554099999572,
+            37.90425000000687,
+            38.03629199999705,
+            43.81179200000042,
+            34.039833000002545,
+            39.09700000000157,
+            39.500208999997994,
+            37.62125000000378,
+            43.74070799999754,
+            32.95570900000166,
+            35.93924999999581,
+            35.234792000002926,
+            32.616500000003725,
+            34.9388340000005,
+            43.12970800000039,
+            39.4016249999986,
+            33.44291700000031
+          ]
+        },
+        "columns-d3": {
+          "medianMs": 118.37170799999876,
+          "p95Ms": 167.62516699999833,
+          "minMs": 102.5433750000011,
+          "maxMs": 182.75791700000264,
+          "samplesMs": [
+            167.62516699999833,
+            118.37170799999876,
+            110.19516700000531,
+            110.00779099999636,
+            118.05670900000405,
+            118.10145800000464,
+            182.75791700000264,
+            126.5112500000032,
+            127.71933300000092,
+            133.58020900000702,
+            115.41454199999862,
+            121.91170799999963,
+            119.93933300000208,
+            108.8796250000014,
+            113.26112500000454,
+            137.75133300000016,
+            132.04608399999415,
+            105.7892920000013,
+            146.82949999999983,
+            121.70233400000143,
+            102.5433750000011,
+            114.91620899999543,
+            114.29595899999549,
+            152.7151670000021,
+            112.95037500000035
+          ]
+        },
+        "columns-decode": {
+          "medianMs": 62.99395799999911,
+          "p95Ms": 86.51437499999884,
+          "minMs": 55.465125000002445,
+          "maxMs": 100.46716700000252,
+          "samplesMs": [
+            82.19120800000383,
+            59.663291999997455,
+            65.45075000000361,
+            66.03616599999805,
+            64.6929999999993,
+            62.99395799999911,
+            85.90645800000493,
+            68.13983400000143,
+            60.21958299999824,
+            66.84774999999354,
+            59.46820799999841,
+            62.259750000004715,
+            69.91112499999872,
+            57.47520800000348,
+            58.76641599999857,
+            86.51437499999884,
+            57.87016600000061,
+            56.86454199999571,
+            69.88654099999985,
+            62.75916600000346,
+            55.465125000002445,
+            100.46716700000252,
+            60.34345900000335,
+            82.43733400000201,
+            62.39729099999386
+          ]
+        }
+      }
+    },
+    {
+      "profile": "can-fd-64",
+      "rows": 10000,
+      "exampleD3": {
+        "schema_version": 1,
+        "session_id": "session-α",
+        "domain": "can",
+        "kind": "can.frame",
+        "producer_id": "pcan:ch0",
+        "producer_epoch": "9007199254740993",
+        "source_seq": "3",
+        "epoch": "9",
+        "seq": "5",
+        "ts": {
+          "mono_ns": "9007199254940993",
+          "wall_ns": "1800000000000200000",
+          "clock_id": "host-boot-1",
+          "source": "hardware",
+          "quality": "calibrated"
+        },
+        "origin": "device",
+        "payload": {
+          "id": 258,
+          "ext": false,
+          "fd": true,
+          "brs": true,
+          "esi": false,
+          "rtr": false,
+          "dlc": 15,
+          "len": 64,
+          "bytes": {
+            "encoding": "hex",
+            "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+          },
+          "device_ts": {
+            "value_ns": "9007199254940993",
+            "source": "hardware",
+            "clock_id": "pcan"
+          },
+          "frame_index": 2,
+          "isotp": {
+            "endpoint": "ecu1",
+            "request_id": "isotp:2"
+          }
+        },
+        "channel": "ch0",
+        "dir": "rx",
+        "client_id": "client:2",
+        "actor_id": "run:bench",
+        "external_actor": "canoe",
+        "original_origin": "script",
+        "generation": 7,
+        "job_id": "job:bench",
+        "purpose": "replay",
+        "env": "bench",
+        "risk": "R1",
+        "test_session": "test:bench",
+        "test_step": "step:1",
+        "quality": [
+          "simulated"
+        ],
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 1.5,
+            "unit": "ms"
+          }
+        ],
+        "request_id": "request:2"
+      },
+      "splitSearchRejections": {
+        "json-wire": 674,
+        "columns-wire": 154,
+        "columns-Expanded row budget": 467
+      },
+      "json": {
+        "frames": 170,
+        "wireBytes": 11002230,
+        "bytesPerRow": 1100.223,
+        "minFrameBytes": 32027,
+        "maxFrameBytes": 64970,
+        "minRowsPerFrame": 29,
+        "maxRowsPerFrame": 59
+      },
+      "columns": {
+        "frames": 157,
+        "wireBytes": 7465218,
+        "bytesPerRow": 746.5218,
+        "minFrameBytes": 12786,
+        "maxFrameBytes": 47772,
+        "minRowsPerFrame": 16,
+        "maxRowsPerFrame": 64
+      },
+      "timings": {
+        "json-fields": {
+          "medianMs": 40.4487089999966,
+          "p95Ms": 84.75237500000367,
+          "minMs": 36.427041000002646,
+          "maxMs": 128.281167000001,
+          "samplesMs": [
+            128.281167000001,
+            84.75237500000367,
+            69.75308299999597,
+            50.13170900000114,
+            63.51637499999924,
+            54.82283399999869,
+            47.696916999993846,
+            51.52479199999652,
+            44.367874999996275,
+            40.66616700000304,
+            41.300875000000815,
+            37.57433300000412,
+            36.829499999999825,
+            41.75891599999886,
+            38.90770799999882,
+            39.539333000000624,
+            40.25554199999897,
+            40.4487089999966,
+            38.50958299999911,
+            37.05824999999459,
+            37.26674999999523,
+            38.11770800000522,
+            36.427041000002646,
+            37.60837499999616,
+            40.44720799999777
+          ]
+        },
+        "columns-fields": {
+          "medianMs": 63.43345899999986,
+          "p95Ms": 129.59387499999866,
+          "minMs": 58.20291699999507,
+          "maxMs": 142.4807079999955,
+          "samplesMs": [
+            129.59387499999866,
+            142.4807079999955,
+            105.19520799999736,
+            75.77604099999735,
+            91.06604199999856,
+            75.74225000000297,
+            76.26204199999484,
+            76.955541000003,
+            74.24324999999953,
+            65.60770899999625,
+            62.7355830000015,
+            61.47066700000141,
+            60.11358299999847,
+            60.76129200000287,
+            61.08412500000122,
+            63.43345899999986,
+            60.5267079999976,
+            63.650666000001365,
+            60.85808299999917,
+            58.64379200000258,
+            59.52954099999624,
+            62.59049999999843,
+            58.20291699999507,
+            59.44116600000416,
+            65.63004200000432
+          ]
+        },
+        "json-d3": {
+          "medianMs": 35.557833999999275,
+          "p95Ms": 95.57895799999824,
+          "minMs": 33.25654200000281,
+          "maxMs": 152.10199999999895,
+          "samplesMs": [
+            77.1047910000052,
+            95.57895799999824,
+            152.10199999999895,
+            88.98808299999655,
+            38.526082999997016,
+            37.20620900000358,
+            42.92175000000134,
+            39.61737500000163,
+            43.7543749999968,
+            36.86662500000239,
+            33.81070799999725,
+            35.14008299999841,
+            34.760957999998936,
+            37.012957999999344,
+            33.92720900000131,
+            34.170500000000175,
+            33.69287500000064,
+            33.25654200000281,
+            34.001875000001746,
+            33.301165999997465,
+            33.68062500000087,
+            35.12720799999806,
+            34.675374999998894,
+            35.80341700000281,
+            35.557833999999275
+          ]
+        },
+        "columns-d3": {
+          "medianMs": 133.27429200000188,
+          "p95Ms": 391.0770829999965,
+          "minMs": 122.59583399999974,
+          "maxMs": 417.0163329999996,
+          "samplesMs": [
+            417.0163329999996,
+            391.0770829999965,
+            190.5274999999965,
+            205.8770829999994,
+            206.08395900000323,
+            167.8035830000008,
+            156.1304999999993,
+            139.63641699999425,
+            154.97508299999754,
+            164.3417499999996,
+            133.27429200000188,
+            126.83608299999469,
+            127.77425000000221,
+            124.6683750000011,
+            123.76545900000201,
+            128.13999999999942,
+            125.55158299999312,
+            130.98483300000225,
+            146.40612500000134,
+            122.59583399999974,
+            125.03612499999872,
+            128.1646249999976,
+            132.04883299999346,
+            135.1985829999976,
+            129.60020899999654
+          ]
+        },
+        "columns-decode": {
+          "medianMs": 58.431750000003376,
+          "p95Ms": 189.1624159999992,
+          "minMs": 54.43899999999849,
+          "maxMs": 193.73849999999948,
+          "samplesMs": [
+            178.46595900000102,
+            193.73849999999948,
+            96.90862500000367,
+            85.04275000000052,
+            189.1624159999992,
+            82.37395800000377,
+            62.97350000000006,
+            77.53837500000373,
+            66.58191599999554,
+            62.59200000000419,
+            60.853541999997105,
+            56.8250840000037,
+            60.27941599999758,
+            56.1831250000032,
+            58.431750000003376,
+            57.21866600000067,
+            55.190958999999566,
+            57.971209000003,
+            57.95962499999587,
+            56.6796669999967,
+            57.02720899999986,
+            56.60770899999625,
+            54.43899999999849,
+            55.34262500000477,
+            57.874166999994486
+          ]
+        }
+      }
+    },
+    {
+      "profile": "uart-1024",
+      "rows": 10000,
+      "exampleD3": {
+        "schema_version": 1,
+        "session_id": "session-α",
+        "domain": "uart",
+        "kind": "uart.data",
+        "producer_id": "serial:dut",
+        "producer_epoch": "9007199254740993",
+        "source_seq": "3",
+        "epoch": "9",
+        "seq": "5",
+        "ts": {
+          "mono_ns": "9007199254940993",
+          "wall_ns": "1800000000000200000",
+          "clock_id": "host-boot-1",
+          "source": "hardware",
+          "quality": "calibrated"
+        },
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "encoding": "base64",
+            "data": "AgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/v8AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/v8AAQ=="
+          }
+        },
+        "channel": "dut",
+        "dir": "rx",
+        "client_id": "client:2",
+        "actor_id": "run:bench",
+        "external_actor": "canoe",
+        "original_origin": "script",
+        "generation": 7,
+        "job_id": "job:bench",
+        "purpose": "replay",
+        "env": "bench",
+        "risk": "R1",
+        "test_session": "test:bench",
+        "test_step": "step:1",
+        "quality": [
+          "simulated"
+        ],
+        "metrics": [
+          {
+            "name": "latency",
+            "value": 1.5,
+            "unit": "ms"
+          }
+        ],
+        "request_id": "request:2"
+      },
+      "splitSearchRejections": {
+        "json-wire": 1330,
+        "columns-wire": 887
+      },
+      "json": {
+        "frames": 334,
+        "wireBytes": 21165340,
+        "bytesPerRow": 2116.534,
+        "minFrameBytes": 10754,
+        "maxFrameBytes": 65533,
+        "minRowsPerFrame": 5,
+        "maxRowsPerFrame": 31
+      },
+      "columns": {
+        "frames": 179,
+        "wireBytes": 11622074,
+        "bytesPerRow": 1162.2074,
+        "minFrameBytes": 38012,
+        "maxFrameBytes": 65079,
+        "minRowsPerFrame": 32,
+        "maxRowsPerFrame": 56
+      },
+      "timings": {
+        "json-fields": {
+          "medianMs": 47.72799999999552,
+          "p95Ms": 126.08995899999718,
+          "minMs": 42.86808300000121,
+          "maxMs": 133.4285000000018,
+          "samplesMs": [
+            45.66374999999971,
+            43.762416999998095,
+            47.86070899999322,
+            45.08916599999793,
+            44.64179100000183,
+            54.2052909999984,
+            57.89762499999779,
+            67.45254100000602,
+            57.056917000001704,
+            56.48295900000085,
+            126.08995899999718,
+            44.49458400000003,
+            43.78054200000042,
+            44.04854100000375,
+            49.76066600000195,
+            44.72574999999779,
+            46.49437499999476,
+            47.72799999999552,
+            44.46733300000051,
+            44.486541999998735,
+            42.86808300000121,
+            57.49320799999987,
+            48.33641699999862,
+            133.4285000000018,
+            74.18558299999859
+          ]
+        },
+        "columns-fields": {
+          "medianMs": 31.7353329999969,
+          "p95Ms": 63.324124999999185,
+          "minMs": 27.572957999997016,
+          "maxMs": 130.22562499999913,
+          "samplesMs": [
+            29.700874999994994,
+            27.629666000000725,
+            28.93154100000538,
+            30.12724999999773,
+            28.65808300000208,
+            39.88500000000204,
+            63.324124999999185,
+            39.361666000004334,
+            38.44304199999897,
+            36.56316599999991,
+            44.1752919999999,
+            35.341874999998254,
+            28.167458000003535,
+            31.7353329999969,
+            30.91462500000489,
+            30.69650000000547,
+            28.052416000005906,
+            34.794834000000264,
+            29.006124999999884,
+            33.64045800000167,
+            27.572957999997016,
+            28.129916000005323,
+            33.83687500000087,
+            130.22562499999913,
+            39.01129199999559
+          ]
+        },
+        "json-d3": {
+          "medianMs": 41.40383300000394,
+          "p95Ms": 86.20595899999898,
+          "minMs": 37.17495799999597,
+          "maxMs": 122.19441700000607,
+          "samplesMs": [
+            40.77533399999811,
+            37.17495799999597,
+            38.48999999999796,
+            44.46558399999776,
+            38.98754200000258,
+            41.41966699999466,
+            44.2100830000054,
+            86.20595899999898,
+            42.56362499999523,
+            48.95241700000042,
+            64.44391599999653,
+            47.62512499999866,
+            37.44554199999402,
+            42.30145900000207,
+            41.40383300000394,
+            40.042458000003535,
+            38.10070899999846,
+            37.90775000000576,
+            39.63804199999868,
+            37.502250000005006,
+            39.61579199999687,
+            38.1394169999985,
+            48.131750000000466,
+            122.19441700000607,
+            60.80904200000077
+          ]
+        },
+        "columns-d3": {
+          "medianMs": 141.2664169999989,
+          "p95Ms": 210.4175830000022,
+          "minMs": 131.04737499999464,
+          "maxMs": 371.9991669999945,
+          "samplesMs": [
+            138.98808400000416,
+            132.9320000000007,
+            134.841499999995,
+            137.19124999999622,
+            150.99025000000256,
+            177.31270799999766,
+            188.63874999999825,
+            193.31466699999874,
+            181.67124999999942,
+            371.9991669999945,
+            164.74454100000003,
+            137.03079199999775,
+            131.04737499999464,
+            132.4027500000011,
+            139.3546669999996,
+            138.8974589999998,
+            144.68779200000426,
+            137.12983299999905,
+            141.2664169999989,
+            131.37229200000002,
+            133.06879100000515,
+            175.54516699999658,
+            174.04366599999776,
+            202.10304200000246,
+            210.4175830000022
+          ]
+        },
+        "columns-decode": {
+          "medianMs": 24.443792000005487,
+          "p95Ms": 37.53349999999773,
+          "minMs": 22.15441699999792,
+          "maxMs": 70.06529199999932,
+          "samplesMs": [
+            24.551666999999725,
+            23.073874999994587,
+            22.985874999998487,
+            23.097458000003826,
+            24.443792000005487,
+            37.53349999999773,
+            26.840291000000434,
+            29.48541700000351,
+            25.62999999999738,
+            23.399875000002794,
+            27.214625000000524,
+            22.914416000006895,
+            22.201207999998587,
+            22.715415999999095,
+            26.554583999997703,
+            22.15441699999792,
+            23.63333400000556,
+            25.913415999995777,
+            23.181582999997772,
+            23.562749999997322,
+            23.601332999998704,
+            28.05879200000345,
+            26.97662500000297,
+            29.92658400000073,
+            70.06529199999932
+          ]
+        }
+      }
+    }
+  ],
+  "cpuProfile": {
+    "workloads": "12 x 3 x 10000 columns-fields rows",
+    "intervalUs": 1000,
+    "samples": 1822,
+    "top": [
+      {
+        "samples": 599,
+        "percent": 32.87596048298573,
+        "function": "parseJson",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 397,
+        "percent": 21.789242590559823,
+        "function": "",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 202,
+        "percent": 11.086717892425906,
+        "function": "parseJson",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 153,
+        "percent": 8.397365532381999,
+        "function": "cell",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 84,
+        "percent": 4.610318331503842,
+        "function": "extra",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 81,
+        "percent": 4.445664105378705,
+        "function": "attempt",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 48,
+        "percent": 2.6344676180021955,
+        "function": "json",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 26,
+        "percent": 1.4270032930845225,
+        "function": "checksum",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.compare.ts",
+        "line": 1
+      },
+      {
+        "samples": 25,
+        "percent": 1.37211855104281,
+        "function": "decodeUTF8",
+        "url": "",
+        "line": 0
+      },
+      {
+        "samples": 22,
+        "percent": 1.2074643249176729,
+        "function": "(garbage collector)",
+        "url": "",
+        "line": 0
+      },
+      {
+        "samples": 21,
+        "percent": 1.1525795828759604,
+        "function": "u64",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 16,
+        "percent": 0.8781558726673985,
+        "function": "",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 14,
+        "percent": 0.7683863885839737,
+        "function": "__name",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 12,
+        "percent": 0.6586169045005489,
+        "function": "cell",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 12,
+        "percent": 0.6586169045005489,
+        "function": "",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 11,
+        "percent": 0.6037321624588364,
+        "function": "set hasAsyncGraph",
+        "url": "",
+        "line": 0
+      },
+      {
+        "samples": 11,
+        "percent": 0.6037321624588364,
+        "function": "(program)",
+        "url": "",
+        "line": 0
+      },
+      {
+        "samples": 8,
+        "percent": 0.43907793633369924,
+        "function": "",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 7,
+        "percent": 0.38419319429198684,
+        "function": "decode",
+        "url": "node:internal/encoding",
+        "line": 482
+      },
+      {
+        "samples": 7,
+        "percent": 0.38419319429198684,
+        "function": "attempt",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 6,
+        "percent": 0.32930845225027444,
+        "function": "need",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 5,
+        "percent": 0.27442371020856204,
+        "function": "dict",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 5,
+        "percent": 0.27442371020856204,
+        "function": "need",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      },
+      {
+        "samples": 4,
+        "percent": 0.21953896816684962,
+        "function": "",
+        "url": "file:///Users/ctmctm/workspace/Loom/.worktrees/ui/ui/src/codec/columns.ts",
+        "line": 1
+      }
+    ]
+  },
+  "sink": 22859224504
+}

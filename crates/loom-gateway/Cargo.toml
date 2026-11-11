@@ -1,0 +1,60 @@
+[package]
+name = "loom-gateway"
+description = "Loom gateway (loomd). P0: --fixture-replay WS server for UI development; the real gateway arrives in P1."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "loomd"
+path = "src/main.rs"
+
+[dependencies]
+loom-proto.workspace = true
+loom-domain-api.workspace = true
+loom-worker-sdk.workspace = true
+loom-worker-host.workspace = true
+loom-echo = { workspace = true, optional = true }
+# Domains (feature = domain name). Path dependencies: the root workspace has no entries for them.
+loom-uart = { path = "../loom-uart", optional = true }
+loom-uart-worker = { path = "../loom-uart-worker", optional = true }
+loom-can = { path = "../loom-can", optional = true }
+loom-uds = { path = "../loom-uds", optional = true }
+loom-eth = { path = "../loom-eth", optional = true }
+loom-psu = { path = "../loom-psu", optional = true }
+loom-ui-assets = { path = "../loom-ui-assets" }
+loom-test = { path = "../loom-test", optional = true }
+sha2.workspace = true
+loom-journal.workspace = true
+toml.workspace = true
+rand.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+axum.workspace = true
+futures-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+thiserror.workspace = true
+base64.workspace = true
+
+[features]
+default = ["echo", "uart", "can", "uds", "eth", "psu", "test"]
+# Sample domain (sim loopback), registered by `domains.rs`.
+echo = ["dep:loom-echo"]
+uart = ["dep:loom-uart", "dep:loom-uart-worker"]
+can = ["dep:loom-can"]
+uds = ["dep:loom-uds"]
+eth = ["dep:loom-eth"]
+psu = ["dep:loom-psu"]
+test = ["dep:loom-test"]
+
+[dev-dependencies]
+tempfile.workspace = true
+tungstenite.workspace = true
+
+[lints]
+workspace = true

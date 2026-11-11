@@ -1,0 +1,17 @@
+[package]
+name = "loom-eth-decode"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Loom eth: no-IO packet decoder (tshark-style summary, layer tree, filter fields)"
+
+[dependencies]
+etherparse = "=0.21.0"
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

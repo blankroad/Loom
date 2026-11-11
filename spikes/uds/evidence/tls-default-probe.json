@@ -1,0 +1,8 @@
+{
+  "checked_at_utc": "2026-11-09T14:19:01Z",
+  "library": "doipclient 1.3.0",
+  "openssl": "OpenSSL 3.6.1 27 Jan 2026",
+  "case": "use_secure=True to loopback listener; fails before TLS handshake",
+  "exception_type": "ValueError",
+  "exception": "check_hostname requires server_hostname"
+}

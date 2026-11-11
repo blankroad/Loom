@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WireEvent",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "can.frame"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "data_hex": {
+              "type": "string"
+            },
+            "mono_ns": {
+              "type": "string"
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "seq": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "seq",
+            "mono_ns",
+            "data_hex"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "record.health"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ok"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ]
+    }
+  ]
+}

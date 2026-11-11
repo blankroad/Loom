@@ -1,0 +1,29 @@
+[package]
+name = "loom-uart-worker"
+description = "UART device owner (one process per port): serial transport + native adapter, reader thread, TX actor, sim engine and pty fake devices."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+loom-console = { path = "../loom-console" }
+loom-worker-sdk.workspace = true
+tokio.workspace = true
+base64.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+serialport = { version = "=4.10.1", default-features = false, features = ["usbportinfo-interface", "usbportinfo-location"] }
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "=0.31.3", features = ["term", "fs", "poll", "ioctl"] }
+
+[dev-dependencies]
+loom-testkit.workspace = true
+proptest = "=1.12.0"
+
+[lints]
+workspace = true

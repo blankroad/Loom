@@ -1,0 +1,17 @@
+[package]
+name = "loom-uds-codec"
+description = "UDS (ISO 14229-1) service codec, NRC table, response classification, DID codecs and diagnostic DB schema. Pure: no I/O."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+thiserror = { workspace = true }
+hex = { workspace = true }
+
+[lints]
+workspace = true

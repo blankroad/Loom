@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Closed",
+  "description": "`core.closed`.",
+  "type": "object",
+  "properties": {
+    "detail": {
+      "description": "Human detail.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason": {
+      "description": "Reason.",
+      "$ref": "#/$defs/CloseReason"
+    },
+    "retry_after_ms": {
+      "description": "Suggested reconnect delay (UI Q12). Absent = client default backoff.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "reason"
+  ],
+  "$defs": {
+    "CloseReason": {
+      "description": "Why the server closed a connection.",
+      "oneOf": [
+        {
+          "description": "Priority queue overflow — reconnect and resubscribe with a snapshot.",
+          "type": "string",
+          "const": "slow_consumer"
+        },
+        {
+          "description": "Protocol major mismatch.",
+          "type": "string",
+          "const": "proto_mismatch"
+        },
+        {
+          "description": "Daemon shutting down.",
+          "type": "string",
+          "const": "shutdown"
+        },
+        {
+          "description": "Viewer cookie / token expired.",
+          "type": "string",
+          "const": "auth_expired"
+        },
+        {
+          "description": "Protocol violation (bad frames, oversize, no hello).",
+          "type": "string",
+          "const": "protocol_error"
+        }
+      ]
+    }
+  }
+}

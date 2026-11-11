@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="generator" content="docs.rs 0.0.0 (b658295340a2631b346d661cc222ab88c9b09348 2026-11-06 )"><link rel="canonical" href="https://docs.rs/crate/bincode/latest" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" />
+        <link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/style.css" media="all" />
+        <link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+        <link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+        <title>bincode 3.0.0 - Docs.rs</title><script nonce="TKz7V19/WgYhPw9tRyhmpDMuwKS+IxrG7XbUpCq9JsyKxodi">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script><script defer type="text/javascript" nonce="TKz7V19/WgYhPw9tRyhmpDMuwKS+IxrG7XbUpCq9JsyKxodi" src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+        <script defer type="text/javascript" nonce="TKz7V19/WgYhPw9tRyhmpDMuwKS+IxrG7XbUpCq9JsyKxodi" src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+    </head>
+
+    <body class="">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "bincode",
+            "version": "3.0.0"
+        }
+    </script><li class="pure-menu-item">
+            <a href="/crate/bincode/latest" class="pure-menu-link crate-name" title="A binary serialization / deserialization strategy for transforming structs into bytes and vice versa!">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">bincode-3.0.0</span>
+            </a>
+        </li>
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/bincode/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div>
+    
+    <div class="docsrs-package-container">
+        <div class="container">
+            <div class="description-container">
+                
+
+                
+                <h1 id="crate-title">
+                    bincode 3.0.0
+                    <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                </h1>
+
+                
+                <div class="description">A binary serialization / deserialization strategy for transforming structs into bytes and vice versa!</div>
+
+
+                <div class="pure-menu pure-menu-horizontal">
+                    <ul class="pure-menu-list">
+                        
+                        <li class="pure-menu-item"><a href="/crate/bincode/latest"
+                                class="pure-menu-link pure-menu-active">
+                                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                                <span class="title"> Crate</span>
+                            </a>
+                        </li>
+
+                        
+                        <li class="pure-menu-item">
+                            <a href="/crate/bincode/latest/source/"
+                                class="pure-menu-link">
+                                <span class="fa fa-regular fa-folder-open " aria-hidden="true"></span>
+                                <span class="title"> Source</span>
+                            </a>
+                        </li>
+
+                        
+                        <li class="pure-menu-item">
+                            <a href="/crate/bincode/latest/builds"
+                                class="pure-menu-link">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                                <span class="title"> Builds</span>
+                            </a>
+                        </li>
+
+                        
+                        <li class="pure-menu-item">
+                            <a href="/crate/bincode/latest/features"
+                               class="pure-menu-link">
+                                <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                                <span class="title">Feature flags</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div></div>
+    </div>
+<div class="container package-page-container">
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-sm-7-24 pure-u-md-5-24">
+                <div class="pure-menu package-menu">
+                    <ul class="pure-menu-list"><li class="pure-menu-heading">Size</li>
+                            <li class="pure-menu-item">
+                                <span class="documented-info">Source code size: 8.7 kB
+                                    <span class="size" tabindex=0><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span><span class="info">This is the summed size of all the files inside the crates.io package for this release.</span>
+                                    </span>
+                                </span>
+                            </li><li class="pure-menu-heading">Ø build duration</li><li class="pure-menu-item">
+                                    <span class="documented-info">all releases: 22s
+                                        <span class="size" tabindex=0><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span><span class="info">Average build duration of <b>successful</b> builds in releases after 2024-10-23.</span>
+                                        </span>
+                                    </span>
+                                </li><li class="pure-menu-heading">Links</li>
+                        <li class="pure-menu-item">
+                                <a href="https://github.com/bincode-org/bincode" class="pure-menu-link">
+                                    
+                                    <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span>
+                                        
+                                            bincode-org/bincode
+                                        
+                                        <br>
+                                        <span class="fa fa-solid fa-star left-margin" aria-hidden="true"></span> 3059
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> 310
+                                        <span class="fa fa-solid fa-circle-exclamation " aria-hidden="true"></span> 23
+
+                                    </a>
+                            </li>
+                        <li class="pure-menu-item">
+                            <a href="https://crates.io/crates/bincode" class="pure-menu-link"
+                                title="See bincode on crates.io">
+                                <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                            </a>
+                        </li>
+
+                        <li class="pure-menu-heading">Dependencies</li>
+                        <li class="pure-menu-item">
+                            <div class="pure-menu pure-menu-scrollable sub-menu">
+                                <ul class="pure-menu-list">
+                                    
+                                    &mdash;
+                                </ul>
+                            </div>
+                        </li>
+
+                        <li class="pure-menu-heading">Versions</li>
+                        <li class="pure-menu-item">
+                            <div class="pure-menu pure-menu-scrollable sub-menu">
+                                <ul class="pure-menu-list">
+                                    
+                                    
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/3.0.0"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-3.0.0"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>3.0.0</b> (2025-12-16)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.1</b> (2025-03-10)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0</b> (2025-03-06)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-rc.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-rc.3</b> (2023-03-30)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-rc.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-rc.2</b> (2022-10-04)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-rc.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-rc.1</b> (2022-03-04)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-beta.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-beta.3</b> (2022-02-16)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-beta.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-beta.2</b> (2022-01-23)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-beta.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-beta.1</b> (2022-01-19)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-beta.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-beta.0</b> (2022-01-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-alpha.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-alpha.2</b> (2021-12-14)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-alpha.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-alpha.1</b> (2021-11-09)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/2.0.0-alpha.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>2.0.0-alpha.0</b> (2021-10-25)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.3.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.3.3</b> (2021-04-10)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.3.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.3.2</b> (2021-02-24)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.3.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.3.1</b> (2020-06-24)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.3.0"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.3.0 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.3.0</b> (2020-06-23)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.2.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.2.1</b> (2019-12-10)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.2.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.2.0</b> (2019-09-24)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.1.4"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.1.4</b> (2019-05-15)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.1.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.1.3</b> (2019-04-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.1.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.1.2</b> (2019-02-16)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.1.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.1.1</b> (2019-02-09)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.0.1</b> (2018-06-18)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>1.0.0</b> (2018-02-15)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha7"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha7 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha7</b> (2017-04-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha6"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha6 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha6</b> (2017-03-18)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha5"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha5 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha5</b> (2017-03-02)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha4"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha4 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha4</b> (2017-02-25)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha3"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha3 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha3</b> (2017-02-25)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha2"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha2 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha2</b> (2017-02-11)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/1.0.0-alpha1"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-1.0.0-alpha1 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>1.0.0-alpha1</b> (2017-01-31)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.9.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.9.2</b> (2017-10-13)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.9.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.9.1</b> (2017-10-13)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.9.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.9.0</b> (2017-10-12)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.8.1"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="bincode-0.8.1 is yanked"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.8.1</b> (2017-10-10)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.8.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.8.0</b> (2017-05-02)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.7.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.7.0</b> (2017-04-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.6.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.6.1</b> (2017-01-06)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.6.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.6.0</b> (2016-07-28)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.9"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.9</b> (2016-07-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.8"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.8</b> (2016-06-30)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.7"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.7</b> (2016-06-19)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.6"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.6</b> (2016-04-29)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.4"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.4</b> (2016-04-15)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.3</b> (2016-04-12)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.2</b> (2016-04-04)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.1</b> (2016-03-16)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.5.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.5.0</b> (2016-03-05)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.4.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.4.1</b> (2016-02-29)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.4.0"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.4.0"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.4.0</b> (2015-08-08)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.3.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.3.0</b> (2015-05-19)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.2.2"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.2.2</b> (2015-05-02)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.2.1"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.2.1</b> (2015-05-02)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.2.0"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.2.0</b> (2015-05-01)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.1.3"
+                
+                rel="nofollow"
+                class="pure-menu-link"
+                
+                
+            ><b>0.1.3</b> (2015-04-30)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.1.2"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.1.2"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.1.2</b> (2015-04-13)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.1.1"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.1.1"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.1.1</b> (2015-04-04)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.1.0"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.1.0"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.1.0</b> (2015-04-03)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.14"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.14"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.14</b> (2015-04-02)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.13"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.13"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.13</b> (2015-03-26)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.12"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.12"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.12</b> (2015-03-23)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.11"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.11"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.11</b> (2015-03-19)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.10"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.10"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.10</b> (2015-02-22)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.9"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.9"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.9</b> (2015-02-20)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.8"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.8"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.8</b> (2015-01-28)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.7"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.7"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.7</b> (2015-01-25)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.6"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.6"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.6</b> (2015-01-09)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.5"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.5"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.5</b> (2015-01-09)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.4"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.4"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.4</b> (2015-01-03)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.3"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.3"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.3</b> (2014-12-25)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.2"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.2"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.2</b> (2014-11-24)</a>
+        </li>
+        
+         
+        <li class="pure-menu-item">
+            <a
+                href="/crate/bincode/0.0.1"
+                
+                rel="nofollow"
+                class="pure-menu-link warn"
+                 title="docs.rs failed to build bincode-0.0.1"
+                
+            ><span class="fa fa-solid fa-triangle-exclamation " aria-hidden="true"></span><b>0.0.1</b> (2014-11-20)</a>
+        </li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        
+                        <li class="pure-menu-heading">Owners</li>
+                        <li class="pure-menu-item"><a href="https://crates.io/users/ZoeyR">
+                                    <img src="https://avatars.githubusercontent.com/u/8010244?v=4" alt="ZoeyR" class="owner">
+                                </a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pure-u-1 pure-u-sm-17-24 pure-u-md-19-24 package-details" id="main">
+                
+                    <div class="warning">
+                        docs.rs failed to build bincode-3.0.0
+                        <br>
+                        Please check the
+                        <a href="/crate/bincode/latest/builds">build logs</a> for more information.
+                        <br>
+                        See <a href="/about/builds">Builds</a> for ideas on how to fix a failed build,
+                        or <a href="/about/metadata">Metadata</a> for how to configure docs.rs builds.
+                        <br>
+                        If you believe this is docs.rs' fault, <a href="https://github.com/rust-lang/docs.rs/issues/new/choose">open an issue</a>.
+                    </div><div class="info">
+                        Visit the last successful build:
+                        <a href="/crate/bincode/2.0.1">
+                            bincode-2.0.1
+                        </a>
+                    </div><h1>Bincode is now unmaintained</h1>
+<p>Due to a doxxing and harassment incident, development on bincode has ceased. No
+further releases will be published on crates.io.</p>
+<p>As crates.io, unlike many other language-attached package management solutions,
+lacks the ability to mark a project as archive or remove the last maintainer,
+this final release is being published containing only this README, as well as a
+lib.rs containing only a compiler error, to inform potential users of the
+maintenance status of this crate.</p>
+<p>If you were considering using bincode for a new project or are looking to an
+alternative to migrate to, you are encouraged to consider some the following
+alternatives, as well as the many other great serialization format crates
+available in the rust ecosystem:</p>
+<ul>
+<li>
+<p><a href="https://crates.io/crates/wincode">wincode</a></p>
+<p>Bincode-compatible alternative</p>
+</li>
+<li>
+<p><a href="https://crates.io/crates/postcard">postcard</a></p>
+<p>Similar in spirit and structure to bincode, but a bit differently flavored</p>
+</li>
+<li>
+<p><a href="https://crates.io/crates/rkyv">rkyv</a></p>
+<p>Zero copy deserialization, honestly the best option for many of the usecases
+that bincode was intended for, like serializing transient data for
+intra-program message passing.</p>
+</li>
+</ul>
+<h1>What the community can do better</h1>
+<p>Several tooling factors have lead to bincode's maintenance status being a bigger
+issue than it needs to be, including:</p>
+<ul>
+<li>
+<p>crates.io not having functionality for marking a package unmaintained or a
+process for the crates.io maintainers to transfer ownership of an abandoned
+package to a prospective maintainer</p>
+<p>In many other programming language communities such as haskell and hackage, or
+python and pypi, when the last maintainer of a critical crate just walks away,
+there often an in-band status that identifies that package as having no active
+maintainers, and usually at least <em>some</em> policy in place for the package
+collection maintainers to intervene and transfer ownership of such a package,
+allowing the community to assign a new maintainer to the existing package,
+automatically pointing the rest of the ecosystem to the new sources with no
+intervention required on the consumers part.</p>
+<p>crates.io not having any such functionality or processes creates a pretty
+massive pain point when the last maintainer does walk away, placing the burden
+on <em>them</em>, very often an already burnt out volunteer, to select a new
+maintainer. If the existing maintainer does not do this, the only current way
+to continue maintenance of the package is to create a differently-named fork,
+and then go through the massive hassle of not only convincing the entire
+ecosystem to use it, but to settle in on one community preferred fork. This
+creates avoidable tension when maintainers <em>do</em> just walk away, with community
+members being scared to make the fork themselves, both out of fear of the
+amount of work getting the community to adopt it entails, and out of fear of
+making the inevitable fork-fight worse by adding another contestant.</p>
+</li>
+<li>
+<p>crates.io not having visibility for its internal source control</p>
+<p>Much of the drama that resulted in the doxxing and harassment was centered
+around the git history being rewritten when the repository was blanked out on
+github and moved to sourcehut. While this is a legitimate cause for some level
+of concern that merits at least asking a question, it is disappointing that
+the community is focusing on it so much when virtually none of the users of
+bincode are pulling from the git version anyway, with almost all of the users
+using the crates.io release. While the existing bincode releases are tied to
+the previous history through the git commit reference cargo release's
+<code>.cargo_vcs_info.json</code>, the cargo releases, which represent the canonical
+version of bincode, are not fundamentally tied to the git repository at all,
+and there has been a lot of worrying about <em>the wrong supply chain</em>.</p>
+<p>We have faced many questions like &quot;if the github is deleted, where can users
+make sure they are getting the old version of the source code&quot; that are
+answered with &quot;there haven't been any crates.io releases since the migration
+and history rewrite, just bring in an old version with cargo and you'll have
+it&quot;.</p>
+<p>This could have been potentially avoided if crates.io and cargo provided
+better visibility into their internal source control used for packing crates.
+At the very least, a link to the source code browser on docs.rs from the
+crates.io page for a given release could have made more users aware of the
+fact that crates.io/cargo provide such internal source control, and a full on
+source code viewer, or even better a version comparison tool, integrated into
+crates.io would have made things a <em>lot</em> more manageable while there were
+still such questions flying around.</p>
+</li>
+<li>
+<p>crates.io metadata is not editable without performing a release</p>
+<p>Much of this could have been avoided if the crates.io metadata was
+independently editable and included a contact information field (ideally
+something like githubs private email solution, where it provides a generated
+email address that forwards to something configurable).</p>
+<p>At the time of migration, bincode was nowhere <em>near</em> ready for another
+release, and being able to independently update the source code link in the
+crates.io metadata and provide up to date contact information without having
+to roll either a special no-code-changes release off of a branch that only
+changed those things, or roll a questionable intermediate release with the
+changes, both of which likely would have only raised more concerns from the
+community, would have significantly decreased the developer burden of
+completing the migration in a public and notorious fashion.</p>
+</li>
+</ul>
+
+
+                </div>
+        </div>
+    </div></body>
+</html>

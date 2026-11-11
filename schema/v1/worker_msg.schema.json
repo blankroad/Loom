@@ -1,0 +1,1931 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WorkerMsg",
+  "description": "Every `loom-worker/1` message (externally tagged, snake_case).",
+  "oneOf": [
+    {
+      "description": "W→G hello.",
+      "type": "object",
+      "properties": {
+        "hello": {
+          "$ref": "#/$defs/WorkerHello"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "hello"
+      ]
+    },
+    {
+      "description": "G→W welcome.",
+      "type": "object",
+      "properties": {
+        "welcome": {
+          "$ref": "#/$defs/Welcome"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "welcome"
+      ]
+    },
+    {
+      "description": "G→W reject.",
+      "type": "object",
+      "properties": {
+        "reject": {
+          "$ref": "#/$defs/Reject"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "reject"
+      ]
+    },
+    {
+      "description": "G→W call.",
+      "type": "object",
+      "properties": {
+        "call": {
+          "$ref": "#/$defs/Call"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "call"
+      ]
+    },
+    {
+      "description": "G→W write.",
+      "type": "object",
+      "properties": {
+        "write": {
+          "$ref": "#/$defs/Write"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "write"
+      ]
+    },
+    {
+      "description": "G→W job start.",
+      "type": "object",
+      "properties": {
+        "job_start": {
+          "$ref": "#/$defs/JobStart"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job_start"
+      ]
+    },
+    {
+      "description": "G→W job update.",
+      "type": "object",
+      "properties": {
+        "job_update": {
+          "$ref": "#/$defs/JobUpdate"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job_update"
+      ]
+    },
+    {
+      "description": "G→W job renew.",
+      "type": "object",
+      "properties": {
+        "job_renew": {
+          "$ref": "#/$defs/JobRenew"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job_renew"
+      ]
+    },
+    {
+      "description": "G→W job stop.",
+      "type": "object",
+      "properties": {
+        "job_stop": {
+          "$ref": "#/$defs/JobStop"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job_stop"
+      ]
+    },
+    {
+      "description": "G→W input lease.",
+      "type": "object",
+      "properties": {
+        "input_lease": {
+          "$ref": "#/$defs/InputLease"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input_lease"
+      ]
+    },
+    {
+      "description": "G→W input bytes.",
+      "type": "object",
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/Input"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input"
+      ]
+    },
+    {
+      "description": "G→W STOP latch.",
+      "type": "object",
+      "properties": {
+        "latch": {
+          "$ref": "#/$defs/Latch"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "latch"
+      ]
+    },
+    {
+      "description": "G→W data credit.",
+      "type": "object",
+      "properties": {
+        "credit": {
+          "$ref": "#/$defs/Credit"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "credit"
+      ]
+    },
+    {
+      "description": "G→W 입력 lease 종료 통지(v1.2).",
+      "type": "object",
+      "properties": {
+        "input_lease_end": {
+          "$ref": "#/$defs/InputLeaseEnd"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input_lease_end"
+      ]
+    },
+    {
+      "description": "W→G reply.",
+      "type": "object",
+      "properties": {
+        "reply": {
+          "$ref": "#/$defs/Reply"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "reply"
+      ]
+    },
+    {
+      "description": "W→G priority events.",
+      "type": "object",
+      "properties": {
+        "priority_events": {
+          "$ref": "#/$defs/PriorityEvents"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "priority_events"
+      ]
+    },
+    {
+      "description": "W→G health.",
+      "type": "object",
+      "properties": {
+        "health": {
+          "$ref": "#/$defs/Health"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "health"
+      ]
+    },
+    {
+      "description": "W→G latch ack.",
+      "type": "object",
+      "properties": {
+        "latch_ack": {
+          "$ref": "#/$defs/LatchAck"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "latch_ack"
+      ]
+    },
+    {
+      "description": "W→G sealed segment.",
+      "type": "object",
+      "properties": {
+        "segment": {
+          "$ref": "#/$defs/Segment"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "segment"
+      ]
+    },
+    {
+      "description": "W→G bulk events.",
+      "type": "object",
+      "properties": {
+        "events": {
+          "$ref": "#/$defs/Events"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "events"
+      ]
+    }
+  ],
+  "$defs": {
+    "Call": {
+      "description": "G→W generic call (open, close, query …).",
+      "type": "object",
+      "properties": {
+        "actor_id": {
+          "description": "Actor id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approval_ref": {
+          "description": "Approval reference when one was used.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "args": {
+          "description": "Arguments.",
+          "default": null
+        },
+        "call_id": {
+          "description": "Call id (echoed in [`Reply`]).",
+          "$ref": "#/$defs/U64"
+        },
+        "client_id": {
+          "description": "Client id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conn_id": {
+          "description": "호출을 소유한 연결. 이전 프로토콜에서는 생략한다.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deadline_mono_ns": {
+          "description": "Absolute deadline (host monotonic ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "method": {
+          "description": "Method.",
+          "type": "string"
+        },
+        "origin": {
+          "description": "Origin of the caller.",
+          "$ref": "#/$defs/Origin"
+        },
+        "request_id": {
+          "description": "Request id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "call_id",
+        "method",
+        "origin",
+        "deadline_mono_ns"
+      ]
+    },
+    "Credit": {
+      "description": "Data-lane credit grant.",
+      "type": "object",
+      "properties": {
+        "bytes": {
+          "description": "Additional bytes allowed.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "bytes"
+      ]
+    },
+    "Dir": {
+      "description": "Direction relative to Loom; absent for state/control events.",
+      "oneOf": [
+        {
+          "description": "Received from the device.",
+          "type": "string",
+          "const": "rx"
+        },
+        {
+          "description": "Sent to the device.",
+          "type": "string",
+          "const": "tx"
+        }
+      ]
+    },
+    "Env": {
+      "description": "Environment badge (B4). Does not change risk handling.",
+      "oneOf": [
+        {
+          "description": "Simulation backends.",
+          "type": "string",
+          "const": "sim"
+        },
+        {
+          "description": "Bench hardware.",
+          "type": "string",
+          "const": "bench"
+        },
+        {
+          "description": "Real vehicle.",
+          "type": "string",
+          "const": "vehicle"
+        }
+      ]
+    },
+    "ErrorCode": {
+      "description": "Loom error code (`error.code` in the CLI envelope). Wire form is `\"E_…\"`.",
+      "oneOf": [
+        {
+          "description": "Internal bug or unexpected state.",
+          "type": "string",
+          "const": "E_INTERNAL"
+        },
+        {
+          "description": "Stub / not yet implemented path (P0 stubs never fake device success).",
+          "type": "string",
+          "const": "E_NOT_IMPLEMENTED"
+        },
+        {
+          "description": "Bad command-line usage or arguments.",
+          "type": "string",
+          "const": "E_USAGE"
+        },
+        {
+          "description": "Channel name matches more than one candidate.",
+          "type": "string",
+          "const": "E_AMBIGUOUS_CHANNEL"
+        },
+        {
+          "description": "Configuration (loom.toml / policy) error.",
+          "type": "string",
+          "const": "E_CONFIG"
+        },
+        {
+          "description": "Database / diagnostic DB error.",
+          "type": "string",
+          "const": "E_DB"
+        },
+        {
+          "description": "RPC method not registered.",
+          "type": "string",
+          "const": "E_UNKNOWN_METHOD"
+        },
+        {
+          "description": "Parameters failed schema validation.",
+          "type": "string",
+          "const": "E_SCHEMA"
+        },
+        {
+          "description": "Condition wait timed out (expect, wait-for, approval wait).",
+          "type": "string",
+          "const": "E_TIMEOUT"
+        },
+        {
+          "description": "Immediate check: condition not met (E2).",
+          "type": "string",
+          "const": "E_NO_MATCH"
+        },
+        {
+          "description": "Immediate check: forbidden match was found (E2).",
+          "type": "string",
+          "const": "E_UNEXPECTED_MATCH"
+        },
+        {
+          "description": "Immediate check: count outside the expected range (E2).",
+          "type": "string",
+          "const": "E_COUNT_OUT_OF_RANGE"
+        },
+        {
+          "description": "Policy denial (hard deny list, configured deny).",
+          "type": "string",
+          "const": "E_DENIED"
+        },
+        {
+          "description": "Service Loom does not implement (`immutable_deny`, F1).",
+          "type": "string",
+          "const": "E_UNSUPPORTED"
+        },
+        {
+          "description": "Rate limit exceeded.",
+          "type": "string",
+          "const": "E_RATE_LIMIT"
+        },
+        {
+          "description": "Gateway admission full (RPC slots); retry later.",
+          "type": "string",
+          "const": "E_BUSY"
+        },
+        {
+          "description": "Recording / audit unavailable: agent·script R1+ writes blocked (A12).",
+          "type": "string",
+          "const": "E_RECORDING_FAILED"
+        },
+        {
+          "description": "Test verdict PASS without evidence.",
+          "type": "string",
+          "const": "E_EVIDENCE_MISSING"
+        },
+        {
+          "description": "Cited evidence does not match the claim.",
+          "type": "string",
+          "const": "E_EVIDENCE_MISMATCH"
+        },
+        {
+          "description": "Cited evidence lies outside the step window.",
+          "type": "string",
+          "const": "E_OUT_OF_WINDOW"
+        },
+        {
+          "description": "Cited predicate is not the registered plan expectation.",
+          "type": "string",
+          "const": "E_PLAN_MISMATCH"
+        },
+        {
+          "description": "R2 confirmation token required (only when enabled by policy, F1).",
+          "type": "string",
+          "const": "E_CONFIRM_REQUIRED"
+        },
+        {
+          "description": "Viewer approval required (only when enabled by policy, F1).",
+          "type": "string",
+          "const": "E_APPROVAL_REQUIRED"
+        },
+        {
+          "description": "Approval required but no approving viewer is connected.",
+          "type": "string",
+          "const": "E_NO_APPROVER"
+        },
+        {
+          "description": "The user denied the approval.",
+          "type": "string",
+          "const": "E_APPROVAL_DENIED"
+        },
+        {
+          "description": "Approval expired or already used.",
+          "type": "string",
+          "const": "E_APPROVAL_EXPIRED"
+        },
+        {
+          "description": "The user is typing / holds input.",
+          "type": "string",
+          "const": "E_USER_ACTIVE"
+        },
+        {
+          "description": "Resource locked by another client.",
+          "type": "string",
+          "const": "E_LOCKED"
+        },
+        {
+          "description": "Agent lock was broken by the user.",
+          "type": "string",
+          "const": "E_LOCK_BROKEN"
+        },
+        {
+          "description": "User hold in effect.",
+          "type": "string",
+          "const": "E_HELD_BY_USER"
+        },
+        {
+          "description": "User interrupted the operation.",
+          "type": "string",
+          "const": "E_INTERRUPTED_BY_USER"
+        },
+        {
+          "description": "Late-response quarantine (UDS).",
+          "type": "string",
+          "const": "E_QUARANTINE"
+        },
+        {
+          "description": "STOP latch is on.",
+          "type": "string",
+          "const": "E_STOPPED"
+        },
+        {
+          "description": "Lease not held.",
+          "type": "string",
+          "const": "E_LEASE"
+        },
+        {
+          "description": "Another test session is active.",
+          "type": "string",
+          "const": "E_SESSION_ACTIVE"
+        },
+        {
+          "description": "Test session is paused (E3).",
+          "type": "string",
+          "const": "E_SESSION_PAUSED"
+        },
+        {
+          "description": "Channel / target not open.",
+          "type": "string",
+          "const": "E_NOT_OPEN"
+        },
+        {
+          "description": "Device disconnected.",
+          "type": "string",
+          "const": "E_DISCONNECTED"
+        },
+        {
+          "description": "Device identity / generation changed.",
+          "type": "string",
+          "const": "E_CONNECTION_CHANGED"
+        },
+        {
+          "description": "CAN bus-off.",
+          "type": "string",
+          "const": "E_BUS_OFF"
+        },
+        {
+          "description": "Device did not respond (UDS P2/P2*); writes are `outcome_unknown`.",
+          "type": "string",
+          "const": "E_NO_RESPONSE"
+        },
+        {
+          "description": "Port in use by another program.",
+          "type": "string",
+          "const": "E_PORT_BUSY"
+        },
+        {
+          "description": "OS permission denied (e.g. dialout).",
+          "type": "string",
+          "const": "E_PERMISSION"
+        },
+        {
+          "description": "Device / target not found.",
+          "type": "string",
+          "const": "E_NOT_FOUND"
+        },
+        {
+          "description": "Owning worker process is down / quarantined.",
+          "type": "string",
+          "const": "E_WORKER_DOWN"
+        },
+        {
+          "description": "Worker control lane full; the write was not sent.",
+          "type": "string",
+          "const": "E_WORKER_BUSY"
+        },
+        {
+          "description": "Cursor refers to data outside retention / another epoch.",
+          "type": "string",
+          "const": "E_CURSOR_GAP"
+        },
+        {
+          "description": "Bounded scan limit reached; resume with `resume_from`.",
+          "type": "string",
+          "const": "E_SCAN_LIMIT"
+        },
+        {
+          "description": "Partial result (e.g. write sent but not yet published, E7).",
+          "type": "string",
+          "const": "E_PARTIAL"
+        },
+        {
+          "description": "Daemon unreachable.",
+          "type": "string",
+          "const": "E_DAEMON"
+        },
+        {
+          "description": "Protocol major version mismatch.",
+          "type": "string",
+          "const": "E_PROTO_MISMATCH"
+        },
+        {
+          "description": "Device negative response (UDS NRC).",
+          "type": "string",
+          "const": "E_NRC"
+        },
+        {
+          "description": "Test session / `run --test` verdict failed (E3).",
+          "type": "string",
+          "const": "E_TEST_FAILED"
+        },
+        {
+          "description": "도메인이 정한 자원·운영 상한을 넘었다(기존 variant 순서는 유지).",
+          "type": "string",
+          "const": "E_LIMIT"
+        }
+      ]
+    },
+    "Events": {
+      "description": "W→G bulk RX batch (data lane).",
+      "type": "object",
+      "properties": {
+        "count": {
+          "description": "Number of records.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "first_source_seq": {
+          "description": "Source seq of the first record.",
+          "$ref": "#/$defs/U64"
+        },
+        "records": {
+          "description": "Records.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRecord"
+          }
+        }
+      },
+      "required": [
+        "first_source_seq",
+        "count",
+        "records"
+      ]
+    },
+    "Health": {
+      "description": "W→G heartbeat (1 s).",
+      "type": "object",
+      "properties": {
+        "commit_bytes": {
+          "description": "Committed bytes (Windows) when known.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/U64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "journal": {
+          "description": "Journal state.",
+          "$ref": "#/$defs/JournalHealth"
+        },
+        "mono_ns": {
+          "description": "Worker monotonic time (ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "queues": {
+          "description": "Per-queue statistics by queue name.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/QueueStat"
+          },
+          "default": {}
+        },
+        "rss_bytes": {
+          "description": "Resident set size (bytes).",
+          "$ref": "#/$defs/U64"
+        },
+        "threads": {
+          "description": "Thread count.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "mono_ns",
+        "rss_bytes",
+        "journal",
+        "threads"
+      ]
+    },
+    "HexBytes": {
+      "description": "Bytes as hex (lowercase on output), at most 64 KiB decoded.",
+      "type": "string",
+      "maxLength": 131072,
+      "pattern": "^([0-9a-fA-F]{2})*$"
+    },
+    "Input": {
+      "description": "Interactive input bytes.",
+      "type": "object",
+      "properties": {
+        "bytes": {
+          "description": "Bytes to send.",
+          "$ref": "#/$defs/HexBytes"
+        },
+        "call_id": {
+          "description": "선택적 응답 식별자. 없으면 v1.0 소켓 요청 순서 번호를 사용한다.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "channel": {
+          "description": "입력 대상 채널.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conn_id": {
+          "description": "입력을 보낸 연결.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "input_seq": {
+          "description": "연결 내 입력 순서 번호.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/U64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lease_id": {
+          "description": "Lease id.",
+          "type": "string"
+        },
+        "priority": {
+          "description": "Priority (Ctrl-C etc.) — handled before queued input.",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "lease_id",
+        "bytes"
+      ]
+    },
+    "InputLease": {
+      "description": "Interactive input lease grant (A1-③).",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "description": "Channel.",
+          "type": "string"
+        },
+        "client_id": {
+          "description": "Owner client id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conn_id": {
+          "description": "입력 lease를 소유한 연결.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lease_id": {
+          "description": "Lease id.",
+          "type": "string"
+        },
+        "owner": {
+          "description": "Owner origin.",
+          "$ref": "#/$defs/Origin"
+        }
+      },
+      "required": [
+        "channel",
+        "lease_id",
+        "owner"
+      ]
+    },
+    "InputLeaseEnd": {
+      "description": "G→W 입력 lease 종료 통지. 응답을 요구하지 않으며 소켓 요청 순번을 소비하지 않는다.",
+      "type": "object",
+      "properties": {
+        "cause": {
+          "description": "종료 이유.",
+          "$ref": "#/$defs/InputLeaseEndCause"
+        },
+        "conn_id": {
+          "description": "소유 연결. 알 수 없으면 생략한다.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lease_id": {
+          "description": "종료한 lease.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lease_id",
+        "cause"
+      ]
+    },
+    "InputLeaseEndCause": {
+      "description": "입력 lease가 끝난 이유.",
+      "oneOf": [
+        {
+          "description": "연결이 종료되었다.",
+          "type": "string",
+          "const": "conn_closed"
+        },
+        {
+          "description": "사용자가 lease를 반납했다.",
+          "type": "string",
+          "const": "released"
+        }
+      ]
+    },
+    "JobRenew": {
+      "description": "Job lease renewal.",
+      "type": "object",
+      "properties": {
+        "call_id": {
+          "description": "선택적 응답 식별자. 없으면 v1.0 소켓 요청 순서 번호를 사용한다.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "job_id": {
+          "description": "Job id.",
+          "type": "string"
+        },
+        "lease_ms": {
+          "description": "New lease in ms.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "job_id",
+        "lease_ms"
+      ]
+    },
+    "JobStart": {
+      "description": "Job start (job class, A1-②).",
+      "type": "object",
+      "properties": {
+        "approval_ref": {
+          "description": "Approval reference.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "call_id": {
+          "description": "선택적 응답 식별자. 없으면 v1.0 소켓 요청 순서 번호를 사용한다.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "job_id": {
+          "description": "Job id.",
+          "type": "string"
+        },
+        "lease_ms": {
+          "description": "Lease in ms.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "plan": {
+          "description": "Approved plan (ids, ranges, period)."
+        }
+      },
+      "required": [
+        "job_id",
+        "plan",
+        "lease_ms"
+      ]
+    },
+    "JobStop": {
+      "description": "Job stop.",
+      "type": "object",
+      "properties": {
+        "call_id": {
+          "description": "선택적 응답 식별자. 없으면 v1.0 소켓 요청 순서 번호를 사용한다.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "job_id": {
+          "description": "Job id.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Reason (`user`, `stop_latch`, `expired` …).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "reason"
+      ]
+    },
+    "JobUpdate": {
+      "description": "Job plan update.",
+      "type": "object",
+      "properties": {
+        "call_id": {
+          "description": "선택적 응답 식별자. 없으면 v1.0 소켓 요청 순서 번호를 사용한다.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "job_id": {
+          "description": "Job id.",
+          "type": "string"
+        },
+        "plan": {
+          "description": "New plan."
+        }
+      },
+      "required": [
+        "job_id",
+        "plan"
+      ]
+    },
+    "JournalHealth": {
+      "description": "Journal state reported in [`Health`].",
+      "type": "object",
+      "properties": {
+        "durable_through": {
+          "description": "Highest source seq synced to disk.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/U64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "health": {
+          "description": "Recording health.",
+          "$ref": "#/$defs/RecordHealth"
+        },
+        "written_through": {
+          "description": "Highest source seq handed to the OS.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/U64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "health"
+      ]
+    },
+    "Latch": {
+      "description": "STOP latch change (ack required).",
+      "type": "object",
+      "properties": {
+        "latch_seq": {
+          "description": "Latch sequence (echoed in [`LatchAck`]).",
+          "$ref": "#/$defs/U64"
+        },
+        "on": {
+          "description": "Latch on/off.",
+          "type": "boolean"
+        },
+        "reason": {
+          "description": "Reason.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "description": "Scope (`all` in M1).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "on",
+        "scope",
+        "latch_seq"
+      ]
+    },
+    "LatchAck": {
+      "description": "W→G latch acknowledgement.",
+      "type": "object",
+      "properties": {
+        "latch_seq": {
+          "description": "Echoed latch sequence.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "latch_seq"
+      ]
+    },
+    "Metric": {
+      "description": "Numeric sample attached to an event (CR-X2); viz plots these without domain code.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Metric name, e.g. `current`.",
+          "type": "string"
+        },
+        "unit": {
+          "description": "Unit, e.g. `A`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "description": "Value.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ]
+    },
+    "Origin": {
+      "description": "Who caused the event (fixed 4 values, D3). Decided by connection credentials, never by\nrequest fields.",
+      "oneOf": [
+        {
+          "description": "AI agent via CLI / agent connection.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Human via a viewer connection.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The device (or external tool on the bus, see `external_actor`).",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Loom runner / test session.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "PriorityEvents": {
+      "description": "W→G priority events on the control lane (write states, responses, state, source gaps).",
+      "type": "object",
+      "properties": {
+        "records": {
+          "description": "Records in source order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceRecord"
+          }
+        }
+      },
+      "required": [
+        "records"
+      ]
+    },
+    "ProtoVersion": {
+      "description": "Major/minor version pair.",
+      "type": "object",
+      "properties": {
+        "major": {
+          "description": "Major (mismatch = reject).",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "minor": {
+          "description": "Minor (intersection is used).",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        }
+      },
+      "required": [
+        "major",
+        "minor"
+      ]
+    },
+    "QueueStat": {
+      "description": "One bounded queue's statistics.",
+      "type": "object",
+      "properties": {
+        "bytes": {
+          "description": "Current bytes.",
+          "$ref": "#/$defs/U64"
+        },
+        "depth": {
+          "description": "Current depth (items).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "drops": {
+          "description": "Items dropped so far.",
+          "$ref": "#/$defs/U64"
+        },
+        "max_depth": {
+          "description": "High-water depth.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "depth",
+        "bytes",
+        "max_depth",
+        "drops"
+      ]
+    },
+    "RecordHealth": {
+      "description": "Recording health (A12).",
+      "oneOf": [
+        {
+          "description": "Recording normally.",
+          "type": "string",
+          "const": "ok"
+        },
+        {
+          "description": "Backlog building up, nothing lost yet.",
+          "type": "string",
+          "const": "degraded"
+        },
+        {
+          "description": "Original data lost or audit unavailable: agent·script R1+ writes blocked.",
+          "type": "string",
+          "const": "failed"
+        },
+        {
+          "description": "Intentionally off (`--no-record`; audit still on).",
+          "type": "string",
+          "const": "disabled"
+        }
+      ]
+    },
+    "Reject": {
+      "description": "G→W refuse (e.g. major mismatch).",
+      "type": "object",
+      "properties": {
+        "reason": {
+          "description": "Reason.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ]
+    },
+    "Reply": {
+      "description": "W→G reply. `covers` = last source event emitted before this reply (publish-before-reply\nwatermark, E7).",
+      "type": "object",
+      "properties": {
+        "call_id": {
+          "description": "Echoed call id.",
+          "$ref": "#/$defs/U64"
+        },
+        "covers": {
+          "description": "Watermark the gateway waits for before answering the client.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "description": "Result.",
+          "$ref": "#/$defs/ReplyResult"
+        }
+      },
+      "required": [
+        "call_id",
+        "result"
+      ]
+    },
+    "ReplyResult": {
+      "description": "Result of a call or write.",
+      "oneOf": [
+        {
+          "description": "Success value.",
+          "type": "object",
+          "properties": {
+            "ok": true
+          },
+          "additionalProperties": false,
+          "required": [
+            "ok"
+          ]
+        },
+        {
+          "description": "Error.",
+          "type": "object",
+          "properties": {
+            "err": {
+              "$ref": "#/$defs/WorkerError"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "err"
+          ]
+        }
+      ]
+    },
+    "Risk": {
+      "description": "Risk class (D6). Under F1 every class runs automatically by default; the class is still\nshown and recorded.",
+      "oneOf": [
+        {
+          "description": "Observe only.",
+          "type": "string",
+          "const": "R0"
+        },
+        {
+          "description": "Reversible, low risk write.",
+          "type": "string",
+          "const": "R1"
+        },
+        {
+          "description": "State-changing write.",
+          "type": "string",
+          "const": "R2"
+        },
+        {
+          "description": "Dangerous (security access, actuators, periodic TX …).",
+          "type": "string",
+          "const": "R3"
+        },
+        {
+          "description": "Irreversible / high risk.",
+          "type": "string",
+          "const": "R4"
+        }
+      ]
+    },
+    "Segment": {
+      "description": "W→G sealed journal segment report.",
+      "type": "object",
+      "properties": {
+        "bytes": {
+          "description": "Size in bytes.",
+          "$ref": "#/$defs/U64"
+        },
+        "crc32c": {
+          "description": "CRC32C of the file.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "file": {
+          "description": "File name relative to the journal dir.",
+          "type": "string"
+        },
+        "first_source_seq": {
+          "description": "First source seq.",
+          "$ref": "#/$defs/U64"
+        },
+        "last_source_seq": {
+          "description": "Last source seq.",
+          "$ref": "#/$defs/U64"
+        },
+        "mono_first": {
+          "description": "First monotonic time (ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "mono_last": {
+          "description": "Last monotonic time (ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_epoch": {
+          "description": "Producer epoch.",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "producer_id",
+        "producer_epoch",
+        "first_source_seq",
+        "last_source_seq",
+        "mono_first",
+        "mono_last",
+        "bytes",
+        "crc32c"
+      ]
+    },
+    "SourceRecord": {
+      "description": "Original record as produced by a worker (journal form). No stream seq/epoch.",
+      "type": "object",
+      "properties": {
+        "actor_id": {
+          "description": "Runner/test actor (`run:<id>`, `test:<id>`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "description": "Domain channel alias (`dut`, `ch0`, `ecu1`); absent for core events.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "client_id": {
+          "description": "Client id (`LOOM_CLIENT` + pid, `web:tab-3`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dir": {
+          "description": "Direction (`rx`/`tx`), absent for state/control.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Dir"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "domain": {
+          "description": "Domain (`uart`, `can`, `uds`, `core`, `display`, `record`, `source`, `run`, `test`, `ui` …).",
+          "type": "string"
+        },
+        "env": {
+          "description": "Environment badge; required on write events (B4).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Env"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "external_actor": {
+          "description": "External tool on the bus (`canoe`, `host`, `unknown`) when origin = device.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "generation": {
+          "description": "Device/link generation (UART gen, UDS link epoch, CAN reopen) — CR-C5.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "job_id": {
+          "description": "Job id (periodic TX, run, export …).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "description": "Event kind `<domain>.<event>` (see [`validate_event_kind`]).",
+          "type": "string"
+        },
+        "metrics": {
+          "description": "Numeric samples (omitted when empty).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Metric"
+          }
+        },
+        "origin": {
+          "description": "Origin decided by connection credentials.",
+          "$ref": "#/$defs/Origin"
+        },
+        "original_origin": {
+          "description": "Original origin of a replayed event.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Origin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payload": {
+          "description": "Kind-specific structured object (E1). Raw bytes in `payload.bytes`,\nwrite state in `payload.write_state` (E8).",
+          "default": {}
+        },
+        "producer_epoch": {
+          "description": "Producer epoch.",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer id (worker instance or `gateway`).",
+          "type": "string"
+        },
+        "purpose": {
+          "description": "Purpose (`agent_send`, `keepalive`, `run`, `replay`, `sim` …).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quality": {
+          "description": "Quality flags (`stale`, `decimated:N`, `simulated` …), omitted when empty.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_id": {
+          "description": "Request id; write rows of one request share it (A2).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "risk": {
+          "description": "Risk class of a write.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Risk"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema_version": {
+          "description": "Record schema version (currently [`crate::SCHEMA_VERSION`]).",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "session_id": {
+          "description": "Recording session id.",
+          "type": "string"
+        },
+        "source_seq": {
+          "description": "Producer sequence.",
+          "$ref": "#/$defs/U64"
+        },
+        "test_session": {
+          "description": "Test session this client was bound to (auto-tagged by the hub, TC-C1).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "test_step": {
+          "description": "Test step at the time of the event.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ts": {
+          "description": "Timestamps.",
+          "$ref": "#/$defs/Ts"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "domain",
+        "kind",
+        "producer_id",
+        "producer_epoch",
+        "source_seq",
+        "ts",
+        "origin"
+      ]
+    },
+    "SourceRef": {
+      "description": "Source identity of an event: who produced it and its producer sequence (D3).",
+      "type": "object",
+      "properties": {
+        "producer_epoch": {
+          "description": "Increments on every producer (worker) start.",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer (worker instance or `gateway`).",
+          "type": "string"
+        },
+        "source_seq": {
+          "description": "Monotonic per producer epoch.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "producer_id",
+        "producer_epoch",
+        "source_seq"
+      ]
+    },
+    "Ts": {
+      "description": "Timestamp of an event (D3). All integers are nanoseconds.",
+      "type": "object",
+      "properties": {
+        "clock_id": {
+          "description": "Identifies the monotonic clock domain (changes on reboot).",
+          "type": "string"
+        },
+        "mono_ns": {
+          "description": "Host monotonic clock (same-host comparisons, latency gates).",
+          "$ref": "#/$defs/U64"
+        },
+        "quality": {
+          "description": "Free-form quality note (e.g. `usb_latency_ms`), if known.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "Where the timestamp was taken.",
+          "$ref": "#/$defs/TsSource"
+        },
+        "wall_ns": {
+          "description": "Wall clock (UTC, ns since Unix epoch).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "mono_ns",
+        "wall_ns",
+        "clock_id",
+        "source"
+      ]
+    },
+    "TsSource": {
+      "description": "Origin of a timestamp.",
+      "oneOf": [
+        {
+          "description": "Host read call completed.",
+          "type": "string",
+          "const": "host_read_complete"
+        },
+        {
+          "description": "Driver-provided timestamp.",
+          "type": "string",
+          "const": "driver"
+        },
+        {
+          "description": "Hardware timestamp from the interface.",
+          "type": "string",
+          "const": "hardware"
+        },
+        {
+          "description": "Timestamp reported by the device itself.",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Assigned by the gateway.",
+          "type": "string",
+          "const": "gateway"
+        },
+        {
+          "description": "Synthetic (simulation, replay).",
+          "type": "string",
+          "const": "synthetic"
+        },
+        {
+          "description": "pcap host timestamp (eth; `ts.source = \"pcap_host\"`).",
+          "type": "string",
+          "const": "pcap_host"
+        },
+        {
+          "description": "pcap adapter (NIC hardware) timestamp (eth).",
+          "type": "string",
+          "const": "pcap_adapter"
+        },
+        {
+          "description": "Re-emitted from a recording (eth replay).",
+          "type": "string",
+          "const": "replay"
+        },
+        {
+          "description": "Produced by a simulation backend (eth sim).",
+          "type": "string",
+          "const": "sim"
+        }
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "Welcome": {
+      "description": "G→W accept.",
+      "type": "object",
+      "properties": {
+        "accepted_minor": {
+          "description": "Accepted minor version.",
+          "type": "integer",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0
+        },
+        "budgets": {
+          "description": "Budgets.",
+          "$ref": "#/$defs/WorkerBudgets"
+        },
+        "config": {
+          "description": "Domain configuration.",
+          "default": null
+        },
+        "latch": {
+          "description": "Current STOP latch.",
+          "type": "boolean"
+        },
+        "stream_epoch": {
+          "description": "Current stream epoch.",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "accepted_minor",
+        "stream_epoch",
+        "budgets",
+        "latch"
+      ]
+    },
+    "WorkerBudgets": {
+      "description": "Memory and credit budgets sent to a worker.",
+      "type": "object",
+      "properties": {
+        "credit_bytes": {
+          "description": "Initial data-lane credit window (bytes).",
+          "$ref": "#/$defs/U64"
+        },
+        "mem_hard_bytes": {
+          "description": "Hard memory budget (bytes; Windows = commit limit).",
+          "$ref": "#/$defs/U64"
+        },
+        "mem_soft_bytes": {
+          "description": "Soft memory budget (bytes).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "mem_soft_bytes",
+        "mem_hard_bytes",
+        "credit_bytes"
+      ]
+    },
+    "WorkerError": {
+      "description": "Error reported in a [`Reply`].",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Error code.",
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "detail": {
+          "description": "Detail (e.g. `write_state: outcome_unknown`, `written_bytes`)."
+        },
+        "message": {
+          "description": "Message.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ]
+    },
+    "WorkerHello": {
+      "description": "W→G first message.",
+      "type": "object",
+      "properties": {
+        "build": {
+          "description": "Build id.",
+          "type": "string"
+        },
+        "capabilities": {
+          "description": "Capabilities.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "codecs": {
+          "description": "Supported codecs (`msgpack-map`).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domains": {
+          "description": "Domains served.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "instance": {
+          "description": "Instance (`uart-dut`, `can-hw`).",
+          "type": "string"
+        },
+        "journal_dir": {
+          "description": "Journal directory used by this worker.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Worker kind (`uart`, `can`, `seedkey` …).",
+          "type": "string"
+        },
+        "pid": {
+          "description": "OS process id.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "producer_epoch": {
+          "description": "Producer epoch (increments per start).",
+          "$ref": "#/$defs/U64"
+        },
+        "producer_id": {
+          "description": "Producer id used in events.",
+          "type": "string"
+        },
+        "proto": {
+          "description": "Protocol version.",
+          "$ref": "#/$defs/ProtoVersion"
+        },
+        "resume_nonce": {
+          "description": "Re-attach nonce (M2), absent on fresh start.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema_hash": {
+          "description": "`loom-proto` schema hash.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proto",
+        "kind",
+        "instance",
+        "producer_id",
+        "producer_epoch",
+        "pid",
+        "build",
+        "schema_hash",
+        "codecs",
+        "domains",
+        "journal_dir"
+      ]
+    },
+    "Write": {
+      "description": "G→W write that passed the pipeline (request class).",
+      "type": "object",
+      "properties": {
+        "approval_ref": {
+          "description": "Approval reference.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "call_id": {
+          "description": "Call id.",
+          "$ref": "#/$defs/U64"
+        },
+        "client_id": {
+          "description": "Client id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deadline_mono_ns": {
+          "description": "Absolute deadline (host monotonic ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "op": {
+          "description": "Domain operation."
+        },
+        "origin": {
+          "description": "Origin.",
+          "$ref": "#/$defs/Origin"
+        },
+        "plan_digest": {
+          "description": "Plan digest when the write belongs to an approved plan.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request_id": {
+          "description": "Request id (write rows).",
+          "type": "string"
+        },
+        "write_class": {
+          "description": "Write class.",
+          "$ref": "#/$defs/WriteClass"
+        }
+      },
+      "required": [
+        "call_id",
+        "request_id",
+        "write_class",
+        "op",
+        "origin",
+        "deadline_mono_ns"
+      ]
+    },
+    "WriteClass": {
+      "description": "Write class (A1).",
+      "oneOf": [
+        {
+          "description": "One request through the full pipeline.",
+          "type": "string",
+          "const": "request"
+        },
+        {
+          "description": "Job: only start/update/renew/stop are gated.",
+          "type": "string",
+          "const": "job"
+        },
+        {
+          "description": "Interactive input stream (lease checked once).",
+          "type": "string",
+          "const": "interactive"
+        }
+      ]
+    }
+  }
+}

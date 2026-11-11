@@ -1,0 +1,371 @@
+{
+  "checked_at": "2026-11-09T14:04:49.306968+00:00",
+  "packages": {
+    "udsoncan": {
+      "version": "1.26.1",
+      "released": [
+        "2026-06-25T20:43:12.998432Z",
+        "2026-06-25T20:43:14.023347Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": ">=3.7",
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator"
+      ],
+      "urls": {
+        "Download": "https://github.com/pylessard/python-udsoncan/archive/v1.26.1.tar.gz",
+        "Homepage": "https://github.com/pylessard/python-udsoncan"
+      },
+      "summary": "Implementation of the Unified Diagnostic Service (UDS) protocol (ISO-14229) used in the automotive industry.",
+      "json_url": "https://pypi.org/pypi/udsoncan/json"
+    },
+    "doipclient": {
+      "version": "1.3.0",
+      "released": [
+        "2026-11-09T07:06:45.709028Z",
+        "2026-11-09T07:06:47.083032Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": ">=3.6",
+      "classifiers": [
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/jacobschaer/python-doipclient"
+      },
+      "summary": "A Diagnostic over IP (DoIP) client implementing ISO-13400-2.",
+      "json_url": "https://pypi.org/pypi/doipclient/json"
+    },
+    "can-isotp": {
+      "version": "2.0.7",
+      "released": [
+        "2025-05-14T02:54:11.805359Z",
+        "2025-05-14T02:54:13.148023Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": ">=3.7",
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator"
+      ],
+      "urls": {
+        "Download": "https://github.com/pylessard/python-can-isotp/archive/v2.0.7.tar.gz",
+        "Homepage": "https://github.com/pylessard/python-can-isotp"
+      },
+      "summary": "Module enabling the IsoTP protocol defined by ISO-15765",
+      "json_url": "https://pypi.org/pypi/can-isotp/json"
+    },
+    "python-can": {
+      "version": "4.6.1",
+      "released": [
+        "2025-08-12T07:44:56.550052Z",
+        "2025-08-12T07:44:58.314717Z"
+      ],
+      "license": null,
+      "license_expression": "LGPL-3.0-only",
+      "python": ">=3.9",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Manufacturing",
+        "Intended Audience :: Telecommunications Industry",
+        "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Topic :: Software Development :: Embedded Systems",
+        "Topic :: Software Development :: Embedded Systems :: Controller Area Network (CAN)",
+        "Topic :: System :: Hardware :: Hardware Drivers",
+        "Topic :: System :: Logging",
+        "Topic :: System :: Monitoring",
+        "Topic :: System :: Networking",
+        "Topic :: Utilities"
+      ],
+      "urls": {
+        "changelog": "https://github.com/hardbyte/python-can/blob/develop/CHANGELOG.md",
+        "documentation": "https://python-can.readthedocs.io",
+        "homepage": "https://github.com/hardbyte/python-can",
+        "repository": "https://github.com/hardbyte/python-can"
+      },
+      "summary": "Controller Area Network interface module for Python",
+      "json_url": "https://pypi.org/pypi/python-can/json"
+    },
+    "odxtools": {
+      "version": "11.7.1",
+      "released": [
+        "2026-10-20T19:12:03.928903Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": ">=3.10",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14"
+      ],
+      "urls": {
+        "Bug Tracker": "https://github.com/mercedes-benz/odxtools/issues",
+        "Homepage": "https://github.com/mercedes-benz/odxtools",
+        "Repository": "https://github.com/mercedes-benz/odxtools"
+      },
+      "summary": "Utilities to work with the ODX standard for automotive diagnostics",
+      "json_url": "https://pypi.org/pypi/odxtools/json"
+    },
+    "scapy": {
+      "version": "2.8.0",
+      "released": [
+        "2026-10-02T16:25:17.260071Z",
+        "2026-10-02T16:25:18.874628Z"
+      ],
+      "license": null,
+      "license_expression": "GPL-2.0-only",
+      "python": "<4,>=3.7",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Telecommunications Industry",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Security",
+        "Topic :: System :: Networking",
+        "Topic :: System :: Networking :: Monitoring"
+      ],
+      "urls": {
+        "Changelog": "https://github.com/secdev/scapy/releases",
+        "Documentation": "https://scapy.readthedocs.io",
+        "Download": "https://github.com/secdev/scapy/tarball/master",
+        "Homepage": "https://scapy.net",
+        "Source Code": "https://github.com/secdev/scapy"
+      },
+      "summary": "Scapy: interactive packet manipulation tool",
+      "json_url": "https://pypi.org/pypi/scapy/json"
+    },
+    "py-uds": {
+      "version": "5.0.0",
+      "released": [
+        "2026-09-28T20:11:40.131410Z"
+      ],
+      "license": null,
+      "license_expression": "MIT",
+      "python": ">=3.12",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Telecommunications Industry",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+        "Topic :: Software Development :: Embedded Systems",
+        "Topic :: System :: Monitoring",
+        "Topic :: System :: Networking"
+      ],
+      "urls": {
+        "Code Download": "https://github.com/mdabrowski1990/uds/archive/refs/heads/main.zip",
+        "Homepage": "https://github.com/mdabrowski1990/uds",
+        "Issues Tracking System": "https://github.com/mdabrowski1990/uds/issues",
+        "PyPI": "https://pypi.org/project/py-uds/",
+        "Releases and Changelogs": "https://github.com/mdabrowski1990/uds/releases",
+        "Repository": "https://github.com/mdabrowski1990/uds",
+        "Security Policy": "https://github.com/mdabrowski1990/uds/security/policy",
+        "User Documentation": "https://uds.readthedocs.io",
+        "Wiki": "https://github.com/mdabrowski1990/uds/wiki"
+      },
+      "summary": "UDS (Unified Diagnostic Services) protocol handler.",
+      "json_url": "https://pypi.org/pypi/py-uds/json"
+    },
+    "pyvit": {
+      "version": "0.2.1",
+      "released": [
+        "2017-08-31T14:53:36.828285Z"
+      ],
+      "license": "GPLv3",
+      "license_expression": null,
+      "python": "",
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Topic :: Software Development :: Embedded Systems",
+        "Topic :: Software Development :: Libraries"
+      ],
+      "urls": {
+        "Homepage": "http://github.com/linklayer/pyvit"
+      },
+      "summary": "Python Vehicle Inteface Toolkit",
+      "json_url": "https://pypi.org/pypi/pyvit/json"
+    },
+    "aioisotp": {
+      "version": "0.1.1",
+      "released": [
+        "2018-11-21T20:54:24.206045Z",
+        "2018-11-21T20:54:26.058456Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": ">=3.5",
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Framework :: AsyncIO",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/christiansandberg/aioisotp"
+      },
+      "summary": "Asyncio implementation of ISO-TP (ISO 15765-2)",
+      "json_url": "https://pypi.org/pypi/aioisotp/json"
+    },
+    "doip-server": {
+      "version": "2026.6.14.post116",
+      "released": [
+        "2026-06-14T06:24:49.313206Z",
+        "2026-06-14T06:24:50.245821Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": "<3.15,>=3.10",
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Communications",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Networking"
+      ],
+      "urls": {
+        "Bug Tracker": "https://github.com/Alonso07/doip_server/issues",
+        "Changelog": "https://github.com/alonso07/doip_server/blob/main/docs/CHANGELOG.md",
+        "Documentation": "https://github.com/Alonso07/doip_server/tree/main/docs",
+        "Homepage": "https://github.com/Alonso07/doip_server",
+        "Repository": "https://github.com/Alonso07/doip_server",
+        "Source Code": "https://github.com/alonso07/doip_server"
+      },
+      "summary": "DoIP Server and Client implementation with YAML configuration",
+      "json_url": "https://pypi.org/pypi/doip-server/json"
+    },
+    "doipserver": {
+      "error": "HTTP Error 404: Not Found"
+    },
+    "uds": {
+      "version": "0.1.15",
+      "released": [
+        "2020-08-16T06:20:51.236968Z"
+      ],
+      "license": "MIT",
+      "license_expression": null,
+      "python": "",
+      "classifiers": [
+        "Environment :: Console"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/hvnsweeting/uds"
+      },
+      "summary": "Dictionary CLI searcher: supports Urban, Cambridge",
+      "json_url": "https://pypi.org/pypi/uds/json"
+    },
+    "canmatrix": {
+      "version": "1.3.3",
+      "released": [
+        "2026-10-21T22:13:11.381877Z",
+        "2026-10-21T22:13:13.243535Z"
+      ],
+      "license": "BSD-2-Clause",
+      "license_expression": null,
+      "python": ">=3.8",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Manufacturing",
+        "Intended Audience :: Telecommunications Industry",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Software Development :: Embedded Systems :: Controller Area Network (CAN)",
+        "Topic :: System :: Networking",
+        "Topic :: Utilities"
+      ],
+      "urls": {
+        "documentation": "https://canmatrix.readthedocs.io",
+        "homepage": "https://github.com/ebroecker/canmatrix",
+        "repository": "https://github.com/ebroecker/canmatrix"
+      },
+      "summary": "Automotive Communication Matrix",
+      "json_url": "https://pypi.org/pypi/canmatrix/json"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+[package]
+name = "loom-worker-host"
+description = "Loom gateway-side worker host: loom-worker/1 sockets, worker process spawn and supervision (contract 05)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+loom-domain-api.workspace = true
+loom-worker-sdk.workspace = true
+loom-journal.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+rand.workspace = true
+# `process` is added here (additive feature) for worker spawn; the workspace entry is unchanged.
+tokio = { workspace = true, features = ["process"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bin]]
+name = "loom-test-worker"
+path = "src/bin/loom-test-worker.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "loom-test-shared-worker"
+path = "src/bin/loom-test-shared-worker.rs"
+test = false
+doc = false
+
+[lints]
+workspace = true

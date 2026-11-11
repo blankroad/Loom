@@ -1,0 +1,130 @@
+[
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f1a1",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F1A1",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "requested"
+    },
+    "request_id": "r-3"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f1a1",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F1A1",
+      "suppress_pos": false,
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "accepted"
+    },
+    "request_id": "r-3"
+  },
+  {
+    "kind": "uds.tx",
+    "payload": {
+      "bytes": {
+        "data": "22f1a1",
+        "encoding": "hex"
+      },
+      "functional": false,
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "risk": "R0",
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F1A1",
+      "suppress_pos": false,
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "sent"
+    },
+    "request_id": "r-3"
+  },
+  {
+    "kind": "uds.rx",
+    "payload": {
+      "bytes": {
+        "data": "7f2231",
+        "encoding": "hex"
+      },
+      "kind": "negative",
+      "late": false,
+      "nrc": 49,
+      "nrc_name": "requestOutOfRange",
+      "t_rx_mono_ns": "5000900000",
+      "target": "ecu1"
+    },
+    "request_id": "r-3"
+  },
+  {
+    "kind": "uds.result",
+    "payload": {
+      "bytes": {
+        "data": "22f1a1",
+        "encoding": "hex"
+      },
+      "first_rx_ms": 0.9,
+      "functional": false,
+      "nrc": 49,
+      "nrc_name": "requestOutOfRange",
+      "ok_suppressed": false,
+      "p2_ms": 50,
+      "p2_star_ms": 5000,
+      "pending_count": 0,
+      "policy_action": "auto",
+      "reason": "UDS 0x22 ReadDataByIdentifier",
+      "resp_bytes": {
+        "data": "7f2231",
+        "encoding": "hex"
+      },
+      "risk": "R0",
+      "rtt_ms": 0.9,
+      "service": "ReadDataByIdentifier",
+      "sid": 34,
+      "summary": "ReadDataByIdentifier F1A1",
+      "suppress_pos": false,
+      "t_final_rx_mono_ns": "5000900000",
+      "t_first_rx_mono_ns": "5000900000",
+      "t_send_mono_ns": "5000000000",
+      "target": "ecu1",
+      "timeout": false,
+      "write_state": "failed"
+    },
+    "request_id": "r-3"
+  }
+]

@@ -1,0 +1,372 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Local sockets, a socket-like IPC primitive in which clients access a server through a filesystem path or an identifier inside a special namespace, with each client having a private connection to the server."><title>interprocess::local_socket - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-1f5a765c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="/-/rustdoc.static/" data-current-crate="interprocess" data-themes="" data-resource-suffix="-20261107-1.102.0-nightly-f5cedb83a" data-rustdoc-version="1.102.0-nightly (f5cedb83a 2026-11-07)" data-channel="nightly" data-search-js="search-835b9732.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../sidebar-items-20261107-1.102.0-nightly-f5cedb83a.js"></script><script defer src="/-/rustdoc.static/main-b2682d9c.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-101b5a15.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "interprocess",
+            "version": "2.4.8"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="Interprocess communication toolkit">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">interprocess-2.4.8</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        interprocess 2.4.8
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/interprocess/2.4.8/interprocess/local_socket/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/interprocess/latest" class="pure-menu-link description" title="See interprocess in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/0BSD" class="pure-menu-sublink">0BSD</a> OR <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.102.0-nightly (f5cedb83a 2026-11-07)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 08 November 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/kotauskas/interprocess" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/interprocess" class="pure-menu-link" title="See interprocess in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/interprocess/latest/source/" title="Browse source of interprocess-2.4.8" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/kotauskas" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> kotauskas
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/doctest-file/^1.0.0/" class="pure-menu-link">
+                doctest-file ^1.0.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/futures-core/^0.3.28/" class="pure-menu-link">
+                futures-core ^0.3.28
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1.36.0/" class="pure-menu-link">
+                tokio ^1.36.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/backtrace/=0.3.74/" class="pure-menu-link">
+                backtrace =0.3.74
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/color-eyre/^0.6.2/" class="pure-menu-link">
+                color-eyre ^0.6.2
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/owo-colors/=4.2.3/" class="pure-menu-link">
+                owo-colors =4.2.3
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1.36.0/" class="pure-menu-link">
+                tokio ^1.36.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/libc/^0.2.183/" class="pure-menu-link">
+                libc ^0.2.183
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/recvmsg/^1.0.0/" class="pure-menu-link">
+                recvmsg ^1.0.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1.36.0/" class="pure-menu-link">
+                tokio ^1.36.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/widestring/^1.0.2/" class="pure-menu-link">
+                widestring ^1.0.2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/windows-sys/^0.61.0/" class="pure-menu-link">
+                windows-sys ^0.61.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/interprocess/latest/menus/releases/interprocess/local_socket/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/interprocess/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/interprocess/latest/menus/platforms/interprocess/local_socket/"><li class="pure-menu-item">
+            <a href="/crate/interprocess/latest/target-redirect/aarch64-apple-darwin/interprocess/local_socket/" class="pure-menu-link" data-fragment="retain" rel="nofollow">aarch64-apple-darwin</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/interprocess/latest/target-redirect/x86_64-pc-windows-msvc/interprocess/local_socket/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-pc-windows-msvc</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/interprocess/latest/target-redirect/x86_64-unknown-freebsd/interprocess/local_socket/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-freebsd</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/interprocess/latest/target-redirect/interprocess/local_socket/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/interprocess/latest/features" title="Browse available feature flags of interprocess-2.4.8" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/interprocess/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module local_socket</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../interprocess/index.html">interprocess</a><span class="version">2.4.8</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module local_<wbr>socket</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#implementations-and-dispatch" title="Implementations and dispatch">Implementations and dispatch</a></li><li><a href="#stability" title="Stability">Stability</a></li><li><a href="#raw-handle-and-file-descriptor-access" title="Raw handle and file descriptor access">Raw handle and file descriptor access</a></li></ul><h3><a href="#modules">Module Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate interprocess</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">interprocess</a></div><h1>Module <span>local_<wbr>socket</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/interprocess/local_socket.rs.html#1-170">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Local sockets, a socket-like IPC primitive in which clients access a server through a
+filesystem path or an identifier inside a special namespace, with each client having a
+private connection to the server.</p>
+<p>They are a much more appropriate alternative to <code>localhost</code> TCP sockets, featuring better
+performance and developer- and user-friendly <a href="trait.NameType.html" title="trait interprocess::local_socket::NameType">identifiers</a> and
+<a href="struct.PeerCreds.html" title="struct interprocess::local_socket::PeerCreds">authentication</a>.</p>
+<h3 id="implementations-and-dispatch"><a class="doc-anchor" href="#implementations-and-dispatch">§</a>Implementations and dispatch</h3>
+<p>Local sockets are not a real IPC primitive implemented by the OS, but rather a construct of
+Interprocess that is implemented in terms of an underlying IPC primitive. Different underlying
+IPC primitives are available on different platforms and have different capabilities and
+limitations. As such, the types representing local sockets that can be found in this
+module – <a href="enum.Listener.html" title="enum interprocess::local_socket::Listener"><code>Listener</code></a>, <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>, <a href="enum.RecvHalf.html" title="enum interprocess::local_socket::RecvHalf"><code>RecvHalf</code></a>, <a href="enum.SendHalf.html" title="enum interprocess::local_socket::SendHalf"><code>SendHalf</code></a> – are really enums in the style
+of <a href="https://crates.io/crates/enum_dispatch"><code>enum_dispatch</code></a> that contain variants for all the
+different implementations of local sockets that are available, and the types that they
+dispatch between are talked to via the corresponding <a href="traits/trait.Listener.html" title="trait interprocess::local_socket::traits::Listener"><code>Listener</code></a>,
+<a href="traits/trait.Stream.html" title="trait interprocess::local_socket::traits::Stream"><code>Stream</code></a> <a href="traits/trait.RecvHalf.html" title="trait interprocess::local_socket::traits::RecvHalf"><code>RecvHalf</code></a>, <a href="traits/trait.SendHalf.html" title="trait interprocess::local_socket::traits::SendHalf"><code>SendHalf</code></a>
+traits that are located in the <a href="traits/index.html" title="mod interprocess::local_socket::traits"><code>traits</code></a> module.</p>
+<p>Note that this dispatch is currently zero-cost on all platforms, as there is only one
+underlying local socket implementation per platform, with Windows only using named pipe based
+local sockets and Unix only using Unix-domain socket based local sockets, but this
+may change in the future with the introduction of support for
+<a href="https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/">the Windows implementation of Unix-domain sockets</a>. Even if that were to be
+introduced, the overhead of dispatch would still be insignificant compared to the overhead of
+making the system calls that perform the actual communication.</p>
+<p>The <a href="prelude/index.html" title="mod interprocess::local_socket::prelude"><code>prelude</code></a> module is there to make it easier to handle all of this complexity without
+suffering from naming collisions. <strong><code>use interprocess::local_socket::prelude::*;</code> is the
+recommended way of bringing local sockets into scope.</strong></p>
+<h3 id="stability"><a class="doc-anchor" href="#stability">§</a>Stability</h3>
+<p>Since interprocess communication cannot happen without agreement on a protocol between two or
+more processes, Interprocess provides a guarantee of stability of the mapping from local
+sockets to underlying primitives. <strong>The IPC primitive selected depends only on the current
+platform and the <a href="trait.NameType.html" title="trait interprocess::local_socket::NameType">name type</a> used.</strong> The mapping is trivial unless noted otherwise,
+which means that the portable API of local sockets is suitable for communicating with
+programs that do not use Interprocess themselves, including programs not written in Rust. In
+particular, Interprocess never inserts its own message framing or any other type of metadata
+into the stream – the bytes you write are the exact bytes that come out the other end. All you
+need to do to ensure reliable communication is use the appropriate name type on the platforms
+that are important to you.</p>
+<h3 id="raw-handle-and-file-descriptor-access"><a class="doc-anchor" href="#raw-handle-and-file-descriptor-access">§</a>Raw handle and file descriptor access</h3>
+<p>The enum dispatchers purposely omit implementations of <code>{As,Into,From}Raw{Handle,Fd}</code>,
+<code>As{Handle,Fd}</code>, <code>From&lt;Owned{HandleFd}&gt;</code> and <code>Into&lt;Owned{Handle,Fd}&gt;</code>. To access those trait
+implementations on the underlying implementation types, you need to match on the enum. For
+instance:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>{interprocess::local_socket::prelude::<span class="kw-2">*</span>, std::os::unix::prelude::<span class="kw-2">*</span>};
+
+<span class="comment">// Creating a stream from a file descriptor
+</span><span class="kw">let </span>stream = LocalSocketStream::UdSocket(fd.into());
+
+<span class="comment">// Consuming a stream to get its file descriptor
+</span><span class="kw">let </span>fd = <span class="kw">match </span>stream {
+    LocalSocketStream::UdSocket(s) =&gt; OwnedFd::from(s),
+};
+
+<span class="comment">// Accessing a stream's file descriptor without taking ownership
+</span><span class="kw">let </span>stream_impl = <span class="kw">match </span><span class="kw-2">&amp;</span>stream {
+    LocalSocketStream::UdSocket(s) =&gt; s,
+};
+<span class="kw">let </span>fd = stream_impl.as_fd();
+
+<span class="comment">// Listener, RecvHalf, and SendHalf work analogously.
+// Works just the same on Windows under the replacement of Fd with Handle.</span></code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="prelude/index.html" title="mod interprocess::local_socket::prelude">prelude</a></dt><dd>Re-exports of <a href="traits/index.html" title="mod interprocess::local_socket::traits">traits</a> done in a way that doesn’t pollute the scope, as well as of the
+enum-dispatch types with their names prefixed with <code>LocalSocket</code>.</dd><dt><a class="mod" href="tokio/index.html" title="mod interprocess::local_socket::tokio">tokio</a><wbr><span class="stab portability" title="Available on crate feature `tokio` only"><code>tokio</code></span></dt><dd>Asynchronous local sockets which work with the Tokio runtime and event loop.</dd><dt><a class="mod" href="traits/index.html" title="mod interprocess::local_socket::traits">traits</a></dt><dd>Traits representing the interface of local sockets.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ConnectOptions.html" title="struct interprocess::local_socket::ConnectOptions">Connect<wbr>Options</a></dt><dd>Client-side builder for <a href="traits/trait.Stream.html" title="trait interprocess::local_socket::traits::Stream">local socket streams</a>, including <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>.</dd><dt><a class="struct" href="struct.Incoming.html" title="struct interprocess::local_socket::Incoming">Incoming</a></dt><dd>An infinite iterator over incoming client connections of a <a href="traits/trait.Listener.html" title="trait interprocess::local_socket::traits::Listener"><code>Listener</code></a>.</dd><dt><a class="struct" href="struct.ListenerOptions.html" title="struct interprocess::local_socket::ListenerOptions">Listener<wbr>Options</a></dt><dd>Server-side builder for <a href="traits/trait.Listener.html" title="trait interprocess::local_socket::traits::Listener">local socket listeners</a>, including <a href="enum.Listener.html" title="enum interprocess::local_socket::Listener"><code>Listener</code></a>.</dd><dt><a class="struct" href="struct.Name.html" title="struct interprocess::local_socket::Name">Name</a></dt><dd>Name for a local socket.</dd><dt><a class="struct" href="struct.PeerCreds.html" title="struct interprocess::local_socket::PeerCreds">Peer<wbr>Creds</a></dt><dd>Credentials of a connection peer.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.GenericFilePath.html" title="enum interprocess::local_socket::GenericFilePath">Generic<wbr>File<wbr>Path</a></dt><dd>Consistent platform-specific mapping from filesystem paths to local socket names.</dd><dt><a class="enum" href="enum.GenericNamespaced.html" title="enum interprocess::local_socket::GenericNamespaced">Generic<wbr>Namespaced</a></dt><dd>Consistent platform-specific mapping from arbitrary OS strings to local socket names.</dd><dt><a class="enum" href="enum.Listener.html" title="enum interprocess::local_socket::Listener">Listener</a></dt><dd>Local socket server, listening for connections.</dd><dt><a class="enum" href="enum.ListenerNonblockingMode.html" title="enum interprocess::local_socket::ListenerNonblockingMode">Listener<wbr>Nonblocking<wbr>Mode</a></dt><dd>The manner in which a <a href="traits/trait.Listener.html" title="trait interprocess::local_socket::traits::Listener">listener</a> is to be nonblocking.</dd><dt class="deprecated"><a class="enum" href="enum.RecvHalf.html" title="enum interprocess::local_socket::RecvHalf">Recv<wbr>Half</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Receive half of a local socket stream, obtained by splitting a <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>.</dd><dt class="deprecated"><a class="enum" href="enum.SendHalf.html" title="enum interprocess::local_socket::SendHalf">Send<wbr>Half</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Send half of a local socket stream, obtained by splitting a <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>.</dd><dt><a class="enum" href="enum.Stream.html" title="enum interprocess::local_socket::Stream">Stream</a></dt><dd>Local socket byte stream, obtained either from <a href="enum.Listener.html" title="enum interprocess::local_socket::Listener"><code>Listener</code></a> or by
+connecting to an existing local socket.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.NameType.html" title="trait interprocess::local_socket::NameType">Name<wbr>Type</a></dt><dd>Mappings from string types to <a href="struct.Name.html" title="struct interprocess::local_socket::Name">local socket names</a>.</dd><dt><a class="trait" href="trait.NamespacedNameType.html" title="trait interprocess::local_socket::NamespacedNameType">Namespaced<wbr>Name<wbr>Type</a></dt><dd><a href="trait.NameType.html" title="trait interprocess::local_socket::NameType">Mappings</a> from strings to <a href="struct.Name.html" title="struct interprocess::local_socket::Name">local socket names</a>.</dd><dt><a class="trait" href="trait.PathNameType.html" title="trait interprocess::local_socket::PathNameType">Path<wbr>Name<wbr>Type</a></dt><dd><a href="trait.NameType.html" title="trait interprocess::local_socket::NameType">Mappings</a> from paths to <a href="struct.Name.html" title="struct interprocess::local_socket::Name">local socket names</a>.</dd><dt><a class="trait" href="trait.ToFsName.html" title="trait interprocess::local_socket::ToFsName">ToFs<wbr>Name</a></dt><dd>Conversion to a filesystem path-type local socket name.</dd><dt><a class="trait" href="trait.ToNsName.html" title="trait interprocess::local_socket::ToNsName">ToNs<wbr>Name</a></dt><dd>Conversion to a namespaced local socket name.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt class="deprecated"><a class="type" href="type.ReuniteError.html" title="type interprocess::local_socket::ReuniteError">Reunite<wbr>Error</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd><a href="../error/struct.ReuniteError.html" title="struct interprocess::error::ReuniteError"><code>ReuniteError</code></a> for <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>.</dd><dt class="deprecated"><a class="type" href="type.ReuniteResult.html" title="type interprocess::local_socket::ReuniteResult">Reunite<wbr>Result</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Result type for <a href="traits/trait.Stream.html#tymethod.reunite" title="associated function interprocess::local_socket::traits::Stream::reunite"><code>.reunite()</code></a> on <a href="enum.Stream.html" title="enum interprocess::local_socket::Stream"><code>Stream</code></a>.</dd></dl></section></div></main></div></body></html>

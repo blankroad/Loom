@@ -1,0 +1,3 @@
+platform=macos arch=aarch64 release=true input=synthetic_classic_pcap packets_per_size=200000 nic_capture=false
+frame_bytes=64 input=200000 consumed=166566 record_drops=33434 elapsed_ms=82.517 consumed_pps=2018574 ingress_pps=2423753 queue_bytes_cap=8388608 queue_frames_cap=4096
+frame_bytes=1500 input=200000 consumed=200000 record_drops=0 elapsed_ms=99.969 consumed_pps=2000625 ingress_pps=2000625 queue_bytes_cap=8388608 queue_frames_cap=4096

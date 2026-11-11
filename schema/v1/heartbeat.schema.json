@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Heartbeat",
+  "description": "`core.heartbeat` (1 s even without data) — UI computes LIVE/LAG/STALLED from it.",
+  "type": "object",
+  "properties": {
+    "daemon_mono_ns": {
+      "description": "Daemon monotonic time (ns).",
+      "$ref": "#/$defs/U64"
+    },
+    "daemon_wall_ns": {
+      "description": "Daemon wall time (ns).",
+      "$ref": "#/$defs/U64"
+    },
+    "latch": {
+      "description": "STOP latch.",
+      "type": "boolean"
+    },
+    "record_health": {
+      "description": "Recording health.",
+      "$ref": "#/$defs/RecordHealth"
+    },
+    "stream_seq_hw": {
+      "description": "Hub high-water stream seq.",
+      "$ref": "#/$defs/U64"
+    },
+    "sub_stats": {
+      "description": "Subscription statistics of this connection.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SubStats"
+      }
+    }
+  },
+  "required": [
+    "stream_seq_hw",
+    "daemon_mono_ns",
+    "daemon_wall_ns",
+    "record_health",
+    "latch"
+  ],
+  "$defs": {
+    "RecordHealth": {
+      "description": "Recording health (A12).",
+      "oneOf": [
+        {
+          "description": "Recording normally.",
+          "type": "string",
+          "const": "ok"
+        },
+        {
+          "description": "Backlog building up, nothing lost yet.",
+          "type": "string",
+          "const": "degraded"
+        },
+        {
+          "description": "Original data lost or audit unavailable: agent·script R1+ writes blocked.",
+          "type": "string",
+          "const": "failed"
+        },
+        {
+          "description": "Intentionally off (`--no-record`; audit still on).",
+          "type": "string",
+          "const": "disabled"
+        }
+      ]
+    },
+    "SubStats": {
+      "description": "Per-subscription statistics in the heartbeat.",
+      "type": "object",
+      "properties": {
+        "depth": {
+          "description": "Queued events.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "drops": {
+          "description": "Events dropped so far (display gaps).",
+          "$ref": "#/$defs/U64"
+        },
+        "last_flush_mono_ns": {
+          "description": "Last flush time (daemon monotonic ns).",
+          "$ref": "#/$defs/U64"
+        },
+        "sub": {
+          "description": "Subscription id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sub",
+        "depth",
+        "drops",
+        "last_flush_mono_ns"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "name": "can-dlc",
+  "delta": true,
+  "hub": "18446744073709551615",
+  "daemon": "0",
+  "recordHealth": "degraded",
+  "displayGap": {
+    "count": "3",
+    "causes": [
+      "display_queue_full"
+    ],
+    "seq_range": {
+      "from": "2",
+      "to": "4"
+    }
+  },
+  "rows": [
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "5",
+      "epoch": "9",
+      "seq": "5",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "device",
+      "payload": {
+        "id": 291,
+        "ext": false,
+        "fd": false,
+        "brs": false,
+        "esi": false,
+        "rtr": false,
+        "dlc": 0,
+        "len": 0,
+        "bytes": {
+          "encoding": "hex",
+          "data": ""
+        }
+      },
+      "channel": null,
+      "client_id": null,
+      "request_id": null,
+      "dir": null,
+      "quality": []
+    },
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "8",
+      "epoch": "9",
+      "seq": "8",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "agent",
+      "payload": {
+        "id": 291,
+        "ext": false,
+        "fd": false,
+        "brs": false,
+        "esi": false,
+        "rtr": false,
+        "dlc": 3,
+        "len": 3,
+        "bytes": {
+          "encoding": "hex",
+          "data": "aAbBcC",
+          "ref": null
+        },
+        "device_ts": {
+          "value_ns": "18446744073709551615",
+          "source": "hardware",
+          "clock_id": "pcan"
+        },
+        "frame_index": 0
+      },
+      "channel": "ch0",
+      "client_id": "agent:1",
+      "dir": "tx",
+      "request_id": "req-α",
+      "quality": [
+        "timestamp_estimated"
+      ],
+      "env": "bench",
+      "risk": "R1",
+      "generation": 4294967295,
+      "actor_id": "run:1",
+      "external_actor": null,
+      "original_origin": "script",
+      "purpose": "fixture",
+      "test_session": "test-1",
+      "test_step": "step-1",
+      "job_id": null,
+      "metrics": [
+        {
+          "name": "latency",
+          "value": 1.5,
+          "unit": null
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "9",
+      "epoch": "9",
+      "seq": "9",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "user",
+      "payload": {
+        "id": 291,
+        "ext": false,
+        "fd": false,
+        "brs": false,
+        "esi": false,
+        "rtr": true,
+        "dlc": 8,
+        "len": 8,
+        "bytes": {
+          "encoding": "hex",
+          "data": ""
+        }
+      },
+      "dir": "rx"
+    },
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "10",
+      "epoch": "9",
+      "seq": "10",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "device",
+      "payload": {
+        "id": 291,
+        "ext": false,
+        "fd": true,
+        "brs": true,
+        "esi": false,
+        "rtr": false,
+        "dlc": 9,
+        "len": 12,
+        "bytes": {
+          "encoding": "hex",
+          "data": "000102030405060708090a0b"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "session_id": "session-α",
+      "domain": "can",
+      "kind": "can.frame",
+      "producer_id": "pcan:ch0",
+      "producer_epoch": "3",
+      "source_seq": "11",
+      "epoch": "9",
+      "seq": "11",
+      "ts": {
+        "clock_id": "host",
+        "mono_ns": "9007199254740993",
+        "wall_ns": "123",
+        "source": "hardware"
+      },
+      "origin": "device",
+      "payload": {
+        "id": 536870911,
+        "ext": true,
+        "fd": true,
+        "brs": true,
+        "esi": true,
+        "rtr": false,
+        "dlc": 15,
+        "len": 64,
+        "bytes": {
+          "encoding": "hex",
+          "data": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+        }
+      }
+    }
+  ]
+}

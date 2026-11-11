@@ -1,0 +1,61 @@
+{
+  "retrieved_at": "2026-11-09T14:17:29.293225+00:00",
+  "checks": [
+    {
+      "module": "pyvisa",
+      "status": "pass"
+    },
+    {
+      "module": "pyvisa_py",
+      "status": "pass"
+    },
+    {
+      "module": "pyvisa_sim",
+      "status": "pass"
+    },
+    {
+      "module": "pymodbus",
+      "status": "pass"
+    },
+    {
+      "module": "can",
+      "status": "pass"
+    },
+    {
+      "module": "pydlt",
+      "status": "pass"
+    },
+    {
+      "module": "someipy",
+      "status": "pass"
+    },
+    {
+      "module": "asyncssh",
+      "status": "pass"
+    },
+    {
+      "module": "pyocd",
+      "status": "pass"
+    },
+    {
+      "module": "pylink",
+      "status": "pass"
+    },
+    {
+      "module": "pyftdi",
+      "status": "pass"
+    },
+    {
+      "module": "pygdbmi",
+      "status": "pass"
+    },
+    {
+      "module": "saleae.automation",
+      "status": "pass"
+    },
+    {
+      "module": "scapy.contrib.automotive.someip",
+      "status": "pass"
+    }
+  ]
+}

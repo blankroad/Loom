@@ -1,0 +1,34 @@
+Explore R1 evidence notes — 2026-11-09 KST
+
+Read-only research and bounded backend probes only. No Loom product implementation.
+All writes are in docs/plan/explore/r1-sol.md and spikes/explore/.
+Python 3.14.1, macOS 27.0.1 arm64. Windows and physical HW were not tested.
+
+Reproduce metadata: spikes/explore/.venv/bin/python spikes/explore/collect_metadata.py
+Reproduce REST attempts: spikes/explore/.venv/bin/python spikes/explore/collect_sources.py
+Reproduce public HTML/Atom fallback: spikes/explore/.venv/bin/python spikes/explore/collect_upstream.py
+Reproduce upstream docs: spikes/explore/.venv/bin/python spikes/explore/fetch_docs.py
+Reproduce imports: spikes/explore/.venv/bin/python spikes/explore/import_checks.py
+Reproduce backend probes: spikes/explore/.venv/bin/python spikes/explore/backend_checks.py
+Package environment: requirements-observed.txt; corrected install output: install-imports.log.
+Metadata collectors preserve original PyPI JSON and upstream HTML/Atom separately.
+Manual supplemental public source fetches are preserved under upstream-raw and pypi-raw.
+append_metadata.py was a document-authoring helper for the initial report only; do not rerun on completed report because it appends tables.
+
+All six final checks passed. The original Modbus failure is retained separately.
+All fourteen import checks passed. PyLink imported at 1.7.0, not latest 2.1.0.
+No SSH config, user known_hosts, global package environment, vendor driver or project outside the authorized directories was modified.
+SSH test uses an ephemeral loopback server and generated host key verified by the client.
+QEMU test uses an ephemeral loopback GDB listener, checks one halted SRAM write/read, terminates its own process.
+Modbus test uses an ephemeral loopback TCP server and closes it.
+Virtual CAN is in-process python-can virtual, not Linux vcan.
+DLT check encodes/decodes one V1 log only; no real DLT daemon control transaction was tested.
+XCP native wheels were observed in PyPI, not installed or benchmarked.
+VISA simulator latency is in-process and must not be interpreted as real instrument query RTT.
+Viewer, CLI, event-origin arbitration, safe-policy enforcement and end-to-end M1 remain planned, not implemented.
+
+GitHub API rate limit failures are evidence of unavailable API access, not project inactivity.
+Public commit Atom and issue-list HTML supplied the activity dates in the report.
+Issue-list timestamps are rough observed activity, not verified maintainer responsiveness.
+The official Keysight HTML URL attempted returned 404; the report instead cites Keysight's official programming-guide PDF URL found via web search.
+The Ego research TaskSpace 12 was finished with no retained tabs. Ego update notice was reported without upgrading.

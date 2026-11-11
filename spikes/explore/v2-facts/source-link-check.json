@@ -1,0 +1,20 @@
+{
+  "https://api.github.com/repos/jenkinsci/junit-plugin/license": {
+    "status": 200,
+    "bytes": 2468,
+    "license": "MIT",
+    "url": "https://github.com/jenkinsci/junit-plugin/blob/master/LICENSE"
+  },
+  "https://raw.githubusercontent.com/esrlabs/dlt-core/b2a8e90f996fccaaeefae9b8ecd1d4d1f70f288b/src/filtering.rs": {
+    "status": 200,
+    "bytes": 3972
+  },
+  "https://raw.githubusercontent.com/esrlabs/dlt-core/b2a8e90f996fccaaeefae9b8ecd1d4d1f70f288b/src/parse.rs": {
+    "status": 200,
+    "bytes": 47217
+  },
+  "https://raw.githubusercontent.com/cel-rust/cel-rust/57b2a7e9b835425be0a7320e6bc0461380843f2d/cel/CHANGELOG.md": {
+    "status": 200,
+    "bytes": 23662
+  }
+}

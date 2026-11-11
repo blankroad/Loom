@@ -1,0 +1,16 @@
+loom_tc_plan: 1
+tc: TC-3@sha256:a06d3dcd4656e9b20c7d56dffde0553c96411724d882b7e9a6fc3afe9f74b7b4
+env: sim
+steps:
+  - id: S1
+    tc_step: 1
+    repeat: {count: 5}
+    do:
+      - psu.cycle: {name: bench, off_ms: 2000}
+      - dlt.wait-for: {channel: ecu1, pattern: boot complete, timeout: 20s}
+    measure: {from: {kind: psu.write, state_out: "on"}, to: {kind: dlt.log, pattern: boot complete}, agg: max}
+    expect:
+      - filter: {domain: dlt, channel: ecu1, kinds: [dlt.log]}
+        pred: {field: /measure/max_ms, op: "<=", value: 8000}
+        within_ms: 20000
+finally: [{psu.out: {name: bench, state: "off"}}]

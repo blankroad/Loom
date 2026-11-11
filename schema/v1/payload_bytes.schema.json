@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PayloadBytes",
+  "description": "Shape of `payload.bytes`.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "description": "Encoded bytes for `hex` / `base64`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "encoding": {
+      "description": "Encoding of the bytes.",
+      "$ref": "#/$defs/Encoding"
+    },
+    "ref": {
+      "description": "Reference for `raw_ref`.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RawRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "encoding"
+  ],
+  "$defs": {
+    "Encoding": {
+      "description": "Encoding of `payload.bytes`.",
+      "oneOf": [
+        {
+          "description": "Lowercase hex in `data`.",
+          "type": "string",
+          "const": "hex"
+        },
+        {
+          "description": "Standard base64 in `data`.",
+          "type": "string",
+          "const": "base64"
+        },
+        {
+          "description": "Out-of-line reference in `ref`.",
+          "type": "string",
+          "const": "raw_ref"
+        }
+      ]
+    },
+    "RawRef": {
+      "description": "Out-of-line large data reference (fetched with HTTP GET, plan §4.8).",
+      "type": "object",
+      "properties": {
+        "format": {
+          "description": "Content format (`raw`, `csv`, `sigrok` …).",
+          "type": "string"
+        },
+        "id": {
+          "description": "Server-owned opaque artifact id (never a file path).",
+          "type": "string"
+        },
+        "length": {
+          "description": "Length in bytes.",
+          "$ref": "#/$defs/U64"
+        },
+        "sha256": {
+          "description": "SHA-256 of the content, lowercase hex.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sha256",
+        "length",
+        "format"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

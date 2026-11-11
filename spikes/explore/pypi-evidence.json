@@ -1,0 +1,886 @@
+{
+  "retrieved_at": "2026-11-09T14:13:06.308603+00:00",
+  "method": "PyPI JSON info.version (index advertised latest; prerelease status not separately inferred)",
+  "packages": [
+    {
+      "package": "pyocd",
+      "url": "https://pypi.org/pypi/pyocd/json",
+      "version": "0.46.1",
+      "release_date": "2026-11-02T11:26:03.211391Z",
+      "requires_python": ">=3.9.0",
+      "license": "Apache 2.0",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Manufacturing",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: POSIX :: BSD",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Debuggers",
+        "Topic :: Software Development :: Embedded Systems",
+        "Topic :: Software Development :: Testing",
+        "Topic :: Utilities"
+      ],
+      "project_urls": {
+        "Discussions": "https://github.com/pyocd/pyOCD/discussions",
+        "Documentation": "https://pyocd.io//docs",
+        "Homepage": "https://github.com/pyocd/pyOCD",
+        "Issues": "https://github.com/pyocd/pyOCD/issues",
+        "Releases": "https://github.com/pyocd/pyOCD/releases",
+        "Source": "https://github.com/pyocd/pyOCD",
+        "Website": "https://pyocd.io/"
+      },
+      "requires_dist": [
+        "capstone<6.0,>=5.0",
+        "cmsis-pack-manager<1.0,>=0.5.2",
+        "colorama<1.0",
+        "hidapi<1.0,>=0.10.1; platform_system != \"Linux\"",
+        "importlib_metadata>=3.6",
+        "importlib_resources",
+        "intelhex<3.0,>=2.0",
+        "intervaltree<4.0,>=3.0.2",
+        "lark<2.0,>=1.1.5",
+        "libusb-package<2.0,>=1.0",
+        "natsort<9.0,>=8.0.0",
+        "prettytable<4.0,>=2.0",
+        "pyelftools<1.0",
+        "pylink-square<2.0,>=1.0",
+        "pyusb<2.0,>=1.2.1",
+        "pyyaml<7.0,>=6.0",
+        "typing-extensions<5.0,>=4.0",
+        "pyocd_pemicro>=1.0.6; extra == \"pemicro\"",
+        "pytest>=6.2; extra == \"test\"",
+        "pytest-cov; extra == \"test\"",
+        "coverage; extra == \"test\"",
+        "flake8; extra == \"test\"",
+        "pylint; extra == \"test\"",
+        "tox; extra == \"test\""
+      ]
+    },
+    {
+      "package": "pylink-square",
+      "url": "https://pypi.org/pypi/pylink-square/json",
+      "version": "2.1.0",
+      "release_date": "2026-11-06T17:53:17.098594Z",
+      "requires_python": ">=3.0",
+      "license": "Apache 2.0",
+      "license_expression": null,
+      "classifiers": [],
+      "project_urls": {
+        "Homepage": "http://www.github.com/Square/pylink"
+      },
+      "requires_dist": [
+        "psutil>=5.2.2",
+        "behave==1.2.5; extra == \"dev\"",
+        "coverage==4.4.1; extra == \"dev\"",
+        "psutil>=5.2.2; extra == \"dev\"",
+        "pycodestyle>=2.3.1; extra == \"dev\"",
+        "setuptools>=70.2.0; extra == \"dev\"",
+        "sphinx==1.4.8; extra == \"dev\"",
+        "sphinx-argparse==0.1.15; extra == \"dev\"",
+        "sphinx_rtd_theme==0.2.4; extra == \"dev\"",
+        "sphinxcontrib-napoleon==0.5.3; extra == \"dev\"",
+        "wheel; extra == \"dev\"",
+        "mock==2.0.0; extra == \"test\""
+      ]
+    },
+    {
+      "package": "pygdbmi",
+      "url": "https://pypi.org/pypi/pygdbmi/json",
+      "version": "0.11.0.0",
+      "release_date": "2023-01-29T16:10:53.171463Z",
+      "requires_python": "",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: PyPy"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/cs01/pygdbmi"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "pyvisa",
+      "url": "https://pypi.org/pypi/pyvisa/json",
+      "version": "1.16.2",
+      "release_date": "2026-02-27T12:14:07.301014Z",
+      "requires_python": ">=3.10",
+      "license": "The MIT License\n        \n        Copyright (c) 2005-2024 PyVISA Authors and contributors. See AUTHORS\n        \n        Permission is hereby granted, free of charge, to any person obtaining a copy of\n        this software and associated documentation files (the \"Software\"), to deal in\n        the Software without restriction, including without limitation the rights to\n        use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n        of the Software, and to permit persons to whom the Software is furnished to do\n        so, subject to the following conditions:\n        \n        The above copyright notice and this permission notice shall be included in all\n        copies or substantial portions of the Software.\n        \n        THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n        SOFTWARE.\n        ",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+        "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/pyvisa/pyvisa/blob/main/CHANGES",
+        "documentation": "https://pyvisa.readthedocs.io/en/latest/",
+        "homepage": "https://github.com/pyvisa/pyvisa",
+        "repository": "https://github.com/pyvisa/pyvisa"
+      },
+      "requires_dist": [
+        "typing_extensions>=4.0.0"
+      ]
+    },
+    {
+      "package": "pyvisa-py",
+      "url": "https://pypi.org/pypi/pyvisa-py/json",
+      "version": "0.8.1",
+      "release_date": "2025-09-04T20:48:20.130529Z",
+      "requires_python": ">=3.10",
+      "license": "The MIT License\n        \n        Copyright (c) 2014 PyVISA-py Authors and contributors. See AUTHORS\n        \n        Permission is hereby granted, free of charge, to any person obtaining a copy of\n        this software and associated documentation files (the \"Software\"), to deal in\n        the Software without restriction, including without limitation the rights to\n        use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n        of the Software, and to permit persons to whom the Software is furnished to do\n        so, subject to the following conditions:\n        \n        The above copyright notice and this permission notice shall be included in all\n        copies or substantial portions of the Software.\n        \n        THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n        SOFTWARE.\n        ",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+        "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/pyvisa/pyvisa-py/blob/main/CHANGES",
+        "documentation": "https://pyvisa-py.readthedocs.io/en/latest/",
+        "homepage": "https://github.com/pyvisa/pyvisa-py",
+        "repository": "https://github.com/pyvisa/pyvisa-py"
+      },
+      "requires_dist": [
+        "pyvisa>=1.15.0",
+        "typing_extensions",
+        "gpib-ctypes>=0.3.0; extra == \"gpib-ctypes\"",
+        "pyserial>=3.0; extra == \"serial\"",
+        "pyusb; extra == \"usb\"",
+        "pyusb; extra == \"usb-full\"",
+        "libusb-package; extra == \"usb-full\"",
+        "psutil; extra == \"psutil\"",
+        "zeroconf; extra == \"hislip-discovery\"",
+        "pyvicp; extra == \"vicp\"",
+        "zeroconf; extra == \"vicp\""
+      ]
+    },
+    {
+      "package": "pyvisa-sim",
+      "url": "https://pypi.org/pypi/pyvisa-sim/json",
+      "version": "0.7.1",
+      "release_date": "2025-09-04T20:42:27.170304Z",
+      "requires_python": ">=3.10",
+      "license": "The MIT License\n        \n        Copyright (c) 2014 PyVISA-sim Authors and contributors. See AUTHORS\n        \n        Permission is hereby granted, free of charge, to any person obtaining a copy of\n        this software and associated documentation files (the \"Software\"), to deal in\n        the Software without restriction, including without limitation the rights to\n        use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n        of the Software, and to permit persons to whom the Software is furnished to do\n        so, subject to the following conditions:\n        \n        The above copyright notice and this permission notice shall be included in all\n        copies or substantial portions of the Software.\n        \n        THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n        SOFTWARE.\n        ",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+        "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/pyvisa/pyvisa-sim/blob/main/CHANGES.rst",
+        "documentation": "https://pyvisa-sim.readthedocs.io/en/latest/",
+        "homepage": "https://github.com/pyvisa/pyvisa-sim",
+        "repository": "https://github.com/pyvisa/pyvisa-sim"
+      },
+      "requires_dist": [
+        "pyvisa>=1.15.0",
+        "PyYAML",
+        "stringparser",
+        "typing-extensions"
+      ]
+    },
+    {
+      "package": "python-can",
+      "url": "https://pypi.org/pypi/python-can/json",
+      "version": "4.6.1",
+      "release_date": "2025-08-12T07:44:56.550052Z",
+      "requires_python": ">=3.9",
+      "license": null,
+      "license_expression": "LGPL-3.0-only",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Manufacturing",
+        "Intended Audience :: Telecommunications Industry",
+        "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Topic :: Software Development :: Embedded Systems",
+        "Topic :: Software Development :: Embedded Systems :: Controller Area Network (CAN)",
+        "Topic :: System :: Hardware :: Hardware Drivers",
+        "Topic :: System :: Logging",
+        "Topic :: System :: Monitoring",
+        "Topic :: System :: Networking",
+        "Topic :: Utilities"
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/hardbyte/python-can/blob/develop/CHANGELOG.md",
+        "documentation": "https://python-can.readthedocs.io",
+        "homepage": "https://github.com/hardbyte/python-can",
+        "repository": "https://github.com/hardbyte/python-can"
+      },
+      "requires_dist": [
+        "uptime~=3.0.1; extra == \"pcan\"",
+        "python-can-remote; extra == \"remote\"",
+        "python-can-sontheim>=0.1.2; extra == \"sontheim\"",
+        "python-can-canine>=0.2.2; extra == \"canine\"",
+        "zlgcan; extra == \"zlgcan\"",
+        "python-can-candle>=1.2.2; extra == \"candle\"",
+        "wrapt~=1.10",
+        "packaging>=23.1",
+        "typing_extensions>=3.10.0.0",
+        "pywin32>=305; (platform_system == \"Windows\" and platform_python_implementation == \"CPython\") and extra == \"pywin32\"",
+        "pyserial>=3.0; extra == \"seeedstudio\"",
+        "pyserial~=3.0; extra == \"serial\"",
+        "filelock; extra == \"neovi\"",
+        "python-ics>=2.12; extra == \"neovi\"",
+        "canalystii>=0.1.0; extra == \"canalystii\"",
+        "cantact>=0.0.7; extra == \"cantact\"",
+        "python-can-cvector; extra == \"cvector\"",
+        "gs-usb>=0.2.1; extra == \"gs-usb\"",
+        "nixnet>=0.3.2; extra == \"nixnet\"",
+        "windows-curses; (platform_system == \"Windows\" and platform_python_implementation == \"CPython\") and extra == \"viewer\"",
+        "asammdf>=6.0.0; extra == \"mf4\"",
+        "msgpack~=1.1.0; extra == \"multicast\""
+      ]
+    },
+    {
+      "package": "ldfparser",
+      "url": "https://pypi.org/pypi/ldfparser/json",
+      "version": "0.26.0",
+      "release_date": "2025-01-27T08:58:29.997054Z",
+      "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,<4",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9"
+      ],
+      "project_urls": {
+        "Documentation": "https://c4deszes.github.io/ldfparser/",
+        "Homepage": "https://github.com/c4deszes/ldfparser",
+        "Source Code": "https://github.com/c4deszes/ldfparser"
+      },
+      "requires_dist": [
+        "lark<2,>=1",
+        "bitstruct",
+        "jinja2",
+        "setuptools; extra == \"dev\"",
+        "wheel; extra == \"dev\"",
+        "twine; extra == \"dev\"",
+        "pytest; extra == \"dev\"",
+        "pytest-cov; extra == \"dev\"",
+        "pytest-benchmark; extra == \"dev\"",
+        "jsonschema; extra == \"dev\"",
+        "pylint; extra == \"dev\"",
+        "flake8; extra == \"dev\""
+      ]
+    },
+    {
+      "package": "someipy",
+      "url": "https://pypi.org/pypi/someipy/json",
+      "version": "2.1.2",
+      "release_date": "2026-01-10T11:18:39.393467Z",
+      "requires_python": ">=3.8",
+      "license": null,
+      "license_expression": null,
+      "classifiers": [
+        "Intended Audience :: Developers",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3.8"
+      ],
+      "project_urls": {
+        "Bug Tracker": "https://github.com/chrizog/someipy/issues",
+        "Homepage": "https://github.com/chrizog/someipy",
+        "Repository": "https://github.com/chrizog/someipy"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "scapy",
+      "url": "https://pypi.org/pypi/scapy/json",
+      "version": "2.8.0",
+      "release_date": "2026-10-02T16:25:17.260071Z",
+      "requires_python": "<4,>=3.7",
+      "license": null,
+      "license_expression": "GPL-2.0-only",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Telecommunications Industry",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Security",
+        "Topic :: System :: Networking",
+        "Topic :: System :: Networking :: Monitoring"
+      ],
+      "project_urls": {
+        "Changelog": "https://github.com/secdev/scapy/releases",
+        "Documentation": "https://scapy.readthedocs.io",
+        "Download": "https://github.com/secdev/scapy/tarball/master",
+        "Homepage": "https://scapy.net",
+        "Source Code": "https://github.com/secdev/scapy"
+      },
+      "requires_dist": [
+        "ipython; extra == \"cli\"",
+        "ipython; extra == \"all\"",
+        "pyx; extra == \"all\"",
+        "cryptography>=2.0; extra == \"all\"",
+        "matplotlib; extra == \"all\"",
+        "cryptography>=2.0; extra == \"doc\"",
+        "sphinx>=7.0.0; extra == \"doc\"",
+        "sphinx_rtd_theme>=1.3.0; extra == \"doc\"",
+        "tox>=3.0.0; extra == \"doc\""
+      ]
+    },
+    {
+      "package": "dpkt",
+      "url": "https://pypi.org/pypi/dpkt/json",
+      "version": "1.9.8",
+      "release_date": "2022-08-18T05:54:10.793159Z",
+      "requires_python": "",
+      "license": "BSD",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/kbandla/dpkt"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "pyshark",
+      "url": "https://pypi.org/pypi/pyshark/json",
+      "version": "0.6",
+      "release_date": "2023-04-26T09:33:41.022000Z",
+      "requires_python": "",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/KimiNewt/pyshark"
+      },
+      "requires_dist": [
+        "lxml",
+        "termcolor",
+        "packaging",
+        "appdirs"
+      ]
+    },
+    {
+      "package": "python-dlt",
+      "url": "https://pypi.org/pypi/python-dlt/json",
+      "version": "0.2.1",
+      "release_date": "2023-04-18T13:52:38.244928Z",
+      "requires_python": "",
+      "license": "",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 7 - Inactive"
+      ],
+      "project_urls": null,
+      "requires_dist": [
+        "dlt (>=0.2.5)"
+      ]
+    },
+    {
+      "package": "pydlt",
+      "url": "https://pypi.org/pypi/pydlt/json",
+      "version": "0.3.5",
+      "release_date": "2025-03-07T18:00:03.431952Z",
+      "requires_python": ">=3.8",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9"
+      ],
+      "project_urls": {
+        "Homepage": "https://mikiepure.github.io/",
+        "Repository": "https://github.com/mikiepure/pydlt"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "pyxcp",
+      "url": "https://pypi.org/pypi/pyxcp/json",
+      "version": "0.30.3",
+      "release_date": "2026-11-06T02:36:44.581005Z",
+      "requires_python": "<3.16,>=3.11",
+      "license": "LGPLv3",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/christoph2/pyxcp"
+      },
+      "requires_dist": [
+        "construct<3,>=2.10.68",
+        "pyserial<4,>=3.5",
+        "pyusb<2,>=1.2",
+        "python-can<5,>=4.2",
+        "rich<16,>=13.0",
+        "chardet>=7.0.0",
+        "traitlets<6,>=5.9",
+        "toml<1,>=0.10",
+        "pytz>=2024.1",
+        "pydantic<3,>=2.5"
+      ]
+    },
+    {
+      "package": "pya2ldb",
+      "url": "https://pypi.org/pypi/pya2ldb/json",
+      "version": "1.0.355",
+      "release_date": "2026-10-16T03:07:17.918291Z",
+      "requires_python": "<3.16,>=3.11",
+      "license": "GPLv2",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/christoph2/pyA2L"
+      },
+      "requires_dist": [
+        "chardet>=7.0.0",
+        "Mako>=1.3.5",
+        "SQLAlchemy<3,>=2.0.30",
+        "numpy<3,>=1.26.4",
+        "rich<16.0,>=14.2",
+        "scipy>=1.17.1; python_version < \"3.12\" and extra == \"compute\"",
+        "scipy>=1.18.1; python_version >= \"3.12\" and extra == \"compute\"",
+        "numexpr>=2.14.2; extra == \"compute\""
+      ]
+    },
+    {
+      "package": "pya2l",
+      "url": "https://pypi.org/pypi/pya2l/json",
+      "version": "0.4.0",
+      "release_date": "2026-09-04T07:05:55.195838Z",
+      "requires_python": ">=3.9",
+      "license": "BSD License",
+      "license_expression": null,
+      "classifiers": [
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 3"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/Sauci/pya2l"
+      },
+      "requires_dist": [
+        "grpcio>=1.71.0",
+        "grpcio-tools>=1.71.0",
+        "protobuf>=6.31.1",
+        "dictdiffer"
+      ]
+    },
+    {
+      "package": "pyftdi",
+      "url": "https://pypi.org/pypi/pyftdi/json",
+      "version": "0.57.2",
+      "release_date": "2026-06-02T16:14:37.818512Z",
+      "requires_python": ">=3.9",
+      "license": "BSD-3-Clause",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Environment :: Other Environment",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Hardware :: Hardware Drivers"
+      ],
+      "project_urls": {
+        "Homepage": "http://github.com/eblot/pyftdi"
+      },
+      "requires_dist": [
+        "pyusb!=1.2.0,>=1.0.0",
+        "pyserial>=3.0"
+      ]
+    },
+    {
+      "package": "ch341",
+      "url": "https://pypi.org/pypi/ch341/json",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "package": "pyBusPirateLite",
+      "url": "https://pypi.org/pypi/pyBusPirateLite/json",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "package": "saleae-automation",
+      "url": "https://pypi.org/pypi/saleae-automation/json",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "package": "pymodbus",
+      "url": "https://pypi.org/pypi/pymodbus/json",
+      "version": "3.16.2",
+      "release_date": "2026-11-03T12:04:05.255090Z",
+      "requires_python": ">=3.10.0",
+      "license": "BSD-3-Clause",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Framework :: AsyncIO",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft",
+        "Operating System :: OS Independent",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: System :: Networking",
+        "Topic :: Utilities"
+      ],
+      "project_urls": {
+        "Bug Reports": "https://github.com/pymodbus-dev/pymodbus/issues",
+        "Docs: Dev": "https://pymodbus.readthedocs.io/en/latest/?badge=latest",
+        "Homepage": "https://github.com/pymodbus-dev/pymodbus/",
+        "Source Code": "https://github.com/pymodbus-dev/pymodbus"
+      },
+      "requires_dist": [
+        "pyserial>=3.5; extra == \"serial\"",
+        "aiohttp>=3.8.6; python_version < \"3.12\" and extra == \"simulator\"",
+        "aiohttp>=3.14.1; python_version >= \"3.12\" and extra == \"simulator\"",
+        "recommonmark>=0.7.1; extra == \"documentation\"",
+        "Sphinx>=7.3.7; python_version < \"3.12\" and extra == \"documentation\"",
+        "Sphinx>=9.1.0; python_version >= \"3.12\" and extra == \"documentation\"",
+        "sphinx-rtd-theme>=3.1.0; extra == \"documentation\"",
+        "build>=1.5.0; extra == \"development\"",
+        "codespell>=2.4.2; extra == \"development\"",
+        "coverage>=7.14.3; extra == \"development\"",
+        "pylint>=4.0.6; extra == \"development\"",
+        "pytest>=9.1.1; extra == \"development\"",
+        "pytest-asyncio>=1.4.0; extra == \"development\"",
+        "pytest-cov>=7.1.0; extra == \"development\"",
+        "pytest-profiling>=1.7.0; python_version < \"3.13\" and extra == \"development\"",
+        "pytest-timeout>=2.3.1; extra == \"development\"",
+        "pytest-xdist>=3.6.1; extra == \"development\"",
+        "pytest-aiohttp>=1.1.1; extra == \"development\"",
+        "ruff>=0.15.20; extra == \"development\"",
+        "pyserial>=3.5; extra == \"development\"",
+        "twine>=6.2.0; extra == \"development\"",
+        "types-Pygments; extra == \"development\"",
+        "types-pyserial; extra == \"development\"",
+        "zuban>=0.9.0; extra == \"development\"",
+        "pymodbus[development,documentation,serial,simulator]; extra == \"all\""
+      ]
+    },
+    {
+      "package": "hidapi",
+      "url": "https://pypi.org/pypi/hidapi/json",
+      "version": "0.15.0",
+      "release_date": "2025-12-09T09:44:47.751792Z",
+      "requires_python": null,
+      "license": null,
+      "license_expression": null,
+      "classifiers": [
+        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/trezor/cython-hidapi"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "asyncssh",
+      "url": "https://pypi.org/pypi/asyncssh/json",
+      "version": "2.24.1",
+      "release_date": "2026-10-04T02:48:23.676902Z",
+      "requires_python": ">=3.10",
+      "license": "EPL-2.0 OR GPL-2.0-or-later",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Internet",
+        "Topic :: Security :: Cryptography",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Networking"
+      ],
+      "project_urls": {
+        "Documentation": "https://asyncssh.readthedocs.io",
+        "Homepage": "http://asyncssh.timeheart.net",
+        "Source": "https://github.com/ronf/asyncssh",
+        "Tracker": "https://github.com/ronf/asyncssh/issues"
+      },
+      "requires_dist": [
+        "cryptography>=48.0.1",
+        "typing_extensions>=4.0.0",
+        "bcrypt>=3.1.3; extra == \"bcrypt\"",
+        "fido2>=2; extra == \"fido2\"",
+        "ifaddr>=0.2.0; extra == \"ifaddr\"",
+        "gssapi>=1.2.0; extra == \"gssapi\"",
+        "python-pkcs11>=0.7.0; extra == \"pkcs11\"",
+        "pyOpenSSL>=23.0.0; extra == \"pyopenssl\"",
+        "pywin32>=227; extra == \"pywin32\""
+      ]
+    },
+    {
+      "package": "paramiko",
+      "url": "https://pypi.org/pypi/paramiko/json",
+      "version": "5.1.0",
+      "release_date": "2026-10-18T02:38:49.903901Z",
+      "requires_python": ">=3.9",
+      "license": null,
+      "license_expression": "LGPL-2.1",
+      "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Internet",
+        "Topic :: Security :: Cryptography"
+      ],
+      "project_urls": {
+        "CI": "https://app.circleci.com/pipelines/github/paramiko/paramiko",
+        "Changelog": "https://www.paramiko.org/changelog.html",
+        "Docs": "https://docs.paramiko.org",
+        "Issues": "https://github.com/paramiko/paramiko/issues",
+        "Source": "https://github.com/paramiko/paramiko"
+      },
+      "requires_dist": [
+        "bcrypt>=3.2",
+        "cryptography>=3.3",
+        "invoke>=2.0",
+        "pynacl>=1.5"
+      ]
+    },
+    {
+      "package": "adbutils",
+      "url": "https://pypi.org/pypi/adbutils/json",
+      "version": "2.12.0",
+      "release_date": "2025-11-12T06:09:28.266005Z",
+      "requires_python": ">=3.8",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Testing"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/openatx/adbutils"
+      },
+      "requires_dist": [
+        "requests",
+        "deprecation<3.0,>=2.0.6",
+        "retry2<1.0,>=0.9",
+        "Pillow"
+      ]
+    },
+    {
+      "package": "python-lin",
+      "url": "https://pypi.org/pypi/python-lin/json",
+      "version": "0.1.1",
+      "release_date": "2019-03-14T08:57:54.614765Z",
+      "requires_python": "",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.7"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/richClubb/python-lin"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "pyplin",
+      "url": "https://pypi.org/pypi/pyplin/json",
+      "version": "0.13",
+      "release_date": "2017-08-26T04:07:36.473346Z",
+      "requires_python": "",
+      "license": "MIT",
+      "license_expression": null,
+      "classifiers": [],
+      "project_urls": {
+        "Download": "https://github.com/willhyper/pyplin/archive/master.zip",
+        "Homepage": "https://github.com/willhyper/pyplin.git"
+      },
+      "requires_dist": null
+    },
+    {
+      "package": "python-flexray",
+      "url": "https://pypi.org/pypi/python-flexray/json",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ]
+}

@@ -1,0 +1,534 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Easily export your Rust types to other languages"><title>specta - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="specta" data-themes="" data-resource-suffix="-20250311-1.87.0-nightly-665025243" data-rustdoc-version="1.87.0-nightly (665025243 2025-03-11)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="/-/rustdoc.static/storage-d8ac8691.js"></script><script defer src="../crates-20250311-1.87.0-nightly-665025243.js"></script><script defer src="/-/rustdoc.static/main-a7bf3405.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/rustdoc-2021-12-05.css" media="all" /><link rel="stylesheet" href="/-/static/v/c6adc0736ae17c7d/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/c6adc0736ae17c7d/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "specta",
+            "version": "1.0.5"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="Easily export your Rust types to other languages">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">specta-1.0.5</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        specta 1.0.5
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/specta/1.0.5/specta/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/specta/latest" class="pure-menu-link description" title="See specta in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.87.0-nightly (665025243 2025-03-11)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 12 March 2025
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/oscartbeaumont/specta" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/specta" class="pure-menu-link" title="See specta in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/specta/latest/source/" title="Browse source of specta-1.0.5" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/oscartbeaumont" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> oscartbeaumont
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/bigdecimal/^0.3.0/" class="pure-menu-link">
+                bigdecimal ^0.3.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bit-vec/^0.6.3/" class="pure-menu-link">
+                bit-vec ^0.6.3
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bson/^2.4.0/" class="pure-menu-link">
+                bson ^2.4.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/bytesize/^1.1.0/" class="pure-menu-link">
+                bytesize ^1.1.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/chrono/^0.4.23/" class="pure-menu-link">
+                chrono ^0.4.23
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/ctor/^0.1.26/" class="pure-menu-link">
+                ctor ^0.1.26
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/document-features/^0.2.6/" class="pure-menu-link">
+                document-features ^0.2.6
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/glam/^0.22/" class="pure-menu-link">
+                glam ^0.22
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/indexmap/^1.9.1/" class="pure-menu-link">
+                indexmap ^1.9.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/indoc/^1.0.8/" class="pure-menu-link">
+                indoc ^1.0.8
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/ipnetwork/^0.20.0/" class="pure-menu-link">
+                ipnetwork ^0.20.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/mac_address/^1.1.4/" class="pure-menu-link">
+                mac_address ^1.1.4
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/once_cell/^1.16.0/" class="pure-menu-link">
+                once_cell ^1.16.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/openapiv3/^1.0.1/" class="pure-menu-link">
+                openapiv3 ^1.0.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/paste/^1.0.9/" class="pure-menu-link">
+                paste ^1.0.9
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/rust_decimal/^1.26.1/" class="pure-menu-link">
+                rust_decimal ^1.26.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.147/" class="pure-menu-link">
+                serde ^1.0.147
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_json/^1.0.87/" class="pure-menu-link">
+                serde_json ^1.0.87
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/specta-macros/^1.0.5/" class="pure-menu-link">
+                specta-macros ^1.0.5
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tauri/^1.2.1/" class="pure-menu-link">
+                tauri ^1.2.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/thiserror/^1.0.38/" class="pure-menu-link">
+                thiserror ^1.0.38
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/time/^0.3.17/" class="pure-menu-link">
+                time ^0.3.17
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/tokio/^1.25/" class="pure-menu-link">
+                tokio ^1.25
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uhlc/^0.5.1/" class="pure-menu-link">
+                uhlc ^0.5.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/url/^2.3.1/" class="pure-menu-link">
+                url ^2.3.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/uuid/^1.2.1/" class="pure-menu-link">
+                uuid ^1.2.1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/doc-comment/^0.3.3/" class="pure-menu-link">
+                doc-comment ^0.3.3
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1.0.147/" class="pure-menu-link">
+                serde ^1.0.147
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/trybuild/^1.0.77/" class="pure-menu-link">
+                trybuild ^1.0.77
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/specta/latest/menus/releases/specta/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/specta/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/specta/latest/menus/platforms/specta/"><li class="pure-menu-item">
+            <a href="/crate/specta/latest/target-redirect/i686-pc-windows-msvc/specta/" class="pure-menu-link" data-fragment="retain" rel="nofollow">i686-pc-windows-msvc</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/specta/latest/target-redirect/x86_64-apple-darwin/specta/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-apple-darwin</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/specta/latest/target-redirect/x86_64-pc-windows-msvc/specta/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-pc-windows-msvc</a>
+        </li><li class="pure-menu-item">
+            <a href="/crate/specta/latest/target-redirect/specta/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/specta/latest/features" title="Browse available feature flags of specta-1.0.5" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/specta/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/c6adc0736ae17c7d/menu.js"></script>
+<script async src="/-/static/v/c6adc0736ae17c7d/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../specta/index.html">specta</a><span class="version">1.0.5</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#features" title="Features">Features</a></li><li><a href="#ecosystem" title="Ecosystem">Ecosystem</a></li><li><a href="#example" title="Example">Example</a></li><li><a href="#supported-libraries" title="Supported Libraries">Supported Libraries</a></li><li><a href="#feature-flags" title="Feature flags">Feature flags</a></li><li><a href="#alternatives" title="Alternatives">Alternatives</a><ul><li><a href="#why-not-ts-rs" title="Why not ts-rs?">Why not ts-rs?</a></li><li><a href="#why-not-typeshare" title="Why not Typeshare?">Why not Typeshare?</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>specta</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/specta/lib.rs.html#1-202">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Easily export your Rust types to other languages</p>
+<p>Specta provides a system for type introspection and a set of language exporters which allow you to export your Rust types to other languages!</p>
+<p><strong>Currently we only support exporting to <a href="https://www.typescriptlang.org">TypeScript</a> but work has begun on other languages.</strong></p>
+<h3 id="features"><a class="doc-anchor" href="#features">§</a>Features</h3>
+<ul>
+<li>Export structs and enums to <a href="https://www.typescriptlang.org">Typescript</a></li>
+<li>Get function types to use in libraries like <a href="https://github.com/oscartbeaumont/tauri-specta">tauri-specta</a></li>
+<li>Supports wide range of common crates in Rust ecosystem</li>
+<li>Supports type inference - can determine type of <code>fn demo() -&gt; impl Type</code>.</li>
+</ul>
+<h3 id="ecosystem"><a class="doc-anchor" href="#ecosystem">§</a>Ecosystem</h3>
+<p>Specta can be used in your application either directly or through a library which simplifies the process of using it.</p>
+<ul>
+<li><a href="https://github.com/oscartbeaumont/rspc">rspc</a> for easily building end-to-end typesafe APIs</li>
+<li><a href="https://github.com/oscartbeaumont/tauri-specta">tauri-specta</a> for typesafe Tauri commands</li>
+</ul>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>specta::{<span class="kw-2">*</span>, ts::<span class="kw-2">*</span>};
+
+<span class="attr">#[derive(Type)]
+</span><span class="kw">pub struct </span>MyCustomType {
+   <span class="kw">pub </span>my_field: String,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(
+        ts::export::&lt;MyCustomType&gt;(<span class="kw-2">&amp;</span>ExportConfiguration::default()).unwrap(),
+        <span class="string">"export type MyCustomType = { my_field: string }"</span>.to_string()
+    );
+}</code></pre></div>
+<h3 id="supported-libraries"><a class="doc-anchor" href="#supported-libraries">§</a>Supported Libraries</h3>
+<p>If you are using <a href="https://prisma.brendonovich.dev">Prisma Client Rust</a> you can enable the <code>rspc</code> feature on it to allow for Specta support on types coming directly from your database. This includes support for the types created via a selection.</p>
+<h3 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature flags</h3>
+<ul>
+<li><strong><code>functions</code></strong> —  Support for exporting the types of Rust functions.</li>
+</ul>
+<p>Compatability</p>
+<ul>
+<li><strong><code>serde</code></strong> <em>(enabled by default)</em> —  Support for <a href="https://serde.rs">serde</a> and <a href="https://github.com/serde-rs/json">serde-json</a></li>
+<li><strong><code>tauri</code></strong> —  Support for <a href="https://tauri.app">Tauri</a>. This is required when using <a href="attr.specta.html" title="attr specta::specta"><code>specta::function</code></a> with Tauri Commands.</li>
+</ul>
+<p>Languages</p>
+<ul>
+<li><strong><code>typescript</code></strong> <em>(enabled by default)</em> —  Support for <a href="https://www.typescriptlang.org">TypeScript</a> language exporting</li>
+</ul>
+<p>External types</p>
+<ul>
+<li><strong><code>uuid</code></strong> —  <a href="https://docs.rs/uuid">uuid</a> crate</li>
+<li><strong><code>chrono</code></strong> —  <a href="https://docs.rs/chrono">chrono</a> crate</li>
+<li><strong><code>time</code></strong> —  <a href="https://docs.rs/time">time</a> crate</li>
+<li><strong><code>bigdecimal</code></strong> —  <a href="https://docs.rs/bigdecimal">bigdecimal</a> crate</li>
+<li><strong><code>rust_decimal</code></strong> —  <a href="https://docs.rs/rust_decimal">rust_decimal</a> crate</li>
+<li><strong><code>indexmap</code></strong> —  <a href="https://docs.rs/indexmap">indexmap</a> crate</li>
+<li><strong><code>ipnetwork</code></strong> —  <a href="https://docs.rs/ipnetwork">ipnetwork</a> crate</li>
+<li><strong><code>mac_address</code></strong> —  <a href="https://docs.rs/mac_address">mac_address</a> crate</li>
+<li><strong><code>bit-vec</code></strong> —  <a href="https://docs.rs/bit-vec">bit-vec</a> crate</li>
+<li><strong><code>bson</code></strong> —  <a href="https://docs.rs/bson">bson</a> crate</li>
+<li><strong><code>uhlc</code></strong> —  <a href="https://docs.rs/uhlc">uhlc</a> crate</li>
+<li><strong><code>bytesize</code></strong> —  <a href="https://docs.rs/bytesize">bytesize</a> crate</li>
+<li><strong><code>glam</code></strong> —  <a href="https://docs.rs/glam">glam</a> crate</li>
+<li><strong><code>tokio</code></strong> —  <a href="https://docs.rs/tokio">tokio</a> crate</li>
+<li><strong><code>url</code></strong> —  <a href="https://docs.rs/url">url</a> crate</li>
+</ul>
+<h3 id="alternatives"><a class="doc-anchor" href="#alternatives">§</a>Alternatives</h3><h5 id="why-not-ts-rs"><a class="doc-anchor" href="#why-not-ts-rs">§</a>Why not ts-rs?</h5>
+<p><a href="https://github.com/Aleph-Alpha/ts-rs">ts-rs</a> is a great library,
+but it has a few limitations which became a problem when I was building <a href="https://github.com/oscartbeaumont/rspc">rspc</a>.
+Namely it deals with types individually which means it is not possible to export a type and all of the other types it depends on.</p>
+<h5 id="why-not-typeshare"><a class="doc-anchor" href="#why-not-typeshare">§</a>Why not Typeshare?</h5>
+<p><a href="https://github.com/1Password/typeshare">Typeshare</a> is also great, but its approach is fundamentally different.
+While Specta uses traits and runtime information, Typeshare statically analyzes your Rust
+files.
+This results in a loss of information and lack of compatability with types from other crates.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="datatype/index.html" title="mod specta::datatype">datatype</a></dt><dd>Types related to working with <a href="datatype/enum.DataType.html" title="enum specta::datatype::DataType"><code>DataType</code></a>. Exposed for advanced users.</dd><dt><a class="mod" href="export/index.html" title="mod specta::export">export</a><wbr><span class="stab portability" title="Available on crate feature `export` only"><code>export</code></span></dt><dd>Provides the global type store and a method to export them to other languages.</dd><dt><a class="mod" href="functions/index.html" title="mod specta::functions">functions</a><wbr><span class="stab portability" title="Available on crate feature `functions` only"><code>functions</code></span></dt><dd>Support for exporting Rust functions.</dd><dt><a class="mod" href="ts/index.html" title="mod specta::ts">ts</a><wbr><span class="stab portability" title="Available on crate feature `typescript` only"><code>typescript</code></span></dt><dd><a href="https://www.typescriptlang.org">TypeScript</a> language exporter.</dd><dt><a class="mod" href="type/index.html" title="mod specta::type">type</a></dt><dd>Contains <a href="type/trait.Type.html" title="trait specta::type::Type"><code>Type</code></a> and everything related to it, including implementations and helper macros</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.collect_types.html" title="macro specta::collect_types">collect_<wbr>types</a><wbr><span class="stab portability" title="Available on crate feature `functions` only"><code>functions</code></span></dt><dd>Collects function types into a <a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>,
+and all downstream types into a <a href="datatype/type.TypeDefs.html" title="type specta::datatype::TypeDefs"><code>TypeDefs</code></a> instance.</dd><dt><a class="macro" href="macro.fn_datatype.html" title="macro specta::fn_datatype">fn_<wbr>datatype</a><wbr><span class="stab portability" title="Available on crate feature `functions` only"><code>functions</code></span></dt><dd>Returns a <a href="functions/struct.FunctionDataType.html" title="struct specta::functions::FunctionDataType"><code>FunctionDataType</code></a> for a given function that has been annotated with
+<a href="attr.specta.html" title="attr specta::specta"><code>specta</code></a>.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.specta.html" title="attr specta::specta">specta</a><wbr><span class="stab portability" title="Available on crate feature `functions` only"><code>functions</code></span></dt><dd>Prepares a function to have its types extracted using <a href="macro.fn_datatype.html" title="macro specta::fn_datatype"><code>fn_datatype</code></a></dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.DataTypeFrom.html" title="derive specta::DataTypeFrom">Data<wbr>Type<wbr>From</a></dt><dd>Generates an implementation to help converting a type into into <a href="datatype/enum.DataType.html" title="enum specta::datatype::DataType"><code>DataType</code></a>.</dd><dt><a class="derive" href="derive.Type.html" title="derive specta::Type">Type</a></dt><dd>Implements <a href="type/trait.Type.html" title="trait specta::type::Type"><code>Type</code></a> for a given struct or enum.</dd></dl></section></div></main></div></body></html>

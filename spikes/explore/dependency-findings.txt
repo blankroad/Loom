@@ -1,0 +1,8 @@
+Observed 2026-11-09 KST, macOS arm64, Python 3.14.1.
+Attempt: pip install asyncssh==2.24.1 pyocd==0.46.1 pylink-square==2.1.0 logic2-automation==1.0.11 pyftdi==0.57.2 scapy==2.8.0
+Result: resolver ResolutionImpossible. pyocd 0.46.1 requires pylink-square>=1.0,<2.0.
+Correction: removed explicit pylink-square 2.1.0 pin; resolver installed pylink-square 1.7.0. Full corrected output is install-imports.log.
+Initial VISA default simulator probe timed out because ASRL1 expects CRLF while probe set LF. Custom psu.yaml uses documented LF termination. This was a test configuration mismatch, not a physical backend failure.
+Initial Modbus legacy datastore constructed at address=0 failed because this version converts to SimData(address-1). Corrected to base address=1; final TCP write/read succeeded. Original failure retained in backend-results-initial.json.
+Modbus legacy datastore classes warn they will be removed in v4; future product implementation should use SimData/SimDevice.
+All backend checks are bounded feasibility probes. No Loom daemon, viewer, origin arbitration or physical hardware end-to-end acceptance is claimed.

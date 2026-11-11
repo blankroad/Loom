@@ -1,0 +1,13 @@
+{
+  "after_p2_and_total_deadline_confirmed": true,
+  "after_p2_and_total_deadline_status": "Positive",
+  "cancelled_reactivate_stuck_busy": true,
+  "direct_execute_cancelled": true,
+  "expired_frame_still_reached_entity": true,
+  "expired_submit_returned_tx_timeout": true,
+  "old_final_completed_new_write": true,
+  "second_write_elapsed_ms": 52,
+  "second_write_status": "Positive",
+  "unresolved_empty_after_sent_future_dropped": true,
+  "wrong_tester_ra_accepted": true
+}

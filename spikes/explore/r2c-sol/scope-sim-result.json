@@ -1,0 +1,13 @@
+{
+  "time": "2026-11-09T14:50:04.892052+00:00",
+  "status": "pass",
+  "idn": "LOOM,SCOPE-SIM,1,0",
+  "source_after_write": "CHAN2",
+  "binary_block_values": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "scope": "YAML static IEEE-488.2 block + mutable source property only; no trigger/timing/TCP/physical instrument"
+}

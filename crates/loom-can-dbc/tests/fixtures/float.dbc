@@ -1,0 +1,15 @@
+// Hand-written fixture: IEEE float signals (SIG_VALTYPE_ 1 = float32, 2 = double).
+VERSION ""
+
+BU_: ECU GW
+
+BO_ 300 F32Msg: 8 ECU
+ SG_ Temp32 : 0|32@1- (1,0) [0|0] "" GW
+ SG_ Scaled32 : 39|32@0- (2,1) [0|0] "" GW
+
+BO_ 301 F64Msg: 8 ECU
+ SG_ Val64 : 0|64@1- (1,0) [0|0] "" GW
+
+SIG_VALTYPE_ 300 Temp32 : 1;
+SIG_VALTYPE_ 300 Scaled32 : 1;
+SIG_VALTYPE_ 301 Val64 : 2;

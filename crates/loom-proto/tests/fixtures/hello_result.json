@@ -1,0 +1,1 @@
+{"role":"viewer","rights":"operate","conn_id":"c42","stream_epoch":"3","server":{"version":"0.1.0","build":"e43dc3f"},"env":"bench","latch":false,"viewers":{"subscribed":2,"visible":1},"capabilities":["core/1","uart/1","can/1"]}

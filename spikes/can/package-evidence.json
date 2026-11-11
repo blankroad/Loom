@@ -1,0 +1,249 @@
+{
+  "checked_at": "2026-11-09T14:08:37.487Z",
+  "packages": {
+    "python-can": {
+      "version": "4.6.1",
+      "license_expression": "LGPL-3.0-only",
+      "requires_python": ">=3.9",
+      "released": "2025-08-12T07:44:56.550052Z",
+      "requires_dist": [
+        "uptime~=3.0.1; extra == \"pcan\"",
+        "python-can-remote; extra == \"remote\"",
+        "python-can-sontheim>=0.1.2; extra == \"sontheim\"",
+        "python-can-canine>=0.2.2; extra == \"canine\"",
+        "zlgcan; extra == \"zlgcan\"",
+        "python-can-candle>=1.2.2; extra == \"candle\"",
+        "wrapt~=1.10",
+        "packaging>=23.1",
+        "typing_extensions>=3.10.0.0",
+        "pywin32>=305; (platform_system == \"Windows\" and platform_python_implementation == \"CPython\") and extra == \"pywin32\"",
+        "pyserial>=3.0; extra == \"seeedstudio\"",
+        "pyserial~=3.0; extra == \"serial\"",
+        "filelock; extra == \"neovi\"",
+        "python-ics>=2.12; extra == \"neovi\"",
+        "canalystii>=0.1.0; extra == \"canalystii\"",
+        "cantact>=0.0.7; extra == \"cantact\"",
+        "python-can-cvector; extra == \"cvector\"",
+        "gs-usb>=0.2.1; extra == \"gs-usb\"",
+        "nixnet>=0.3.2; extra == \"nixnet\"",
+        "windows-curses; (platform_system == \"Windows\" and platform_python_implementation == \"CPython\") and extra == \"viewer\"",
+        "asammdf>=6.0.0; extra == \"mf4\"",
+        "msgpack~=1.1.0; extra == \"multicast\""
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/hardbyte/python-can/blob/develop/CHANGELOG.md",
+        "documentation": "https://python-can.readthedocs.io",
+        "homepage": "https://github.com/hardbyte/python-can",
+        "repository": "https://github.com/hardbyte/python-can"
+      }
+    },
+    "can-isotp": {
+      "version": "2.0.7",
+      "license": "MIT",
+      "license_expression": null,
+      "requires_python": ">=3.7",
+      "released": "2025-05-14T02:54:11.805359Z",
+      "requires_dist": [
+        "mypy; extra == \"test\"",
+        "coverage; extra == \"test\"",
+        "python-can; extra == \"test\"",
+        "mypy; extra == \"dev\"",
+        "ipdb; extra == \"dev\"",
+        "autopep8; extra == \"dev\"",
+        "coverage; extra == \"dev\"",
+        "python-can; extra == \"dev\""
+      ],
+      "project_urls": {
+        "Download": "https://github.com/pylessard/python-can-isotp/archive/v2.0.7.tar.gz",
+        "Homepage": "https://github.com/pylessard/python-can-isotp"
+      }
+    },
+    "cantools": {
+      "version": "45.1.2",
+      "license": "MIT",
+      "license_expression": null,
+      "requires_python": ">=3.10",
+      "released": "2026-10-29T07:12:35.769848Z",
+      "requires_dist": [
+        "bitstruct>=8.16.1",
+        "python-can>=4.6.0",
+        "textparser>=0.26",
+        "argparse_addons",
+        "crccheck",
+        "diskcache; extra == \"cache\"",
+        "matplotlib-stubs; extra == \"dev\"",
+        "mypy; extra == \"dev\"",
+        "pipx; extra == \"dev\"",
+        "ruff; extra == \"dev\"",
+        "tox; extra == \"dev\"",
+        "matplotlib; extra == \"plot\"",
+        "windows-curses; (platform_system == \"Windows\" and platform_python_implementation == \"CPython\") and extra == \"windows-all\""
+      ],
+      "project_urls": {
+        "documentation": "https://cantools.readthedocs.io/",
+        "homepage": "https://github.com/cantools/cantools",
+        "repository": "https://github.com/cantools/cantools"
+      }
+    },
+    "asammdf": {
+      "version": "8.8.32",
+      "license": "LGPLv3+",
+      "license_expression": null,
+      "requires_python": ">=3.10",
+      "released": "2026-11-03T10:59:45.582374Z",
+      "requires_dist": [
+        "chardet>=7.0.0",
+        "canmatrix[arxml,dbc]==1.2",
+        "isal<=1.8.0; platform_machine == \"x86_64\" or platform_machine == \"AMD64\"",
+        "deflate; platform_machine == \"x86_64\" or platform_machine == \"AMD64\"",
+        "lxml>=4.9.3",
+        "lz4",
+        "numexpr>=2.10.0",
+        "numpy>=2.0.0",
+        "pandas>=2.2.2",
+        "python-dateutil",
+        "typing-extensions>=4.10",
+        "zstd",
+        "chardet>=7.0.0; extra == \"decode\"",
+        "pyarrow>=17.0.0; extra == \"export\"",
+        "h5py>=3.11; extra == \"export\"",
+        "hdf5storage>=0.1.19; extra == \"export\"",
+        "python-snappy; extra == \"export\"",
+        "polars>=1.1.0; extra == \"export\"",
+        "scipy>=1.13.0; extra == \"export-matlab-v5\"",
+        "natsort; extra == \"gui\"",
+        "PySide6!=6.9.1,>=6.7.0; extra == \"gui\"",
+        "pyqtgraph>=0.13.4; extra == \"gui\"",
+        "pyqtlet2[PySide6]; extra == \"gui\"",
+        "packaging; extra == \"gui\"",
+        "cryptography; extra == \"encryption\"",
+        "keyring; extra == \"encryption\"",
+        "matplotlib; extra == \"plot\"",
+        "sympy>=1.13.0; extra == \"symbolic-math\"",
+        "fsspec; extra == \"filesystem\""
+      ],
+      "project_urls": {
+        "Documentation": "https://asammdf.readthedocs.io/en/master",
+        "Issues": "https://github.com/danielhrisca/asammdf/issues",
+        "Source": "https://github.com/danielhrisca/asammdf"
+      }
+    },
+    "canmatrix": {
+      "version": "1.3.3",
+      "license": "BSD-2-Clause",
+      "license_expression": null,
+      "requires_python": ">=3.8",
+      "released": "2026-10-21T22:13:11.381877Z",
+      "requires_dist": [
+        "attrs>=19.2.0",
+        "click",
+        "importlib-metadata; python_version < \"3.8\"",
+        "typing; python_version < \"3.5\"",
+        "lxml; extra == \"arxml\"",
+        "lxml; extra == \"fibex\"",
+        "lxml; extra == \"kcd\"",
+        "ldfparser; extra == \"ldf\"",
+        "lxml; extra == \"odx\"",
+        "pathlib2; python_version < \"3.4\" and extra == \"test\"",
+        "pytest; extra == \"test\"",
+        "xlrd==1.2.0; extra == \"xls\"",
+        "xlwt; extra == \"xls\"",
+        "openpyxl; extra == \"xlsx\"",
+        "pyyaml; extra == \"yaml\"",
+        "canopen; extra == \"eds\""
+      ],
+      "project_urls": {
+        "documentation": "https://canmatrix.readthedocs.io",
+        "homepage": "https://github.com/ebroecker/canmatrix",
+        "repository": "https://github.com/ebroecker/canmatrix"
+      }
+    },
+    "pyqtgraph": {
+      "version": "0.14.0",
+      "license": "MIT",
+      "license_expression": null,
+      "requires_python": ">=3.10",
+      "released": "2025-11-16T19:43:22.251690Z",
+      "requires_dist": [
+        "numpy>=1.25.0",
+        "colorama"
+      ],
+      "project_urls": {
+        "Documentation": "https://pyqtgraph.readthedocs.io",
+        "Homepage": "http://www.pyqtgraph.org",
+        "Source": "https://github.com/pyqtgraph/pyqtgraph"
+      }
+    },
+    "PySide6": {
+      "version": "6.12.0",
+      "license": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+      "license_expression": null,
+      "requires_python": "<3.16,>=3.10",
+      "released": "2026-10-08T09:11:15.222067Z",
+      "requires_dist": [
+        "PySide6_Essentials==6.12.0",
+        "PySide6_Addons==6.12.0",
+        "PySide6_WebEngine==6.12.0.140",
+        "PySide6_Pdf==6.12.0.140",
+        "tomli>=2.0.1; python_version < \"3.11\"",
+        "PySide6_Examples==6.12.0; extra == \"full\"",
+        "shiboken6_generator==6.12.0; extra == \"full\""
+      ],
+      "project_urls": {
+        "Changelog": "https://code.qt.io/cgit/pyside/pyside-setup.git/tree/doc/changelogs",
+        "Documentation": "https://doc.qt.io/qtforpython",
+        "Homepage": "https://pyside.org",
+        "Repository": "https://code.qt.io/cgit/pyside/pyside-setup.git/",
+        "Tracker": "https://qt-project.atlassian.net/browse/PYSIDE"
+      }
+    },
+    "tsdownsample": {
+      "version": "0.1.5.1",
+      "license": "MIT",
+      "license_expression": null,
+      "requires_python": ">=3.8",
+      "released": "2026-06-01T05:34:26.906202Z",
+      "requires_dist": [
+        "numpy"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/predict-idlab/tsdownsample",
+        "Repository": "https://github.com/predict-idlab/tsdownsample"
+      }
+    },
+    "pyarrow": {
+      "version": "26.0.1",
+      "license_expression": "Apache-2.0",
+      "requires_python": ">=3.11",
+      "released": "2026-11-03T09:54:01.046378Z",
+      "requires_dist": null,
+      "project_urls": {
+        "Documentation": "https://arrow.apache.org/docs/python",
+        "Homepage": "https://arrow.apache.org/",
+        "Issues": "https://github.com/apache/arrow/issues",
+        "Repository": "https://github.com/apache/arrow"
+      }
+    },
+    "py-canoe": {
+      "version": "26.4.1",
+      "license": "MIT License  Copyright (c) 2026 auto-py-utils  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the",
+      "license_expression": null,
+      "requires_python": ">=3.10",
+      "released": "2026-08-30T13:20:05.577531Z",
+      "requires_dist": [
+        "pywin32",
+        "canmatrix[arxml,ldf,xls,xlsx,yaml]; extra == \"all\"",
+        "lxml>=6.1.1; extra == \"all\"",
+        "robotframework; extra == \"all\"",
+        "canmatrix[arxml,ldf,xls,xlsx,yaml]; extra == \"database\"",
+        "lxml>=6.1.1; extra == \"database\"",
+        "robotframework; extra == \"robot\""
+      ],
+      "project_urls": {
+        "documentation": "https://auto-py-utils.github.io/py-canoe/",
+        "homepage": "https://github.com/auto-py-utils/py-canoe",
+        "repository": "https://github.com/auto-py-utils/py-canoe"
+      }
+    }
+  }
+}

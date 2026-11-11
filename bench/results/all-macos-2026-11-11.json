@@ -1,0 +1,50 @@
+{
+  "arch": "aarch64",
+  "cpus": 8,
+  "date": "2026-11-11",
+  "method": "in-process loomd + echo worker; latency = viewer WS receive − echo ts.mono_ns (shared Instant base)",
+  "os": "macos",
+  "profile": "release",
+  "results": {
+    "cli_roundtrip": {
+      "binary": "/Users/ctmctm/workspace/Loom/.worktrees/core/target/release/loom",
+      "failures": 0,
+      "max_ms": 61.365833,
+      "missing": 0,
+      "p50_ms": 12.147584,
+      "p95_ms": 59.859833,
+      "p99_ms": 61.365833,
+      "profile": "cli echo send",
+      "samples": 30,
+      "sent": 30
+    },
+    "core_burst": {
+      "achieved_rate": 998.8488766121483,
+      "max_ms": 101.170292,
+      "missing": 0,
+      "p50_ms": 2.100708,
+      "p95_ms": 15.976042,
+      "p99_ms": 29.901084,
+      "profile": "burst",
+      "rate": 1000,
+      "samples": 10000,
+      "secs": 10,
+      "sent": 10000,
+      "write_errors": 0
+    },
+    "core_idle": {
+      "max_ms": 9.607875,
+      "missing": 0,
+      "p50_ms": 0.132791,
+      "p95_ms": 1.922416,
+      "p99_ms": 5.269459,
+      "profile": "idle",
+      "samples": 200,
+      "sent": 200,
+      "wall_s": 2.079623666,
+      "write_errors": 0
+    }
+  },
+  "scenario": "all",
+  "unix_time": 1794368239
+}

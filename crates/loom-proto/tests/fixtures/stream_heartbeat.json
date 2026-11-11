@@ -1,0 +1,1 @@
+{"stream_seq_hw":"90211","daemon_mono_ns":"91234570000000","daemon_wall_ns":"1794146711237567000","record_health":"ok","latch":true,"sub_stats":[{"sub":"control","depth":0,"drops":"0","last_flush_mono_ns":"91234569000000"},{"sub":"s3","depth":12,"drops":"601","last_flush_mono_ns":"91234569900000"}]}

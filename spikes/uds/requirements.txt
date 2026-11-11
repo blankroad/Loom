@@ -1,0 +1,4 @@
+udsoncan==1.26.1
+doipclient==1.3.0
+can-isotp==2.0.7
+python-can==4.6.1

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ActivityPayload",
+  "description": "`core.activity` payload (1 Hz aggregate of agent RPCs, I4).",
+  "type": "object",
+  "properties": {
+    "action": {
+      "description": "도메인이 보고한 활동 종류.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "channel": {
+      "description": "활동 대상 채널.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "client_id": {
+      "description": "Agent client id.",
+      "type": "string"
+    },
+    "domain": {
+      "description": "활동 대상 도메인.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "method": {
+      "description": "Method.",
+      "type": "string"
+    },
+    "range": {
+      "description": "Stream range the agent read.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SeqRange"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "description": "Human summary.",
+      "type": "string"
+    },
+    "waiting": {
+      "description": "What it is waiting for (predicate, deadline)."
+    }
+  },
+  "required": [
+    "client_id",
+    "method",
+    "summary"
+  ],
+  "$defs": {
+    "SeqRange": {
+      "description": "Inclusive stream-seq range.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "First seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        },
+        "to": {
+          "description": "Last seq (inclusive).",
+          "$ref": "#/$defs/U64"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[package]
+name = "loom-uds-v2-spike"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+automotive_diag = { version = "=0.1.29", default-features = false, features = ["uds", "doip"] }
+doip-codec = "=2.0.9"
+doip-definitions = "=3.0.14"
+tokio = { version = "=1.54.1", features = ["rt", "macros", "net", "io-util", "time"] }
+tokio-util = { version = "0.7", features = ["codec"] }

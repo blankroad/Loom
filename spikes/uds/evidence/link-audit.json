@@ -1,0 +1,282 @@
+[
+  {
+    "url": "https://can-isotp.readthedocs.io/en/latest/",
+    "status": 200,
+    "final_url": "https://can-isotp.readthedocs.io/en/latest/"
+  },
+  {
+    "url": "https://can-isotp.readthedocs.io/en/latest/isotp/implementation.html",
+    "status": 200,
+    "final_url": "https://can-isotp.readthedocs.io/en/latest/isotp/implementation.html"
+  },
+  {
+    "url": "https://docs.python.org/3.14/library/ssl.html#ssl.SSLContext.wrap_socket",
+    "status": 200,
+    "final_url": "https://docs.python.org/3.14/library/ssl.html#ssl.SSLContext.wrap_socket"
+  },
+  {
+    "url": "https://github.com/Alonso07/doip_server/blob/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba/README.md",
+    "status": 200,
+    "final_url": "https://github.com/Alonso07/doip_server/blob/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba/README.md"
+  },
+  {
+    "url": "https://github.com/Alonso07/doip_server/commit/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba",
+    "status": 200,
+    "final_url": "https://github.com/Alonso07/doip_server/commit/0bf75106d947ed1b83dd36c6ecdad7c6742ee6ba"
+  },
+  {
+    "url": "https://github.com/christiansandberg/aioisotp/commit/6c61576e5483a28f0dbc19dba05749ca774a13b8",
+    "status": 200,
+    "final_url": "https://github.com/christiansandberg/aioisotp/commit/6c61576e5483a28f0dbc19dba05749ca774a13b8"
+  },
+  {
+    "url": "https://github.com/ebroecker/canmatrix/commit/8b54a41dd44b4615953d4e3351a16bc773ba104e",
+    "status": 200,
+    "final_url": "https://github.com/ebroecker/canmatrix/commit/8b54a41dd44b4615953d4e3351a16bc773ba104e"
+  },
+  {
+    "url": "https://github.com/ebroecker/canmatrix/tree/8b54a41dd44b4615953d4e3351a16bc773ba104e/src/canmatrix/formats",
+    "status": 200,
+    "final_url": "https://github.com/ebroecker/canmatrix/tree/8b54a41dd44b4615953d4e3351a16bc773ba104e/src/canmatrix/formats"
+  },
+  {
+    "url": "https://github.com/fshoocn/cdd_utils/tree/da10c76ff3d10ee5aa0208e7cf6245f3f447ab71",
+    "status": 200,
+    "final_url": "https://github.com/fshoocn/cdd_utils/tree/da10c76ff3d10ee5aa0208e7cf6245f3f447ab71"
+  },
+  {
+    "url": "https://github.com/hardbyte/python-can/blob/v4.6.1/can/interfaces/pcan/basic.py",
+    "status": 200,
+    "final_url": "https://github.com/hardbyte/python-can/blob/v4.6.1/can/interfaces/pcan/basic.py"
+  },
+  {
+    "url": "https://github.com/hardbyte/python-can/commit/2a45350e3c23cd6ddeb71fc1d1c58dbaf311f263",
+    "status": 200,
+    "final_url": "https://github.com/hardbyte/python-can/commit/2a45350e3c23cd6ddeb71fc1d1c58dbaf311f263"
+  },
+  {
+    "url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/client.py",
+    "status": 200,
+    "final_url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/client.py"
+  },
+  {
+    "url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/connectors.py",
+    "status": 200,
+    "final_url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/connectors.py"
+  },
+  {
+    "url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/constants.py",
+    "status": 200,
+    "final_url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/constants.py"
+  },
+  {
+    "url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/messages.py",
+    "status": 200,
+    "final_url": "https://github.com/jacobschaer/python-doipclient/blob/v1.3.0/doipclient/messages.py"
+  },
+  {
+    "url": "https://github.com/jacobschaer/python-doipclient/commit/f43e811f229006d7d31efe5d8359d0a899026b7c",
+    "status": 200,
+    "final_url": "https://github.com/jacobschaer/python-doipclient/commit/f43e811f229006d7d31efe5d8359d0a899026b7c"
+  },
+  {
+    "url": "https://github.com/linklayer/pyvit/blob/0192c92f6888747e7daf3dc6c5aa4a6c4768f635/LICENSE.rst",
+    "status": 200,
+    "final_url": "https://github.com/linklayer/pyvit/blob/0192c92f6888747e7daf3dc6c5aa4a6c4768f635/LICENSE.rst"
+  },
+  {
+    "url": "https://github.com/linklayer/pyvit/commit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635",
+    "status": 200,
+    "final_url": "https://github.com/linklayer/pyvit/commit/0192c92f6888747e7daf3dc6c5aa4a6c4768f635"
+  },
+  {
+    "url": "https://github.com/mdabrowski1990/uds/commit/69c90393968c026fd8eef1305e44bc9d95402be1",
+    "status": 200,
+    "final_url": "https://github.com/mdabrowski1990/uds/commit/69c90393968c026fd8eef1305e44bc9d95402be1"
+  },
+  {
+    "url": "https://github.com/mercedes-benz/odxtools/blob/3898a61b870be54bd7cc044a5fa237790ad3134b/README.md",
+    "status": 200,
+    "final_url": "https://github.com/mercedes-benz/odxtools/blob/3898a61b870be54bd7cc044a5fa237790ad3134b/README.md"
+  },
+  {
+    "url": "https://github.com/mercedes-benz/odxtools/commit/3898a61b870be54bd7cc044a5fa237790ad3134b",
+    "status": 200,
+    "final_url": "https://github.com/mercedes-benz/odxtools/commit/3898a61b870be54bd7cc044a5fa237790ad3134b"
+  },
+  {
+    "url": "https://github.com/pylessard/python-can-isotp/commit/5593c219f35e739554d743a98d3af68c9332da31",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-can-isotp/commit/5593c219f35e739554d743a98d3af68c9332da31"
+  },
+  {
+    "url": "https://github.com/pylessard/python-udsoncan/blob/v1.26.1/udsoncan/client.py",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-udsoncan/blob/v1.26.1/udsoncan/client.py"
+  },
+  {
+    "url": "https://github.com/pylessard/python-udsoncan/blob/v1.26.1/udsoncan/connections.py",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-udsoncan/blob/v1.26.1/udsoncan/connections.py"
+  },
+  {
+    "url": "https://github.com/pylessard/python-udsoncan/commit/07d7be1fcfd17e41af9a30f1c5573774e45bcdbd",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-udsoncan/commit/07d7be1fcfd17e41af9a30f1c5573774e45bcdbd"
+  },
+  {
+    "url": "https://github.com/pylessard/python-udsoncan/tree/v1.26.1",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-udsoncan/tree/v1.26.1"
+  },
+  {
+    "url": "https://github.com/pylessard/python-udsoncan/tree/v1.26.1/udsoncan/services",
+    "status": 200,
+    "final_url": "https://github.com/pylessard/python-udsoncan/tree/v1.26.1/udsoncan/services"
+  },
+  {
+    "url": "https://github.com/secdev/scapy/blob/v2.8.0/scapy/contrib/automotive/ecu.py",
+    "status": 200,
+    "final_url": "https://github.com/secdev/scapy/blob/v2.8.0/scapy/contrib/automotive/ecu.py"
+  },
+  {
+    "url": "https://github.com/secdev/scapy/blob/v2.8.0/scapy/contrib/automotive/uds.py",
+    "status": 200,
+    "final_url": "https://github.com/secdev/scapy/blob/v2.8.0/scapy/contrib/automotive/uds.py"
+  },
+  {
+    "url": "https://github.com/secdev/scapy/commit/d2a43b525e145969fae36e42adfb4de8341fbcb8",
+    "status": 200,
+    "final_url": "https://github.com/secdev/scapy/commit/d2a43b525e145969fae36e42adfb4de8341fbcb8"
+  },
+  {
+    "url": "https://github.com/tomrford/gocan/tree/0b385f99468f36715d35ee2ef6e00650184aa3f6/cdd",
+    "status": 200,
+    "final_url": "https://github.com/tomrford/gocan/tree/0b385f99468f36715d35ee2ef6e00650184aa3f6/cdd"
+  },
+  {
+    "url": "https://github.com/zombieCraig/uds-server/commit/4ec7e7dec8894aeb852a300da79cd2f25bb2dbc2",
+    "status": 200,
+    "final_url": "https://github.com/zombieCraig/uds-server/commit/4ec7e7dec8894aeb852a300da79cd2f25bb2dbc2"
+  },
+  {
+    "url": "https://pypi.org/pypi/aioisotp/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/aioisotp/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/can-isotp/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/can-isotp/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/canmatrix/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/canmatrix/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/doip-server/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/doip-server/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/doipclient/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/doipclient/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/odxtools/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/odxtools/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/py-uds/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/py-uds/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/python-can/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/python-can/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/pyvit/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/pyvit/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/scapy/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/scapy/json"
+  },
+  {
+    "url": "https://pypi.org/pypi/udsoncan/json",
+    "status": 200,
+    "final_url": "https://pypi.org/pypi/udsoncan/json"
+  },
+  {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/pcan.html",
+    "status": 200,
+    "final_url": "https://python-can.readthedocs.io/en/stable/interfaces/pcan.html"
+  },
+  {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/socketcan.html",
+    "status": 200,
+    "final_url": "https://python-can.readthedocs.io/en/stable/interfaces/socketcan.html"
+  },
+  {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/vector.html",
+    "status": 200,
+    "final_url": "https://python-can.readthedocs.io/en/stable/interfaces/vector.html"
+  },
+  {
+    "url": "https://python-can.readthedocs.io/en/stable/interfaces/virtual.html",
+    "status": 200,
+    "final_url": "https://python-can.readthedocs.io/en/stable/interfaces/virtual.html"
+  },
+  {
+    "url": "https://scapy.readthedocs.io/en/latest/api/scapy.contrib.automotive.doip.html",
+    "status": 200,
+    "final_url": "https://scapy.readthedocs.io/en/latest/api/scapy.contrib.automotive.doip.html"
+  },
+  {
+    "url": "https://uds.readthedocs.io/en/stable/#features",
+    "status": 200,
+    "final_url": "https://uds.readthedocs.io/en/stable/#features"
+  },
+  {
+    "url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/client.html#configuration",
+    "status": 200,
+    "final_url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/client.html#configuration"
+  },
+  {
+    "url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/client.html#tester-present",
+    "status": 200,
+    "final_url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/client.html#tester-present"
+  },
+  {
+    "url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/connection.html#defining-a-new-connection",
+    "status": 200,
+    "final_url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/connection.html#defining-a-new-connection"
+  },
+  {
+    "url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/helper_classes.html#didcodec",
+    "status": 200,
+    "final_url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/helper_classes.html#didcodec"
+  },
+  {
+    "url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/services.html#requestdownload-0x34",
+    "status": 200,
+    "final_url": "https://udsoncan.readthedocs.io/en/latest/udsoncan/services.html#requestdownload-0x34"
+  },
+  {
+    "url": "https://www.autosar.org/fileadmin/standards/R24-11/CP/AUTOSAR_CP_SWS_DiagnosticOverIP.pdf",
+    "status": 200,
+    "final_url": "https://www.autosar.org/fileadmin/standards/R24-11/CP/AUTOSAR_CP_SWS_DiagnosticOverIP.pdf"
+  },
+  {
+    "url": "https://www.vector.com/en/product/candelastudio/",
+    "status": 200,
+    "final_url": "https://www.vector.com/en/product/candelastudio/"
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "checked_at_kst": "2026-11-10",
+  "peak": {
+    "url": "https://www.peak-system.com/fileadmin/media/files/PCAN-Basic.zip",
+    "sha256": "22745ffb13e7e96185de8003cd93f2b3b62b8bfb939efdf6954cdd5ed2c28852",
+    "version": "5.1.0.1194",
+    "nested_archive": "Samples/Samples.zip",
+    "rust_module": "Console/Rust/01_LookUpChannel/src/PCANBasic.rs",
+    "functions": {
+      "InitializeFD": 782,
+      "ReadFD": 921,
+      "WriteFD": 989
+    },
+    "abi": "unsafe extern system",
+    "license": "PEAK EULA; ReadMe restricts supplied files to original PEAK/OEM hardware; redistribution review pending"
+  },
+  "pyvxl": {
+    "repository": "https://github.com/cmcerove/pyvxl",
+    "commit": "d45cca4353f61bd867782b7242bfe1b1053265e9",
+    "checks": [
+      "src/make.bat:27-28 32-bit Python check",
+      "src/pyvxl/vector.py:41-44 vxlapi.dll",
+      "src/pyvxl/vector.py:385 32-bit channel mask handling",
+      "no xlCanFd or xlEth symbols in vector.py"
+    ]
+  },
+  "vector": {
+    "xl_manual": {
+      "url": "https://www.vector.com/dam/jcr:37a98de5-a2ca-4333-b6c7-ead8b088c937/XL_Driver_Library_Manual_EN.2026-09-12-16-40-28.pdf",
+      "version": "26.30",
+      "sha256": "468455e34428d1d27b6730bcc7453dd05191b758ba54b2d5a1d6236b86d5f8eb",
+      "sections": [
+        "7.1.3 VN5640 both access modes",
+        "7.1.4 mode configuration p134-135 visually verified p135",
+        "7.2 network API xlNetEth*",
+        "7.3 channel API xlEth*"
+      ]
+    },
+    "vn5000_manual": {
+      "url": "https://www.vector.com/dam/jcr:5c1b5484-bfbc-4cd3-8c3e-e4c7aafb44fd/VN5000_Manual_EN.2026-10-12-11-27-49.pdf",
+      "version": "6.1",
+      "sha256": "191c62ecbe35326b92a24b3ce4be6cebbf9369b9f5b8b0280db8efa1577c9a84",
+      "section": "2.1.3 p22 VN5640 four media converters"
+    }
+  }
+}

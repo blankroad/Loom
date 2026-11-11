@@ -1,0 +1,16 @@
+[package]
+name = "loom-can-sim"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Loom CAN sim bus owner, fake ECU nodes (SimNode) and fault injection for the can-sim worker"
+
+[dependencies]
+loom-can-frame = { path = "../loom-can-frame" }
+# Node config files: TOML (same format as loom.toml). serde_yaml/serde_yml are deprecated.
+serde.workspace = true
+toml = { version = "1", default-features = false, features = ["parse", "serde", "std"] }
+
+[lints]
+workspace = true

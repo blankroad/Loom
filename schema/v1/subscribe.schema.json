@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Subscribe",
+  "description": "`core.subscribe` params.",
+  "type": "object",
+  "properties": {
+    "after_seq": {
+      "description": "Resume after this stream seq (same epoch).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "backlog": {
+      "description": "Snapshot backlog limits.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Backlog"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coalesce_by": {
+      "description": "Screen-only coalescing key (`id`), counts reported.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "encoding": {
+      "description": "Batch encoding.",
+      "$ref": "#/$defs/BatchEncoding",
+      "default": "json"
+    },
+    "filter": {
+      "description": "Filter.",
+      "$ref": "#/$defs/SubFilter",
+      "default": {}
+    },
+    "max_batch_ms": {
+      "description": "Batch flush upper bound (terminal 10, default 40).",
+      "type": "integer",
+      "format": "uint32",
+      "default": 40,
+      "minimum": 0
+    },
+    "snapshot": {
+      "description": "Request an atomic snapshot first.",
+      "type": "boolean",
+      "default": false
+    },
+    "stream_epoch": {
+      "description": "Stream epoch `after_seq` belongs to (reconnect). A different epoch → `core.epoch_changed` + snapshot.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "Backlog": {
+      "description": "Snapshot backlog limits.",
+      "type": "object",
+      "properties": {
+        "max_age_ms": {
+          "description": "Max age in ms.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "max_bytes": {
+          "description": "Max encoded bytes.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "max_events": {
+          "description": "Max events.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "max_events",
+        "max_bytes",
+        "max_age_ms"
+      ]
+    },
+    "BatchEncoding": {
+      "description": "Wire encoding of event batches.",
+      "oneOf": [
+        {
+          "description": "JSON text frames (M1 default).",
+          "type": "string",
+          "const": "json"
+        },
+        {
+          "description": "Negotiated binary column frames (`loom.columns.v1`, M2).",
+          "type": "string",
+          "const": "binary"
+        }
+      ]
+    },
+    "Origin": {
+      "description": "Who caused the event (fixed 4 values, D3). Decided by connection credentials, never by\nrequest fields.",
+      "oneOf": [
+        {
+          "description": "AI agent via CLI / agent connection.",
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "description": "Human via a viewer connection.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The device (or external tool on the bus, see `external_actor`).",
+          "type": "string",
+          "const": "device"
+        },
+        {
+          "description": "Loom runner / test session.",
+          "type": "string",
+          "const": "script"
+        }
+      ]
+    },
+    "SubFilter": {
+      "description": "Event filter of a subscription (empty list = all).",
+      "type": "object",
+      "properties": {
+        "channels": {
+          "description": "Channels.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domains": {
+          "description": "Domains.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ext": {
+          "description": "Domain extension filter pushed down to the domain (e.g. eth display filter, F2). Opaque here."
+        },
+        "kinds": {
+          "description": "Kinds.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "origins": {
+          "description": "Origins.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Origin"
+          }
+        }
+      }
+    },
+    "U64": {
+      "description": "Unsigned 64-bit integer as canonical decimal string (no sign, no leading zero).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    }
+  }
+}

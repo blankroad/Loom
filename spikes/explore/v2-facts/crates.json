@@ -1,0 +1,249 @@
+{
+  "retrieved_at": "2026-11-09T23:12:35.773464+00:00",
+  "selection": "newest non-yanked stable version by crates.io versions ordering",
+  "crates": [
+    {
+      "crate": "calamine",
+      "version": "0.38.0",
+      "released": "2026-11-02T01:32:22.779754Z",
+      "license": "MIT",
+      "rust_version": "1.88",
+      "repository": "https://github.com/tafia/calamine",
+      "url": "https://crates.io/api/v1/crates/calamine"
+    },
+    {
+      "crate": "csv",
+      "version": "1.4.0",
+      "released": "2025-10-17T13:56:07.013801Z",
+      "license": "Unlicense/MIT",
+      "rust_version": "1.73",
+      "repository": "https://github.com/BurntSushi/rust-csv",
+      "url": "https://crates.io/api/v1/crates/csv"
+    },
+    {
+      "crate": "gherkin",
+      "version": "0.16.0",
+      "released": "2026-04-23T21:00:40.911829Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.88",
+      "repository": "https://github.com/cucumber-rs/gherkin",
+      "url": "https://crates.io/api/v1/crates/gherkin"
+    },
+    {
+      "crate": "cucumber",
+      "version": "0.23.0",
+      "released": "2026-04-23T22:35:03.179719Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.88",
+      "repository": "https://github.com/cucumber-rs/cucumber",
+      "url": "https://crates.io/api/v1/crates/cucumber"
+    },
+    {
+      "crate": "quick-junit",
+      "version": "0.8.0",
+      "released": "2026-09-10T20:28:40.201773Z",
+      "license": "Apache-2.0 OR MIT",
+      "rust_version": "1.79",
+      "repository": "https://github.com/nextest-rs/quick-junit",
+      "url": "https://crates.io/api/v1/crates/quick-junit"
+    },
+    {
+      "crate": "minijinja",
+      "version": "3.1.0",
+      "released": "2026-11-07T19:29:30.184153Z",
+      "license": "Apache-2.0",
+      "rust_version": "1.70",
+      "repository": "https://github.com/mitsuhiko/minijinja",
+      "url": "https://crates.io/api/v1/crates/minijinja"
+    },
+    {
+      "crate": "askama",
+      "version": "0.16.1",
+      "released": "2026-09-04T12:10:52.542276Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.88",
+      "repository": "https://github.com/askama-rs/askama",
+      "url": "https://crates.io/api/v1/crates/askama"
+    },
+    {
+      "crate": "cel-interpreter",
+      "version": "0.10.0",
+      "released": "2025-07-23T18:08:41.299658Z",
+      "license": "MIT",
+      "rust_version": null,
+      "repository": "https://github.com/cel-rust/cel-rust",
+      "url": "https://crates.io/api/v1/crates/cel-interpreter"
+    },
+    {
+      "crate": "cel",
+      "version": "0.15.0",
+      "released": "2026-10-06T10:14:20.361725Z",
+      "license": "MIT",
+      "rust_version": "1.86.0",
+      "repository": "https://github.com/cel-rust/cel-rust",
+      "url": "https://crates.io/api/v1/crates/cel"
+    },
+    {
+      "crate": "serde_json_path",
+      "version": "0.7.2",
+      "released": "2025-02-03T01:56:38.056260Z",
+      "license": "MIT",
+      "rust_version": null,
+      "repository": "https://github.com/hiltontj/serde_json_path",
+      "url": "https://crates.io/api/v1/crates/serde_json_path"
+    },
+    {
+      "crate": "jaq",
+      "version": "3.1.2",
+      "released": "2026-10-21T11:37:21.993965Z",
+      "license": "MIT",
+      "rust_version": "1.70",
+      "repository": "https://github.com/01mf02/jaq",
+      "url": "https://crates.io/api/v1/crates/jaq"
+    },
+    {
+      "crate": "jaq-core",
+      "version": "3.1.2",
+      "released": "2026-10-21T11:37:13.716720Z",
+      "license": "MIT",
+      "rust_version": "1.69",
+      "repository": "https://github.com/01mf02/jaq",
+      "url": "https://crates.io/api/v1/crates/jaq-core"
+    },
+    {
+      "crate": "jaq-std",
+      "version": "3.0.4",
+      "released": "2026-10-21T11:37:16.739060Z",
+      "license": "MIT",
+      "rust_version": "1.70",
+      "repository": "https://github.com/01mf02/jaq",
+      "url": "https://crates.io/api/v1/crates/jaq-std"
+    },
+    {
+      "crate": "jaq-json",
+      "version": "2.0.3",
+      "released": "2026-08-28T15:48:34.233748Z",
+      "license": "MIT",
+      "rust_version": "1.70",
+      "repository": "https://github.com/01mf02/jaq",
+      "url": "https://crates.io/api/v1/crates/jaq-json"
+    },
+    {
+      "crate": "tonic",
+      "version": "0.14.9",
+      "released": "2026-10-29T17:37:37.972422Z",
+      "license": "MIT",
+      "rust_version": "1.88",
+      "repository": "https://github.com/grpc/grpc-rust",
+      "url": "https://crates.io/api/v1/crates/tonic"
+    },
+    {
+      "crate": "prost",
+      "version": "0.14.4",
+      "released": "2026-06-07T10:13:40.918481Z",
+      "license": "Apache-2.0",
+      "rust_version": "1.85",
+      "repository": "https://github.com/tokio-rs/prost",
+      "url": "https://crates.io/api/v1/crates/prost"
+    },
+    {
+      "crate": "tonic-prost",
+      "version": "0.14.9",
+      "released": "2026-10-29T17:37:55.097535Z",
+      "license": "MIT",
+      "rust_version": "1.88",
+      "repository": "https://github.com/grpc/grpc-rust",
+      "url": "https://crates.io/api/v1/crates/tonic-prost"
+    },
+    {
+      "crate": "tonic-prost-build",
+      "version": "0.14.9",
+      "released": "2026-10-29T17:38:26.692608Z",
+      "license": "MIT",
+      "rust_version": "1.88",
+      "repository": "https://github.com/grpc/grpc-rust",
+      "url": "https://crates.io/api/v1/crates/tonic-prost-build"
+    },
+    {
+      "crate": "tokio",
+      "version": "1.54.1",
+      "released": "2026-10-21T21:05:43.950213Z",
+      "license": "MIT",
+      "rust_version": "1.85",
+      "repository": "https://github.com/tokio-rs/tokio",
+      "url": "https://crates.io/api/v1/crates/tokio"
+    },
+    {
+      "crate": "dlt-core",
+      "version": "0.20.2",
+      "released": "2026-03-17T09:32:37.361576Z",
+      "license": "Apache-2.0",
+      "rust_version": null,
+      "repository": "https://github.com/esrlabs/dlt-core",
+      "url": "https://crates.io/api/v1/crates/dlt-core"
+    },
+    {
+      "crate": "russh",
+      "version": "0.65.1",
+      "released": "2026-11-03T16:33:12.258813Z",
+      "license": "Apache-2.0",
+      "rust_version": "1.89",
+      "repository": "https://github.com/warp-tech/russh",
+      "url": "https://crates.io/api/v1/crates/russh"
+    },
+    {
+      "crate": "ssh2",
+      "version": "0.9.7",
+      "released": "2026-11-05T21:17:15.010039Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": null,
+      "repository": "https://github.com/rust-lang/ssh2-rs",
+      "url": "https://crates.io/api/v1/crates/ssh2"
+    },
+    {
+      "crate": "openssh",
+      "version": "0.11.6",
+      "released": "2025-12-03T14:05:00.901405Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.63.0",
+      "repository": "https://github.com/openssh-rust/openssh.git",
+      "url": "https://crates.io/api/v1/crates/openssh"
+    },
+    {
+      "crate": "probe-rs",
+      "version": "0.32.0",
+      "released": "2026-07-22T21:11:14.183239Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.89",
+      "repository": "https://github.com/probe-rs/probe-rs",
+      "url": "https://crates.io/api/v1/crates/probe-rs"
+    },
+    {
+      "crate": "visa-rs",
+      "version": "0.7.1",
+      "released": "2026-09-22T15:51:15.950182Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": null,
+      "repository": "https://github.com/TsuITOAR/visa-rs",
+      "url": "https://crates.io/api/v1/crates/visa-rs"
+    },
+    {
+      "crate": "hidapi",
+      "version": "2.6.7",
+      "released": "2026-08-27T18:29:23.182474Z",
+      "license": "MIT",
+      "rust_version": null,
+      "repository": "https://github.com/ruabmbua/hidapi-rs",
+      "url": "https://crates.io/api/v1/crates/hidapi"
+    },
+    {
+      "crate": "tokio-modbus",
+      "version": "0.17.0",
+      "released": "2025-10-22T09:04:27.318212Z",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.76",
+      "repository": "https://github.com/slowtec/tokio-modbus",
+      "url": "https://crates.io/api/v1/crates/tokio-modbus"
+    }
+  ]
+}

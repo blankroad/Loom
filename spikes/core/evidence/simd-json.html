@@ -1,0 +1,502 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="SIMD JSON for Rust   Build Status Build Status ARM Quality  Latest Version Code Coverage"><title>simd_json - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/v/4ddc5de0b7e3fdcc/vendored.css" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-009149e2.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="simd_json" data-themes="" data-resource-suffix="-20261026-1.101.0-nightly-16d1ffac1" data-rustdoc-version="1.101.0-nightly (16d1ffac1 2026-10-26)" data-channel="nightly" data-search-js="search-b167f383.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-9b351432.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20261026-1.101.0-nightly-16d1ffac1.js"></script><script defer src="/-/rustdoc.static/main-1814ead3.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/v/4ddc5de0b7e3fdcc/rustdoc-2025-08-20.css" media="all" /><link rel="stylesheet" href="/-/static/v/4ddc5de0b7e3fdcc/font-awesome.css" media="all" />
+
+<link rel="search" href="/-/static/v/4ddc5de0b7e3fdcc/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "simd-json",
+            "version": "0.19.0"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="High performance JSON parser based on a port of simdjson">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">simd-json-0.19.0</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        simd-json 0.19.0
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/simd-json/0.19.0/simd_json/" class="pure-menu-link description" id="permalink" data-fragment="retain" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/simd-json/latest" class="pure-menu-link description" title="See simd-json in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a> OR <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.101.0-nightly (16d1ffac1 2026-10-26)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 27 October 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/simd-lite/simd-json" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/simd-json" class="pure-menu-link" title="See simd-json in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/simd-json/latest/source/" title="Browse source of simd-json-0.19.0" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/Licenser" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> Licenser
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/sunnybot" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> sunnybot
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/mfelsche" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> mfelsche
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/simd-lite-bot" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> simd-lite-bot
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/ahash/^0.8/" class="pure-menu-link">
+                ahash ^0.8
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/alloc_counter/^0.0.4/" class="pure-menu-link">
+                alloc_counter ^0.0.4
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/beef/^0.5/" class="pure-menu-link">
+                beef ^0.5
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/colored/^3.0/" class="pure-menu-link">
+                colored ^3.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/getopts/^0.2/" class="pure-menu-link">
+                getopts ^0.2
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/halfbrown/^0.4/" class="pure-menu-link">
+                halfbrown ^0.4
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/jemallocator/^0.5/" class="pure-menu-link">
+                jemallocator ^0.5
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde/^1/" class="pure-menu-link">
+                serde ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/serde_json/^1/" class="pure-menu-link">
+                serde_json ^1
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/simdutf8/^0.1.4/" class="pure-menu-link">
+                simdutf8 ^0.1.4
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/value-trait/^0.12.3/" class="pure-menu-link">
+                value-trait ^0.12.3
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/core_affinity/^0.8/" class="pure-menu-link">
+                core_affinity ^0.8
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/float-cmp/^0.10/" class="pure-menu-link">
+                float-cmp ^0.10
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/getopts/^0.2/" class="pure-menu-link">
+                getopts ^0.2
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/criterion/^0.8/" class="pure-menu-link">
+                criterion ^0.8
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/proptest/^1.0/" class="pure-menu-link">
+                proptest ^1.0
+                
+                    <i class="dependencies dev">dev</i>
+                    
+                
+            </a>
+        </li><li class="pure-menu-item"><a href="/perfcnt/^0.8/" class="pure-menu-link">
+                perfcnt ^0.8
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                        <i>optional</i>
+                    
+                
+            </a>
+        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pure-u-1-2">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Versions</li>
+
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" id="releases-list" tabindex="-1" data-url="/crate/simd-json/latest/menus/releases/simd_json/">
+                                    <span class="rotate"><span class="fa fa-solid fa-spinner " aria-hidden="true"></span></span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                    
+                    
+                    <div class="pure-g">
+                        <div class="pure-u-1">
+                            <ul class="pure-menu-list">
+                                <li>
+                                    <a href="/crate/simd-json/latest" class="pure-menu-link">
+                                        <b>100%</b>
+                                        of the crate is documented
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div></div>
+        </li><li class="pure-menu-item pure-menu-has-children">
+                <a href="#" class="pure-menu-link" aria-label="Platform">
+                    <span class="fa fa-solid fa-gears " aria-hidden="true"></span>
+                    <span class="title">Platform</span>
+                </a>
+
+                
+                <ul class="pure-menu-children" id="platforms" data-url="/crate/simd-json/latest/menus/platforms/simd_json/"><li class="pure-menu-item">
+            <a href="/crate/simd-json/latest/target-redirect/simd_json/" class="pure-menu-link" data-fragment="retain" rel="nofollow">x86_64-unknown-linux-gnu</a>
+        </li></ul>
+            </li><li class="pure-menu-item">
+                <a href="/crate/simd-json/latest/features" title="Browse available feature flags of simd-json-0.19.0" class="pure-menu-link">
+                    <span class="fa fa-solid fa-flag " aria-hidden="true"></span>
+                    <span class="title">Feature flags</span>
+                </a>
+            </li>
+        
+    
+    <li id="crate-warnings" class="pure-menu-item hidden" data-url="/-/partial/crate-warnings/simd-json/"></li>
+</ul><div class="spacer"></div>
+                
+                <div id="abnormalities" class="hidden"></div>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="docs.rs">docs.rs</a>
+                        <ul class="pure-menu-children aligned-icons"><li class="pure-menu-item"><a class="pure-menu-link" href="/about"><span class="fa fa-solid fa-circle-info " aria-hidden="true"></span> About docs.rs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/badges"><span class="fa fa-brands fa-fonticons " aria-hidden="true"></span> Badges</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/builds"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Builds</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/metadata"><span class="fa fa-solid fa-table " aria-hidden="true"></span> Metadata</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/redirections"><span class="fa fa-solid fa-road " aria-hidden="true"></span> Shorthand URLs</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/download"><span class="fa fa-solid fa-download " aria-hidden="true"></span> Download</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/about/rustdoc-json"><span class="fa fa-solid fa-file-code " aria-hidden="true"></span> Rustdoc JSON</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="/releases/queue"><span class="fa fa-solid fa-gears " aria-hidden="true"></span> Build queue</a></li><li class="pure-menu-item"><a class="pure-menu-link" href="https://foundation.rust-lang.org/policies/privacy-policy/#docs.rs" target="_blank"><span class="fa fa-solid fa-shield-halved " aria-hidden="true"></span> Privacy policy</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="pure-menu-list"><li class="pure-menu-item pure-menu-has-children">
+                        <a href="#" class="pure-menu-link" aria-label="Rust">Rust</a>
+                        <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://www.rust-lang.org/" target="_blank">Rust website</a></li>
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/book/" target="_blank">The Book</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/std/" target="_blank">Standard Library API Reference</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/rust-by-example/" target="_blank">Rust by Example</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/cargo/guide/" target="_blank">The Cargo Guide</a></li>
+
+                            <li class="pure-menu-item"><a class="pure-menu-link" href="https://doc.rust-lang.org/nightly/clippy" target="_blank">Clippy Documentation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div id="search-input-nav">
+                    <label for="nav-search">
+                        <span class="fa fa-solid fa-magnifying-glass " aria-hidden="true"></span>
+                    </label>
+
+                    
+                    
+                    <input id="nav-search" name="query" type="text" aria-label="Find crate by search query" tabindex="-1"
+                        placeholder="Find crate"
+                        >
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="alerts" class="hidden"></div><div class="rustdoc mod crate container-rustdoc" id="rustdoc_body_wrapper" tabindex="-1"><script async src="/-/static/v/4ddc5de0b7e3fdcc/menu.js"></script>
+<script async src="/-/static/v/4ddc5de0b7e3fdcc/index.js"></script>
+
+<iframe src="/-/storage-change-detection.html" width="0" height="0" style="display: none"></iframe><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate simd_json</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../simd_json/index.html">simd_<wbr>json</a><span class="version">0.19.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#simd-json-for-rust--build-status-build-status-arm-quality--latest-version-code-coverage" title="SIMD JSON for Rust   Build Status Build Status ARM Quality  Latest Version Code Coverage">SIMD JSON for Rust   Build Status Build Status ARM Quality  Latest Version Code Coverage</a><ul><li><a href="#goals" title="Goals">Goals</a></li><li><a href="#performance" title="Performance">Performance</a></li><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#usage" title="Usage">Usage</a></li><li><a href="#other-interesting-things" title="Other interesting things">Other interesting things</a></li><li><a href="#license" title="License">License</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>simd_<wbr>json</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/simd_json/lib.rs.html#1-1362">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="simd-json-for-rust--build-status-build-status-arm-quality--latest-version-code-coverage"><a class="doc-anchor" href="#simd-json-for-rust--build-status-build-status-arm-quality--latest-version-code-coverage">§</a>SIMD JSON for Rust   <a href="https://simd-json.rs"><img src="https://github.com/simd-lite/simd-json/workflows/Tests/badge.svg" alt="Build Status" /></a> <a href="https://cloud.drone.io/simd-lite/simd-json"><img src="https://cloud.drone.io/api/badges/simd-lite/simd-json/status.svg" alt="Build Status ARM" /></a> <a href="https://simd-json.rs"><img src="https://github.com/simd-lite/simd-json/workflows/Quality/badge.svg" alt="Quality" /></a>  <a href="https://crates.io/crates/simd-json"><img src="https://img.shields.io/crates/v/simd-json.svg" alt="Latest Version" /></a> <a href="https://coveralls.io/github/simd-lite/simd-json?branch=main"><img src="https://coveralls.io/repos/github/simd-lite/simd-json/badge.svg?branch=main" alt="Code Coverage" /></a></h2>
+<p><strong>Rust port of extremely fast <a href="https://github.com/lemire/simdjson">simdjson</a> JSON parser with <a href="https://serde.rs">Serde</a> compatibility.</strong></p>
+<hr />
+<p>simd-json is a Rust port of the <a href="https://simdjson.org/">simdjson c++ library</a>.
+It follows most of the design closely with a few exceptions to make it better
+fit into the Rust ecosystem.</p>
+<h3 id="goals"><a class="doc-anchor" href="#goals">§</a>Goals</h3>
+<p>The goal of the Rust port of simdjson is not to create a one-to-one
+copy, but to integrate the principles of the C++ library into
+a Rust library that plays well with the Rust ecosystem. As such
+we provide both compatibility with Serde as well as parsing to a
+DOM to manipulate data.</p>
+<h3 id="performance"><a class="doc-anchor" href="#performance">§</a>Performance</h3>
+<p>As a rule of thumb this library tries to get as close as possible
+to the performance of the C++ implementation (currently tracking 0.2.x, work in progress).
+However, in some design decisions—such as parsing to a DOM or a tape—ergonomics is prioritized over
+performance. In other places Rust makes it harder to achieve the same level of performance.</p>
+<p>To take advantage of this library your system needs to support SIMD instructions. On <code>x86</code>, it will
+select the best available supported instruction set (<code>avx2</code> or <code>sse4.2</code>) when the <code>runtime-detection</code> feature
+is enabled (default). On <code>aarch64</code> this library uses the <code>NEON</code> instruction set. On <code>wasm</code> this library uses
+the <code>simd128</code> instruction set when available. When no supported SIMD instructions are found, this library will use a
+fallback implementation, but this is significantly slower.</p>
+<h4 id="allocator"><a class="doc-anchor" href="#allocator">§</a>Allocator</h4>
+<p>For best performance, we highly suggest using <a href="https://github.com/microsoft/snmalloc">snmalloc</a>, <a href="https://crates.io/crates/mimalloc">mimalloc</a> or <a href="https://crates.io/crates/jemalloc">jemalloc</a>
+instead of the system default allocator.</p>
+<h3 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h3>
+<p><code>simd-json</code> uses <strong>a lot</strong> of unsafe code.</p>
+<p>There are a few reasons for this:</p>
+<ul>
+<li>SIMD intrinsics are inherently unsafe. These uses of unsafe are inescapable in a library such as <code>simd-json</code>.</li>
+<li>We work around some performance bottlenecks imposed by safe rust. These are avoidable, but at a performance cost.
+This is a more considered path in <code>simd-json</code>.</li>
+</ul>
+<p><code>simd-json</code> goes through extra scrutiny for unsafe code. These steps are:</p>
+<ul>
+<li>Unit tests - to test ‘the obvious’ cases, edge cases, and regression cases</li>
+<li>Structural constructive property based testing - We generate random valid JSON objects to exercise the full <code>simd-json</code>
+codebase stochastically. Floats are currently excluded since slightly different parsing algorithms lead to slightly
+different results here. In short “is simd-json correct”.</li>
+<li>Data-oriented property-based testing of string-like data - to assert that sequences of legal printable characters
+don’t panic or crash the parser (they might and often error so - they are not valid JSON!)</li>
+<li>Destructive Property based testing - make sure that no illegal byte sequences crash the parser in any way</li>
+<li>Fuzzing - fuzz based on upstream &amp; jsonorg simd pass/fail cases</li>
+</ul>
+<p>This doesn’t ensure complete safety nor is at a bulletproof guarantee, but it does go a long way
+to assert that the library is of high production quality and fit for purpose for practical industrial applications.</p>
+<h3 id="features"><a class="doc-anchor" href="#features">§</a>Features</h3>
+<p>Various features can be enabled or disabled to tweak various parts of this library. Any features not mentioned here are
+for internal configuration and testing.</p>
+<h4 id="runtime-detection-default"><a class="doc-anchor" href="#runtime-detection-default">§</a><code>runtime-detection</code> (default)</h4>
+<p>This feature allows selecting the optimal algorithm based on available features during runtime. It has no effect on
+non-<code>x86</code> platforms. When neither <code>AVX2</code> nor <code>SSE4.2</code> is supported, it will fall back to a native Rust implementation.</p>
+<p>Disabling this feature (with <code>default-features = false</code>) <strong>and</strong> setting <code>RUSTFLAGS="-C target-cpu=native</code> will result
+in better performance but the resulting binary will not be portable across <code>x86</code> processors.</p>
+<h4 id="serde_impl-default"><a class="doc-anchor" href="#serde_impl-default">§</a><code>serde_impl</code> (default)</h4>
+<p>Enable <a href="https://serde.rs">Serde</a> support. This consist of implementing <code>serde::Serializer</code> and <code>serde::Deserializer</code>,
+allowing types that implement <code>serde::Serialize</code>/<code>serde::Deserialize</code> to be constructed/serialized to
+<code>BorrowedValue</code>/<code>OwnedValue</code>.
+In addition, this provides the same convenience functions that <a href="https://docs.rs/serde_json/latest/serde_json/"><code>serde_json</code></a> provides.</p>
+<p>Disabling this feature (with <code>default-features = false</code>) will remove <code>serde</code> and <code>serde_json</code> from the dependencies.</p>
+<h4 id="swar-number-parsing-default"><a class="doc-anchor" href="#swar-number-parsing-default">§</a><code>swar-number-parsing</code> (default)</h4>
+<p>Enables a parsing method that will parse 8 digits at a time for floats. This is a common pattern but comes at a slight
+performance hit if most of the float have less than 8 digits.</p>
+<h4 id="known-key"><a class="doc-anchor" href="#known-key">§</a><code>known-key</code></h4>
+<p>The <code>known-key</code> feature changes the hash mechanism for the DOM representation of the underlying JSON object from
+<code>ahash</code> to <code>fxhash</code>. The <code>ahash</code> hasher is faster at hashing and provides protection against DOS attacks by forcing
+multiple keys into a single hashing bucket. The <code>fxhash</code> hasher allows for repeatable hashing results,
+which in turn allows memoizing hashes for well known keys and saving time on lookups. In workloads that are heavy on
+accessing some well-known keys, this can be a performance advantage.</p>
+<p>The <code>known-key</code> feature is optional and disabled by default and should be explicitly configured.</p>
+<h4 id="big-int-as-float"><a class="doc-anchor" href="#big-int-as-float">§</a><code>big-int-as-float</code></h4>
+<p>The <code>big-int-as-float</code> feature flag treats very large integers that won’t fit into u64 as f64 floats. This prevents
+parsing errors if the JSON you are parsing contains very large integers. Keep in mind that f64 loses some precision when
+representing very large numbers.</p>
+<h4 id="128bit"><a class="doc-anchor" href="#128bit">§</a><code>128bit</code></h4>
+<p>Add support for parsing and serializing 128-bit integers. This feature is disabled by default because such large numbers
+are rare in the wild and adding the support incurs a performance penalty.</p>
+<h4 id="beef"><a class="doc-anchor" href="#beef">§</a><code>beef</code></h4>
+<p><strong>Enabling this feature can break dependencies in your dependency tree that are using <code>simd-json</code>.</strong></p>
+<p>Replace <a href="https://doc.rust-lang.org/std/borrow/enum.Cow.html"><code>std::borrow::Cow</code></a> with
+<a href="https://docs.rs/beef/latest/beef/lean/type.Cow.html"><code>beef::lean::Cow</code></a> This feature is disabled by default, because
+it is a breaking change in the API.</p>
+<h4 id="ordered-float"><a class="doc-anchor" href="#ordered-float">§</a><code>ordered-float</code></h4>
+<p>By default the representation of <code>Floats</code> used in <code>borrowed::Value </code> and <code>owned::Value</code> is simply a value of <code>f64</code>.
+This however has the normally-not-a-big-deal side effect of <em>not</em> having these <code>Value</code> types be <code>std::cmp::Eq</code>. This does,
+however, introduce some incompatibilities when offering <code>simd-json</code> as a quasi-drop-in replacement for <code>serde-json</code>.</p>
+<p>So, this feature changes the internal representation of <code>Floats</code> to be an <code>f64</code> <em>wrapped by <a href="https://docs.rs/ordered-float/latest/ordered_float/">an Eq-compatible adapter</a></em>.</p>
+<p>This probably carries with it some small performance trade-offs, hence its enablement by feature rather than by default.</p>
+<h4 id="portable"><a class="doc-anchor" href="#portable">§</a><code>portable</code></h4>
+<p><strong>Currently disabled</strong></p>
+<p>An highly experimental implementation of the algorithm using <code>std::simd</code> and up to 512 byte wide registers.</p>
+<h3 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h3>
+<p>simd-json offers three main entry points for usage:</p>
+<h4 id="values-api"><a class="doc-anchor" href="#values-api">§</a>Values API</h4>
+<p>The values API is a set of optimized DOM objects that allow parsed
+JSON to JSON data that has no known variable structure. <code>simd-json</code>
+has two versions of this:</p>
+<p><strong>Borrowed Values</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>simd_json;
+<span class="kw">let </span><span class="kw-2">mut </span>d = <span class="string">br#"{"some": ["key", "value", 2]}"#</span>.to_vec();
+<span class="kw">let </span>v: simd_json::BorrowedValue = simd_json::to_borrowed_value(<span class="kw-2">&amp;mut </span>d).unwrap();</code></pre></div>
+<p><strong>Owned Values</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>simd_json;
+<span class="kw">let </span><span class="kw-2">mut </span>d = <span class="string">br#"{"some": ["key", "value", 2]}"#</span>.to_vec();
+<span class="kw">let </span>v: simd_json::OwnedValue = simd_json::to_owned_value(<span class="kw-2">&amp;mut </span>d).unwrap();</code></pre></div><h4 id="serde-compatible-api"><a class="doc-anchor" href="#serde-compatible-api">§</a>Serde Compatible API</h4>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>simd_json;
+<span class="kw">use </span>serde_json::Value;
+
+<span class="kw">let </span><span class="kw-2">mut </span>d = <span class="string">br#"{"some": ["key", "value", 2]}"#</span>.to_vec();
+<span class="kw">let </span>v: Value = simd_json::serde::from_slice(<span class="kw-2">&amp;mut </span>d).unwrap();</code></pre></div><h4 id="tape-api"><a class="doc-anchor" href="#tape-api">§</a>Tape API</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>simd_json;
+
+<span class="kw">let </span><span class="kw-2">mut </span>d = <span class="string">br#"{"the_answer": 42}"#</span>.to_vec();
+<span class="kw">let </span>tape = simd_json::to_tape(<span class="kw-2">&amp;mut </span>d).unwrap();
+<span class="kw">let </span>value = tape.as_value();
+<span class="comment">// try_get treats value like an object, returns Ok(Some(_)) because the key is found
+</span><span class="macro">assert!</span>(value.try_get(<span class="string">"the_answer"</span>).unwrap().unwrap() == <span class="number">42</span>);
+<span class="comment">// returns Ok(None) because the key is not found but value is an object
+</span><span class="macro">assert!</span>(value.try_get(<span class="string">"does_not_exist"</span>).unwrap() == <span class="prelude-val">None</span>);
+<span class="comment">// try_get_idx treats value like an array, returns Err(_) because value is not an array
+</span><span class="macro">assert!</span>(value.try_get_idx(<span class="number">0</span>).is_err());</code></pre></div><h3 id="other-interesting-things"><a class="doc-anchor" href="#other-interesting-things">§</a>Other interesting things</h3>
+<p>There are also bindings for upstream <code>simdjson</code> available <a href="https://github.com/SunDoge/simdjson-rust">here</a></p>
+<h3 id="license"><a class="doc-anchor" href="#license">§</a>License</h3>
+<p>simd-json itself is licensed under either of</p>
+<ul>
+<li><a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0, (LICENSE-APACHE)</a></li>
+<li><a href="http://opensource.org/licenses/MIT">MIT license (LICENSE-MIT)</a></li>
+</ul>
+<p>at your option.</p>
+<p>However it ports a lot of code from <a href="https://github.com/lemire/simdjson">simdjson</a> so their work and copyright on that should also be respected.</p>
+<p>The <a href="https://serde.rs">Serde</a> integration is based on <code>serde-json</code> so their copyright should as well be respected.</p>
+<h4 id="all-thanks-to-our-contributors"><a class="doc-anchor" href="#all-thanks-to-our-contributors">§</a>All Thanks To Our Contributors:</h4><a href="https://github.com/simd-lite/simd-json/graphs/contributors">
+  <img alt="GitHub profile pictures of all contributors to simd-json" src="https://contrib.rocks/image?repo=simd-lite/simd-json" />
+</a></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.from_reader"><code>pub use crate::serde::<a class="fn" href="serde/fn.from_reader.html" title="fn simd_json::serde::from_reader">from_reader</a>;</code></dt><dt id="reexport.from_slice"><code>pub use crate::serde::<a class="fn" href="serde/fn.from_slice.html" title="fn simd_json::serde::from_slice">from_slice</a>;</code></dt><dt id="reexport.from_str"><code>pub use crate::serde::<a class="fn" href="serde/fn.from_str.html" title="fn simd_json::serde::from_str">from_str</a>;</code></dt><dt id="reexport.to_string"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_string.html" title="fn simd_json::serde::to_string">to_string</a>;</code></dt><dt id="reexport.to_string_pretty"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_string_pretty.html" title="fn simd_json::serde::to_string_pretty">to_string_pretty</a>;</code></dt><dt id="reexport.to_vec"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_vec.html" title="fn simd_json::serde::to_vec">to_vec</a>;</code></dt><dt id="reexport.to_vec_pretty"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_vec_pretty.html" title="fn simd_json::serde::to_vec_pretty">to_vec_pretty</a>;</code></dt><dt id="reexport.to_writer"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_writer.html" title="fn simd_json::serde::to_writer">to_writer</a>;</code></dt><dt id="reexport.to_writer_pretty"><code>pub use crate::serde::<a class="fn" href="serde/fn.to_writer_pretty.html" title="fn simd_json::serde::to_writer_pretty">to_writer_pretty</a>;</code></dt><dt id="reexport.Node"><code>pub use crate::tape::<a class="enum" href="tape/enum.Node.html" title="enum simd_json::tape::Node">Node</a>;</code></dt><dt id="reexport.Tape"><code>pub use crate::tape::<a class="struct" href="tape/struct.Tape.html" title="struct simd_json::tape::Tape">Tape</a>;</code></dt><dt id="reexport.BorrowedValue"><code>pub use self::borrowed::<a class="enum" href="borrowed/enum.Value.html" title="enum simd_json::borrowed::Value">Value</a> as BorrowedValue;</code></dt><dt id="reexport.to_borrowed_value"><code>pub use self::borrowed::<a class="fn" href="borrowed/fn.to_value.html" title="fn simd_json::borrowed::to_value">to_value</a> as to_borrowed_value;</code></dt><dt id="reexport.to_borrowed_value_with_buffers"><code>pub use self::borrowed::<a class="fn" href="borrowed/fn.to_value_with_buffers.html" title="fn simd_json::borrowed::to_value_with_buffers">to_value_with_buffers</a> as to_borrowed_value_with_buffers;</code></dt><dt id="reexport.OwnedValue"><code>pub use self::owned::<a class="enum" href="owned/enum.Value.html" title="enum simd_json::owned::Value">Value</a> as OwnedValue;</code></dt><dt id="reexport.to_owned_value"><code>pub use self::owned::<a class="fn" href="owned/fn.to_value.html" title="fn simd_json::owned::to_value">to_value</a> as to_owned_value;</code></dt><dt id="reexport.to_owned_value_with_buffers"><code>pub use self::owned::<a class="fn" href="owned/fn.to_value_with_buffers.html" title="fn simd_json::owned::to_value_with_buffers">to_value_with_buffers</a> as to_owned_value_with_buffers;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="base/index.html" title="mod simd_json::base">base</a></dt><dd>Traits that provide basic interactions, they do have no auto-implementations</dd><dt><a class="mod" href="borrowed/index.html" title="mod simd_json::borrowed">borrowed</a></dt><dd>This module holds the two dom implementations we use.</dd><dt><a class="mod" href="cow/index.html" title="mod simd_json::cow">cow</a></dt><dd>Re-export of Cow
+Re-export of Cow</dd><dt><a class="mod" href="derived/index.html" title="mod simd_json::derived">derived</a></dt><dd>Traits that have derived implementations relying on <code>base</code> traitsa</dd><dt><a class="mod" href="generator/index.html" title="mod simd_json::generator">generator</a></dt><dd>Traits for serializing JSON</dd><dt><a class="mod" href="lazy/index.html" title="mod simd_json::lazy">lazy</a></dt><dd>Lazy value, uses a tape until mutated.</dd><dt><a class="mod" href="owned/index.html" title="mod simd_json::owned">owned</a></dt><dd>Owned, lifetimeless version of the value for times when lifetimes are to be avoided</dd><dt><a class="mod" href="prelude/index.html" title="mod simd_json::prelude">prelude</a></dt><dd>Default trait imports;</dd><dt><a class="mod" href="serde/index.html" title="mod simd_json::serde">serde</a></dt><dd>serde related helper functions</dd><dt><a class="mod" href="tape/index.html" title="mod simd_json::tape">tape</a></dt><dd>Tape implementation</dd><dt><a class="mod" href="value/index.html" title="mod simd_json::value">value</a></dt><dd>simd-json JSON-DOM value</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.json.html" title="macro simd_json::json">json</a></dt><dd>Construct a <code>simd_json::Value</code> from a JSON literal.</dd><dt><a class="macro" href="macro.json_typed.html" title="macro simd_json::json_typed">json_<wbr>typed</a></dt><dd>Constructs a <code>simd_json::Value</code> from a JSON literal and allows specifying whether it generates
+an owned or borrowed variant.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Buffers.html" title="struct simd_json::Buffers">Buffers</a></dt><dd>A struct to hold the buffers for the parser.</dd><dt><a class="struct" href="struct.Deserializer.html" title="struct simd_json::Deserializer">Deserializer</a></dt><dd>Deserializer struct to deserialize a JSON</dd><dt><a class="struct" href="struct.Error.html" title="struct simd_json::Error">Error</a></dt><dd>Parser error</dd><dt><a class="struct" href="struct.TryTypeError.html" title="struct simd_json::TryTypeError">TryType<wbr>Error</a></dt><dd>A type error thrown by the <code>try_*</code> functions</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.AccessError.html" title="enum simd_json::AccessError">Access<wbr>Error</a></dt><dd>An access error for <code>ValueType</code></dd><dt><a class="enum" href="enum.ErrorType.html" title="enum simd_json::ErrorType">Error<wbr>Type</a></dt><dd>Error types encountered while parsing</dd><dt><a class="enum" href="enum.ExtendedValueType.html" title="enum simd_json::ExtendedValueType">Extended<wbr>Value<wbr>Type</a></dt><dd>Extended types that have no native representation in JSON</dd><dt><a class="enum" href="enum.Implementation.html" title="enum simd_json::Implementation">Implementation</a></dt><dd>Supported implementations</dd><dt><a class="enum" href="enum.StaticNode.html" title="enum simd_json::StaticNode">Static<wbr>Node</a></dt><dd>Static tape node</dd><dt><a class="enum" href="enum.ValueType.html" title="enum simd_json::ValueType">Value<wbr>Type</a></dt><dd>Types of JSON values</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.DEFAULT_MAX_DEPTH.html" title="constant simd_json::DEFAULT_MAX_DEPTH">DEFAULT_<wbr>MAX_<wbr>DEPTH</a></dt><dd>The default maximum nesting depth of objects and arrays, mirroring
+simdjson’s <code>DEFAULT_MAX_DEPTH</code>.</dd><dt><a class="constant" href="constant.INPUT_PADDING.html" title="constant simd_json::INPUT_PADDING">INPUT_<wbr>PADDING</a></dt><dd>Padding bytes callers must provide beyond the logical input for
+<a href="fn.fill_tape_padded.html" title="fn simd_json::fill_tape_padded"><code>fill_tape_padded</code></a>.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ValueBuilder.html" title="trait simd_json::ValueBuilder">Value<wbr>Builder</a></dt><dd>Support of builder methods for traits.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.deserialize.html" title="fn simd_json::deserialize">deserialize</a></dt><dd>Parses a slice of bytes into a Value dom.</dd><dt><a class="fn" href="fn.deserialize_with_buffers.html" title="fn simd_json::deserialize_with_buffers">deserialize_<wbr>with_<wbr>buffers</a></dt><dd>Parses a slice of bytes into a Value dom.</dd><dt><a class="fn" href="fn.fill_tape.html" title="fn simd_json::fill_tape">fill_<wbr>tape</a></dt><dd>Fills a already existing tape from the input for later consumption</dd><dt><a class="fn" href="fn.fill_tape_padded.html" title="fn simd_json::fill_tape_padded">fill_<wbr>tape_<wbr>padded</a></dt><dd>Fills an already existing tape from a caller-padded input, skipping the padded copy
+of the input that <a href="fn.fill_tape.html" title="fn simd_json::fill_tape"><code>fill_tape</code></a> makes into its internal buffer.</dd><dt><a class="fn" href="fn.to_tape.html" title="fn simd_json::to_tape">to_tape</a></dt><dd>Creates a tape from the input for later consumption</dd><dt><a class="fn" href="fn.to_tape_with_buffers.html" title="fn simd_json::to_tape_with_buffers">to_<wbr>tape_<wbr>with_<wbr>buffers</a></dt><dd>Creates a tape from the input for later consumption</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.ObjectHasher.html" title="type simd_json::ObjectHasher">Object<wbr>Hasher</a></dt><dd>Hasher used for objects</dd><dt><a class="type" href="type.Result.html" title="type simd_json::Result">Result</a></dt><dd>simd-json Result type</dd></dl><script type="text/json" id="notable-traits-data">{"&<Vec<T, A> as Index<I>>::Output":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/io/write/trait.Write.html\" title=\"trait core::io::write::Write\">Write</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div>","&mut <Vec<T, A> as Index<I>>::Output":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/io/write/trait.Write.html\" title=\"trait core::io::write::Write\">Write</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div>","<Vec<T, A> as IntoIterator>::IntoIter":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/io/write/trait.Write.html\" title=\"trait core::io::write::Write\">Write</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div>","<Vec<T> as IntoDeserializer<'de, E>>::Deserializer":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/io/write/trait.Write.html\" title=\"trait core::io::write::Write\">Write</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div>","Drain<'_, T, A>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/drain/struct.Drain.html\" title=\"struct alloc::vec::drain::Drain\">Drain</a>&lt;'_, T, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T, A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/drain/struct.Drain.html\" title=\"struct alloc::vec::drain::Drain\">Drain</a>&lt;'_, T, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div>","ExtractIf<'_, T, F, A>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/extract_if/struct.ExtractIf.html\" title=\"struct alloc::vec::extract_if::ExtractIf\">ExtractIf</a>&lt;'_, T, F, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T, F, A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/extract_if/struct.ExtractIf.html\" title=\"struct alloc::vec::extract_if::ExtractIf\">ExtractIf</a>&lt;'_, T, F, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,\n    F: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/function/trait.FnMut.html\" title=\"trait core::ops::function::FnMut\">FnMut</a>(<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.reference.html\">&amp;mut T</a>) -&gt; <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.bool.html\">bool</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div>","IntoIter<T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div>","Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.reference.html\">&amp;'a T</a>;</div>","IterMut<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.reference.html\">&amp;'a mut T</a>;</div>","Splice<'_, <I as IntoIterator>::IntoIter, A>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/splice/struct.Splice.html\" title=\"struct alloc::vec::splice::Splice\">Splice</a>&lt;'_, I, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;I, A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/nightly/alloc/vec/splice/struct.Splice.html\" title=\"struct alloc::vec::splice::Splice\">Splice</a>&lt;'_, I, A&gt;<div class=\"where\">where\n    I: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a>,\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = &lt;I as <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a>&gt;::<a class=\"associatedtype\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" title=\"type core::iter::traits::iterator::Iterator::Item\">Item</a>;</div>"}</script></section></div></main></div></body></html>
