@@ -8,9 +8,8 @@
 //! operation also exists as a `&self` method ([`UartWorker::call`], [`UartWorker::write`],
 //! [`UartWorker::input`]). A deferred agent send waits for the user to finish a line and an
 //! `expect` may wait an hour, while viewer keys (Ctrl-C!) must still reach the device at once
-//! (contract 05 §5.1). The SDK `Worker` trait takes `&mut self`, which serializes callbacks;
-//! until the SDK runtime can run them concurrently (report → CORE), callers that need overlap
-//! (tests, the future runtime) use clones of the handle.
+//! (contract 05 §5.1). Production uses [`SharedWorker`] via [`run`]. The serial [`Worker`]
+//! adapter remains for existing in-process test harnesses.
 
 mod port;
 mod send;
@@ -24,8 +23,8 @@ use std::time::Duration;
 use loom_console::arbiter::{ArbiterConfig, InputArbiter, YieldResult};
 use loom_proto::error::ErrorCode;
 use loom_proto::event::{Env, Origin, TsSource, WriteState};
-use loom_proto::worker::{Call, Input, WorkerError, Write};
-use loom_worker_sdk::{BoxFuture, JobCmd, Worker, WorkerCtx, WriteOutcome};
+use loom_proto::worker::{Call, Input, InputLeaseEnd, WorkerError, Write};
+use loom_worker_sdk::{BoxFuture, JobCmd, SharedWorker, Worker, WorkerCtx, WriteOutcome};
 use serde_json::{Value, json};
 
 pub use port::{ARB_TICK, MAX_ADMIT_WAITERS, MAX_EXPECT_WAITERS, MAX_TX_WAITERS, PUMP_BATCH};
@@ -61,6 +60,9 @@ type KeptCore = (Arc<Mutex<ChannelCore>>, u32);
 #[derive(Debug, Default)]
 struct Inner {
     port: Mutex<Option<Arc<Port>>>,
+    // Open/close run off the callback executor; serialize teardown and generation transfer.
+    lifecycle: Mutex<()>,
+    publication: Arc<Mutex<()>>,
     /// Ring/cursors of the last channel, kept across close → reopen (generation + 1).
     kept: Mutex<HashMap<String, KeptCore>>,
     sim_ptys: Mutex<Vec<String>>,
@@ -158,10 +160,9 @@ impl UartWorker {
                 r.map_err(|e| channel_error(&e))
             }
             "uart.expect" => self.expect(args, &client, call.request_id.as_deref()).await,
-            // Viewer arbitration RPCs. TODO(core#2): use the viewer conn_id once `Call` carries it.
-            "uart.input.yield" => self.viewer_yield(args, &client),
-            "uart.input.clear" => self.viewer_clear(args, &client),
-            "uart.input.takeover" => self.viewer_takeover(args, &client),
+            "uart.input.yield" => self.viewer_yield(args, viewer_conn(&call)?),
+            "uart.input.clear" => self.viewer_clear(args, viewer_conn(&call)?),
+            "uart.input.takeover" => self.viewer_takeover(args, viewer_conn(&call)?),
             "uart.hold" | "uart.unhold" => self.viewer_hold(args, call.method == "uart.hold"),
             // Request writes normally arrive through `on_write`; accept them here too.
             "uart.open" | "uart.close" | "uart.send" | "uart.run" => Err(werr(
@@ -204,16 +205,42 @@ impl UartWorker {
     }
 
     /// `on_input` body: viewer keystrokes (write class ③).
-    ///
-    /// TODO(core#2): `Input` has no `conn_id`/`input_seq` yet (`requests/uart-core.md` 2). Until
-    /// then the lease id stands for the viewer and `input_seq` is an internal counter.
     pub async fn input(&self, _cx: &WorkerCtx, input: Input) -> Result<(), WorkerError> {
         let port = self
             .port()
             .ok_or_else(|| werr(ErrorCode::NotOpen, "no port is open"))?;
-        let seq = self.inner.next_input_seq.fetch_add(1, Ordering::Relaxed) + 1;
-        viewer_input(&port, &input.lease_id, seq, &input.bytes.0);
+        if input.channel.as_deref().is_some_and(|ch| ch != port.info.channel) {
+            return Err(werr(
+                ErrorCode::NotOpen,
+                "input channel belongs to another worker",
+            ));
+        }
+        let viewer = input
+            .conn_id
+            .as_deref()
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| werr(ErrorCode::Usage, "viewer input requires conn_id"))?;
+        let seq = input
+            .input_seq
+            .ok_or_else(|| werr(ErrorCode::Usage, "viewer input requires input_seq"))?;
+        viewer_input(&port, viewer, seq.0, &input.bytes.0);
         Ok(())
+    }
+
+    /// End viewer ownership and discard its held keys; an unfinished device line stays dirty.
+    /// An old peer without connection identity cannot safely identify a viewer to release.
+    pub fn input_lease_end(&self, end: InputLeaseEnd) {
+        let Some(viewer) = end.conn_id.filter(|s| !s.is_empty()) else {
+            return;
+        };
+        let Some(port) = self.port() else { return };
+        let (actions, events) = {
+            let mut arb = port.arb();
+            let actions = arb.viewer_left(&viewer, port.now_ms());
+            (actions, arb.take_events())
+        };
+        port.emit_arbiter(events);
+        port.dispatch(actions);
     }
 
     // ------------------------------------------------------------------ open / close
@@ -240,6 +267,7 @@ impl UartWorker {
         op: &Value,
         injected: Option<Box<dyn transport::Transport>>,
     ) -> Result<Value, WorkerError> {
+        let _lifecycle = lock(&self.inner.lifecycle);
         let target = arg_str(op, "target")
             .ok_or_else(|| werr(ErrorCode::Usage, "open needs a target"))?
             .to_owned();
@@ -304,9 +332,8 @@ impl UartWorker {
                 }
             }
         };
-        // Gap ranges are in the reader's own `SeqSource` space (not the Emitter's — CORE
-        // request 7). Label it honestly until the SDK exposes or shares the producer seq.
-        lock(&core).set_producer(&format!("uart-reader:{channel}"), u64::from(generation));
+        let emitter = cx.emitter(&channel).with_generation(Some(generation), Some(env));
+        lock(&core).set_producer(emitter.producer_id(), emitter.producer_epoch().0);
         let start_offset = lock(&core).rx_end();
 
         let clock = ctx_clock(cx);
@@ -316,7 +343,6 @@ impl UartWorker {
             .map_err(|e| open_error(&e))?;
         let (etx, erx) = event_channel();
         let actor = TxActor::spawn(transport, seq, clock, etx).map_err(|e| open_error(&e))?;
-        let emitter = cx.emitter(&channel).with_generation(Some(generation), Some(env));
         let arb = InputArbiter::new(ArbiterConfig {
             has_prompt: profile.prompt.is_some(),
             line_kill_ctrl_u: profile.line_kill_ctrl_u,
@@ -331,7 +357,14 @@ impl UartWorker {
             config,
             clock_id: cx.clock().clock_id().to_owned(),
         };
-        let port = Arc::new(Port::new(info, core, arb, actor, emitter));
+        let port = Arc::new(Port::new(
+            info,
+            core,
+            arb,
+            actor,
+            emitter,
+            Arc::clone(&self.inner.publication),
+        ));
         port.start(reader, brx, erx).map_err(|e| open_error(&e))?;
         self.inner.opens.fetch_add(1, Ordering::Relaxed);
 
@@ -352,6 +385,7 @@ impl UartWorker {
     }
 
     fn close(&self, _cx: &WorkerCtx, op: &Value) -> Result<Value, WorkerError> {
+        let _lifecycle = lock(&self.inner.lifecycle);
         let port = {
             let mut slot = lock(&self.inner.port);
             let Some(p) = slot.as_ref() else {
@@ -419,6 +453,7 @@ impl UartWorker {
                 "pending_agent_sends": a.pending_agent_sends(),
                 "emit_dropped": {
                     "rx": p.emit_stats.rx_dropped.load(Ordering::Relaxed),
+                    "tx": p.emit_stats.tx_dropped.load(Ordering::Relaxed),
                     "ctl": p.emit_stats.ctl_dropped.load(Ordering::Relaxed),
                 },
             });
@@ -711,5 +746,83 @@ impl Worker for UartWorker {
         if on && let Some(p) = self.port() {
             p.cancel_agents("stopped", ErrorCode::Stopped);
         }
+    }
+
+    fn on_input_lease_end<'a>(&'a mut self, _cx: &'a WorkerCtx, end: InputLeaseEnd) -> BoxFuture<'a, ()> {
+        Box::pin(async move { self.input_lease_end(end) })
+    }
+}
+
+fn viewer_conn(call: &Call) -> Result<&str, WorkerError> {
+    call.conn_id
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| werr(ErrorCode::Usage, "viewer arbitration requires conn_id"))
+}
+
+/// Run the UART device owner with the SDK's reserved input/latch callback slots.
+/// CORE's `loomd worker uart` dispatch must call this entry point instead of `run_worker`.
+pub fn run() -> ! {
+    loom_worker_sdk::run_shared_worker(Arc::new(UartWorker::new()))
+}
+
+impl SharedWorker for UartWorker {
+    const KIND: &'static str = WORKER_KIND;
+
+    fn on_call(&self, cx: WorkerCtx, call: Call) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        let worker = self.clone();
+        Box::pin(async move {
+            if call.method == "uart.ports" {
+                tokio::task::spawn_blocking(ports)
+                    .await
+                    .map_err(|e| werr(ErrorCode::Internal, format!("port enumeration failed: {e}")))?
+            } else {
+                worker.call(&cx, call).await
+            }
+        })
+    }
+
+    fn on_write(&self, cx: WorkerCtx, write: Write) -> BoxFuture<'static, WriteOutcome> {
+        let worker = self.clone();
+        Box::pin(async move {
+            // Device open and thread joins must not block the concurrent callback executor.
+            if matches!(arg_str(&write.op, "method"), Some("uart.open" | "uart.close")) {
+                match tokio::task::spawn_blocking(move || {
+                    outcome(match arg_str(&write.op, "method") {
+                        Some("uart.open") => worker.open(&cx, &write.op),
+                        _ => worker.close(&cx, &write.op),
+                    })
+                })
+                .await
+                {
+                    Ok(result) => result,
+                    Err(e) => outcome(Err(werr(
+                        ErrorCode::Internal,
+                        format!("port operation failed: {e}"),
+                    ))),
+                }
+            } else {
+                worker.write(&cx, write).await
+            }
+        })
+    }
+
+    fn on_job(&self, _cx: WorkerCtx, _job: JobCmd) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        Box::pin(async { Err(werr(ErrorCode::NotImplemented, "UART has no jobs in M1–M3")) })
+    }
+
+    fn on_input(&self, cx: WorkerCtx, input: Input) -> BoxFuture<'static, Result<(), WorkerError>> {
+        let worker = self.clone();
+        Box::pin(async move { worker.input(&cx, input).await })
+    }
+
+    fn on_latch(&self, on: bool) -> BoxFuture<'static, ()> {
+        let mut worker = self.clone();
+        Box::pin(async move { Worker::on_latch(&mut worker, on) })
+    }
+
+    fn on_input_lease_end(&self, _cx: WorkerCtx, end: InputLeaseEnd) -> BoxFuture<'static, ()> {
+        let worker = self.clone();
+        Box::pin(async move { worker.input_lease_end(end) })
     }
 }

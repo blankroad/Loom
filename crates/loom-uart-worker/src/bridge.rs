@@ -27,7 +27,8 @@ pub const CAUSE_READER_BRIDGE_OVERFLOW: &str = "reader_bridge_overflow";
 /// One chunk read from the device.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RxChunk {
-    /// Worker-wide sequence number (shared with TX chunks).
+    /// Local hand-off id (shared with TX chunks). The worker replaces it with an Emitter
+    /// reservation before ring ingestion; it is not a producer event id while in this bridge.
     pub source_seq: u64,
     /// Offset of `bytes[0]` in the port's RX byte stream.
     pub rx_offset: u64,

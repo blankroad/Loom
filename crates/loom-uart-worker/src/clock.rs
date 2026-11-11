@@ -82,8 +82,9 @@ impl Clock for FixedClock {
     }
 }
 
-/// Worker-wide `source_seq` allocator shared by the reader (RX chunks) and the TX actor
-/// (TX chunks) so RX and TX chunks of one port are totally ordered (UART plan §3.5).
+/// Local chunk allocator shared by reader and TX actor (UART plan §3.5).
+/// The R1 worker adapter replaces these hand-off ids with an Emitter reservation after RX
+/// coalescing; only that reserved id is an event/ring `source_seq`.
 #[derive(Debug, Default)]
 pub struct SeqSource {
     next: AtomicU64,

@@ -39,6 +39,31 @@ fn open(fw: &mut FakeWorker<UartWorker>) -> Value {
     out.detail
 }
 
+fn viewer_input(
+    fw: &mut FakeWorker<UartWorker>,
+    viewer: &str,
+    bytes: &[u8],
+    priority: bool,
+) -> Result<(), loom_proto::worker::WorkerError> {
+    let cx = fw.ctx().clone();
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("viewer input runtime")
+        .block_on(fw.worker().input(
+            &cx,
+            Input {
+                conn_id: Some(viewer.into()),
+                channel: Some("dut".into()),
+                input_seq: Some(loom_proto::num::U64(1)),
+                call_id: None,
+                lease_id: viewer.into(),
+                bytes: Bytes(bytes.to_vec()),
+                priority,
+            },
+        ))
+}
+
 fn send(
     fw: &mut FakeWorker<UartWorker>,
     rid: &str,
@@ -111,9 +136,9 @@ fn input_later(
         rt.block_on(h.input(
             &cx,
             Input {
-                conn_id: None,
-                channel: None,
-                input_seq: None,
+                conn_id: Some(lease.clone()),
+                channel: Some("dut".into()),
+                input_seq: Some(loom_proto::num::U64(1)),
                 call_id: None,
                 lease_id: lease,
                 bytes: Bytes(bytes),
@@ -236,7 +261,7 @@ fn agent_send_waits_for_the_users_line_then_goes() {
     let mut fw = new_fw();
     open(&mut fw);
     login(&mut fw);
-    fw.input("tab-a", b"ifcon", false).expect("typing");
+    viewer_input(&mut fw, "tab-a", b"ifcon", false).expect("typing");
     // The user finishes the line 300 ms later; the shell prints a new prompt.
     let t = input_later(&mut fw, Duration::from_millis(300), "tab-a", b"fig\r");
     let o = send(&mut fw, "q-defer", "echo hi", json!({"defer_timeout_ms": 3000}));
@@ -278,7 +303,7 @@ fn unfinished_user_line_makes_the_agent_fail_user_active() {
     let mut fw = new_fw();
     open(&mut fw);
     login(&mut fw);
-    fw.input("tab-a", b"ifcon", false).expect("typing");
+    viewer_input(&mut fw, "tab-a", b"ifcon", false).expect("typing");
     let o = send(&mut fw, "q-busy", "echo hi", json!({"defer_timeout_ms": 300}));
     let e = o.error.expect("must fail");
     assert_eq!(e.code, ErrorCode::UserActive);
@@ -316,8 +341,7 @@ fn stop_latch_blocks_agent_but_not_the_viewer() {
     fw.latch(true);
     let o = send(&mut fw, "q-stop", "echo hi", json!({}));
     assert_eq!(o.error.expect("stopped").code, ErrorCode::Stopped);
-    fw.input("tab-a", b"echo user\r", false)
-        .expect("viewer input under STOP");
+    viewer_input(&mut fw, "tab-a", b"echo user\r", false).expect("viewer input under STOP");
     let mut seen = Vec::new();
     drain_until(&mut fw, &mut seen, |evs| {
         evs.iter()

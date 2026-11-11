@@ -288,7 +288,14 @@ impl Handler for Forward {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
             let deadline = ctx.deadline();
-            let worker = ctx.worker(WORKER_KIND)?;
+            let channel = ["channel", "ch", "alias"]
+                .into_iter()
+                .find_map(|key| params.get(key).and_then(Value::as_str));
+            let routed = channel.map(|ch| ctx.worker_for(WORKER_KIND, ch)).transpose()?;
+            let worker = match &routed {
+                Some(worker) => worker.as_ref(),
+                None => ctx.worker(WORKER_KIND)?,
+            };
             if self.write {
                 let rid = ctx.request_id().unwrap_or(self.method).to_owned();
                 let mut op = params;

@@ -14,6 +14,13 @@ fn registry_probe_passes() {
     assert!(report.write_commands.contains(&"uart.send".to_string()));
     assert_eq!(reg.workers()[0].kind, "uart");
     assert!(report.warnings.is_empty(), "{report}");
+    for method in ["uart.open", "uart.close", "uart.send", "uart.run"] {
+        assert_eq!(
+            reg.success_terminal_of(method),
+            Some(loom_proto::event::WriteState::Sent)
+        );
+    }
+    assert_eq!(reg.input_events_owner(), loom_domain_api::Owner::Domain);
 }
 
 #[test]

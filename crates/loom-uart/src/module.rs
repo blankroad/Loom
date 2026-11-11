@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use loom_domain_api::{
-    Arch, Budgets, DOMAIN_API_VERSION, DomainModule, Instances, Platform, RegisterError, Registry, Reopen,
-    RiskRow, RiskTable, WorkerSpec,
+    Arch, Budgets, DOMAIN_API_VERSION, DomainModule, Instances, Owner, Platform, RegisterError, Registry,
+    Reopen, RiskRow, RiskTable, WorkerSpec,
 };
-use loom_proto::event::Risk;
+use loom_proto::event::{Risk, WriteState};
 
 use crate::classify::BASE_RULES;
 use crate::commands::{command_specs, help_spec};
@@ -104,6 +104,10 @@ impl DomainModule for Uart {
         for c in command_specs() {
             reg.command(c)?;
         }
+        for method in ["uart.open", "uart.close", "uart.send", "uart.run"] {
+            reg.success_terminal(method, WriteState::Sent)?;
+        }
+        reg.input_events(Owner::Domain)?;
         for k in kinds::specs() {
             reg.event_kind(k)?;
         }

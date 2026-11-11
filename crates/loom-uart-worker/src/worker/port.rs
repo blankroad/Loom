@@ -19,7 +19,7 @@ use loom_console::arbiter::{InputArbiter, TickAction};
 use loom_console::matcher::MatchHit;
 use loom_proto::error::ErrorCode;
 use loom_proto::event::{Env, Origin, TsSource, kinds};
-use loom_worker_sdk::{EmitError, Emitter};
+use loom_worker_sdk::Emitter;
 use serde_json::{Value, json};
 use tokio::sync::oneshot;
 
@@ -92,6 +92,7 @@ struct Threads {
 #[derive(Debug, Default)]
 pub(crate) struct EmitStats {
     pub(crate) rx_dropped: AtomicU64,
+    pub(crate) tx_dropped: AtomicU64,
     pub(crate) ctl_dropped: AtomicU64,
 }
 
@@ -103,7 +104,10 @@ pub(crate) struct Port {
     pub(crate) arb: Mutex<InputArbiter>,
     pub(crate) waiters: Mutex<Waiters>,
     pub(crate) tx: TxHandle,
-    pub(crate) emitter: Emitter,
+    emitter: Emitter,
+    // One in-flight reservation, no queue (§3.13). Covers ring stamping and all UART output;
+    // no thread may publish a higher producer seq between reserve_seq and data_with_seq.
+    publication: Arc<Mutex<()>>,
     pub(crate) emit_stats: EmitStats,
     pub(crate) connected: AtomicBool,
     next_tx_id: AtomicU64,
@@ -123,6 +127,7 @@ impl Port {
         arb: InputArbiter,
         actor: TxActor,
         emitter: Emitter,
+        publication: Arc<Mutex<()>>,
     ) -> Self {
         let tx = actor.handle();
         Self {
@@ -132,6 +137,7 @@ impl Port {
             waiters: Mutex::new(Waiters::default()),
             tx,
             emitter,
+            publication,
             emit_stats: EmitStats::default(),
             connected: AtomicBool::new(true),
             next_tx_id: AtomicU64::new(1),
@@ -201,7 +207,8 @@ impl Port {
         if d.env.is_none() {
             d.env = Some(self.info.env);
         }
-        if let Err(EmitError::Full | EmitError::Closed) = self.emitter.priority(d) {
+        let _publication = lock(&self.publication);
+        if self.emitter.priority(d).is_err() {
             self.emit_stats.ctl_dropped.fetch_add(1, Ordering::Relaxed);
         }
     }
@@ -337,17 +344,30 @@ impl Port {
 
     fn ingest(&self, item: BridgeItem) {
         match item {
-            BridgeItem::Data(c) => {
-                let ing = self.core().on_rx(&c);
-                let ts = ts_at(
-                    c.mono_ns,
-                    c.wall_ns,
-                    &self.info.clock_id,
-                    TsSource::HostReadComplete,
-                );
-                if self.emitter.rx(kind::DATA, ts, ing.data_payload).is_err() {
-                    self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
-                }
+            BridgeItem::Data(mut c) => {
+                // Reader sequence numbers describe transport hand-off only. Reserve the real
+                // producer seq after coalescing so the ring and emitted record agree exactly.
+                let ing = {
+                    let _publication = lock(&self.publication);
+                    let Ok(seq) = self.emitter.reserve_seq() else {
+                        self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
+                        return;
+                    };
+                    c.source_seq = seq.0;
+                    let mut ing = self.core().on_rx(&c);
+                    let ts = ts_at(
+                        c.mono_ns,
+                        c.wall_ns,
+                        &self.info.clock_id,
+                        TsSource::HostReadComplete,
+                    );
+                    let payload = std::mem::take(&mut ing.data_payload);
+                    if self.emitter.rx_with_seq(seq, kind::DATA, ts, payload).is_err() {
+                        // A Full result may follow journal acceptance. Never retry this seq.
+                        self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
+                    }
+                    ing
+                };
                 if !ing.hits.is_empty() {
                     let mut w = self.waiters();
                     for hit in ing.hits {
@@ -372,7 +392,9 @@ impl Port {
             }
             BridgeItem::Lost(l) => {
                 // Reader bridge overflow: both the record and the screen lost it (DR-V14).
-                let payload = self.core().on_lost(&l);
+                // These bytes were dropped before any Emitter reservation. Their reader
+                // chunk ids must never masquerade as this producer's event sequence range.
+                let payload = self.core().on_lost_unsequenced(&l);
                 for k in [kinds::RECORD_GAP, kinds::DISPLAY_GAP] {
                     self.emit(draft(
                         k,
@@ -398,8 +420,7 @@ impl Port {
         // Ends when the TX actor thread exits and drops its sender.
         while let Ok(ev) = events.recv() {
             match ev {
-                TxEvent::Chunk(c) => {
-                    let payload = self.core().on_tx(&c);
+                TxEvent::Chunk(mut c) => {
                     let (rid, origin) = {
                         let w = self.waiters();
                         match w.tx.get(&c.request_id) {
@@ -415,14 +436,17 @@ impl Port {
                     };
                     let wall = self.emitter.clock().wall_ns();
                     let ts = ts_at(c.mono_ns, wall, &self.info.clock_id, TsSource::Driver);
-                    self.emit(tx_data_draft(
-                        payload,
-                        ts,
-                        origin,
-                        &c.client_id,
-                        rid,
-                        self.info.generation,
-                    ));
+                    let _publication = lock(&self.publication);
+                    let Ok(seq) = self.emitter.reserve_seq() else {
+                        self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
+                        continue;
+                    };
+                    c.source_seq = seq.0;
+                    let payload = self.core().on_tx(&c);
+                    let data = tx_data_draft(payload, ts, origin, &c.client_id, rid, self.info.generation);
+                    if self.emitter.data_with_seq(seq, data).is_err() {
+                        self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
+                    }
                 }
                 TxEvent::Done(d) => {
                     let wait = self.waiters().tx.remove(&d.request_id);

@@ -330,12 +330,22 @@ impl ChannelCore {
     /// ring, matcher / prompt / escape state reset. Returns the gap payload (contract 02 §2.4:
     /// `{producer_range, count, cause, bytes, detail}`; no stream seq is invented).
     pub fn on_lost(&mut self, l: &crate::bridge::LostRange) -> Value {
+        self.on_lost_range(l, Some((l.seq_from, l.seq_to)))
+    }
+
+    /// Loss before producer seq reservation: retain RX offsets and counts without inventing
+    /// a producer range. Reader chunk ids are diagnostic details, not event coordinates.
+    pub fn on_lost_unsequenced(&mut self, l: &crate::bridge::LostRange) -> Value {
+        self.on_lost_range(l, None)
+    }
+
+    fn on_lost_range(&mut self, l: &crate::bridge::LostRange, seq_range: Option<(u64, u64)>) -> Value {
         let pushed = self.ring.push(Entry::Gap(GapMark {
             layer: GapLayer::Record,
             cause: cut_str(l.cause, loom_console::ring::MAX_META_FIELD_BYTES).to_owned(),
             rx_offset_from: Some(l.rx_from),
             bytes: Some(l.bytes),
-            source_seq_range: Some((l.seq_from, l.seq_to)),
+            source_seq_range: seq_range,
             generation: self.generation,
             mono_ns: self.last_mono_ns,
         }));
@@ -348,7 +358,10 @@ impl ChannelCore {
         self.lost_bytes += l.bytes;
         self.rx_end = self.rx_end.max(l.rx_to);
 
-        let mut range = json!({"from": num(l.seq_from), "to": num(l.seq_to)});
+        let mut range = seq_range.map_or(
+            Value::Null,
+            |(from, to)| json!({"from": num(from), "to": num(to)}),
+        );
         if let (Some((id, epoch)), Value::Object(m)) = (&self.producer, &mut range) {
             m.insert("producer_id".into(), json!(id));
             m.insert("producer_epoch".into(), num(*epoch));
@@ -364,6 +377,8 @@ impl ChannelCore {
                 "rx_from": num(l.rx_from),
                 "rx_to": num(l.rx_to),
                 "chunks": l.chunks,
+                "reader_chunk_from": num(l.seq_from),
+                "reader_chunk_to": num(l.seq_to),
             },
         })
     }

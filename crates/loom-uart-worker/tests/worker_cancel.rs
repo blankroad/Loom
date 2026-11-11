@@ -120,7 +120,7 @@ fn write_msg(cx: &WorkerCtx, rid: &str, op: Value) -> Write {
 
 fn call_msg(cx: &WorkerCtx, method: &str, args: Value) -> Call {
     Call {
-        conn_id: None,
+        conn_id: Some("tab-a".into()),
         call_id: U64(7),
         method: method.into(),
         args,
@@ -158,9 +158,9 @@ fn input(h: &UartWorker, cx: &WorkerCtx, lease: &str, bytes: &[u8]) {
     rt().block_on(h.input(
         cx,
         Input {
-            conn_id: None,
-            channel: None,
-            input_seq: None,
+            conn_id: Some(lease.into()),
+            channel: Some("dut".into()),
+            input_seq: Some(U64(1)),
             call_id: None,
             lease_id: lease.into(),
             bytes: Bytes(bytes.to_vec()),

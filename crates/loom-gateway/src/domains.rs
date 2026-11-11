@@ -188,7 +188,7 @@ pub fn worker_main(kind: &str) -> bool {
         #[cfg(feature = "echo")]
         loom_echo::WORKER_KIND => loom_worker_sdk::run_worker(loom_echo::worker::EchoWorker::default()),
         #[cfg(feature = "uart")]
-        loom_uart::WORKER_KIND => loom_worker_sdk::run_worker(loom_uart_worker::worker::UartWorker::new()),
+        loom_uart::WORKER_KIND => loom_uart_worker::worker::run(),
         #[cfg(feature = "can")]
         loom_can::WORKER_KIND_SIM => loom_worker_sdk::run_worker(loom_can::worker::CanSimWorker::new()),
         #[cfg(feature = "eth")]
