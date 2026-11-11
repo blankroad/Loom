@@ -77,7 +77,7 @@ impl D {
     }
     fn shutdown(mut self) -> tempfile::TempDir {
         if let Some(r) = self.run.take() {
-            r.daemon.journal.close();
+            self.rt.block_on(r.daemon.shutdown_gracefully());
             r.server.abort();
             drop(r);
         }
@@ -425,4 +425,98 @@ fn domain_smoke_rpc() {
     }
     drop(a);
     d.shutdown();
+}
+
+/// Real IPC UART worker: agent TX/RX and viewer intervention share the live subscription.
+/// This exercises the WebSocket protocol, not browser rendering.
+#[test]
+fn uart_sim_live_input_and_stop_smoke() {
+    let d = D::start(Duration::from_secs(5));
+    let mut a = d.agent("uart-smoke");
+    let mut v = d.viewer();
+    let opened = a.request(
+        "uart.open",
+        json!({"target":"sim://bootshell?split=0","alias":"dut","profile":"linux-shell"}),
+    );
+    assert_eq!(opened["result"]["ok"], true, "{opened}");
+    let boot = a.request(
+        "uart.expect",
+        json!({"channel":"dut","patterns":[{"kind":"literal","pattern":"login: "}],"timeout_ms":3000}),
+    );
+    assert!(
+        boot["error"].is_null() && boot["result"]["error"].is_null(),
+        "{boot}"
+    );
+    let sent = a.request(
+        "uart.send",
+        json!({"channel":"dut","data":hex::encode("root"),"eol":"cr"}),
+    );
+    assert_eq!(sent["result"]["ok"], true, "{sent}");
+    // Keep an agent expect outstanding while a viewer types: serial runtime would stall input.
+    a.id += 1;
+    let expect_id = a.id;
+    a.ws.send(Message::Text(json!({"jsonrpc":"2.0","id":expect_id,"method":"uart.expect","params":{"channel":"dut","patterns":[{"kind":"literal","pattern":"# "}],"timeout_ms":3000}}).to_string().into())).unwrap();
+    std::thread::sleep(Duration::from_millis(100));
+    let t = Instant::now();
+    let input = v.request(
+        "uart.input",
+        json!({"channel":"dut","data_hex":hex::encode("secret\r"),"input_seq":"1"}),
+    );
+    assert_eq!(input["result"]["sent"], 7, "{input}");
+    let input_elapsed = t.elapsed();
+    assert!(
+        input_elapsed < Duration::from_secs(2),
+        "input stalled behind expect"
+    );
+    v.pump(Duration::from_millis(500));
+    let evs = v.events();
+    for (dir, origin) in [("tx", "agent"), ("tx", "user"), ("rx", "device")] {
+        assert!(
+            evs.iter()
+                .any(|e| e["kind"] == "uart.data" && e["dir"] == dir && e["origin"] == origin),
+            "missing {dir}/{origin}: {evs:?}"
+        );
+    }
+    // Drain pending expect before issuing the next agent RPC.
+    let end = Instant::now() + Duration::from_secs(4);
+    let mut matched = false;
+    while Instant::now() < end {
+        if let Some(r) = a.read()
+            && r["id"] == expect_id
+        {
+            assert!(r["error"].is_null() && r["result"]["error"].is_null(), "{r}");
+            matched = true;
+            break;
+        }
+    }
+    assert!(matched, "expect did not complete after viewer input");
+    assert_eq!(v.request("core.stop", json!({}))["result"]["on"], true);
+    let blocked = a.request("uart.send", json!({"channel":"dut","data":"78","eol":"cr"}));
+    assert_eq!(blocked["result"]["error"]["code"], "E_STOPPED", "{blocked}");
+    eprintln!(
+        "UART smoke: live agent/user/device events, input during expect, STOP blocks agent; input RPC {:?}",
+        input_elapsed
+    );
+    let epoch = d.run().daemon.hub.epoch;
+    let live_uart: Vec<_> = evs.iter().filter(|e| e["kind"] == "uart.data").cloned().collect();
+    drop((a, v));
+    let home = d.shutdown();
+    std::thread::sleep(Duration::from_millis(1100));
+    let restarted = D::start_in(home, Duration::from_secs(5));
+    let mut reader = restarted.agent("uart-journal-smoke");
+    let journal = reader.request(
+        "core.events.query",
+        json!({"since":format!("e{epoch}:seq:1"),"filter":{"kinds":["uart.data"]},"max":100,"peek":true}),
+    );
+    assert_eq!(journal["result"]["source"], "journal", "{journal}");
+    let recorded = journal["result"]["events"].as_array().unwrap();
+    for event in live_uart {
+        assert!(
+            recorded.contains(&event),
+            "live UART event absent from journal: {event}"
+        );
+    }
+    eprintln!("UART journal smoke: live events recovered identically after restart");
+    drop(reader);
+    restarted.shutdown();
 }
