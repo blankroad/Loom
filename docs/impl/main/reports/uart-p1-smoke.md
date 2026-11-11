@@ -19,3 +19,5 @@ docs/plan/02-core-principle.md 준수
 RSS: ps -o rss= -p PID 자체가 operation not permitted. 정식 30분 측정 판정 불가; echo-only soak 대체 실행 안 함.
 남은 항목: 실제 브라우저 렌더/화면 지연, 도메인 혼합 TC-1, 정식 RSS. P1 전체 완료 아님.
 커밋/푸시: 메인이 기능 단위 커밋 예정, push 없음. 한도/사용량 미제공. 후속 소유자 메인.
+
+후속: R1 전체 회귀 5/5 PASS, /private/tmp/loom-p1-r1-regression.log. 사용자 브라우저 검증 필수 지시를 유지한다. CUA inventory에서 com.citrolabs.ego.lite 실행 중 확인. CUA getApp(동일 Ego Lite) 접근은 자동 승인 검토가 `Computer Use was not approved to use ego lite`로 거부. 다른 브라우저/프로세스 경로로 우회하지 않았으며, 브라우저 검증을 생략한 완료 판정은 하지 않는다.
