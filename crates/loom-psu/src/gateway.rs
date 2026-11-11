@@ -110,6 +110,7 @@ fn event_kinds() -> Vec<EventKindSpec> {
             KIND_STATE,
             &["ch", "set_v", "set_i", "out", "prot", "mode"],
             vec![
+                ptr("/payload/connected", ValueType::Bool, None),
                 ptr("/payload/set_v", ValueType::F64, Some("V")),
                 ptr("/payload/set_i", ValueType::F64, Some("A")),
                 ptr("/payload/out", ValueType::Bool, None),

@@ -4,7 +4,7 @@ import { CHANNEL_PROP } from '../../sdk/propsSchema';
 import { registerPanel } from '../../sdk/registry';
 import { TabSettings, type KV } from '../../store/tabSettings';
 import { ev, FakeNet, TEST_HELLO } from '../../store/testing/fakeNet';
-import { PRESETS, type Preset, type Slot } from '../routes';
+import { type Preset, type Slot } from '../routes';
 import { createShellServices } from '../services';
 import { DockHost } from './dockHost';
 import {
@@ -23,6 +23,16 @@ import {
   type LoomLayout,
 } from './layoutModel';
 import { LocalLayoutStore, MAX_SAVED } from './layoutStore';
+
+// Explicit model fixtures; production presets resolve actual devices at runtime.
+const PRESETS: readonly Preset[] = [
+  { name: 'm1-default', label: 'fixture', grid: 'two-top-one-bottom', slots: [
+    { panel: 'uart.terminal', props: { channel: 'dut' } },
+    { panel: 'can.trace', props: { channel: 'ch0' } },
+    { panel: 'uds.console', props: { targets: 'bcm' } },
+  ] },
+  { name: 'uart-only', label: 'fixture', grid: 'single', slots: [{ panel: 'uart.terminal', props: { channel: 'dut' } }] },
+];
 
 // jsdom has no ResizeObserver (dockview watches its container)
 (globalThis as { ResizeObserver?: unknown }).ResizeObserver ??= class {
@@ -300,6 +310,17 @@ describe('DockHost', () => {
     expect(services.toasts.items.at(-1)?.text).toBe('에이전트가 uart dut2를 열었습니다 — 패널을 열었습니다');
     expect(services.showSlot({ panel: 'uart.terminal', props: { channel: 'dut2' } })).toBe('shown');
     expect(d.api.panels).toHaveLength(4);
+  });
+
+  it('keeps background multi-domain arrivals in one readable tab group before any group is active', () => {
+    const { dock: d } = mountDock();
+    d.clear('m1-default');
+    for (const panel of ['uart.terminal', 'can.trace', 'uds.console', 'eth.packets', 'psu.gauge']) {
+      d.open({ panel, props: panel === 'uds.console' ? { targets: 'real-ecu' } : { channel: `real-${panel.split('.')[0]}` } }, { activate: false });
+    }
+    expect(d.api.panels).toHaveLength(5);
+    expect(d.api.groups).toHaveLength(1);
+    expect(d.api.groups[0]!.panels).toHaveLength(5);
   });
 
   it('keeps more than four added interfaces, deduplicates views and persists stable identities/titles', () => {

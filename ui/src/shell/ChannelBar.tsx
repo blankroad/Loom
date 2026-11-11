@@ -10,13 +10,17 @@ const GEN_MARK_MS = 10_000;
 
 const STATE_LABEL = { open: '연결됨', closed: '닫힘', unknown: '상태 미확인' };
 
-/** All daemon-reported interfaces, including closed and unsupported channels. */
+/** Live interfaces first. Inactive discovery/history is retained behind explicit disclosure. */
 export function ChannelBar() {
   const { shell, showSlot, now } = useServices();
   useStoreVersion(shell);
   const [query, setQuery] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
-  const chans = [...shell.channels.values()];
+  const allChannels = [...shell.channels.values()];
+  const active = allChannels.filter((c) => c.state === 'open');
+  const inactiveCount = allChannels.length - active.length;
+  const chans = showInactive ? allChannels : active;
   const t = now();
   const marked = chans.some(
     (c) => (c.addedLiveMs !== null && t - c.addedLiveMs < NEW_MARK_MS) || (c.genChangedMs !== null && t - c.genChangedMs < GEN_MARK_MS),
@@ -36,16 +40,17 @@ export function ChannelBar() {
   return (
     <nav className="channel-bar channel-explorer" aria-label="채널">
       <header className="explorer-header">
-        <div className="explorer-heading"><strong>인터페이스</strong><span>{chans.length}</span></div>
+        <div className="explorer-heading"><strong>인터페이스</strong><span aria-label="연결된 인터페이스 수">{active.length}</span></div>
         <InterfaceConnect />
         <label className="explorer-search">
           <span className="explorer-search-label">채널 검색</span>
           <input type="search" aria-label="채널 검색" placeholder="이름, 도메인, 상태 검색" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }} />
         </label>
         <p className="explorer-subtitle">채널을 선택해 보기를 엽니다.</p>
+        {inactiveCount > 0 && <button type="button" className="explorer-inactive-toggle" aria-expanded={showInactive} onClick={() => setShowInactive((value) => !value)}>{showInactive ? '연결된 인터페이스만 보기' : `비활성 인터페이스 ${inactiveCount}개 보기`}</button>}
       </header>
       <div className="explorer-groups">
-        {chans.length === 0 ? <p className="explorer-empty">채널 없음<br /><span>인터페이스를 추가하거나 데몬의 채널 상태를 기다리세요.</span></p>
+        {chans.length === 0 ? <p className="explorer-empty">연결된 채널 없음<br /><span>사용할 인터페이스를 추가하세요.</span></p>
           : matches.length === 0 ? <p className="explorer-empty" role="status">검색 결과 없음<button type="button" onClick={() => setQuery('')}>검색 지우기</button></p>
           : domains.map((domain) => {
             const channels = matches.filter((c) => c.domain === domain).sort((a, b) => a.channel.localeCompare(b.channel));

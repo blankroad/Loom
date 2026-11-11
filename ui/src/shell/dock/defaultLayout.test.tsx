@@ -9,7 +9,7 @@ import { ev, FakeNet, TEST_HELLO } from '../../store/testing/fakeNet';
 import { parseRoute, type Route } from '../routes';
 import { createShellServices } from '../services';
 import { ShellCtx } from '../ShellContext';
-import { DockLayout } from './DockLayout';
+import { DockLayout, LayoutBar } from './DockLayout';
 import type { DockHost } from './dockHost';
 import { leaves } from './layoutModel';
 
@@ -23,7 +23,7 @@ function mount() {
   const off = services.bind();
   const host = document.createElement('div'); document.body.append(host);
   const root = createRoot(host);
-  const render = (route: Route) => act(() => root.render(<ShellCtx.Provider value={services}><DockLayout route={route} /></ShellCtx.Provider>));
+  const render = (route: Route) => act(() => root.render(<ShellCtx.Provider value={services}><LayoutBar route={route} /><DockLayout route={route} /></ShellCtx.Provider>));
   clean = () => { act(() => root.unmount()); off(); host.remove(); };
   render(parseRoute('#/l/m1-default'));
   return { net, services, render, dock: () => services.dock.current as DockHost };
@@ -55,6 +55,95 @@ describe('default workbench initialization', () => {
     expect(dock().api.panels).toHaveLength(2);
   });
 
+  it('reacts to silent snapshots, close/reopen and picker eligibility while preserving trace and input', () => {
+    const { net, services, render, dock } = mount();
+    const options = () => [...document.querySelectorAll('optgroup[label="프리셋"] option')].map((o) => (o as HTMLOptionElement).value);
+    expect(options()).toEqual(['m1-default']);
+    act(() => services.shell.noteSnapshotItems([
+      { domain: 'uart', channel: 'serial-a', state: { status: 'OPEN' } },
+      { domain: 'can', channel: 'history', state: { status: 'closed' } },
+      { domain: 'eth', channel: 'uncertain', state: {} },
+    ]));
+    expect(options()).toEqual(['m1-default', 'uart-only']);
+    const terminal = dock().find({ panel: 'uart.terminal', props: { channel: 'serial-a' } })!;
+    act(() => services.showSlot({ panel: 'uart.trace', props: { channel: 'serial-a' } }));
+    const trace = dock().api.activePanel!;
+    const draft = document.createElement('input');
+    draft.value = 'unsent user input';
+    trace.view.content.element.append(draft);
+    draft.focus();
+    act(() => services.shell.noteSnapshotItems([{ domain: 'can', channel: 'bus-a', state: { status: 'OPEN' } }]));
+    expect(options()).toEqual(['m1-default', 'uart-only', 'can-only']);
+    expect(dock().api.activePanel).toBe(trace);
+    expect(document.activeElement).toBe(draft);
+    act(() => net.emitControl(ev({ kind: 'can.state', domain: 'can', channel: 'bus-a', payload: { state: 'closed' } })));
+    expect(dock().api.panels).toHaveLength(2);
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'serial-a' } })).toBe(terminal);
+    expect(dock().api.activePanel).toBe(trace);
+    expect(draft.value).toBe('unsent user input');
+    act(() => net.emitControl(ev({ kind: 'can.state', domain: 'can', channel: 'bus-a', payload: { state: 'open' } })));
+    expect(dock().api.panels).toHaveLength(3);
+    expect(dock().api.activePanel).toBe(trace);
+    expect(net.calls).toEqual([]);
+    // User-closed views stay closed on heartbeats, and an alternative view is retained.
+    act(() => terminal.api.close());
+    act(() => services.shell.tick(4000));
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'serial-a' } })).toBeNull();
+    expect(dock().api.activePanel).toBe(trace);
+    render(parseRoute('#/p/uart/trace?channel=serial-a'));
+    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'serial-b', payload: { state: 'open' } })));
+    expect(dock().api.panels).toHaveLength(1);
+  });
+
+  it('honors current auto-open off for new channels and reopen while pruning inactive panes', () => {
+    const { net, services, render, dock } = mount();
+    const signal = (channel: string, state: 'open' | 'closed') => act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel, payload: { state } })));
+    signal('alpha', 'open');
+    signal('beta', 'open');
+    act(() => services.showSlot({ panel: 'uart.trace', props: { channel: 'alpha' } }));
+    const trace = dock().api.activePanel!;
+    const terminal = dock().find({ panel: 'uart.terminal', props: { channel: 'alpha' } })!;
+    act(() => services.settings.setAutoOpen('off'));
+    signal('gamma', 'open');
+    expect(services.shell.channels.get('uart/gamma')?.state).toBe('open');
+    expect(dock().api.panels).toHaveLength(3);
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'gamma' } })).toBeNull();
+    // Silent snapshot arrivals also stay available only through the explorer.
+    act(() => services.shell.noteSnapshotItems([{ domain: 'uart', channel: 'delta', state: { status: 'OPEN' } }]));
+    act(() => services.shell.tick(4000));
+    expect(dock().api.panels).toHaveLength(3);
+    signal('beta', 'closed');
+    expect(dock().api.panels).toHaveLength(2);
+    signal('beta', 'open');
+    expect(dock().api.panels).toHaveLength(2);
+    expect(dock().api.activePanel).toBe(trace);
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'alpha' } })).toBe(terminal);
+    act(() => { expect(services.showSlot({ panel: 'uart.terminal', props: { channel: 'gamma' } })).toBe('added'); });
+    expect(dock().api.panels).toHaveLength(3);
+    act(() => services.settings.setAutoOpen('on'));
+    act(() => services.shell.tick(5000));
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'delta' } })).toBeNull();
+    signal('epsilon', 'open');
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'epsilon' } })).not.toBeNull();
+    // An explicit layout selection initializes its actual channels even with auto-open off.
+    act(() => services.settings.setAutoOpen('off'));
+    render(parseRoute('#/l/uart-only'));
+    expect(dock().api.panels).toHaveLength(5);
+    expect(services.settings.autoOpenPanels).toBe('off');
+    expect(net.calls).toEqual([]);
+  });
+
+  it('describes a partially available legacy combo without claiming no interfaces', () => {
+    const { services, render, dock } = mount();
+    render(parseRoute('#/l/can-uds'));
+    const selectedText = () => document.querySelector<HTMLSelectElement>('select[aria-label="레이아웃"]')!.selectedOptions[0]!.textContent;
+    expect(selectedText()).toBe('(연결된 인터페이스 없음)');
+    act(() => services.shell.noteSnapshotItems([{ domain: 'can', channel: 'bus-real', state: { status: 'OPEN' } }]));
+    expect(leaves(dock().snapshot().root)).toEqual([{ panel: 'can.trace', props: { channel: 'bus-real' } }]);
+    expect(selectedText()).toBe('(현재 연결에 맞춰 표시)');
+    expect(document.querySelector('option[value="can-uds"]')).toBeNull();
+  });
+
   it('bounds initial known-channel views without hiding channels from the explorer store', () => {
     const { services, render, dock } = mount();
     act(() => services.shell.noteSnapshotItems(Array.from({ length: 33 }, (_, i) => ({ kind: 'uart.state', channel: `port-${i}`, state: { status: 'open' } }))));
@@ -65,19 +154,23 @@ describe('default workbench initialization', () => {
     expect(services.toasts.items.at(-1)?.text).toContain('32개 보기만 열었습니다');
   });
 
-  it('keeps explicit presets compatible and restores user aliases/views from a saved layout route', () => {
+  it('applies saved layouts only to active aliases and keeps stored unavailable panes intact', () => {
     const { services, render, dock } = mount();
+    act(() => services.shell.noteSnapshotItems(['alpha', 'beta'].map((channel) => ({ kind: 'uart.state', channel, state: { status: 'open' } }))));
     render(parseRoute('#/l/uart-only'));
-    expect(leaves(dock().snapshot().root)).toEqual([{ panel: 'uart.terminal', props: { channel: 'dut' } }]);
-    services.showSlot({ panel: 'uart.terminal', props: { channel: 'beta' } });
-    services.showSlot({ panel: 'uart.trace', props: { channel: 'alpha' } });
+    expect(leaves(dock().snapshot().root)).toEqual(['alpha', 'beta'].map((channel) => ({ panel: 'uart.terminal', props: { channel } })));
+    act(() => services.showSlot({ panel: 'uart.trace', props: { channel: 'alpha' } }));
     const layout = dock().snapshot('my-bench');
     expect(services.layouts.save(layout, new Set()).ok).toBe(true);
-    render(parseRoute('#/l/m1-default'));
-    expect(dock().api.panels).toHaveLength(0);
+    act(() => services.shell.noteSnapshotItems([{ kind: 'uart.state', channel: 'beta', state: { status: 'closed' } }]));
     render(parseRoute('#/l/my-bench'));
-    expect(leaves(dock().snapshot().root)).toEqual(leaves(layout.root));
-    expect(services.showSlot({ panel: 'uart.trace', props: { channel: 'alpha' } })).toBe('shown');
+    expect(leaves(dock().snapshot().root).map((s) => s.props.channel)).toEqual(['alpha', 'alpha']);
+    expect(services.layouts.get('my-bench').layout).toEqual(layout);
+    const trace = dock().find({ panel: 'uart.trace', props: { channel: 'alpha' } })!;
+    act(() => trace.api.setActive());
+    act(() => services.shell.noteSnapshotItems([{ kind: 'uart.state', channel: 'beta', state: { status: 'open' } }]));
     expect(dock().api.panels).toHaveLength(3);
+    expect(dock().api.activePanel).toBe(trace);
+    expect(services.layouts.get('my-bench').layout).toEqual(layout);
   });
 });

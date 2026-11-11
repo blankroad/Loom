@@ -1,0 +1,510 @@
+spaceId 3
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433155","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_v
+open uart/lnx {"cmd":"uart.open","data":{"channel":"lnx","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433155","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433155:seq:13"},"schema_v
+uart state {"dpr":2,"w":1440,"tabs":["UART 터미널 · lnx","UART 터미널 · mcu"],"focusedTab":"UART 터미널 · lnx","panels":["uart.terminal"],"chans":["uart/lnx:open","uart/mcu:open"],"groups":["UART 채널"],"heading":"2","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false}]},"route":"#/l/m1-default","focus":{"cls":"","panel":null},"stopInView":tr
+CHECK uart dpr2 PASS — 2
+CHECK uart explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open"],"want":["uart/mcu","uart/lnx"]}
+CHECK uart explorer groups exact PASS — ["UART 채널"]
+CHECK uart heading = active count PASS — 2
+CHECK uart no tab outside active set PASS — []
+CHECK uart every active device has a view PASS — []
+CHECK uart no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart welcome hidden PASS
+CHECK uart stop-in-view PASS
+CHECK uart no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/uart-1440.png
+uart layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false}]}
+CHECK uart layout picker present PASS
+CHECK uart no disabled layout choice PASS — []
+CHECK uart no test choice without session PASS — ["m1-default","uart-only"]
+uart layout uart-only {"tabs":["UART 터미널 · lnx","UART 터미널 · mcu"],"route":"#/l/uart-only"}
+CHECK uart layout "uart-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":2}
+CHECK uart layout "uart-only" domains eligible PASS — ["UART 터미널 · lnx","UART 터미널 · mcu"]
+CHECK uart back-to-default dpr2 PASS — 2
+CHECK uart back-to-default explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open"],"want":["uart/mcu","uart/lnx"]}
+CHECK uart back-to-default explorer groups exact PASS — ["UART 채널"]
+CHECK uart back-to-default heading = active count PASS — 2
+CHECK uart back-to-default no tab outside active set PASS — []
+CHECK uart back-to-default every active device has a view PASS — []
+CHECK uart back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart back-to-default welcome hidden PASS
+CHECK uart back-to-default stop-in-view PASS
+CHECK uart back-to-default no-hscroll PASS
+CHECK uart-768 stop-in-view PASS
+CHECK uart-768 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/uart-768.png
+CHECK uart-390 stop-in-view PASS
+CHECK uart-390 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/uart-390.png
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433162","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_viewer_attached"}]}
+can state {"dpr":2,"w":1440,"tabs":["CAN 트레이스 · pt"],"focusedTab":"CAN 트레이스 · pt","panels":["can.trace"],"chans":["can/pt:open"],"groups":["CAN 채널"],"heading":"1","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false}]},"route":"#/l/m1-default","focus":{"cls":"","panel":null},"stopInView":true,"hscroll":false}
+CHECK can dpr2 PASS — 2
+CHECK can explorer primary exact PASS — {"chans":["can/pt:open"],"want":["can/pt"]}
+CHECK can explorer groups exact PASS — ["CAN 채널"]
+CHECK can heading = active count PASS — 1
+CHECK can no tab outside active set PASS — []
+CHECK can every active device has a view PASS — []
+CHECK can no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK can welcome hidden PASS
+CHECK can stop-in-view PASS
+CHECK can no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/can-1440.png
+can layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false}]}
+CHECK can layout picker present PASS
+CHECK can no disabled layout choice PASS — []
+CHECK can no test choice without session PASS — ["m1-default","can-only"]
+can layout can-only {"tabs":["CAN 트레이스 · pt"],"route":"#/l/can-only"}
+CHECK can layout "can-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK can layout "can-only" domains eligible PASS — ["CAN 트레이스 · pt"]
+CHECK can back-to-default dpr2 PASS — 2
+CHECK can back-to-default explorer primary exact PASS — {"chans":["can/pt:open"],"want":["can/pt"]}
+CHECK can back-to-default explorer groups exact PASS — ["CAN 채널"]
+CHECK can back-to-default heading = active count PASS — 1
+CHECK can back-to-default no tab outside active set PASS — []
+CHECK can back-to-default every active device has a view PASS — []
+CHECK can back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK can back-to-default welcome hidden PASS
+CHECK can back-to-default stop-in-view PASS
+CHECK can back-to-default no-hscroll PASS
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":0,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":1,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w1","snaplen":65535,"started_mono_ns"
+eth state {"dpr":2,"w":1440,"tabs":["이더넷 패킷 · mirror"],"focusedTab":"이더넷 패킷 · mirror","panels":["eth.packets"],"chans":["eth/mirror:open"],"groups":["ETH 채널"],"heading":"1","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]},"route":"#/l/m1-default","focus":{"cls":"","panel":null},"stopInView":true,"hscroll":false}
+CHECK eth dpr2 PASS — 2
+CHECK eth explorer primary exact PASS — {"chans":["eth/mirror:open"],"want":["eth/mirror"]}
+CHECK eth explorer groups exact PASS — ["ETH 채널"]
+CHECK eth heading = active count PASS — 1
+CHECK eth no tab outside active set PASS — []
+CHECK eth every active device has a view PASS — []
+CHECK eth no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK eth welcome hidden PASS
+CHECK eth stop-in-view PASS
+CHECK eth no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/eth-1440.png
+eth layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]}
+CHECK eth layout picker present PASS
+CHECK eth no disabled layout choice PASS — []
+CHECK eth no test choice without session PASS — ["m1-default","eth"]
+eth layout eth {"tabs":["이더넷 패킷 · mirror"],"route":"#/l/eth"}
+CHECK eth layout "eth" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK eth layout "eth" domains eligible PASS — ["이더넷 패킷 · mirror"]
+CHECK eth back-to-default dpr2 PASS — 2
+CHECK eth back-to-default explorer primary exact PASS — {"chans":["eth/mirror:open"],"want":["eth/mirror"]}
+CHECK eth back-to-default explorer groups exact PASS — ["ETH 채널"]
+CHECK eth back-to-default heading = active count PASS — 1
+CHECK eth back-to-default no tab outside active set PASS — []
+CHECK eth back-to-default every active device has a view PASS — []
+CHECK eth back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK eth back-to-default welcome hidden PASS
+CHECK eth back-to-default stop-in-view PASS
+CHECK eth back-to-default no-hscroll PASS
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433169","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_v
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":0,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":1,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w2","snaplen":65535,"started_mono_ns"
+uart-eth state {"dpr":2,"w":1440,"tabs":["UART 터미널 · mcu","이더넷 패킷 · mirror"],"focusedTab":"UART 터미널 · mcu","panels":["uart.terminal","eth.packets"],"chans":["uart/mcu:open","eth/mirror:open"],"groups":["UART 채널","ETH 채널"],"heading":"2","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false
+CHECK uart-eth dpr2 PASS — 2
+CHECK uart-eth explorer primary exact PASS — {"chans":["uart/mcu:open","eth/mirror:open"],"want":["uart/mcu","eth/mirror"]}
+CHECK uart-eth explorer groups exact PASS — ["UART 채널","ETH 채널"]
+CHECK uart-eth heading = active count PASS — 2
+CHECK uart-eth no tab outside active set PASS — []
+CHECK uart-eth every active device has a view PASS — []
+CHECK uart-eth no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart-eth welcome hidden PASS
+CHECK uart-eth stop-in-view PASS
+CHECK uart-eth no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/uart-eth-1440.png
+uart-eth layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]}
+CHECK uart-eth layout picker present PASS
+CHECK uart-eth no disabled layout choice PASS — []
+CHECK uart-eth no test choice without session PASS — ["m1-default","uart-only","eth"]
+uart-eth layout uart-only {"tabs":["UART 터미널 · mcu"],"route":"#/l/uart-only"}
+CHECK uart-eth layout "uart-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK uart-eth layout "uart-only" domains eligible PASS — ["UART 터미널 · mcu"]
+uart-eth layout eth {"tabs":["이더넷 패킷 · mirror"],"route":"#/l/eth"}
+CHECK uart-eth layout "eth" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK uart-eth layout "eth" domains eligible PASS — ["이더넷 패킷 · mirror"]
+CHECK uart-eth back-to-default dpr2 PASS — 2
+CHECK uart-eth back-to-default explorer primary exact PASS — {"chans":["uart/mcu:open","eth/mirror:open"],"want":["uart/mcu","eth/mirror"]}
+CHECK uart-eth back-to-default explorer groups exact PASS — ["UART 채널","ETH 채널"]
+CHECK uart-eth back-to-default heading = active count PASS — 2
+CHECK uart-eth back-to-default no tab outside active set PASS — []
+CHECK uart-eth back-to-default every active device has a view PASS — []
+CHECK uart-eth back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart-eth back-to-default welcome hidden PASS
+CHECK uart-eth back-to-default stop-in-view PASS
+CHECK uart-eth back-to-default no-hscroll PASS
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":1000,"queue_bytes":4096298,"queue_frames":1,"shown":0,"timestamp_fallbacks":0,"total":0,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w1","snaplen":65535,"started_mono_
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433171","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433171:seq:13"},"schema_version":1,"warnings":[{"code":"no_viewer_attached"}]}
+eth-can state {"dpr":2,"w":1440,"tabs":["이더넷 패킷 · mirror","CAN 트레이스 · pt"],"focusedTab":"이더넷 패킷 · mirror","panels":["eth.packets","can.trace"],"chans":["can/pt:open","eth/mirror:open"],"groups":["CAN 채널","ETH 채널"],"heading":"2","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]},"rou
+CHECK eth-can dpr2 PASS — 2
+CHECK eth-can explorer primary exact PASS — {"chans":["can/pt:open","eth/mirror:open"],"want":["eth/mirror","can/pt"]}
+CHECK eth-can explorer groups exact PASS — ["CAN 채널","ETH 채널"]
+CHECK eth-can heading = active count PASS — 2
+CHECK eth-can no tab outside active set PASS — []
+CHECK eth-can every active device has a view PASS — []
+CHECK eth-can no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK eth-can welcome hidden PASS
+CHECK eth-can stop-in-view PASS
+CHECK eth-can no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/eth-can-1440.png
+eth-can layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]}
+CHECK eth-can layout picker present PASS
+CHECK eth-can no disabled layout choice PASS — []
+CHECK eth-can no test choice without session PASS — ["m1-default","can-only","eth"]
+eth-can layout can-only {"tabs":["CAN 트레이스 · pt"],"route":"#/l/can-only"}
+CHECK eth-can layout "can-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK eth-can layout "can-only" domains eligible PASS — ["CAN 트레이스 · pt"]
+eth-can layout eth {"tabs":["이더넷 패킷 · mirror"],"route":"#/l/eth"}
+CHECK eth-can layout "eth" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK eth-can layout "eth" domains eligible PASS — ["이더넷 패킷 · mirror"]
+CHECK eth-can back-to-default dpr2 PASS — 2
+CHECK eth-can back-to-default explorer primary exact PASS — {"chans":["can/pt:open","eth/mirror:open"],"want":["eth/mirror","can/pt"]}
+CHECK eth-can back-to-default explorer groups exact PASS — ["CAN 채널","ETH 채널"]
+CHECK eth-can back-to-default heading = active count PASS — 2
+CHECK eth-can back-to-default no tab outside active set PASS — []
+CHECK eth-can back-to-default every active device has a view PASS — []
+CHECK eth-can back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK eth-can back-to-default welcome hidden PASS
+CHECK eth-can back-to-default stop-in-view PASS
+CHECK eth-can back-to-default no-hscroll PASS
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433175","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_v
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433175","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433175:seq:13"},"schema_version":1,"warnings":[{"code":"no_viewer_attached"}]}
+uart-can state {"dpr":2,"w":1440,"tabs":["UART 터미널 · mcu","CAN 트레이스 · pt"],"focusedTab":"UART 터미널 · mcu","panels":["uart.terminal","can.trace"],"chans":["uart/mcu:open","can/pt:open"],"groups":["UART 채널","CAN 채널"],"heading":"2","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false}]},"r
+CHECK uart-can dpr2 PASS — 2
+CHECK uart-can explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open"],"want":["uart/mcu","can/pt"]}
+CHECK uart-can explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK uart-can heading = active count PASS — 2
+CHECK uart-can no tab outside active set PASS — []
+CHECK uart-can every active device has a view PASS — []
+CHECK uart-can no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart-can welcome hidden PASS
+CHECK uart-can stop-in-view PASS
+CHECK uart-can no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/uart-can-1440.png
+uart-can layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false}]}
+CHECK uart-can layout picker present PASS
+CHECK uart-can no disabled layout choice PASS — []
+CHECK uart-can no test choice without session PASS — ["m1-default","uart-only","can-only"]
+uart-can layout uart-only {"tabs":["UART 터미널 · mcu"],"route":"#/l/uart-only"}
+CHECK uart-can layout "uart-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK uart-can layout "uart-only" domains eligible PASS — ["UART 터미널 · mcu"]
+uart-can layout can-only {"tabs":["CAN 트레이스 · pt"],"route":"#/l/can-only"}
+CHECK uart-can layout "can-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK uart-can layout "can-only" domains eligible PASS — ["CAN 트레이스 · pt"]
+CHECK uart-can back-to-default dpr2 PASS — 2
+CHECK uart-can back-to-default explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open"],"want":["uart/mcu","can/pt"]}
+CHECK uart-can back-to-default explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK uart-can back-to-default heading = active count PASS — 2
+CHECK uart-can back-to-default no tab outside active set PASS — []
+CHECK uart-can back-to-default every active device has a view PASS — []
+CHECK uart-can back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK uart-can back-to-default welcome hidden PASS
+CHECK uart-can back-to-default stop-in-view PASS
+CHECK uart-can back-to-default no-hscroll PASS
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433177","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_v
+open uart/lnx {"cmd":"uart.open","data":{"channel":"lnx","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433177","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433177:seq:13"},"schema_v
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w3","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433177","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433177:seq:21"},"schema_version":1,"warnings":[{"code":"no_viewer_attached"}]}
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":1000,"queue_bytes":4096298,"queue_frames":1,"shown":0,"timestamp_fallbacks":0,"total":0,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w4","snaplen":65535,"started_mono_
+all3 state {"dpr":2,"w":1440,"tabs":["UART 터미널 · lnx","UART 터미널 · mcu","이더넷 패킷 · mirror","CAN 트레이스 · pt"],"focusedTab":"UART 터미널 · lnx","panels":["uart.terminal","eth.packets","can.trace"],"chans":["uart/lnx:open","uart/mcu:open","can/pt:open","eth/mirror:open"],"groups":["UART 채널","CAN 채널","ETH 채널"],"heading":"4","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only",
+CHECK all3 dpr2 PASS — 2
+CHECK all3 explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","uart/lnx","can/pt","eth/mirror"]}
+CHECK all3 explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK all3 heading = active count PASS — 4
+CHECK all3 no tab outside active set PASS — []
+CHECK all3 every active device has a view PASS — []
+CHECK all3 no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK all3 welcome hidden PASS
+CHECK all3 stop-in-view PASS
+CHECK all3 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/all3-1440.png
+all3 layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]}
+CHECK all3 layout picker present PASS
+CHECK all3 no disabled layout choice PASS — []
+CHECK all3 no test choice without session PASS — ["m1-default","uart-only","can-only","eth"]
+all3 layout uart-only {"tabs":["UART 터미널 · lnx","UART 터미널 · mcu"],"route":"#/l/uart-only"}
+CHECK all3 layout "uart-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":2}
+CHECK all3 layout "uart-only" domains eligible PASS — ["UART 터미널 · lnx","UART 터미널 · mcu"]
+all3 layout can-only {"tabs":["CAN 트레이스 · pt"],"route":"#/l/can-only"}
+CHECK all3 layout "can-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all3 layout "can-only" domains eligible PASS — ["CAN 트레이스 · pt"]
+all3 layout eth {"tabs":["이더넷 패킷 · mirror"],"route":"#/l/eth"}
+CHECK all3 layout "eth" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all3 layout "eth" domains eligible PASS — ["이더넷 패킷 · mirror"]
+CHECK all3 back-to-default dpr2 PASS — 2
+CHECK all3 back-to-default explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","uart/lnx","can/pt","eth/mirror"]}
+CHECK all3 back-to-default explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK all3 back-to-default heading = active count PASS — 4
+CHECK all3 back-to-default no tab outside active set PASS — []
+CHECK all3 back-to-default every active device has a view PASS — []
+CHECK all3 back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK all3 back-to-default welcome hidden PASS
+CHECK all3 back-to-default stop-in-view PASS
+CHECK all3 back-to-default no-hscroll PASS
+CHECK all3-768 stop-in-view PASS
+CHECK all3-768 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/all3-768.png
+CHECK all3-390 stop-in-view PASS
+CHECK all3-390 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/all3-390.png
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433180","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1,"warnings":[{"code":"no_v
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433180","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433180:seq:13"},"schema_version":1,"warnings":[{"code":"no_viewer_attached"}]}
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":0,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":1,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w3","snaplen":65535,"started_mono_ns"
+open uds/gw {"cmd":"uds.connect","data":{"entity":"127.0.0.1:51573","existing":false,"others_since_last":{"count":0,"from_cursor":"w:0","origins":[]},"state":{"addr":"DoIP 0x1001","backend":"sim","generation":1,"lease":null,"link":{"cause":"connected","state":"up"},"p2_ms":50,"p2_star_ms":5000,"security":{"confidence":"assumed","level":null},"session":{"confidence":"assumed","id":1,"name":"default"},"target":"gw","tester_present":null},"target":"gw"},"meta":{"env":"sim","latch":false,"record_health":"ok","s
+open psu/rail {"cmd":"psu.connect","data":{"ch":"rail","connected":true,"cycling":false,"generation":1,"idn":"Loom,SimPsu,0,1.0","imax":5,"inject":{"delay_ms":0,"no_response":0},"mode":"off","out":false,"poll_hz_actual":null,"poll_hz_req":5,"prot":"ok","request_id":"w4","samples":0,"set_i":1,"set_v":0,"state":"confirmed","timeouts":0,"vmax":16},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433180","truncated":false,"viewers":{"subscribed":0,"visible":0},"visibility":"no_viewer"},"
+all5 state {"dpr":2,"w":1440,"tabs":["UDS 콘솔 · gw","UART 터미널 · mcu","벤치 전원 (PSU) · rail","이더넷 패킷 · mirror","CAN 트레이스 · pt"],"focusedTab":"UDS 콘솔 · gw","panels":["uds.console","uart.terminal","psu.gauge","eth.packets","can.trace"],"chans":["uart/mcu:open","can/pt:open","uds/gw:open","eth/mirror:open","psu/rail:open"],"groups":["UART 채널","CAN 채널","UDS 채널","ETH 채널","PSU 채널"],"heading":"5","inactive":null,"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts"
+CHECK all5 dpr2 PASS — 2
+CHECK all5 explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open","uds/gw:open","eth/mirror:open","psu/rail:open"],"want":["uart/mcu","can/pt","eth/mirror","uds/gw","psu/rail"]}
+CHECK all5 explorer groups exact PASS — ["UART 채널","CAN 채널","UDS 채널","ETH 채널","PSU 채널"]
+CHECK all5 heading = active count PASS — 5
+CHECK all5 no tab outside active set PASS — []
+CHECK all5 every active device has a view PASS — []
+CHECK all5 no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK all5 welcome hidden PASS
+CHECK all5 stop-in-view PASS
+CHECK all5 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/all5-1440.png
+all5 layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","d":false},{"v":"can-only","l":"CAN 트레이스","g":"프리셋","d":false},{"v":"uds-only","l":"UDS 진단","g":"프리셋","d":false},{"v":"psu-only","l":"PSU 전압·전류","g":"프리셋","d":false},{"v":"can-uds","l":"CAN·UDS 분석","g":"프리셋","d":false},{"v":"eth","l":"Ethernet 캡처","g":"프리셋","d":false}]}
+CHECK all5 layout picker present PASS
+CHECK all5 no disabled layout choice PASS — []
+CHECK all5 no test choice without session PASS — ["m1-default","uart-only","can-only","uds-only","psu-only","can-uds","eth"]
+all5 layout uart-only {"tabs":["UART 터미널 · mcu"],"route":"#/l/uart-only"}
+CHECK all5 layout "uart-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all5 layout "uart-only" domains eligible PASS — ["UART 터미널 · mcu"]
+all5 layout can-only {"tabs":["CAN 트레이스 · pt"],"route":"#/l/can-only"}
+CHECK all5 layout "can-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all5 layout "can-only" domains eligible PASS — ["CAN 트레이스 · pt"]
+all5 layout uds-only {"tabs":["UDS 콘솔 · gw"],"route":"#/l/uds-only"}
+CHECK all5 layout "uds-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all5 layout "uds-only" domains eligible PASS — ["UDS 콘솔 · gw"]
+all5 layout psu-only {"tabs":["벤치 전원 (PSU) · rail"],"route":"#/l/psu-only"}
+CHECK all5 layout "psu-only" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all5 layout "psu-only" domains eligible PASS — ["벤치 전원 (PSU) · rail"]
+all5 layout can-uds {"tabs":["CAN 트레이스 · pt","UDS 콘솔 · gw"],"route":"#/l/can-uds"}
+CHECK all5 layout "can-uds" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":2}
+CHECK all5 layout "can-uds" domains eligible PASS — ["CAN 트레이스 · pt","UDS 콘솔 · gw"]
+all5 layout eth {"tabs":["이더넷 패킷 · mirror"],"route":"#/l/eth"}
+CHECK all5 layout "eth" only active devices, non-empty PASS — {"foreign":[],"placeholders":[],"noTarget":false,"n":1}
+CHECK all5 layout "eth" domains eligible PASS — ["이더넷 패킷 · mirror"]
+CHECK all5 back-to-default dpr2 PASS — 2
+CHECK all5 back-to-default explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open","uds/gw:open","eth/mirror:open","psu/rail:open"],"want":["uart/mcu","can/pt","eth/mirror","uds/gw","psu/rail"]}
+CHECK all5 back-to-default explorer groups exact PASS — ["UART 채널","CAN 채널","UDS 채널","ETH 채널","PSU 채널"]
+CHECK all5 back-to-default heading = active count PASS — 5
+CHECK all5 back-to-default no tab outside active set PASS — []
+CHECK all5 back-to-default every active device has a view PASS — []
+CHECK all5 back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK all5 back-to-default welcome hidden PASS
+CHECK all5 back-to-default stop-in-view PASS
+CHECK all5 back-to-default no-hscroll PASS
+CHECK all5 psu output off still connected (not closed) PASS — ["uart/mcu:open","can/pt:open","uds/gw:open","eth/mirror:open","psu/rail:open"]
+live empty {"dpr":2,"w":1440,"tabs":[],"focusedTab":null,"panels":[],"chans":[],"groups":[],"heading":"0","inactive":null,"welcome":true,"dockEmpty":true,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false}]},"route":"#/l/m1-default","focus":{"cls":"","panel":null},"stopInView":true,"hscroll":false}
+CHECK live empty dpr2 PASS — 2
+CHECK live empty explorer primary exact PASS — {"chans":[],"want":[]}
+CHECK live empty explorer groups exact PASS — []
+CHECK live empty heading = active count PASS — 0
+CHECK live empty no tab outside active set PASS — []
+CHECK live empty every active device has a view PASS — []
+CHECK live empty no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live empty welcome shown PASS
+CHECK live empty stop-in-view PASS
+CHECK live empty no-hscroll PASS
+live empty layout options {"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false}]}
+CHECK live empty layout picker present PASS
+CHECK live empty no disabled layout choice PASS — []
+CHECK live empty no test choice without session PASS — ["m1-default"]
+CHECK live empty back-to-default dpr2 PASS — 2
+CHECK live empty back-to-default explorer primary exact PASS — {"chans":[],"want":[]}
+CHECK live empty back-to-default explorer groups exact PASS — []
+CHECK live empty back-to-default heading = active count PASS — 0
+CHECK live empty back-to-default no tab outside active set PASS — []
+CHECK live empty back-to-default every active device has a view PASS — []
+CHECK live empty back-to-default no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live empty back-to-default welcome shown PASS
+CHECK live empty back-to-default stop-in-view PASS
+CHECK live empty back-to-default no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/live-empty-1440.png
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1}
+CHECK live +uart/mcu dpr2 PASS — 2
+CHECK live +uart/mcu explorer primary exact PASS — {"chans":["uart/mcu:open"],"want":["uart/mcu"]}
+CHECK live +uart/mcu explorer groups exact PASS — ["UART 채널"]
+CHECK live +uart/mcu heading = active count PASS — 1
+CHECK live +uart/mcu no tab outside active set PASS — []
+CHECK live +uart/mcu every active device has a view PASS — []
+CHECK live +uart/mcu no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live +uart/mcu welcome hidden PASS
+CHECK live +uart/mcu stop-in-view PASS
+CHECK live +uart/mcu no-hscroll PASS
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:13"},"schema_version":1}
+CHECK live +can/pt dpr2 PASS — 2
+CHECK live +can/pt explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open"],"want":["uart/mcu","can/pt"]}
+CHECK live +can/pt explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK live +can/pt heading = active count PASS — 2
+CHECK live +can/pt no tab outside active set PASS — []
+CHECK live +can/pt every active device has a view PASS — []
+CHECK live +can/pt no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live +can/pt welcome hidden PASS
+CHECK live +can/pt stop-in-view PASS
+CHECK live +can/pt no-hscroll PASS
+CHECK autoopen keeps focused tab PASS — UART 터미널 · mcu
+CHECK autoopen keeps terminal input focus PASS — {"cls":"xterm-helper-textarea","panel":"uart.terminal"}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/live-uart-can-1440.png
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":1000,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":0,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w3","snaplen":65535,"started_mono_
+CHECK live +eth/mirror dpr2 PASS — 2
+CHECK live +eth/mirror explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","can/pt","eth/mirror"]}
+CHECK live +eth/mirror explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK live +eth/mirror heading = active count PASS — 3
+CHECK live +eth/mirror no tab outside active set PASS — []
+CHECK live +eth/mirror every active device has a view PASS — []
+CHECK live +eth/mirror no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live +eth/mirror welcome hidden PASS
+CHECK live +eth/mirror stop-in-view PASS
+CHECK live +eth/mirror no-hscroll PASS
+CHECK eth open keeps focused CAN tab PASS — CAN 트레이스 · pt
+CHECK eth open keeps CAN instance + draft PASS — {"same":true,"draft":"0x123#11 22","want":"0x123#11 22"}
+close uart/mcu {"cmd":"uart.close","data":{"channel":"mcu","closed":true,"generation":1,"refs_left":0,"request_id":"w5","state":"sent","threads_left":0},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"by_channel":{"can:pt":"1"},"count":"1","from_cursor":"e1794433188:seq:49","kinds":{"can.tx":"1"},"origins":["user"]},"schema_version":1}
+CHECK live -uart/mcu dpr2 PASS — 2
+CHECK live -uart/mcu explorer primary exact PASS — {"chans":["can/pt:open","eth/mirror:open"],"want":["can/pt","eth/mirror"]}
+CHECK live -uart/mcu explorer groups exact PASS — ["CAN 채널","ETH 채널"]
+CHECK live -uart/mcu heading = active count PASS — 2
+CHECK live -uart/mcu no tab outside active set PASS — []
+CHECK live -uart/mcu every active device has a view PASS — []
+CHECK live -uart/mcu no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live -uart/mcu welcome hidden PASS
+CHECK live -uart/mcu stop-in-view PASS
+CHECK live -uart/mcu no-hscroll PASS
+CHECK closed uart disclosed as 1 inactive (collapsed) PASS — {"text":"비활성 인터페이스 1개 보기","expanded":"false"}
+CHECK uart close keeps focused CAN tab PASS — CAN 트레이스 · pt
+CHECK uart close keeps CAN instance + draft PASS — {"same":true,"draft":"0x123#11 22","want":"0x123#11 22"}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/live-uart-closed-1440.png
+CHECK disclosure shows closed uart/mcu history PASS — {"chans":["uart/mcu:closed","can/pt:open","eth/mirror:open"],"inactive":{"text":"연결된 인터페이스만 보기","expanded":"true"}}
+CHECK disclosure does not add tabs PASS — ["CAN 트레이스 · pt","이더넷 패킷 · mirror"]
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/live-inactive-disclosed-1440.png
+CHECK disclosure collapses back PASS
+CHECK heartbeat: tabs unchanged PASS — ["CAN 트레이스 · pt","이더넷 패킷 · mirror"]
+CHECK heartbeat: CAN instance + draft kept PASS — {"same":true,"draft":"0x123#11 22","want":"0x123#11 22"}
+open uart/mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":2,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w6","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:65"},"schema_ver
+CHECK live reopen uart/mcu dpr2 PASS — 2
+CHECK live reopen uart/mcu explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","can/pt","eth/mirror"]}
+CHECK live reopen uart/mcu explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK live reopen uart/mcu heading = active count PASS — 3
+CHECK live reopen uart/mcu no tab outside active set PASS — []
+CHECK live reopen uart/mcu every active device has a view PASS — []
+CHECK live reopen uart/mcu no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live reopen uart/mcu welcome hidden PASS
+CHECK live reopen uart/mcu stop-in-view PASS
+CHECK live reopen uart/mcu no-hscroll PASS
+CHECK reopen: no inactive disclosure left PASS
+CHECK reopen keeps focused CAN tab PASS — CAN 트레이스 · pt
+CHECK reopen keeps CAN instance + draft PASS — {"same":true,"draft":"0x123#11 22","want":"0x123#11 22"}
+CHECK reopen: single mcu terminal tab PASS — ["CAN 트레이스 · pt","이더넷 패킷 · mirror","UART 터미널 · mcu"]
+open uart/lnx {"cmd":"uart.open","data":{"channel":"lnx","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"linux-shell","request_id":"w7","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:182"},"schema_ve
+CHECK live +uart/lnx dpr2 PASS — 2
+CHECK live +uart/lnx explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","uart/lnx","can/pt","eth/mirror"]}
+CHECK live +uart/lnx explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK live +uart/lnx heading = active count PASS — 4
+CHECK live +uart/lnx no tab outside active set PASS — []
+CHECK live +uart/lnx every active device has a view PASS — []
+CHECK live +uart/lnx no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live +uart/lnx welcome hidden PASS
+CHECK live +uart/lnx stop-in-view PASS
+CHECK live +uart/lnx no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/live-reopen-1440.png
+CHECK saved layout stored with CAN pane PASS — {"loom_layout":1,"name":"qa-active","env_hint":"sim","root":{"tabs":[{"panel":"can.trace","props":{"channel":"pt"}},{"pa
+close can/pt {"cmd":"can.close","data":{"channel":"pt","generation":1,"request_id":"w8","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:196"},"schema_version":1}
+saved w/o can {"dpr":2,"w":1440,"tabs":["이더넷 패킷 · mirror","UART 터미널 · mcu","UART 터미널 · lnx"],"focusedTab":"이더넷 패킷 · mirror","panels":["eth.packets"],"chans":["uart/lnx:open","uart/mcu:open","eth/mirror:open"],"groups":["UART 채널","ETH 채널"],"heading":"3","inactive":{"text":"비활성 인터페이스 1개 보기","expanded":"false"},"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"qa-active","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g":"프리셋","
+CHECK saved layout route selected PASS — #/l/qa-active
+CHECK saved w/o can dpr2 PASS — 2
+CHECK saved w/o can explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","eth/mirror:open"],"want":["uart/mcu","uart/lnx","eth/mirror"]}
+CHECK saved w/o can explorer groups exact PASS — ["UART 채널","ETH 채널"]
+CHECK saved w/o can heading = active count PASS — 3
+CHECK saved w/o can no tab outside active set PASS — []
+CHECK saved w/o can every active device has a view PASS — []
+CHECK saved w/o can no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK saved w/o can welcome hidden PASS
+CHECK saved w/o can stop-in-view PASS
+CHECK saved w/o can no-hscroll PASS
+CHECK saved layout data intact after filtered apply PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/saved-filtered-1440.png
+open can/pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":2,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w9","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:215"},"schema_version":1}
+saved after can reopen ["CAN 트레이스 · pt","이더넷 패킷 · mirror","UART 터미널 · mcu","UART 터미널 · lnx"]
+CHECK saved layout: reopened CAN pane available again PASS — ["CAN 트레이스 · pt","이더넷 패킷 · mirror","UART 터미널 · mcu","UART 터미널 · lnx"]
+CHECK saved layout data still intact PASS
+close eth/mirror {"cmd":"eth.capture.stop","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":1000,"queue_bytes":0,"queue_frames":0,"shown":16,"timestamp_fallbacks":0,"total":16,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w10","snaplen":65535,"started_mono_ns":
+CHECK live -eth/mirror dpr2 PASS — 2
+CHECK live -eth/mirror explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open"],"want":["uart/mcu","uart/lnx","can/pt"]}
+CHECK live -eth/mirror explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK live -eth/mirror heading = active count PASS — 3
+CHECK live -eth/mirror no tab outside active set PASS — []
+CHECK live -eth/mirror every active device has a view PASS — []
+CHECK live -eth/mirror no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK live -eth/mirror welcome hidden PASS
+CHECK live -eth/mirror stop-in-view PASS
+CHECK live -eth/mirror no-hscroll PASS
+reload {"dpr":2,"w":1440,"tabs":["UART 터미널 · lnx","UART 터미널 · mcu","CAN 트레이스 · pt"],"focusedTab":"UART 터미널 · lnx","panels":["uart.terminal","can.trace"],"chans":["uart/lnx:open","uart/mcu:open","can/pt:open"],"groups":["UART 채널","CAN 채널"],"heading":"3","inactive":{"text":"비활성 인터페이스 1개 보기","expanded":"false"},"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g"
+CHECK reload dpr2 PASS — 2
+CHECK reload explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open"],"want":["uart/mcu","uart/lnx","can/pt"]}
+CHECK reload explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK reload heading = active count PASS — 3
+CHECK reload no tab outside active set PASS — []
+CHECK reload every active device has a view PASS — []
+CHECK reload no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK reload welcome hidden PASS
+CHECK reload stop-in-view PASS
+CHECK reload no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/reload-1440.png
+late page p4
+late {"dpr":2,"w":1440,"tabs":["UART 터미널 · lnx","UART 터미널 · mcu","CAN 트레이스 · pt"],"focusedTab":"UART 터미널 · lnx","panels":["uart.terminal","can.trace"],"chans":["uart/lnx:open","uart/mcu:open","can/pt:open"],"groups":["UART 채널","CAN 채널"],"heading":"3","inactive":{"text":"비활성 인터페이스 1개 보기","expanded":"false"},"welcome":false,"dockEmpty":false,"placeholders":[],"noTarget":false,"layout":{"value":"m1-default","opts":[{"v":"m1-default","l":"기본 작업 공간","g":"프리셋","d":false},{"v":"uart-only","l":"UART 터미널","g"
+CHECK late-join dpr2 PASS — 2
+CHECK late-join explorer primary exact PASS — {"chans":["uart/lnx:open","uart/mcu:open","can/pt:open"],"want":["uart/mcu","uart/lnx","can/pt"]}
+CHECK late-join explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK late-join heading = active count PASS — 3
+CHECK late-join no tab outside active set PASS — []
+CHECK late-join every active device has a view PASS — []
+CHECK late-join no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK late-join welcome hidden PASS
+CHECK late-join stop-in-view PASS
+CHECK late-join no-hscroll PASS
+CHECK late-join eth history only behind disclosure PASS — {"text":"비활성 인터페이스 1개 보기","expanded":"false"}
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/late-join-1440.png
+close uart/lnx {"cmd":"uart.close","data":{"channel":"lnx","closed":true,"generation":1,"refs_left":0,"request_id":"w11","state":"sent","threads_left":0},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":2,"visible":2},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:236"},"schema_version":1}
+CHECK late-join -uart/lnx dpr2 PASS — 2
+CHECK late-join -uart/lnx explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open"],"want":["uart/mcu","can/pt"]}
+CHECK late-join -uart/lnx explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK late-join -uart/lnx heading = active count PASS — 2
+CHECK late-join -uart/lnx no tab outside active set PASS — []
+CHECK late-join -uart/lnx every active device has a view PASS — []
+CHECK late-join -uart/lnx no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK late-join -uart/lnx welcome hidden PASS
+CHECK late-join -uart/lnx stop-in-view PASS
+CHECK late-join -uart/lnx no-hscroll PASS
+CHECK main -uart/lnx dpr2 PASS — 2
+CHECK main -uart/lnx explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open"],"want":["uart/mcu","can/pt"]}
+CHECK main -uart/lnx explorer groups exact PASS — ["UART 채널","CAN 채널"]
+CHECK main -uart/lnx heading = active count PASS — 2
+CHECK main -uart/lnx no tab outside active set PASS — []
+CHECK main -uart/lnx every active device has a view PASS — []
+CHECK main -uart/lnx no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK main -uart/lnx welcome hidden PASS
+CHECK main -uart/lnx stop-in-view PASS
+CHECK main -uart/lnx no-hscroll PASS
+CHECK deep link: single requested target PASS — ["UART 터미널 · mcu"]
+open eth/mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":0,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":1,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w12","snaplen":65535,"started_mono_ns
+CHECK deep link: device open does not auto-add tab PASS — ["UART 터미널 · mcu"]
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/late-deeplink-1440.png
+CHECK main default adds reopened eth dpr2 PASS — 2
+CHECK main default adds reopened eth explorer primary exact PASS — {"chans":["uart/mcu:open","can/pt:open","eth/mirror:open"],"want":["uart/mcu","can/pt","eth/mirror"]}
+CHECK main default adds reopened eth explorer groups exact PASS — ["UART 채널","CAN 채널","ETH 채널"]
+CHECK main default adds reopened eth heading = active count PASS — 3
+CHECK main default adds reopened eth no tab outside active set PASS — []
+CHECK main default adds reopened eth every active device has a view PASS — []
+CHECK main default adds reopened eth no placeholders/대상 없음 PASS — {"placeholders":[],"noTarget":false}
+CHECK main default adds reopened eth welcome hidden PASS
+CHECK main default adds reopened eth stop-in-view PASS
+CHECK main default adds reopened eth no-hscroll PASS
+CHECK pre-stop-390 stop-in-view PASS
+agent uart after STOP {"cmd":"uart.send","error":{"code":"E_STOPPED","message":"STOP is latched — ask the user (only a viewer can release it)","request_id":"w13","retryable":false},"meta":{"env":"sim","latch":true,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":false,"others_since_last":{"by_channel":{"core":"1"},"count":"1","from_cursor":"e1794433188:seq:290","kinds":{"core.latch":"1"},"origins":["user"]},"schema_version":1}
+CHECK STOP blocks agent uart PASS
+agent can after STOP {"cmd":"can.send","error":{"code":"E_STOPPED","message":"STOP is latched — ask the user (only a viewer can release it)","request_id":"w14","retryable":false},"meta":{"env":"sim","latch":true,"record_health":"ok","stream_epoch":"1794433188","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":false,"others_since_last":{"count":"0","from_cursor":"e1794433188:seq:364"},"schema_version":1}
+CHECK STOP blocks agent can PASS
+CHECK stop-390 no-hscroll PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/stop-390.png
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/active-final2/stop-1440.png
+RESULT combinations PASS
+close {"ok":true}
+

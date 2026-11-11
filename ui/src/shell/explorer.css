@@ -45,6 +45,8 @@
 .explorer-empty button { display: block; margin-top: 8px; }
 .explorer-unsupported { display: block; padding: 0 8px 8px; color: #adbacd; font-size: 10px; }
 .explorer-overflow { margin: 0; padding: 10px 12px; color: #e0c48a; border-top: 1px solid #344258; }
+.channel-explorer .explorer-inactive-toggle { margin-top: 10px; padding: 4px 0; border: 0; color: #9aaac0; background: transparent; font-size: 10px; text-align: left; }
+.channel-explorer .explorer-inactive-toggle:hover { color: #e1e8f3; }
 
 .channel-bar.channel-explorer .chan-closed { opacity: 1; text-decoration: none; }
 .channel-bar.channel-explorer .chan-new { outline: none; }

@@ -1,6 +1,7 @@
 // Hash routes (plan §4.1): `#/l/<preset>`, `#/p/<domain>/<panel>?<props>[&at=<cursor>]`,
 // `#/need-auth[?reason=expired|network|malformed]`. Links never carry rights or tokens.
 
+import { defaultPanelFor } from '../store/channels';
 import type { Props } from '../sdk/manifest';
 
 export interface Slot {
@@ -16,48 +17,50 @@ export interface Preset {
   slots: Slot[];
 }
 
+/** Definitions carry no device aliases. Resolve against actual OPEN channels before use. */
 export const PRESETS: readonly Preset[] = [
-  {
-    name: 'm1-default',
-    label: '기본 작업 공간',
-    grid: 'two-top-one-bottom',
-    slots: [
-      { panel: 'uart.terminal', props: { channel: 'dut' } },
-      { panel: 'can.trace', props: { channel: 'ch0' } },
-      { panel: 'uds.console', props: { targets: 'bcm' } },
-    ],
-  },
-  { name: 'uart-only', label: 'UART 터미널', grid: 'single', slots: [{ panel: 'uart.terminal', props: { channel: 'dut' } }] },
-  {
-    name: 'can-uds',
-    label: 'CAN·UDS 분석',
-    grid: 'stack',
-    slots: [
-      { panel: 'can.trace', props: { channel: 'ch0' } },
-      { panel: 'uds.console', props: { targets: 'bcm' } },
-    ],
-  },
-  {
-    // M1b: test execution screen (shell-owned) + the bench PSU used by TC-1
-    name: 'test',
-    label: '테스트 실행',
-    grid: 'stack',
-    slots: [
-      { panel: 'shell.test', props: {} },
-      { panel: 'psu.gauge', props: { channel: 'bench' } },
-    ],
-  },
-  {
-    // F2: DoIP over Ethernet — packets next to the UDS console (↔UDS chips reveal there)
-    name: 'eth',
-    label: 'Ethernet·DoIP',
-    grid: 'stack',
-    slots: [
-      { panel: 'eth.packets', props: { channel: 'lan1' } },
-      { panel: 'uds.console', props: { targets: 'bcm' } },
-    ],
-  },
+  { name: 'm1-default', label: '기본 작업 공간', grid: 'stack', slots: [] },
+  { name: 'uart-only', label: 'UART 터미널', grid: 'single', slots: [] },
+  { name: 'can-only', label: 'CAN 트레이스', grid: 'stack', slots: [] },
+  { name: 'uds-only', label: 'UDS 진단', grid: 'stack', slots: [] },
+  { name: 'psu-only', label: 'PSU 전압·전류', grid: 'stack', slots: [] },
+  { name: 'can-uds', label: 'CAN·UDS 분석', grid: 'stack', slots: [] },
+  { name: 'test', label: '테스트 실행', grid: 'stack', slots: [] },
+  { name: 'eth', label: 'Ethernet 캡처', grid: 'stack', slots: [] },
 ];
+
+export interface WorkspaceChannel {
+  domain: string;
+  channel: string;
+  state: 'open' | 'closed' | 'unknown';
+}
+
+const PRESET_DOMAINS: Record<string, readonly string[]> = {
+  'uart-only': ['uart'], 'can-only': ['can'], 'uds-only': ['uds'], 'psu-only': ['psu'], 'can-uds': ['can', 'uds'], eth: ['eth'],
+};
+
+/** Resolve even a legacy direct route against available aliases, with no fallback devices. */
+export function presetForChannels(name: string, channels: Iterable<WorkspaceChannel>, hasTestSession = false, explicitTest = false): Preset {
+  const definition = PRESETS.find((p) => p.name === name) ?? PRESETS[0]!;
+  const required = PRESET_DOMAINS[definition.name];
+  const slots: Slot[] = definition.name === 'test'
+    ? (hasTestSession || explicitTest ? [{ panel: 'shell.test', props: {} }] : [])
+    : [...channels].filter((c) => c.state === 'open' && (!required || required.includes(c.domain))).flatMap((c) => {
+      const slot = defaultPanelFor(c.domain, c.channel);
+      return slot ? [slot] : [];
+    });
+  return { ...definition, slots };
+}
+
+/** Only complete, currently usable choices appear in the picker. */
+export function activePresets(channels: Iterable<WorkspaceChannel>, hasTestSession = false): Preset[] {
+  const active = [...channels].filter((c) => c.state === 'open');
+  return PRESETS.filter((p) => {
+    if (p.name === 'test') return hasTestSession;
+    const required = PRESET_DOMAINS[p.name];
+    return !required || required.every((d) => active.some((c) => c.domain === d));
+  }).map((p) => presetForChannels(p.name, active, hasTestSession));
+}
 
 export type Route =
   /** `name` = what the hash asked for (a saved layout or a preset); `preset` = that preset or the default */

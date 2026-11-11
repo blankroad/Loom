@@ -33,10 +33,30 @@ function mount() {
 const channel = (key: string) => host.querySelector<HTMLElement>(`[data-chan="${key}"]`);
 
 describe('channel explorer', () => {
-  it('groups all known channels, shows explicit states and truthful unsupported views', () => {
+  it('renders exactly the active domains across all 31 combinations, including closes and reopen', () => {
+    const { add, services, net } = mount();
+    const domains = ['uart', 'can', 'uds', 'eth', 'psu'];
+    for (let mask = 1; mask < 32; mask++) {
+      for (const [index, domain] of domains.entries()) add(domain, `${domain}-a`, mask & (1 << index) ? 'open' : 'closed');
+      const selected = domains.filter((_, index) => mask & (1 << index));
+      expect([...host.querySelectorAll('section')].map((section) => section.getAttribute('aria-label'))).toEqual(selected.map((domain) => `${domain.toUpperCase()} 채널`));
+      expect([...host.querySelectorAll('[data-chan]')].map((node) => node.getAttribute('data-chan'))).toEqual(selected.map((domain) => `${domain}/${domain}-a`));
+      expect(host.querySelector('[aria-label="연결된 인터페이스 수"]')?.textContent).toBe(String(selected.length));
+    }
+    for (const domain of domains) add(domain, `${domain}-a`, 'closed');
+    expect(host.querySelectorAll('[data-chan]')).toHaveLength(0);
+    expect(services.shell.channels.size).toBe(5);
+    expect(net.calls).toEqual([]);
+  });
+
+  it('shows only active channels by default and preserves inactive state behind disclosure', () => {
     const { add, net, services } = mount();
     expect(host.textContent).toContain('채널 없음');
     add('uart', 'dut-b'); add('can', 'dut-b', 'closed'); add('uart', 'dut-a'); act(() => services.shell.noteSnapshotItems([{ domain: 'custom', channel: 'probe', state: {} }]));
+    expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['uart/dut-a', 'uart/dut-b']);
+    expect(host.querySelector('[aria-label="연결된 인터페이스 수"]')?.textContent).toBe('2');
+    expect(services.shell.channels.size).toBe(4);
+    act(() => host.querySelector<HTMLButtonElement>('.explorer-inactive-toggle')!.click());
     expect([...host.querySelectorAll('section')].map((s) => s.getAttribute('aria-label'))).toEqual(['UART 채널', 'CAN 채널', 'CUSTOM 채널']);
     expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['uart/dut-a', 'uart/dut-b', 'can/dut-b', 'custom/probe']);
     expect(channel('can/dut-b')!.textContent).toContain('(닫힘)');
@@ -47,6 +67,7 @@ describe('channel explorer', () => {
 
   it('searches across domain, identity and state, reveals collapsed matches and clears an empty result', () => {
     const { add, search } = mount(); add('uart', 'dut-a'); add('uart', 'dut-b', 'closed'); add('can', 'dut-a');
+    act(() => host.querySelector<HTMLButtonElement>('.explorer-inactive-toggle')!.click());
     act(() => host.querySelector<HTMLButtonElement>('.explorer-group-toggle')!.click());
     expect(channel('uart/dut-a')).toBeNull();
     search('UART dut-b closed');

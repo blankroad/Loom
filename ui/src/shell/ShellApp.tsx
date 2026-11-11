@@ -98,7 +98,7 @@ function ShellBody() {
   const { shell, stop, uiState, net, gate, toasts } = s;
   useStoreVersion(shell);
   const route = useHashRoute();
-  const welcome = shell.channels.size === 0 && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
+  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
 
   useEffect(
     () =>

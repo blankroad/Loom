@@ -8,7 +8,7 @@ export function WorkbenchWelcome() {
         <span className="welcome-symbol" aria-hidden="true">⌘</span>
         <span className="eyebrow">YOUR DEVICE WORKSPACE</span>
         <h2 id="welcome-title">연결에서 관찰까지, 한곳에서</h2>
-        <p className="welcome-intro">아직 알려진 인터페이스가 없습니다. 장치나 시뮬레이터를 추가하고, 필요한 보기를 나란히 열어 작업을 시작하세요.</p>
+        <p className="welcome-intro">현재 연결된 인터페이스가 없습니다. 장치나 시뮬레이터를 추가하고, 필요한 보기를 나란히 열어 작업을 시작하세요.</p>
         <InterfaceConnect />
         <ol className="welcome-steps">
           <li><span className="welcome-step-number">01</span><div><h3>인터페이스 추가</h3><p>UART, CAN, UDS, Ethernet 연결을 설정하세요. 실제 장치 없이 시뮬레이터로 시작할 수도 있습니다.</p></div></li>

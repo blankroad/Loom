@@ -263,7 +263,8 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
     // no dock mounted (tests / need-auth): the M1 fallback below
     const route = parseRoute(currentHash());
     const shown =
-      (route.kind === 'layout' && route.preset.slots.some((x) => sameSlot(x, slot))) ||
+      // An eligible preset is not a mounted view. Without a dock, only explicit
+      // links and previously opened fallback slots prove that it is displayed.
       (route.kind === 'panel' && sameSlot(route.slot, slot)) ||
       uiState.extraSlots.some((x) => sameSlot(x, slot));
     if (shown) return 'shown';
@@ -290,7 +291,6 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
       }
       const route = parseRoute(currentHash());
       const visible =
-        (route.kind === 'layout' && route.preset.slots.some((x) => sameSlot(x, slot))) ||
         (route.kind === 'panel' && sameSlot(route.slot, slot)) ||
         uiState.extraSlots.some((x) => sameSlot(x, slot));
       if (!visible) navigate(slotHash(slot, req.at));
@@ -320,7 +320,7 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
         const what = `${entry.domain} ${entry.channel}`;
         const verb = isNew ? '열었습니다' : '다시 열었습니다';
         const key = `chan:${entry.domain}/${entry.channel}`;
-        if (dp && settings.autoOpenPanels === 'on') {
+        if (dp && !dock.current?.lifecycleManaged && parseRoute(currentHash()).kind !== 'panel' && settings.autoOpenPanels === 'on') {
           // New agent/device connections must not replace the view the user is reading
           // or redirect terminal input. Explicit explorer selection still activates it.
           const r = showSlot(dp, { activate: false });

@@ -257,6 +257,16 @@ export class ShellControlStore extends Emitter {
     this.conn = s;
     if (s.status === 'open' && !wasOpen) this.connOpenedMs = nowMs;
     if (s.status === 'open') {
+      if (this.hello && this.hello.stream_epoch !== s.hello.stream_epoch) {
+        // A new daemon stream cannot prove that devices from the previous bench
+        // remain connected. Keep discovery history until fresh state confirms it.
+        for (const channel of this.channels.values()) {
+          if (channel.state === 'open') channel.state = 'unknown';
+          channel.generation = null;
+          channel.genChangedMs = null;
+          channel.addedLiveMs = null;
+        }
+      }
       if (!wasOpen || this.hello?.conn_id !== s.hello.conn_id || this.hello?.stream_epoch !== s.hello.stream_epoch) this.automationPolicyStale = false;
       this.hello = s.hello;
       // a fresh connection counts as a heartbeat; the 1 s heartbeat follows

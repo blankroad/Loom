@@ -1,0 +1,321 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.6.1/bin/node",
+      "/Users/ctmctm/workspace/Loom/ui/node_modules/@playwright/test/cli.js",
+      "test",
+      "-c",
+      "e2e/real-smoke.config.ts",
+      "--reporter=list,json",
+      "--output=/Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/p1-suite-active-final2/pw-out"
+    ],
+    "configFile": "/Users/ctmctm/workspace/Loom/ui/e2e/real-smoke.config.ts",
+    "rootDir": "/Users/ctmctm/workspace/Loom/ui/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/p1-suite-active-final2/pw-out",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/ctmctm/workspace/Loom/ui/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "real-smoke.spec.ts"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/p1-suite-active-final2/pw-out",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/Users/ctmctm/workspace/Loom/ui/e2e",
+        "snapshotDir": "/Users/ctmctm/workspace/Loom/ui/e2e",
+        "testIgnore": [],
+        "testMatch": "real-smoke.spec.ts",
+        "timeout": 45000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "trace": "off"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "real-smoke.spec.ts",
+      "file": "real-smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real UART agent trace, browser input and STOP",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1777,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T21:40:28.251Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "uart-agent-live-command-to-visible",
+                      "contentType": "application/json",
+                      "body": "eyJtaWxsaXNlY29uZHMiOjIyOC42MTc4MzMwMDAwMDAwMiwibWVhc3VyZW1lbnQiOiJhZ2VudCBSUEMgc3RhcnQgdG8gRE9NIGFzc2VydGlvbiBjb21wbGV0aW9uOyB1cHBlciBib3VuZCwgbm90IHBhaW50IHRpbWVzdGFtcCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "48138f24909e5c5ba157-9bfae7c33e40b949f5ed",
+          "file": "real-smoke.spec.ts",
+          "line": 39,
+          "column": 1
+        },
+        {
+          "title": "real CAN agent frames, browser send and STOP",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2426,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T21:40:30.325Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "can-agent-live-command-to-visible",
+                      "contentType": "application/json",
+                      "body": "eyJtaWxsaXNlY29uZHMiOjM3LjkyNjI5MjAwMDAwMDEsIm1lYXN1cmVtZW50IjoiYWdlbnQgUlBDIHN0YXJ0IHRvIERPTSBhc3NlcnRpb24gY29tcGxldGlvbjsgdXBwZXIgYm91bmQsIG5vdCBwYWludCB0aW1lc3RhbXAifQ=="
+                    },
+                    {
+                      "name": "can-device-paint-upper-bound",
+                      "contentType": "application/json",
+                      "body": "eyJzYW1wbGVzIjpbNzIuODA2NzA4OTk5OTk5OTYsODMuNTc3NjI1MDAwMDAwMzUsODAuOTAwNTQyMDAwMDAwMzEsMTAwLjI1MTI1MDAwMDAwMDI1LDgyLjA3NjQ1ODk5OTk5OTg5LDgyLjUyMTcwOTAwMDAwMDEsODEuMjY4OTU4MDAwMDAwMTEsODIuNjE0MjQ5OTk5OTk5NjMsODIuNTA2NDE2MDAwMDAwMTcsODIuNTQ5NTgzOTk5OTk5ODcsOTguNTM2NDE2OTk5OTk5OCw4MS4xODAyMDkwMDAwMDAxLDgxLjI0MTUwMDAwMDAwMDA5LDgzLjgwNjEyNDk5OTk5OTYxLDgxLjE0MDEyNDk5OTk5OTksODMuOTM3MjQ5OTk5OTk5OTUsODIuNjYyNzkyMDAwMDAwMDgsODIuMzEwMTI0OTk5OTk5OTcsODIuNjU2NzkxMDAwMDAwMzQsODEuMDcwMzc1MDAwMDAwMjRdLCJwOTVfbXMiOjk4LjUzNjQxNjk5OTk5OTgsIm1ldGhvZCI6ImFnZW50IGNvbW1hbmQgc3RhcnQgdGhyb3VnaCBtYXRjaGluZyBkZXZpY2UgUlggRE9NIGFuZCB0d28gUkFGczsgaW5jbHVkZXMgZGV2aWNlIHJlc3BvbnNlIHRpbWUgYW5kIHRlc3QgdHJhbnNwb3J0IG92ZXJoZWFkIiwibWVhc3VyZSI6ImNvbnNlcnZhdGl2ZSBlbmQtdG8tZW5kIHVwcGVyIGJvdW5kIHVzaW5nIHRoZSBkb2N1bWVudGVkIG5leHQtUkFGIHBhaW50IHByb3h5In0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "48138f24909e5c5ba157-b6ac52fc4a6d8e899a28",
+          "file": "real-smoke.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "real UDS agent transaction, browser request and STOP",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 968,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T21:40:32.759Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "uds-agent-live-command-to-visible",
+                      "contentType": "application/json",
+                      "body": "eyJtaWxsaXNlY29uZHMiOjk1LjcxODM3NDk5OTk5OTQ3LCJtZWFzdXJlbWVudCI6ImFnZW50IFJQQyBzdGFydCB0byBET00gYXNzZXJ0aW9uIGNvbXBsZXRpb247IHVwcGVyIGJvdW5kLCBub3QgcGFpbnQgdGltZXN0YW1wIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "48138f24909e5c5ba157-b7423c94592d01a7a80a",
+          "file": "real-smoke.spec.ts",
+          "line": 109,
+          "column": 1
+        },
+        {
+          "title": "real Ethernet packet list, detail, browser send and STOP",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 909,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T21:40:33.735Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "eth-agent-live-command-to-visible",
+                      "contentType": "application/json",
+                      "body": "eyJtaWxsaXNlY29uZHMiOjEwNS45NTExMjQ5OTk5OTk1OSwibWVhc3VyZW1lbnQiOiJhZ2VudCBSUEMgc3RhcnQgdG8gRE9NIGFzc2VydGlvbiBjb21wbGV0aW9uOyB1cHBlciBib3VuZCwgbm90IHBhaW50IHRpbWVzdGFtcCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "48138f24909e5c5ba157-daafee348e7f6ca7dc16",
+          "file": "real-smoke.spec.ts",
+          "line": 134,
+          "column": 1
+        },
+        {
+          "title": "actual powered TC-1 appears live with journal verdicts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12839,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T21:40:34.651Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "48138f24909e5c5ba157-021e9169992f3e031131",
+          "file": "real-smoke.spec.ts",
+          "line": 162,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T21:40:27.917Z",
+    "duration": 19618.067000000003,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

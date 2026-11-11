@@ -54,6 +54,19 @@ describe('developer workbench shell', () => {
     expect(find('[data-chan="uart/serial-a"]')).toBeTruthy();
   });
 
+  it('returns to the welcome when the last active interface closes without losing history', () => {
+    const { net, services } = mount();
+    act(() => net.emitControl(ev({ kind: 'uart.channel_state', channel: 'serial-a', payload: { state: 'opened' } })));
+    act(() => net.emitControl(ev({ kind: 'uart.channel_state', channel: 'serial-a', payload: { state: 'closed' } })));
+    expect(find('[data-testid="workbench-welcome"]')).toBeTruthy();
+    expect(find('[data-chan="uart/serial-a"]')).toBeNull();
+    expect(services.shell.channels.get('uart/serial-a')?.state).toBe('closed');
+    expect(find('.explorer-inactive-toggle').textContent).toContain('1개');
+    act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'lan-b', payload: { state: 'live' } })));
+    expect(find('[data-testid="workbench-welcome"]')).toBeNull();
+    expect([...host.querySelectorAll('[data-chan]')].map((node) => node.getAttribute('data-chan'))).toEqual(['eth/lan-b']);
+  });
+
   it('describes automation rights as daemon policy on the auth screen', () => {
     location.hash = '#/need-auth';
     mount();

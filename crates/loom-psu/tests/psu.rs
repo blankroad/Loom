@@ -509,6 +509,66 @@ fn evidence_hold() {
 }
 
 #[test]
+fn connected_output_off_event_and_reducer_snapshot() {
+    let mut reg = registry();
+    let svc = Services::new();
+    let connected = call(&reg, &svc, "psu.connect", json!({"ch": "bench"})).expect("connect");
+    assert_eq!(connected["connected"], true);
+    assert_eq!(connected["out"], false);
+
+    let states: Vec<_> = svc
+        .journal
+        .all()
+        .into_iter()
+        .filter(|e| e.kind == "psu.state")
+        .collect();
+    assert_eq!(states.len(), 1, "connect emits an initial state with output OFF");
+    assert_eq!(states[0].channel.as_deref(), Some("bench"));
+    assert_eq!(states[0].payload["connected"], true);
+    assert_eq!(states[0].payload["out"], false);
+
+    let reducers = feed_reducer(&mut reg, &svc);
+    let snap = reducers[0].snapshot(&Default::default());
+    assert_eq!(snap.len(), 1);
+    assert_eq!(snap[0]["state"]["connected"], true);
+    assert_eq!(snap[0]["state"]["out"], false);
+    let status = call(&reg, &svc, "psu.status", json!({"ch": "bench"})).expect("status");
+    assert_eq!(status["connected"], snap[0]["state"]["connected"]);
+    assert_eq!(status["out"], false);
+
+    // Older journal states omit connected: replay must preserve that unknown state.
+    let mut legacy = states[0].clone();
+    legacy
+        .payload
+        .as_object_mut()
+        .expect("state object")
+        .remove("connected");
+    let mut legacy_reg = registry();
+    let spec = legacy_reg
+        .event_kinds()
+        .iter()
+        .find(|s| s.kind == "psu.state")
+        .expect("state spec");
+    let schema = serde_json::to_value(&spec.payload_schema).expect("schema");
+    assert!(
+        !schema["required"]
+            .as_array()
+            .expect("required")
+            .contains(&json!("connected"))
+    );
+    assert!(
+        spec.pointers
+            .iter()
+            .any(|p| { p.path == "/payload/connected" && p.ty == loom_domain_api::ValueType::Bool })
+    );
+    let mut legacy_reducers = legacy_reg.take_reducers();
+    legacy_reducers[0].apply(&legacy);
+    let legacy_snap = legacy_reducers[0].snapshot(&Default::default());
+    assert_eq!(legacy_snap[0]["state"], legacy.payload);
+    assert!(legacy_snap[0]["state"].get("connected").is_none());
+}
+
+#[test]
 fn reducer_snapshot_and_watch_summary() {
     let (mut reg, svc) = powered();
     let reducers = feed_reducer(&mut reg, &svc);

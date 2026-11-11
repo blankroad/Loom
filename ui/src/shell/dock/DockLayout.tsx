@@ -6,12 +6,12 @@
 // Layout warnings (unknown panels, dropped props, vendor state not reused) become one toast.
 
 import { useEffect, useRef, useState } from 'react';
-import { defaultPanelFor } from '../../store/channels';
 import { useStoreVersion } from '../../store/hooks';
-import { PRESETS, type Route } from '../routes';
+import { activePresets, presetForChannels, PRESETS, type Route } from '../routes';
 import { useServices } from '../ShellContext';
 import { DockHost } from './dockHost';
-import { MAX_PANELS, presetToLayout, slotLayout, type LayoutIssue, type LoomLayout } from './layoutModel';
+import { activeLayout } from './activeWorkspace';
+import { leaves, MAX_PANELS, presetToLayout, slotLayout, type LayoutIssue, type LoomLayout } from './layoutModel';
 
 const PRESET_NAMES: ReadonlySet<string> = new Set(PRESETS.map((p) => p.name));
 
@@ -32,6 +32,7 @@ export function DockLayout({ route }: { route: Route }) {
   useEffect(() => {
     if (!el.current) return;
     const h = new DockHost(el.current, services);
+    h.lifecycleManaged = true;
     host.current = h;
     const added = h.api.onDidAddPanel(() => setPanelCount(h.api.panels.length));
     const removed = h.api.onDidRemovePanel(() => setPanelCount(h.api.panels.length));
@@ -52,27 +53,52 @@ export function DockLayout({ route }: { route: Route }) {
   useEffect(() => {
     const h = host.current;
     if (!h || route.kind === 'need-auth') return;
-    let layout: LoomLayout;
     const issues: LayoutIssue[] = [];
-    if (route.kind === 'layout' && route.name === 'm1-default') {
-      // Initialize once per route entry, never on channel/store ticks. Newly opened
-      // interfaces are added by services.showSlot, preserving the user's open tabs.
-      const slots = [...services.shell.channels.values()].flatMap((c) => {
-        const slot = defaultPanelFor(c.domain, c.channel);
-        return slot ? [slot] : [];
-      });
-      if (!slots.length) { h.clear('m1-default'); return; }
-      if (slots.length > MAX_PANELS) services.toasts.push(`기본 작업 공간: ${MAX_PANELS}개 보기만 열었습니다. 나머지 채널은 인터페이스 탐색기에서 선택하세요.`, { ttlMs: 8_000 });
-      layout = { loom_layout: 1, name: 'm1-default', env_hint: services.shell.env, pinned: [], root: { tabs: slots.slice(0, MAX_PANELS), active: 0 } };
-    } else if (route.kind === 'panel') layout = slotLayout(route.slot);
-    else if (!PRESET_NAMES.has(route.name) && services.layouts.list().includes(route.name)) {
-      const r = services.layouts.get(route.name);
-      issues.push(...r.issues);
-      layout = r.layout ?? presetToLayout(route.preset);
-    } else layout = presetToLayout(route.preset);
-    issues.push(...h.load(layout));
+    const hasTest = () => services.testSession.sessionId !== null;
+    let source: LoomLayout | null = null;
+    if (route.kind === 'panel') {
+      issues.push(...h.load(slotLayout(route.slot)));
+      return; // Explicit history/diagnostic links remain single-target views.
+    }
+    if (!PRESET_NAMES.has(route.name) && services.layouts.list().includes(route.name)) {
+      const stored = services.layouts.get(route.name);
+      issues.push(...stored.issues);
+      source = stored.layout;
+    }
+    let warnedLimit = false;
+    const project = (): LoomLayout | null => {
+      if (source) return activeLayout(source, services.shell.channels.values(), hasTest());
+      // The explicit test route may open the test screen before a session exists.
+      const preset = presetForChannels(route.name, services.shell.channels.values(), hasTest(), route.name === 'test');
+      if (!preset.slots.length) return null;
+      if (preset.slots.length > MAX_PANELS && !warnedLimit) {
+        warnedLimit = true;
+        services.toasts.push(`기본 작업 공간: ${MAX_PANELS}개 보기만 열었습니다. 나머지 채널은 인터페이스 탐색기에서 선택하세요.`, { key: 'workspace-limit', ttlMs: 8_000 });
+      }
+      const bounded = { ...preset, slots: preset.slots.slice(0, MAX_PANELS) };
+      const layout = presetToLayout(bounded);
+      if (route.name === 'm1-default') layout.root = { tabs: bounded.slots, active: 0 };
+      return layout;
+    };
+    const initial = project();
+    if (initial) issues.push(...h.load(initial));
+    else h.clear(route.name);
+    h.trackDesired(initial ? leaves(initial.root) : []);
+    let syncing = false;
+    const sync = () => {
+      // Mount/dispose registers freshness with the shell, which emits synchronously.
+      if (syncing) return;
+      syncing = true;
+      try {
+        const next = project();
+        h.reconcile(next ? leaves(next.root) : [], services.shell.channels.values(), hasTest() || route.name === 'test', route.name === 'm1-default', services.settings.autoOpenPanels === 'on');
+      } finally { syncing = false; }
+    };
+    const offShell = services.shell.subscribe(sync);
+    const offTest = services.testSession.subscribe(sync);
     const warn = issues.filter((i) => i.level === 'warn' || i.level === 'error');
     if (warn.length) services.toasts.push(`레이아웃: ${warn.map((i) => i.text).slice(0, 3).join(' · ')}${warn.length > 3 ? ` 외 ${warn.length - 3}건` : ''}`, { ttlMs: 8_000 });
+    return () => { offShell(); offTest(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the route itself changes
   }, [key, services]);
 
@@ -84,8 +110,11 @@ export function DockLayout({ route }: { route: Route }) {
 
 /** layout picker + save (sub bar) */
 export function LayoutBar({ route }: { route: Route }) {
-  const { layouts, dock, toasts, uiState } = useServices();
+  const { layouts, dock, toasts, uiState, shell, testSession } = useServices();
   useStoreVersion(uiState);
+  useStoreVersion(shell);
+  useStoreVersion(testSession);
+  const eligible = activePresets(shell.channels.values(), testSession.sessionId !== null);
   const [saved, setSaved] = useState<string[]>(() => layouts.list());
   const [name, setName] = useState('');
   const current = route.kind === 'layout' ? route.name : '';
@@ -107,14 +136,14 @@ export function LayoutBar({ route }: { route: Route }) {
         레이아웃{' '}
         <select
           aria-label="레이아웃"
-          value={route.kind === 'layout' ? current : ''}
+          value={route.kind === 'layout' && (eligible.some((p) => p.name === current) || saved.includes(current)) ? current : ''}
           onChange={(e) => {
             location.hash = `#/l/${e.target.value}`;
           }}
         >
-          {route.kind !== 'layout' && <option value="">(딥링크)</option>}
+          {(route.kind !== 'layout' || (!eligible.some((p) => p.name === current) && !saved.includes(current))) && <option value="">{route.kind === 'panel' ? '(딥링크)' : ([...shell.channels.values()].some((c) => c.state === 'open') ? '(현재 연결에 맞춰 표시)' : '(연결된 인터페이스 없음)')}</option>}
           <optgroup label="프리셋">
-            {PRESETS.map((p) => (
+            {eligible.map((p) => (
               <option key={p.name} value={p.name}>
                 {p.label}
               </option>

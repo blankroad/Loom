@@ -19,11 +19,14 @@ import type { Props } from '../../sdk/manifest';
 import { validateProps } from '../../sdk/propsSchema';
 import { getPanel, type PanelInstance } from '../../sdk/registry';
 import { sameSlot, slotKey, type Slot } from '../routes';
+import { availableSlot, deviceKey } from './activeWorkspace';
+import type { WorkspaceChannel } from '../routes';
 import type { ShellServices } from '../services';
 import { ShellCtx } from '../ShellContext';
 import { TestScreen } from '../test/TestScreen';
 import {
   DOCKVIEW_VERSION,
+  MAX_PANELS,
   fromDockview,
   PANEL_COMPONENT,
   toDockview,
@@ -34,6 +37,8 @@ import {
 } from './layoutModel';
 
 export interface DockController {
+  /** React wrapper owns automatic workspace synchronization when true. */
+  lifecycleManaged?: boolean;
   /** the open dock panel showing this slot (props compared without the `at` cursor) */
   find(slot: Slot): IDockviewPanel | null;
   /** activate the slot's tab, or add it as a tab next to the active one */
@@ -191,6 +196,8 @@ export interface DockHostOptions {
 export class DockHost implements DockController {
   readonly api: DockviewApi;
   private name = '';
+  lifecycleManaged = false;
+  private desired = new Set<string>();
 
   constructor(
     private readonly el: HTMLElement,
@@ -242,7 +249,7 @@ export class DockHost implements DockController {
   /** current arrangement as an app layout (vendor state as a sub-field) */
   snapshot(name = this.name): LoomLayout {
     const state = this.api.toJSON();
-    const root = fromDockview(state) ?? { panel: 'demo.echo', props: {} };
+    const root = fromDockview(state) ?? { split: 'v' as const, children: [] };
     return { loom_layout: 1, name, env_hint: this.services.shell.env, root, pinned: [], vendor: { dockview: { version: DOCKVIEW_VERSION, state } } };
   }
 
@@ -260,10 +267,11 @@ export class DockHost implements DockController {
       if (options.activate !== false) have.api.setActive();
       return 'shown';
     }
-    // next to a panel of the same domain if there is one, else in the active group
+    // Background arrivals do not activate a group. Reuse the first group when
+    // none is active, so a snapshot of five devices does not create five columns.
     const domain = slot.panel.split('.')[0];
     const near = this.api.panels.find((p) => String((p.params as { panel?: string } | undefined)?.panel ?? '').startsWith(`${domain}.`));
-    const group = near?.group ?? this.api.activeGroup;
+    const group = near?.group ?? this.api.activeGroup ?? this.api.groups[0];
     const stableId = `slot:${slotKey(slot)}`;
     let id = stableId;
     let suffix = 1;
@@ -278,6 +286,36 @@ export class DockHost implements DockController {
     });
     return 'added';
   }
+
+  /** Incremental updates retain surviving panel instances, input and group geometry. */
+  reconcile(slots: Slot[], channels: Iterable<WorkspaceChannel>, hasTestSession: boolean, byDevice = false, autoAdd = true): void {
+    const known = [...channels];
+    const active = this.api.activePanel;
+    for (const panel of [...this.api.panels]) {
+      const params = panel.params as { panel: string; props: Props };
+      const slot = { panel: params.panel, props: params.props ?? {} };
+      const next = availableSlot(slot, known, hasTestSession);
+      if (!next || !sameSlot(next, slot)) this.api.removePanel(panel);
+    }
+    const nextDesired = new Set(slots.map(slotKey));
+    for (const slot of slots) {
+      if (!autoAdd) continue;
+      if (this.desired.has(slotKey(slot))) continue;
+      if (byDevice && this.api.panels.some((p) => {
+        const prm = p.params as { panel: string; props: Props };
+        return deviceKey(prm) === deviceKey(slot);
+      })) continue;
+      if (this.api.panels.length >= MAX_PANELS) break;
+      this.open(slot, { activate: false });
+    }
+    // Remember arrivals while auto-open is off so a later heartbeat/settings change
+    // does not retroactively open channels the user chose to leave in the explorer.
+    this.desired = nextDesired;
+    if (active && this.api.getPanel(active.id) === active && this.api.activePanel !== active) active.api.setActive();
+  }
+
+  /** Start tracking the slots loaded on this route, including an empty projection. */
+  trackDesired(slots: Slot[]): void { this.desired = new Set(slots.map(slotKey)); }
 
   layout(): void {
     const { w, h } = this.dims();

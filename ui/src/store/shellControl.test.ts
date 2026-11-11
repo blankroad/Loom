@@ -5,6 +5,19 @@ import { ev, TEST_HELLO } from './testing/fakeNet';
 
 const base = { connOpen: true, lastHeartbeatMs: 0, panels: [] as never[] };
 
+it('does not carry active devices into a new daemon epoch, while preserving reconnect history', () => {
+  const store = new ShellControlStore();
+  store.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+  store.noteSnapshotItems([{ domain: 'uart', channel: 'only-uart', state: { state: 'open', generation: 2 } }]);
+  store.setConn({ status: 'closed', reason: 'network' }, 1);
+  store.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'same-stream-new-viewer' } }, 2);
+  expect(store.channels.get('uart/only-uart')?.state).toBe('open');
+  store.setConn({ status: 'open', hello: { ...TEST_HELLO, stream_epoch: String(BigInt(TEST_HELLO.stream_epoch) + 1n) } }, 3);
+  expect(store.channels.get('uart/only-uart')).toMatchObject({ state: 'unknown', generation: null });
+  store.noteSnapshotItems([{ domain: 'eth', channel: 'only-eth', state: { state: 'live' } }]);
+  expect([...store.channels.values()].filter((channel) => channel.state === 'open').map((channel) => channel.domain)).toEqual(['eth']);
+});
+
 it('keeps unseen interface connectivity unknown until explicit evidence, without auto-opening', () => {
   const store = new ShellControlStore();
   const opened: string[] = [];

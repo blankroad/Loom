@@ -81,7 +81,8 @@ export function presetToLayout(p: Preset): LoomLayout {
   const leaf = (s: Slot): LayoutLeaf => ({ panel: s.panel, props: { ...s.props } });
   const [a, b, c] = p.slots;
   let root: LayoutNode;
-  if (p.grid === 'single' || p.slots.length === 1) root = leaf(a as Slot);
+  if (p.slots.length === 0) root = { split: 'v', children: [] };
+  else if (p.slots.length === 1) root = leaf(a as Slot);
   else if (p.grid === 'two-top-one-bottom' && a && b && c) {
     root = { split: 'v', sizes: [60, 40], children: [{ split: 'h', children: [leaf(a), leaf(b)] }, leaf(c)] };
   } else root = { split: 'v', children: p.slots.map(leaf) };

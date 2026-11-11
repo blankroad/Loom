@@ -105,6 +105,8 @@ impl Device {
         let mut s = self.sim.state_json();
         if let Some(o) = s.as_object_mut() {
             o.insert("ch".into(), json!(self.ch));
+            // A Device represents a connected supply, independently of its output state.
+            o.insert("connected".into(), json!(true));
             o.insert("cycling".into(), json!(self.cycle.is_some()));
         }
         s
@@ -240,7 +242,6 @@ impl Device {
         let mut s = self.state_payload();
         if let Some(o) = s.as_object_mut() {
             o.insert("idn".into(), json!(self.sim.idn()));
-            o.insert("connected".into(), json!(true));
             o.insert("poll_hz_req".into(), json!(POLL_HZ));
             o.insert("poll_hz_actual".into(), json!(self.rate_hz()));
             o.insert("samples".into(), json!(self.samples));

@@ -200,14 +200,15 @@ describe('new channel rule (UD-31)', () => {
 
   it('a channel already in the layout is not opened twice; uds.state target / eth.capture_state count too', () => {
     const { emit, services, advance } = mount();
-    emit(opened('uart', 'dut')); // m1-default already has uart.terminal dut
-    expect(services.uiState.extraSlots).toEqual([]);
+    act(() => services.uiState.addExtraSlot({ panel: 'uart.terminal', props: { channel: 'dut' } }));
+    emit(opened('uart', 'dut'));
+    expect(services.uiState.extraSlots).toEqual([{ panel: 'uart.terminal', props: { channel: 'dut' } }]);
     expect(toastTexts()).toEqual(['에이전트가 uart dut를 열었습니다']);
     advance(JOIN_GRACE_MS);
     emit(ev({ kind: 'uds.state', domain: 'uds', origin: 'agent', payload: { target: 'ecm', link: 'up' } }));
     expect(chip('uds/ecm')).not.toBeNull();
     emit(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'lan2', origin: 'agent', payload: { state: 'running' } }));
-    expect(services.uiState.extraSlots.map((s) => s.panel)).toEqual(['uds.console', 'eth.packets']);
+    expect(services.uiState.extraSlots.map((s) => s.panel)).toEqual(['uart.terminal', 'uds.console', 'eth.packets']);
   });
 
   it('close and generation change are reflected; re-open toasts again; repeated state reports do not', () => {
@@ -216,6 +217,8 @@ describe('new channel rule (UD-31)', () => {
     emit(opened('uart', 'dut2')); // still open → no new toast
     expect(toastTexts()).toHaveLength(1);
     emit(ev({ kind: 'uart.channel_state', domain: 'uart', channel: 'dut2', origin: 'agent', generation: 1, payload: { state: 'closed' } }));
+    expect(chip('uart/dut2')).toBeNull();
+    act(() => host.querySelector<HTMLButtonElement>('.explorer-inactive-toggle')!.click());
     expect(chip('uart/dut2')!.dataset.state).toBe('closed');
     expect(chip('uart/dut2')!.textContent).toContain('(닫힘)');
     emit(opened('uart', 'dut2', { generation: 2 }));
@@ -226,7 +229,9 @@ describe('new channel rule (UD-31)', () => {
   it('join grace: implicit state reports right after connecting are bar-only (they predate the tab)', () => {
     const { emit, services, advance } = mount();
     emit(ev({ kind: 'psu.state', domain: 'psu', channel: 'bench', origin: 'device', payload: { set_v: 13.5, out: true } }));
-    expect(chip('psu/bench')).not.toBeNull();
+    expect(chip('psu/bench')).toBeNull();
+    expect(services.shell.channels.get('psu/bench')?.state).toBe('unknown');
+    act(() => host.querySelector<HTMLButtonElement>('.explorer-inactive-toggle')!.click());
     expect(toastTexts()).toEqual([]);
     expect(services.uiState.extraSlots).toEqual([]);
     advance(JOIN_GRACE_MS);
@@ -296,7 +301,7 @@ describe('agent focus request (가리키기)', () => {
   });
 
   it('panel already on screen → no navigation, just reveal', () => {
-    const { emit, navs, services } = mount(); // m1-default has can.trace ch0
+    const { emit, navs, services } = mount({ hash: '#/p/can/trace?channel=ch0' });
     const reveals: string[] = [];
     services.uiHooks.onReveal?.((r) => {
       reveals.push(String(r.seqA));
