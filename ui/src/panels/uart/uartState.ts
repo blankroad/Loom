@@ -33,6 +33,12 @@ export interface UartPortState {
   status: string;
   baud: number | null;
   generation: number | null;
+  /** port target as reported by uart.state/uart.config (e.g. /dev/ttyUSB0, sim://bootshell) */
+  path?: string;
+  dataBits?: number;
+  parity?: string;
+  stopBits?: string;
+  flow?: string;
 }
 
 export const INITIAL_INPUT: UartInputState = {
@@ -92,12 +98,42 @@ export function reducePort(st: UartPortState, ev: LoomEvent): UartPortState {
 
 function reducePortState(st: UartPortState, payload: unknown, generation?: number | null): UartPortState {
   const p = obj(payload);
-  return {
+  const c = obj(p.config);
+  const next: UartPortState = {
     status: s(p.state) ?? s(p.status) ?? st.status,
-    baud: n(obj(p.config).baud) ?? n(p.baud) ?? st.baud,
+    baud: n(c.baud) ?? n(p.baud) ?? st.baud,
     generation: generation ?? n(p.generation) ?? st.generation,
   };
+  // optional fields stay absent until a real event/snapshot reports them (never invented)
+  const path = s(p.path) ?? s(c.path) ?? st.path;
+  const dataBits = n(c.data_bits) ?? n(p.data_bits) ?? st.dataBits;
+  const parity = s(c.parity) ?? s(p.parity) ?? st.parity;
+  const stopBits = stopText(c.stop_bits) ?? stopText(p.stop_bits) ?? st.stopBits;
+  const flow = s(c.flow) ?? s(p.flow) ?? st.flow;
+  if (path !== undefined) next.path = path;
+  if (dataBits !== undefined) next.dataBits = dataBits;
+  if (parity !== undefined) next.parity = parity;
+  if (stopBits !== undefined) next.stopBits = stopBits;
+  if (flow !== undefined) next.flow = flow;
+  return next;
 }
+
+const stopText = (v: unknown): string | null => (typeof v === 'string' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
+
+const PARITY_LETTER: Record<string, string> = { none: 'N', even: 'E', odd: 'O', mark: 'M', space: 'S' };
+
+/**
+ * CoolTerm-style frame notation "8-N-1" from the reported config. Unknown parts are '?';
+ * returns null when none of data bits / parity / stop bits has been reported (never assumes 8-N-1).
+ */
+export function frameText(p: UartPortState): string | null {
+  if (p.dataBits === undefined && p.parity === undefined && p.stopBits === undefined) return null;
+  const par = p.parity === undefined ? '?' : (PARITY_LETTER[p.parity.toLowerCase()] ?? p.parity);
+  return `${p.dataBits ?? '?'}-${par}-${p.stopBits ?? '?'}`;
+}
+
+/** true when the reported port status means the port is open for sending */
+export const isOpenStatus = (status: string): boolean => status.toLowerCase() === 'open';
 
 /** Native UART reducer state; metadata restoration never invents device bytes/events. */
 export function restoreUartState(value: unknown, nowMs: number): { port: UartPortState; input: UartInputState } {

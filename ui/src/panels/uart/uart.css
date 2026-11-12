@@ -1,0 +1,67 @@
+/* UART terminal (panels/uart) — CoolTerm-fidelity layout, scoped to .uart-panel.
+   Uses shell tokens (--line/--muted/--usr/--agt/--ok/--err/--warn/--raised). No global rules. */
+.uart-panel { container-type: inline-size; } /* toolbar collapses on narrow dock panes, not only narrow windows */
+.uart-panel [hidden] { display: none !important; }
+.uart-panel .uart-body { position: relative; overflow: hidden; }
+.uart-panel .uart-tools, .uart-panel .uart-ss, .uart-panel .uart-statusbar { flex-shrink: 0; }
+
+/* toolbar: icon over label (CoolTerm), flex spacer, lease group on the right */
+.uart-panel .uart-tools { gap: 6px; align-items: stretch; }
+.uart-panel .uart-flex { flex: 1 1 0; min-width: 0; }
+.uart-panel .uart-viewsw { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.uart-panel .uart-viewsw .uart-tool { border: 0; border-radius: 0; }
+.uart-panel .uart-viewsw .uart-tool + .uart-tool { border-left: 1px solid var(--line); }
+.uart-panel .uart-tool {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-width: 3.4em; padding: 3px 7px; background: transparent; color: inherit;
+  border: 1px solid transparent; border-radius: 6px; cursor: pointer; line-height: 1.1;
+}
+.uart-panel .uart-tool:hover:not(:disabled) { background: var(--raised); }
+.uart-panel .uart-tool[aria-pressed='true'], .uart-panel .uart-tool[aria-expanded='true'] { background: var(--raised); box-shadow: inset 0 -2px 0 var(--accent, var(--usr)); }
+.uart-panel .uart-tool-ico { font: 600 15px/1 ui-monospace, monospace; }
+.uart-panel .uart-tool-lbl { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.uart-panel .uart-lease { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+
+/* byte (HEX) view: original bytes, zebra rows, hex | ascii */
+.uart-panel .uart-bytes { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.uart-panel .uart-bytes-info { display: flex; gap: 8px; align-items: center; padding: 2px 8px; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--line); }
+.uart-panel .uart-bytes-meta { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uart-panel .uart-bytes-table { flex: 1; min-height: 0; }
+.uart-panel .uart-bytes-table .uart-zebra { background: rgb(118 199 192 / 6%); }
+.uart-panel .uart-bytes-table [data-dir='tx'] .uart-hex { color: var(--usr); }
+.uart-panel .uart-bytes-table [data-dir='tx'][data-origin='agent'] .uart-hex { color: var(--agt); }
+.uart-panel .uart-ascii { border-left: 1px solid var(--line); padding-left: 8px; white-space: pre; }
+.uart-panel .uart-hex { white-space: pre; }
+
+/* Send String drawer (CoolTerm "Send String (<port>)") */
+.uart-panel .uart-ss { border-top: 1px solid var(--line); padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.uart-panel .uart-ss-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.uart-panel .uart-ss-title { font-size: 12px; }
+.uart-panel .uart-ss-modes { display: inline-flex; gap: 10px; font-size: 12px; }
+.uart-panel .uart-ss-end { font-size: 12px; color: var(--muted); }
+.uart-panel .uart-ss-send { margin-left: auto; min-width: 5em; }
+.uart-panel .uart-ss-area { width: 100%; box-sizing: border-box; resize: vertical; min-height: 3.2em; font: 13px/1.35 ui-monospace, monospace; }
+.uart-panel .uart-ss-area[aria-invalid='true'] { outline: 1px solid var(--err); }
+.uart-panel .uart-ss-preview { font: 12px ui-monospace, monospace; color: var(--muted); overflow-wrap: anywhere; }
+.uart-panel .uart-ss-preview[data-state='error'] { color: var(--err); }
+
+/* status bar: line 1 port/config/observed counts + activity, line 2 = existing footer */
+.uart-panel .uart-statusbar { border-top: 1px solid var(--line); }
+.uart-panel .uart-statusbar .uart-foot { border-top: 0; }
+.uart-panel .uart-portline { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 3px 8px 0; font-size: 12px; }
+.uart-panel .uart-port { font-weight: 600; }
+.uart-panel .uart-cfg { font-family: ui-monospace, monospace; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uart-panel .uart-conn, .uart-panel .uart-counts { color: var(--muted); }
+.uart-panel .uart-leds { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); }
+.uart-panel .uart-led { width: 9px; height: 9px; border-radius: 50%; background: #23402c; border: 1px solid #0f2016; }
+.uart-panel .uart-led[data-on='true'] { background: var(--ok); box-shadow: 0 0 4px var(--ok); }
+.uart-panel .uart-led-lbl { font-size: 11px; margin-right: 4px; }
+
+@container (max-width: 720px) {
+  .uart-panel .uart-tool-lbl { display: none; }
+}
+@media (max-width: 720px) {
+  .uart-panel .uart-tool-lbl { display: none; }
+  .uart-panel .uart-tool { min-width: 2.4em; }
+  .uart-panel .uart-cfg { max-width: 60vw; }
+}

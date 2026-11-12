@@ -1,0 +1,13 @@
+# UART fidelity / DONE
+Model MUST be Claude Opus 5.5 (verify UI reports this; --model opus resolves 5.5 here, no model fallback). Foreground Herdr dedicated module; shared cwd Loom base26dc5e8. User wants service-by-service parallel work, not one broad worker. No subagents or background CLI, no git index/commit, no global security/config changes. Read MAIN.md in this directory and existing research/benchmark-uart.md selectively.
+
+Primary benchmark: CoolTerm
+Start official source: https://www.freeware.the-meiers.org/CoolTermHelp/
+Focus: Inspect actual official screenshots/options pages: connection status/port, toolbar, terminal view and HEX view, Raw vs Line mode, Send String dialog, line ending/flow control. Current Loom uses xterm VT immediate keystrokes; preserve interactive terminal and input arbitration even if CoolTerm is not a VT emulator. Do not silently replace terminal input with composer. Tera Term/PuTTY only secondary evidence; one coherent primary interaction model.
+
+PHASE1 immediately: directly inspect reference visuals, not just marketing feature lists. Use official manuals/screenshots/videos, save any public reference images with source URLs and distinction between screenshot and authored redraw. Do not reproduce logos or claim Loom is the reference app. Actual visual evidence / documented interaction / inference must be labeled separately. Own docs/impl/main/research/fidelity/uart.md and work/reports/fidelity/assets/uart/ only.
+Deliver concise but SPECIFIC fidelity matrix (~8–12 rows): reference area/control, source + screenshot/figure, actual interaction, current Loom location/gap, exact mapping, retained Loom safety/data semantics, intentional deviations/unimplemented backend. Include concrete panel layout plan and acceptance checks, identify shared SDK/global change dependencies. Real hardware and commercial app not run unless actually done. No broad popularity research again. Initial checkpoint ~3–4min. Return path READY_FOR_REVIEW and wait MAIN GO before touching product source.
+
+On product GO only, owner ui/src/panels/uart/ files and own scoped CSS/tests (can add panel-local style module, no global shell/SDK edits). Do not weaken tests, mock unimplemented data, or add unsupported controls as working. Main runs aggregate/build/actual Ego and report integration. Preserve all other service edits. No cross-service API edits; request main resolution.
+
+MAIN accepted source handoff and owns integration/Ego fixes; source frozen. Final implementation/checks/selectors in docs/impl/main/research/fidelity/uart.md. Foreground CLI normal exit, agent_not_found verified, owned workspace closed. No commit/index by worker.
