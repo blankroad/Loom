@@ -1,0 +1,94 @@
+/* eth.packets — panel-scoped styles (fidelity: docs/impl/main/research/fidelity/eth.md).
+   Every selector starts with .eth-panel; shell globals (shell.css) are left untouched. */
+
+/* ---- filter toolbar: validity lives on the field frame (Wireshark Fig 3.15) ---- */
+.eth-panel .eth-filter-row { display: flex; gap: 8px; align-items: center; }
+.eth-panel .eth-filter-row > label { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.eth-panel .eth-filter-frame {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--bg); padding: 0 2px;
+}
+.eth-panel .eth-filter-frame:focus-within { border-color: var(--accent); }
+.eth-panel .eth-filter-frame input {
+  flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--fg);
+  font: 12px ui-monospace, monospace; padding: 4px 4px;
+}
+.eth-panel .eth-filter-frame[data-validity='ok'] { background: #12301d; border-color: var(--ok); }
+.eth-panel .eth-filter-frame[data-validity='err'] { background: #3a1416; border-color: var(--err); }
+.eth-panel .eth-filter-frame[data-validity='fail'] { background: #33280f; border-color: var(--warn); }
+.eth-panel .eth-filter-frame[data-validity='checking'] { border-style: dashed; }
+.eth-panel .eth-filter-frame[data-dirty='true'] { box-shadow: inset 3px 0 0 var(--usr); }
+.eth-panel .eth-filter-frame button,
+.eth-panel .eth-filter-frame select {
+  border: 0; background: transparent; color: var(--muted); padding: 2px 6px; font-size: 12px; cursor: pointer;
+}
+.eth-panel .eth-filter-frame button:hover,
+.eth-panel .eth-filter-frame select:hover { color: var(--fg); background: var(--raised); }
+.eth-panel .eth-filter-frame .eth-filter-apply { color: var(--accent); font-weight: 700; }
+.eth-panel .eth-filter-frame .eth-filter-status { font-size: 11px; white-space: nowrap; }
+.eth-panel .eth-filter-applied { font-size: 11px; color: var(--muted); white-space: nowrap; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .eth-filter-applied[data-active='true'] { color: var(--ok); }
+
+/* ---- pane stack: list ═ details ═ bytes (Wireshark Fig 3.1) ---- */
+.eth-panel .eth-panes {
+  flex: 1; min-height: 0; display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows:
+    minmax(48px, var(--eth-fr-list, 45fr)) 7px auto
+    minmax(32px, var(--eth-fr-tree, 35fr)) 7px
+    minmax(28px, var(--eth-fr-bytes, 20fr));
+}
+.eth-panel .eth-panes > .eth-list { grid-row: 1; min-height: 0; flex: none; }
+.eth-panel .eth-panes > .eth-split-a { grid-row: 2; }
+.eth-panel .eth-panes > .eth-detail-bar { grid-row: 3; border-bottom: 1px solid var(--line); }
+.eth-panel .eth-treehex { display: contents; }
+.eth-panel .eth-treehex > .th-tree { grid-row: 4; min-height: 0; overflow: auto; }
+.eth-panel .eth-treehex > .eth-split-b { grid-row: 5; }
+.eth-panel .eth-treehex > .th-right { grid-row: 6; min-height: 0; overflow: auto; }
+
+.eth-panel .eth-split {
+  background: var(--chrome); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  cursor: row-resize; touch-action: none; position: relative;
+}
+.eth-panel .eth-split::after {
+  content: ''; position: absolute; left: 50%; top: 2px; width: 28px; height: 1px; margin-left: -14px;
+  border-top: 1px dotted var(--muted);
+}
+.eth-panel .eth-split:hover, .eth-panel .eth-split.dragging, .eth-panel .eth-split:focus-visible {
+  background: var(--accent); outline: none;
+}
+
+/* ---- packet list: dense rows, right-aligned length, unmistakable selection ---- */
+.eth-panel .eth-list .vt-head > :nth-child(7), .eth-panel .eth-list .vt-td.eth-num { text-align: right; font-variant-numeric: tabular-nums; }
+.eth-panel .eth-list .vt-row.selected,
+.eth-panel .eth-list .vt-row.selected[class*='c-'] {
+  background: #1f4f7a; color: #fff; box-shadow: inset 3px 0 0 var(--accent);
+}
+.eth-panel .eth-list .vt-row.selected .muted { color: #d6e4f2; }
+.eth-panel .eth-rel { text-align: center; font-weight: 700; }
+.eth-panel .eth-rel-exact { color: var(--accent); }
+.eth-panel .eth-rel-probable { color: var(--warn); }
+.eth-panel .eth-list .vt-row.selected .eth-rel { color: #fff; }
+
+/* ---- details tree + bytes ---- */
+.eth-panel .th-tree { font: 12px ui-monospace, monospace; padding: 2px 6px; }
+.eth-panel .th-node { line-height: 18px; }
+.eth-panel .th-node.selected { background: #1f4f7a; color: #fff; }
+.eth-panel .th-right { font: 12px ui-monospace, monospace; padding: 2px 6px; background: var(--bg); }
+/* 8|8 split like a canonical hexdump: child 1 = offset, children 2..17 = bytes */
+.eth-panel .th-line > .th-b:nth-child(10) { margin-left: 8px; }
+.eth-panel .th-b.hl, .eth-panel .th-char.hl { background: #4a90d9; color: #fff; }
+.eth-panel .th-char { cursor: pointer; }
+.eth-panel .th-ascii > .th-char:nth-child(9) { margin-left: 6px; }
+.eth-panel .th-node:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+/* ---- bottom status bar (Wireshark Fig 3.22/3.24) ---- */
+.eth-panel .eth-statusbar {
+  display: flex; gap: 0; align-items: center; min-height: 22px; font-size: 12px;
+  border-top: 1px solid var(--line); background: var(--chrome); color: var(--muted);
+}
+.eth-panel .eth-statusbar > span { padding: 2px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .eth-statusbar > span + span { border-left: 1px solid var(--line); }
+.eth-panel .eth-statusbar .eth-sb-field { flex: 1; min-width: 0; }
+.eth-panel .eth-statusbar[data-selected='packet'] .eth-sb-field { color: var(--fg); }
+.eth-panel .eth-tx { border-top: 1px solid var(--line); }

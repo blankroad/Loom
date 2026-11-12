@@ -3,6 +3,12 @@
 // Error → underline at `pos` + message; OK → [적용] pushes the filter down.
 // Saved filters and apply history live in localStorage (per-viewer convenience,
 // try/catch — works without storage). C2: 20 entries each.
+//
+// Fidelity (research/fidelity/eth.md row 3, Wireshark filter toolbar Fig 3.15): the input
+// itself carries validity — `data-validity` idle | checking | ok | err | fail drives a
+// green / red background — and whether the edit differs from the applied filter
+// (`data-dirty`). Apply (→, Enter) and Clear (✕) sit inside the field frame; the field
+// language stays Loom's server grammar (no Wireshark-equivalence claim).
 
 export interface FilterCheck {
   ok: boolean;
@@ -44,6 +50,8 @@ export class FilterBar {
   private readonly status: HTMLSpanElement;
   private readonly errEl: HTMLDivElement;
   private readonly listEl: HTMLSelectElement;
+  private readonly frame: HTMLDivElement;
+  private readonly appliedEl: HTMLSpanElement;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private ac: AbortController | null = null;
   private last: { expr: string; res: FilterCheck } | null = null;
@@ -57,18 +65,31 @@ export class FilterBar {
   ) {
     this.el = document.createElement('div');
     this.el.className = 'eth-filter';
-    const label = document.createElement('span');
+    const label = document.createElement('label');
     label.textContent = '표시 필터';
     this.input = document.createElement('input');
-    this.input.placeholder = 'doip && doip.target_address == 0x1001';
+    this.input.id = `eth-filter-${Math.random().toString(36).slice(2, 8)}`;
+    label.htmlFor = this.input.id;
+    this.input.placeholder = '표시 필터 (Loom 문법) 예: doip && doip.target_address == 0x1001 — Ctrl+/';
     this.input.spellcheck = false;
     this.input.setAttribute('aria-label', '표시 필터');
     this.input.setAttribute('data-testid', 'eth-filter-input');
     this.status = document.createElement('span');
     this.status.className = 'eth-filter-status';
     this.status.setAttribute('data-testid', 'eth-filter-status');
-    const applyBtn = this.button('적용', () => void this.applyNow());
-    const saveBtn = this.button('저장', () => this.save());
+    const clearBtn = this.button('✕', () => void this.clear());
+    clearBtn.className = 'eth-filter-clear';
+    clearBtn.title = '표시 필터 지우기 — 전체 표시로 되돌림 (캡처 필터는 그대로)';
+    clearBtn.setAttribute('aria-label', '표시 필터 지우기');
+    clearBtn.setAttribute('data-testid', 'eth-filter-clear');
+    const applyBtn = this.button('→ 적용', () => void this.applyNow());
+    applyBtn.className = 'eth-filter-apply';
+    applyBtn.title = '표시 필터 적용 (Enter) — 저장된 기록은 바뀌지 않음';
+    applyBtn.setAttribute('data-testid', 'eth-filter-apply');
+    const saveBtn = this.button('★', () => this.save());
+    saveBtn.className = 'eth-filter-save';
+    saveBtn.title = '이 필터를 저장';
+    saveBtn.setAttribute('aria-label', '표시 필터 저장');
     this.listEl = document.createElement('select');
     this.listEl.setAttribute('aria-label', '저장·이력');
     this.listEl.addEventListener('change', () => {
@@ -82,18 +103,36 @@ export class FilterBar {
     this.errEl.className = 'eth-filter-err';
     this.errEl.hidden = true;
     this.errEl.setAttribute('data-testid', 'eth-filter-err');
+    this.frame = document.createElement('div');
+    this.frame.className = 'eth-filter-frame';
+    this.frame.setAttribute('data-testid', 'eth-filter-frame');
+    this.frame.append(saveBtn, this.input, this.status, clearBtn, applyBtn, this.listEl);
+    this.appliedEl = document.createElement('span');
+    this.appliedEl.className = 'eth-filter-applied';
+    this.appliedEl.setAttribute('data-testid', 'eth-filter-applied');
     const row = document.createElement('div');
     row.className = 'eth-filter-row';
-    row.append(label, this.input, this.status, applyBtn, saveBtn, this.listEl);
+    row.append(label, this.frame, this.appliedEl);
     this.el.append(row, this.errEl);
+    this.setValidity('idle');
     host.append(this.el);
     this.renderList();
 
-    this.input.addEventListener('input', () => this.schedule(this.o.debounceMs ?? 150));
+    this.input.addEventListener('input', () => {
+      this.setValidity(this.input.value.trim() === '' ? 'idle' : 'checking');
+      this.schedule(this.o.debounceMs ?? 150);
+    });
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         void this.applyNow();
+      } else if (e.key === 'Escape' && this.input.value.trim() !== this.applied) {
+        // revert the edit to the applied filter (the view is unchanged until applied)
+        e.preventDefault();
+        e.stopPropagation();
+        this.input.value = this.applied;
+        this.schedule(0);
+        this.syncDirty();
       }
     });
   }
@@ -106,6 +145,7 @@ export class FilterBar {
       if (!res || !res.ok) return false;
     }
     this.applied = expr;
+    this.syncDirty();
     if (expr) {
       this.history = [expr, ...this.history.filter((h) => h !== expr)].slice(0, MAX_LIST);
       store(HIST_KEY, this.history);
@@ -113,6 +153,41 @@ export class FilterBar {
     }
     this.o.apply(expr);
     return true;
+  }
+
+  /** Clear (✕): empty the field and apply "no display filter" when one is applied. */
+  async clear(): Promise<void> {
+    this.input.value = '';
+    this.last = null;
+    this.status.textContent = '';
+    delete this.status.dataset.state;
+    this.errEl.hidden = true;
+    this.setValidity('idle');
+    if (this.applied !== '') await this.applyNow();
+    else this.syncDirty();
+  }
+
+  focus(): void {
+    this.input.focus();
+    this.input.select();
+  }
+
+  /** green / red field background (Wireshark filter toolbar semantics) */
+  private setValidity(v: 'idle' | 'checking' | 'ok' | 'err' | 'fail'): void {
+    this.input.dataset.validity = v;
+    this.frame.dataset.validity = v;
+    this.input.setAttribute('aria-invalid', String(v === 'err'));
+    this.syncDirty();
+  }
+
+  /** edit ≠ applied → the list still shows the applied filter; say so */
+  private syncDirty(): void {
+    const dirty = this.input.value.trim() !== this.applied;
+    this.frame.dataset.dirty = String(dirty);
+    this.appliedEl.dataset.active = String(this.applied !== '');
+    this.appliedEl.textContent =
+      this.applied === '' ? (dirty ? '미적용 — Enter로 적용' : '필터 없음 · 전체 표시') : dirty ? `적용 중: ${this.applied} · 편집 미적용 (Esc 되돌림)` : '적용 중';
+    this.appliedEl.title = this.applied ? `적용된 표시 필터: ${this.applied}` : '';
   }
 
   dispose(): void {
@@ -130,6 +205,7 @@ export class FilterBar {
         this.last = null;
         this.status.textContent = '';
         this.errEl.hidden = true;
+        this.setValidity('idle');
         return;
       }
       void this.check(expr);
@@ -143,6 +219,7 @@ export class FilterBar {
     const now = this.o.now ?? (() => performance.now());
     const t0 = now();
     this.status.textContent = '검사 중…';
+    this.setValidity('checking');
     try {
       const res = await this.o.check(expr, ac.signal);
       if (ac.signal.aborted) return null;
@@ -154,6 +231,7 @@ export class FilterBar {
       if (!ac.signal.aborted) {
         this.status.textContent = `검사 실패: ${e instanceof Error ? e.message : String(e)}`;
         this.status.dataset.state = 'fail';
+        this.setValidity('fail');
       }
       return null;
     }
@@ -162,6 +240,7 @@ export class FilterBar {
   private render(expr: string, res: FilterCheck, ms: number): void {
     this.status.dataset.state = res.ok ? 'ok' : 'err';
     this.status.textContent = res.ok ? `✓ ${ms} ms` : `✗ ${ms} ms`;
+    this.setValidity(res.ok ? 'ok' : 'err');
     if (res.ok) {
       this.errEl.hidden = true;
       this.errEl.replaceChildren();
@@ -202,7 +281,7 @@ export class FilterBar {
       return o;
     };
     this.listEl.replaceChildren(
-      opt('', '저장·이력 ▾'),
+      opt('', '▾'),
       ...(this.saved.length ? [opt('', '— 저장', true), ...this.saved.map((s) => opt(s, s))] : []),
       ...(this.history.length ? [opt('', '— 이력', true), ...this.history.map((s) => opt(s, s))] : []),
     );

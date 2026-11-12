@@ -8,6 +8,11 @@
 //   TX rows      eth.tx via RowTable (stages + "NIC 관찰 ✓")
 //   detail       tree ↔ hex (two-way range sync) + row actions
 //
+// Fidelity (docs/impl/main/research/fidelity/eth.md, Wireshark main window Fig 3.1):
+//   capture strip / filter / mode → [ list ═ details(tree) ═ bytes ] as ONE vertical stack with
+//   two draggable+keyboard separators (role=separator) → bottom status bar (selection feedback,
+//   shown/kept counts) → send drawer. Related-packet glyphs come only from eth.link facts.
+//
 // Honesty (eth-ui §실시간성): the live list may be sampled; pausing (Space), scrolling
 // back or changing the filter switches to `eth.query` over the journal so a complete
 // range is shown and labelled as such. Kernel drops (source.gap) become red gap rows and
@@ -55,6 +60,7 @@ import {
   type TimeMode,
 } from './ethModel';
 import { FilterBar } from './filterBar';
+import './eth.css';
 
 export const QUERY_MAX = 2_000;
 const MAX_PENDING_LINKS = 2_000; // links for packets not seen yet (C2)
@@ -65,6 +71,38 @@ const ORG: Record<string, [string, string]> = {
   device: ['DEV', 'org org-dev'],
   script: ['SCR', 'org org-scr'],
 };
+
+/** list / tree / bytes share of the pane stack (fr units, sum 100). Per-viewer, storage optional. */
+export const PANE_KEY = 'loom.eth.panes';
+export const PANE_DEFAULT: readonly [number, number, number] = [45, 35, 20];
+const PANE_MIN = 10;
+const PANE_STEP = 5;
+function loadPanes(): [number, number, number] {
+  try {
+    const v = JSON.parse(localStorage.getItem(PANE_KEY) ?? 'null') as unknown;
+    if (Array.isArray(v) && v.length === 3 && v.every((x) => typeof x === 'number' && x >= PANE_MIN) && Math.abs(v[0] + v[1] + v[2] - 100) < 0.5) {
+      return [v[0], v[1], v[2]];
+    }
+  } catch {
+    /* storage unavailable / corrupt → defaults */
+  }
+  return [...PANE_DEFAULT];
+}
+function savePanes(v: readonly number[]): void {
+  try {
+    localStorage.setItem(PANE_KEY, JSON.stringify(v.map((x) => Math.round(x * 10) / 10)));
+  } catch {
+    /* keep in memory only */
+  }
+}
+
+/** Related-packet glyph (Wireshark Table 3.16 subset): only rows sharing a UDS request_id via eth.link. */
+export function relGlyph(role: string, confidence: string): string {
+  const exact = confidence === 'exact';
+  if (role === 'request') return exact ? '→' : '⇢';
+  if (role === 'response') return exact ? '←' : '⇠';
+  return exact ? '•' : '◦';
+}
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag);
@@ -109,6 +147,8 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   let detailMs: number | null = null;
   let itemsDirty = true;
   let prevMono = new Map<string, bigint>();
+  let relRid: string | null = null; // request_id of the selected packet's eth.link
+  let panes = loadPanes();
 
   // ---- DOM ----
   const root = el('div', 'eth-panel');
@@ -127,7 +167,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   const permEl = el('div', 'eth-perm');
   permEl.hidden = true;
 
-  const filterHost = el('div');
+  const filterHost = el('div', 'eth-filter-host');
   const modeBar = el('div', 'eth-mode');
   const modeBadge = el('span', 'eth-badge');
   modeBadge.setAttribute('data-testid', 'eth-mode');
@@ -138,16 +178,17 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   for (const [v, t] of [['rel', '캡처 시작 기준'], ['abs', '절대 시각'], ['delta', '이전 행 대비'], ['ref', '기준 행 대비']] as const) {
     timeSel.append(Object.assign(el('option', undefined, t), { value: v }));
   }
-  const keepEl = el('span', 'muted');
-  modeBar.append(modeBadge, pauseBtn, timeSel, keepEl);
+  const keepEl = el('span', 'muted eth-sb-keep');
+  keepEl.setAttribute('data-testid', 'eth-sb-keep');
+  modeBar.append(modeBadge, pauseBtn, timeSel);
 
   const listHost = el('div', 'eth-list');
   const txWrap = el('details', 'eth-tx');
   const txSum = el('summary', undefined, '송신');
   const txHost = el('div', 'eth-tx-host');
   txWrap.append(txSum, txHost);
-  const detail = el('div', 'eth-detail');
   const detailBar = el('div', 'eth-detail-bar');
+  detailBar.setAttribute('data-testid', 'eth-detail-bar');
   const resendBtn = el('button', undefined, '재전송');
   const editBtn = el('button', undefined, '편집 후 송신…');
   const sockBtn = el('button', undefined, 'UDP/TCP 송신…');
@@ -157,13 +198,98 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   detailInfo.setAttribute('data-testid', 'eth-detail-info');
   for (const b of [resendBtn, editBtn, sockBtn, refBtn, copyBtn]) b.type = 'button';
   detailBar.append(resendBtn, editBtn, sockBtn, refBtn, copyBtn, detailInfo);
-  const treeHost = el('div', 'eth-treehex');
-  detail.append(detailBar, treeHost);
-  const dialogHost = el('div');
-  root.append(status, permEl, filterHost, modeBar, listHost, txWrap, detail, dialogHost);
-
-  const treeHex = new TreeHex(treeHost);
+  // pane stack: list ═ (detail bar) details ═ bytes. TreeHex's root is `display: contents`
+  // (eth.css) so its tree and bytes become separate grid rows of this stack.
+  const panesEl = el('div', 'eth-panes');
+  panesEl.setAttribute('data-testid', 'eth-panes');
+  const splitA = el('div', 'eth-split eth-split-a');
+  const splitB = el('div', 'eth-split eth-split-b');
+  panesEl.append(listHost, splitA, detailBar);
+  // Wireshark details pane: protocol layers start collapsed; node selection feeds the status bar.
+  const treeHex = new TreeHex(panesEl, { collapseTopLayers: true, onSelectNode: () => ctx.scheduler.invalidate() });
+  // DOM order = visual order (tab / screen reader): tree, separator, bytes
+  treeHex.root.insertBefore(splitB, treeHex.root.querySelector('.th-right'));
+  treeHex.root.classList.add('eth-treehex');
   treeHex.clear('행을 고르면 상세 트리와 바이트가 보입니다');
+
+  const statusBar = el('div', 'eth-statusbar');
+  statusBar.setAttribute('data-testid', 'eth-statusbar');
+  statusBar.setAttribute('role', 'status');
+  const sbField = el('span', 'eth-sb-field');
+  sbField.setAttribute('data-testid', 'eth-sb-field');
+  const sbCount = el('span', 'eth-sb-count');
+  sbCount.setAttribute('data-testid', 'eth-sb-count');
+  statusBar.append(sbField, sbCount, keepEl);
+  const dialogHost = el('div');
+  root.append(status, permEl, filterHost, modeBar, panesEl, statusBar, txWrap, dialogHost);
+
+  // ---- resizable pane boundaries (pointer drag + keyboard) ----
+  const applyPanes = () => {
+    panesEl.style.setProperty('--eth-fr-list', `${panes[0]}fr`);
+    panesEl.style.setProperty('--eth-fr-tree', `${panes[1]}fr`);
+    panesEl.style.setProperty('--eth-fr-bytes', `${panes[2]}fr`);
+    splitA.setAttribute('aria-valuenow', String(Math.round(panes[0])));
+    splitB.setAttribute('aria-valuenow', String(Math.round(panes[0] + panes[1])));
+  };
+  /** move boundary `i` (0 = list|details, 1 = details|bytes) by `d` fr, clamped to PANE_MIN */
+  const moveSplit = (i: 0 | 1, d: number, persist = true) => {
+    const next: [number, number, number] = [...panes];
+    const a = next[i];
+    const b = next[i + 1] as number;
+    const step = Math.max(PANE_MIN - a, Math.min(d, b - PANE_MIN));
+    next[i] = a + step;
+    next[i + 1] = b - step;
+    panes = next;
+    applyPanes();
+    if (persist) savePanes(panes);
+  };
+  const setupSplit = (sp: HTMLDivElement, i: 0 | 1, name: string, testid: string) => {
+    sp.setAttribute('role', 'separator');
+    sp.setAttribute('aria-orientation', 'horizontal');
+    sp.setAttribute('aria-label', name);
+    sp.setAttribute('aria-valuemin', String(PANE_MIN));
+    sp.setAttribute('aria-valuemax', String(100 - PANE_MIN));
+    sp.setAttribute('data-testid', testid);
+    sp.tabIndex = 0;
+    sp.title = `${name} — 끌기 또는 ↑/↓, 더블클릭 기본값`;
+    sp.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowUp' ? -PANE_STEP : e.key === 'ArrowDown' ? PANE_STEP : e.key === 'Home' ? -100 : e.key === 'End' ? 100 : 0;
+      if (!d) return;
+      e.preventDefault();
+      e.stopPropagation();
+      moveSplit(i, d);
+    });
+    sp.addEventListener('dblclick', () => {
+      panes = [...PANE_DEFAULT];
+      applyPanes();
+      savePanes(panes);
+    });
+    sp.addEventListener('pointerdown', (e) => {
+      const px = listHost.getBoundingClientRect().height + (treeHex.root.querySelector('.th-tree')?.getBoundingClientRect().height ?? 0) + (treeHex.root.querySelector('.th-right')?.getBoundingClientRect().height ?? 0);
+      if (px <= 0) return;
+      e.preventDefault();
+      sp.setPointerCapture?.(e.pointerId);
+      sp.classList.add('dragging');
+      let lastY = e.clientY;
+      const move = (m: PointerEvent) => {
+        moveSplit(i, ((m.clientY - lastY) / px) * 100, false);
+        lastY = m.clientY;
+      };
+      const up = () => {
+        sp.classList.remove('dragging');
+        sp.removeEventListener('pointermove', move);
+        sp.removeEventListener('pointerup', up);
+        sp.removeEventListener('pointercancel', up);
+        savePanes(panes);
+      };
+      sp.addEventListener('pointermove', move);
+      sp.addEventListener('pointerup', up);
+      sp.addEventListener('pointercancel', up);
+    });
+  };
+  setupSplit(splitA, 0, '패킷 목록 | 상세 경계', 'eth-split-list');
+  setupSplit(splitB, 1, '상세 | 바이트 경계', 'eth-split-bytes');
+  applyPanes();
 
   const act = (id: string, params: object) =>
     ctx.act(id, params).catch((e: unknown) => {
@@ -174,6 +300,15 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   // ---- list ----
   const items = (): PktRow[] => (mode === 'complete' ? (complete?.rows ?? []) : live.rows);
   const cols: Column<PktRow>[] = [
+    {
+      key: 'rel',
+      header: '',
+      width: '1.6em',
+      cell: (r) => {
+        if (!relRid || r.kind !== 'pkt' || r.link?.requestId !== relRid) return '';
+        return { text: relGlyph(r.link.role, r.link.confidence), cls: `eth-rel eth-rel-${r.link.confidence === 'exact' ? 'exact' : 'probable'}`, title: `선택 행과 같은 UDS 요청 ${relRid} · ${r.link.role} (${r.link.confidence})` };
+      },
+    },
     { key: 'seq', header: 'seq', width: '6em', cell: (r) => (r.kind === 'gap' && r.gap ? { text: gapRowText(r.gap), cls: 'gap-text' } : String(r.seq)) },
     {
       key: 'time',
@@ -184,7 +319,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     { key: 'src', header: '출발지', width: '10em', cell: (r) => r.src },
     { key: 'dst', header: '목적지', width: '10em', cell: (r) => r.dst },
     { key: 'proto', header: '프로토콜', width: '6.5em', cell: (r) => r.proto },
-    { key: 'len', header: '길이', width: '3.5em', cell: (r) => (r.kind === 'pkt' ? String(r.len) : '') },
+    { key: 'len', header: '길이', width: '4em', cell: (r) => (r.kind === 'pkt' ? { text: String(r.len), cls: 'eth-num' } : '') },
     { key: 'info', header: '정보', width: '1fr', cell: (r) => r.info },
     {
       key: 'link',
@@ -325,6 +460,8 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     detailAc?.abort();
     detailHex = null;
     selected = key ? (items().find((r) => r.key === key) ?? null) : null;
+    relRid = selected?.kind === 'pkt' ? (selected.link?.requestId ?? null) : null;
+    itemsDirty = true; // re-render related-packet glyphs
     if (!selected || selected.kind !== 'pkt') {
       treeHex.clear(selected ? '손실 구간 — 상세 없음' : '행을 고르면 상세 트리와 바이트가 보입니다');
       ctx.scheduler.invalidate();
@@ -393,9 +530,30 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       .then(() => ctx.ui.toast(`복사: ${selected?.ref}`))
       .catch(() => ctx.ui.toast(selected?.ref ?? ''));
   });
+  const stepPacket = (dir: 1 | -1) => {
+    const list = items().filter((r) => r.kind === 'pkt');
+    if (!list.length) return;
+    const i = selected ? list.findIndex((r) => r.key === selected!.key) : -1;
+    const j = i < 0 ? (dir > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, i + dir));
+    const key = list[j]!.key;
+    table.select(key);
+    table.reveal(key);
+  };
   root.addEventListener('keydown', (e) => {
+    // Wireshark Table 3.1 subset: Ctrl+/ filter focus, F8/Ctrl+↓ next, F7/Ctrl+↑ previous packet
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      filter.focus();
+      return;
+    }
+    if (e.key === 'F8' || e.key === 'F7' || ((e.ctrlKey || e.metaKey) && (e.key === 'ArrowDown' || e.key === 'ArrowUp'))) {
+      e.preventDefault();
+      stepPacket(e.key === 'F8' || e.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
     const tag = (e.target as HTMLElement).tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if ((e.target as HTMLElement).closest?.('.th-tree, .eth-split')) return; // tree keys (fold/toggle) stay in the tree
     if (e.key === ' ' && !e.repeat) {
       e.preventDefault();
       togglePause();
@@ -556,6 +714,31 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         modeBadge.textContent = `완전(저널 기준) · ${complete.rows.length.toLocaleString('ko-KR')}행${r}${complete.truncated ? ` · 최대 ${QUERY_MAX.toLocaleString('ko-KR')}행 — 범위를 좁히세요` : ''}`;
       }
     }
+    // bottom status bar (Wireshark Fig 3.22/3.24): selected field · shown/kept · selection
+    const sel = selected;
+    const fieldLabel = treeHex.selectedLabel;
+    const hl = treeHex.highlighted;
+    statusBar.dataset.selected = sel?.kind === 'pkt' ? 'packet' : sel ? 'gap' : 'none';
+    sbField.textContent =
+      sel?.kind === 'pkt' && fieldLabel
+        ? `${fieldLabel}${hl ? ` · ${hl.len} byte${hl.len === 1 ? '' : 's'} @0x${hl.off.toString(16).padStart(4, '0')}` : ''}`
+        : sel?.kind === 'pkt'
+          ? `선택 seq ${sel.seq} · ${sel.proto} · ${sel.len} B${relRid ? ` · UDS ${relRid}` : ''}`
+          : sel
+            ? '손실 구간 선택 — 상세 없음'
+            : '패킷 선택 없음 — ↑/↓ 또는 F7/F8';
+    const shown = items();
+    let nPkt = 0;
+    let nGap = 0;
+    for (const r of shown) {
+      if (r.kind === 'pkt') nPkt++;
+      else nGap++;
+    }
+    const fx = filter.applied ? `표시 필터 적용(서버)` : '표시 필터 없음';
+    sbCount.textContent =
+      mode === 'complete'
+        ? `완전 범위 패킷 ${nPkt.toLocaleString('ko-KR')}${nGap ? ` · 손실 행 ${nGap}` : ''} · ${fx}`
+        : `라이브 표시 패킷 ${nPkt.toLocaleString('ko-KR')}${nGap ? ` · 손실 행 ${nGap}` : ''} · ${fx}`;
     keepEl.textContent = `보관 ${live.rows.length.toLocaleString('ko-KR')}행${live.evicted ? ` · 이전 ${live.evicted.toLocaleString('ko-KR')}행 보관 범위 밖 → 일시정지하면 저널에서 조회` : ''}`;
 
     // actions

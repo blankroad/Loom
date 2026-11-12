@@ -412,3 +412,154 @@ describe('ethModel', () => {
     expect(gapRow('source.gap', 'unknown', 'kernel_drop', null, null, 5n).gap!.count).toBe('unknown');
   });
 });
+
+// ---- fidelity (docs/impl/main/research/fidelity/eth.md): Wireshark-style pane stack ----
+describe('eth.packets fidelity layout & interaction', () => {
+  const q = <T extends HTMLElement = HTMLElement>(sel: string) => h!.host.querySelector<T>(sel)!;
+  const showDetail = () =>
+    h!.net.responders.set('eth.show', (p) => ({
+      schema_version: 1, ok: true, cmd: 'eth.show',
+      data: fixtureDetail((p as { ref: string }).ref),
+      meta: { record_health: 'ok', latch: false, stream_epoch: '1' },
+      others_since_last: { count: '0' },
+    }));
+
+  it('vertical order: capture strip → filter → mode → [list ═ details ═ bytes] → status bar → send drawer', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const root = q('.eth-panel');
+    const order = [...root.children].map((c) => c.getAttribute('data-testid') ?? c.className);
+    const at = (k: string) => order.findIndex((o) => o.includes(k));
+    expect(at('eth-status')).toBeLessThan(at('eth-filter'));
+    expect(at('eth-filter')).toBeLessThan(at('eth-mode'));
+    expect(at('eth-mode')).toBeLessThan(at('eth-panes'));
+    expect(at('eth-panes')).toBeLessThan(at('eth-statusbar'));
+    expect(at('eth-statusbar')).toBeLessThan(at('eth-tx'));
+    const panes = q('[data-testid="eth-panes"]');
+    const seq = [...panes.querySelectorAll('.eth-list, .eth-split, .eth-detail-bar, .th-tree, .th-right')].map((e) =>
+      e.classList.contains('eth-split') ? (e.classList.contains('eth-split-a') ? 'split-a' : 'split-b') : e.className.split(' ')[0],
+    );
+    expect(seq).toEqual(['eth-list', 'split-a', 'eth-detail-bar', 'th-tree', 'split-b', 'th-right']);
+    // tree and bytes are separate grid rows of the stack (TreeHex root is display:contents via eth.css)
+    expect(q('.eth-treehex').parentElement).toBe(panes);
+  });
+
+  it('pane boundaries are keyboard separators: clamp, persist, reset; corrupt storage → defaults', () => {
+    localStorage.setItem('loom.eth.panes', '{bad');
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const panes = q('[data-testid="eth-panes"]');
+    const a = q('[data-testid="eth-split-list"]');
+    const b = q('[data-testid="eth-split-bytes"]');
+    expect(a.getAttribute('role')).toBe('separator');
+    expect(a.tabIndex).toBe(0);
+    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('45fr');
+    a.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('50fr');
+    expect(panes.style.getPropertyValue('--eth-fr-tree')).toBe('30fr');
+    expect(a.getAttribute('aria-valuenow')).toBe('50');
+    b.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(panes.style.getPropertyValue('--eth-fr-tree')).toBe('10fr'); // Home: boundary up, tree clamped to min, bytes grow
+    expect(panes.style.getPropertyValue('--eth-fr-bytes')).toBe('40fr');
+    expect(JSON.parse(localStorage.getItem('loom.eth.panes')!)).toEqual([50, 10, 40]);
+    a.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('45fr');
+    localStorage.removeItem('loom.eth.panes');
+  });
+
+  it('filter field validity (green/red), applied vs edited, Esc revert, ✕ clear re-applies "no filter"', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.filter.check', (p) => ((p as { expr: string }).expr === 'doip.type ==' ? { ok: false, pos: 12, expected: '값' } : { ok: true }));
+    h.net.responders.set('eth.query', () => ({ rows: fixtureQueryRows(3), range: { from: '50000', to: '50002' } }));
+    const input = q<HTMLInputElement>('[data-testid="eth-filter-input"]');
+    const frame = q('[data-testid="eth-filter-frame"]');
+    const applied = q('[data-testid="eth-filter-applied"]');
+    expect(frame.dataset.validity).toBe('idle');
+    expect(applied.textContent).toBe('필터 없음 · 전체 표시');
+    input.value = 'doip.type ==';
+    input.dispatchEvent(new Event('input'));
+    expect(frame.dataset.validity).toBe('checking');
+    await vi.advanceTimersByTimeAsync(160);
+    expect(frame.dataset.validity).toBe('err');
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    input.value = 'doip';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(160);
+    expect(frame.dataset.validity).toBe('ok');
+    expect(frame.dataset.dirty).toBe('true');
+    q('[data-testid="eth-filter-apply"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(h.net.subs[1]!.filter.ext).toEqual({ eth_filter: 'doip' });
+    expect(frame.dataset.dirty).toBe('false');
+    expect(applied.dataset.active).toBe('true');
+    // edit without applying: the list still reflects the applied filter, and says so
+    input.value = 'arp';
+    input.dispatchEvent(new Event('input'));
+    expect(applied.textContent).toContain('적용 중: doip · 편집 미적용');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(input.value).toBe('doip');
+    expect(frame.dataset.dirty).toBe('false');
+    // ✕ clears and applies "no display filter" (capture filter untouched)
+    q('[data-testid="eth-filter-clear"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(input.value).toBe('');
+    expect(h.net.subs.at(-1)!.filter.ext ?? null).toBeNull();
+    expect(applied.dataset.active).toBe('false');
+    expect(h.net.calls.some((c) => c.method === 'eth.capture.stop' || c.method === 'eth.capture.start')).toBe(false);
+  });
+
+  it('selection feedback: highlighted row, status bar packet → field (label · bytes @off), Space in tree does not pause', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    showDetail();
+    h.batch(fixtureEvents());
+    const sb = q('[data-testid="eth-statusbar"]');
+    expect(sb.dataset.selected).toBe('none');
+    expect(q('[data-testid="eth-sb-count"]').textContent).toContain('라이브 표시 패킷 7');
+    pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();
+    await flush(h);
+    expect(pktRows(h)[1]!.classList.contains('selected')).toBe(true);
+    expect(sb.dataset.selected).toBe('packet');
+    expect(q('[data-testid="eth-sb-field"]').textContent).toBe('선택 seq 41240 · DoIP/UDS · 69 B · UDS t-000418');
+    // details start with protocol layers collapsed (Wireshark default)
+    expect([...h.host.querySelectorAll<HTMLElement>('.th-tree .th-kids')].every((k) => k.hidden)).toBe(true);
+    h.host.querySelector<HTMLElement>('.th-b[data-off="62"]')!.click();
+    h.frame();
+    expect(q('[data-testid="eth-sb-field"]').textContent).toBe('Source address: 0x0E80 · 2 bytes @0x003e');
+    const node = h.host.querySelector<HTMLElement>('.th-tree .th-node')!;
+    node.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    h.frame();
+    expect(q('[data-testid="eth-mode"]').textContent).toContain('라이브');
+  });
+
+  it('related-packet glyphs only from verified eth.link request_id pairing (exact → / probable ⇠); none otherwise', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    showDetail();
+    h.batch(fixtureEvents());
+    const glyphs = () => pktRows(h!).map((r) => r.querySelector('.vt-td')!.textContent);
+    expect(glyphs().every((g) => g === '')).toBe(true);
+    pktRows(h)[1]!.querySelector<HTMLElement>('.vt-td')!.click();
+    await flush(h);
+    expect(glyphs()).toEqual(['', '→', '⇠', '', '', '', '']);
+    // NRC row from the same addresses but no eth.link → no glyph anywhere (no src/dst heuristic)
+    pktRows(h)[3]!.querySelector<HTMLElement>('.vt-td')!.click();
+    await flush(h);
+    expect(glyphs().every((g) => g === '')).toBe(true);
+  });
+
+  it('F8 / F7 step packets (skipping gap rows); Ctrl+/ focuses the display filter', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    showDetail();
+    h.batch(fixtureEvents());
+    const root = q('.eth-panel');
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'F8', bubbles: true }));
+    await flush(h);
+    expect(pktRows(h)[0]!.classList.contains('selected')).toBe(true);
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'F8', bubbles: true }));
+    await flush(h);
+    expect(pktRows(h)[1]!.classList.contains('selected')).toBe(true);
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'F7', bubbles: true }));
+    await flush(h);
+    expect(pktRows(h)[0]!.classList.contains('selected')).toBe(true);
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: '/', ctrlKey: true, bubbles: true }));
+    expect(document.activeElement).toBe(q('[data-testid="eth-filter-input"]'));
+  });
+});
