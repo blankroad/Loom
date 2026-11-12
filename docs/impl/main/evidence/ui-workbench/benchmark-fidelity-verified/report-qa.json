@@ -1,0 +1,22 @@
+{
+  "images": {
+    "total": 15,
+    "loaded": 15
+  },
+  "zoom": true,
+  "escape": true,
+  "layout": [
+    {
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "overflow": false
+    }
+  ]
+}

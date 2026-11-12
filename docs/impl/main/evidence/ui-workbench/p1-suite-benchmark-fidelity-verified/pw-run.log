@@ -1,0 +1,13 @@
+
+Running 5 tests using 1 worker
+
+(node:8656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/real-smoke.spec.ts:39:1 › real UART agent trace, browser input and STOP (1.6s)
+  ✓  2 e2e/real-smoke.spec.ts:71:1 › real CAN agent frames, browser send and STOP (2.3s)
+  ✓  3 e2e/real-smoke.spec.ts:109:1 › real UDS agent transaction, browser request and STOP (983ms)
+  ✓  4 e2e/real-smoke.spec.ts:134:1 › real Ethernet packet list, detail, browser send and STOP (933ms)
+  ✓  5 e2e/real-smoke.spec.ts:162:1 › actual powered TC-1 appears live with journal verdicts (11.8s)
+
+  5 passed (18.4s)
+exit=0

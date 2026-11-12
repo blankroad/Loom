@@ -1,0 +1,12 @@
+{
+  "환경": "native loomd + simulator / Ego Lite",
+  "UI 검사": "스키마 33 · 타입 · lint · 단위 검사 554/50 files PASS",
+  "Ego Lite": "51 PASS / 0 FAIL — 다섯 서비스 조작 및 1440·768·390px",
+  "주요 브라우저 시나리오": "5/5 PASS · 18.4s · skipped/unexpected/flaky=0",
+  "내장 UI asset 계약": "11 PASS",
+  "빌드": "UI / loomd / loom PASS",
+  "최종 로그": "fidelity-215210.out",
+  "UI SHA256": "fda3682ca44ccc8b72c0e80b472a99b4b0a0c2e4f520971a7dea1de9769cf30d",
+  "native SHA256": "9f6ab4b8059536cd352cb9c656455d75281b563636534cba7a6bfa28539d218d",
+  "제한": "물리 장비·상용 참고 앱 직접 실행 미포함; UDS manager CAN-TP/EthDiag 미구현"
+}
