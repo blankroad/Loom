@@ -254,6 +254,9 @@ describe('can.trace — dry-run risk preview (debounced)', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(badge().textContent).toBe('R1');
     expect(badge().title).toContain('R1 — sim channel · 정책 auto · 1 B');
+    h.frame();
+    expect(badge().textContent).toBe('R1');
+    expect(badge().title).toContain('sim channel');
   });
 
   it('invalid or empty input: no dry-run, badge back to R?; a stale answer is ignored', async () => {

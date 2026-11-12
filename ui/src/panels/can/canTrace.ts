@@ -49,11 +49,18 @@ import {
   type WState,
 } from './traceModel';
 import { TraceView } from './traceView';
+import { RxSummary, RX_SUMMARY_MAX_IDS } from './rxSummary';
+import { RxTxView } from './rxtxView';
+import { TxList } from './txList';
+import type { CanSendParams } from './sendLine';
 
 export const MY_REQ_MAX = 256;
 export const HISTORY_MAX = 50;
 const GAP_KEYS_MAX = 64;
 export const MIRROR_ROWS = 20_000;
+/** Receive/Transmit view redraw cap (Hz) — keeps a 1,024-id summary inside the frame budget */
+export const RXTX_RENDER_HZ = 10;
+const RXTX_SLOW_MS = 2;
 /** send-line risk preview: dry-run after the input is quiet this long */
 export const DRY_RUN_DEBOUNCE_MS = 250;
 /** latency histogram: 0.5 ms buckets up to 2 s + overflow */
@@ -108,6 +115,18 @@ export function channelOf(props: Readonly<Record<string, unknown>>): string {
   const c = props.channel ?? props.ch;
   return typeof c === 'string' && c ? c : 'ch0';
 }
+
+export type CanView = 'rxtx' | 'trace';
+/** initial view: `view: "rxtx"` opens the Receive/Transmit view; default stays the chronological trace */
+export function viewOf(props: Readonly<Record<string, unknown>>): CanView {
+  return props.view === 'rxtx' ? 'rxtx' : 'trace';
+}
+
+/** gap payload/mark count → number | 'unknown' */
+const gapCount = (v: unknown): number | 'unknown' => {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && /^\d+$/.test(v) ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : 'unknown';
+};
 
 export function rowsOf(props: Readonly<Record<string, unknown>>): number {
   const v = Number(props.rows);
@@ -174,7 +193,19 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   }
   const agentInfo = el('span', 'ct-agent');
   agentInfo.dataset.testid = 'can-agent-read';
-  top.append(chLabel, envBadge, live, pauseBtn, idFilter, dirSel, orgWrap, agentInfo);
+  const tabs = el('span', 'ct-tabs');
+  tabs.dataset.testid = 'can-view-tabs';
+  tabs.setAttribute('role', 'tablist');
+  const tabRxTx = el('button', 'ct-tab', '수신/송신');
+  tabRxTx.dataset.testid = 'can-view-rxtx';
+  const tabTrace = el('button', 'ct-tab', '트레이스');
+  tabTrace.dataset.testid = 'can-view-trace';
+  for (const b of [tabRxTx, tabTrace]) {
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+  }
+  tabs.append(tabRxTx, tabTrace);
+  top.append(chLabel, envBadge, tabs, live, pauseBtn, idFilter, dirSel, orgWrap, agentInfo);
 
   const tableHost = el('div', 'ct-host');
   tableHost.style.flex = '1';
@@ -207,7 +238,41 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
 
   const status = el('div', 'ct-status');
   status.dataset.testid = 'can-status';
-  root.append(createLatchLine(ctx), top, tableHost, send, status);
+  // Receive/Transmit view (PCAN-View analogue). Placed AFTER the trace host so the trace grid
+  // stays the first [role=grid] in the panel (e2e scans rely on it).
+  const summary = new RxSummary({ maxIds: RX_SUMMARY_MAX_IDS, nowMs: now() });
+  const txList = new TxList();
+  let curIds: ReadonlySet<number> | null = null;
+  const rxtx = new RxTxView(summary, txList, {
+    channel,
+    idFilter: () => curIds,
+    sendEntry: (uid) => sendEntry(uid),
+    openTrace: (r) => {
+      idFilter.value = r.ext ? `${r.id.toString(16).toUpperCase().padStart(8, '0')}x` : `0x${r.id.toString(16).toUpperCase().padStart(3, '0')}`;
+      applyFilter();
+      setView('trace');
+    },
+    draftChanged: (p) => schedulePreview(p),
+    now,
+  });
+  let lastRxtxDraw = Number.NEGATIVE_INFINITY;
+  let lastRxtxCost = 0;
+  let curView: CanView = viewOf(ctx.props);
+  const setView = (v: CanView) => {
+    curView = v;
+    root.dataset.view = v;
+    tableHost.style.display = v === 'trace' ? 'flex' : 'none';
+    rxtx.root.hidden = v !== 'rxtx';
+    tabTrace.setAttribute('aria-selected', String(v === 'trace'));
+    tabRxTx.setAttribute('aria-selected', String(v === 'rxtx'));
+    if (v === 'rxtx') rxtx.render();
+    ctx.scheduler.invalidate();
+  };
+  tabRxTx.addEventListener('click', () => setView('rxtx'));
+  tabTrace.addEventListener('click', () => setView('trace'));
+
+  root.append(createLatchLine(ctx), top, tableHost, rxtx.root, send, status);
+  setView(curView);
 
   // ---------------- ingest ----------------
   let lastSeq = -1n;
@@ -228,12 +293,15 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
 
   const applyOne = (ev: LoomEvent) => {
     if (ev.kind === 'display.gap' || ev.kind === 'record.gap' || ev.kind === 'source.gap') {
-      const r = (ev.payload as { seq_range?: { from?: unknown; to?: unknown } }).seq_range;
+      const pl = (ev.payload ?? {}) as { seq_range?: { from?: unknown; to?: unknown }; count?: unknown };
+      const r = pl.seq_range;
       rememberGapKey(`${ev.kind}:${seqStr(r?.from)}:${seqStr(r?.to)}`);
+      summary.noteGap(gapCount(pl.count));
     }
     if (ev.kind === 'can.frame') {
       const p = ev.payload as { id?: unknown };
       if (typeof p.id === 'number' && p.id >= 0x400 && p.id < 0x440) floodSeen++;
+      summary.apply(ev);
     }
     model.apply(ev, isMine);
   };
@@ -262,12 +330,14 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
       const g = marks[i]!;
       if (g.kind === 'resync') {
         model.addGap({ kind: 'resync', first: null, last: null, count: 'unknown', cause: g.cause, recordOk: false, producerOnly: false, local: true });
+        summary.noteGap('unknown');
         resyncPending = true;
         continue;
       }
       const key = `${g.kind}:${g.firstSeq === null ? 'null' : String(g.firstSeq)}:${g.lastSeq === null ? 'null' : String(g.lastSeq)}`;
       if (gapKeys.includes(key)) continue; // already shown from its event
       rememberGapKey(key);
+      summary.noteGap(typeof g.count === 'number' ? g.count : 'unknown');
       model.addGap({
         kind: g.kind,
         first: g.firstSeq === null ? null : Number(g.firstSeq),
@@ -319,6 +389,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
       origins: origins.size === 4 ? null : origins,
     };
     model.setFilter(f);
+    curIds = ids;
     ctx.scheduler.invalidate();
   };
   idFilter.addEventListener('keydown', (e) => {
@@ -370,11 +441,14 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
     history.push(input.value.trim());
     if (history.length > HISTORY_MAX) history.shift();
     histPos = -1;
-    const shown = r.canonical;
-    showMsg(`USR ▶ ${shown} …`);
     input.value = '';
     schedulePreview(null);
-    ctx.act('send', r.params).then(
+    sendParams(r.params, r.canonical);
+  };
+  /** the one gated send path (send line and transmit list): ctx.act('send') → ActionGate */
+  const sendParams = (params: CanSendParams, shown: string, done?: (rid: string | null, err: string | null) => void) => {
+    showMsg(`USR ▶ ${shown} …`);
+    ctx.act('send', params).then(
       (h) => {
         if (h.requestId) {
           mine.add(h.requestId);
@@ -383,14 +457,32 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
           const st = model.stateOf(h.requestId);
           showMsg(`USR ▶ ${shown} → ${h.requestId}${st ? ` (${st})` : ''}`);
         } else showMsg(`USR ▶ ${shown} 보냄 (request_id 없음)`);
+        done?.(h.requestId ?? null, null);
         ctx.scheduler.invalidate();
       },
       (e: unknown) => {
         const code = e instanceof GateError ? e.code : ((e as { code?: string; dataCode?: string }).dataCode ?? (e as { code?: string }).code);
         const why = code === 'E_RIGHTS' ? 'operate 권한 필요' : code === 'E_STALLED' ? '연결 STALLED — 쓰기 잠김' : String((e as Error).message ?? e);
         showMsg(`✗ ${shown} 실패: ${why}`, true);
+        done?.(null, why);
+        ctx.scheduler.invalidate();
       },
     );
+  };
+  const sendEntry = (uid: number) => {
+    const e = txList.get(uid);
+    if (!e) return;
+    rxtx.say(`▶ ${e.text} …`);
+    sendParams({ ...e.params }, e.text, (rid, err) => {
+      if (err === null) {
+        txList.noteSent(uid, rid);
+        rxtx.say(`▶ ${e.text} → ${rid ?? 'request_id 없음'}`);
+      } else {
+        txList.noteFailed(uid, err);
+        rxtx.say(`✗ ${e.text}: ${err}`, true);
+      }
+      rxtx.render();
+    });
   };
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -561,8 +653,15 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
       sendBtn.disabled = !writable;
       input.placeholder = writable ? '0x300#00 · 18DAF110#02 10 03 · fd 0x123#…' : hasRight ? '연결 STALLED — 쓰기 잠김' : '송신은 operate 권한 필요';
     }
+    rxtx.setWritable(writable);
+    // Receive list redraw: every frame while cheap; once a draw costs > RXTX_SLOW_MS (large id
+    // set under load) at most RXTX_RENDER_HZ. Aggregation itself is per event, in ingest.
+    if (curView === 'rxtx' && (lastRxtxCost <= RXTX_SLOW_MS || t - lastRxtxDraw >= 1000 / RXTX_RENDER_HZ)) {
+      lastRxtxDraw = t;
+      rxtx.render();
+      lastRxtxCost = now() - t;
+    }
     setText(envBadge, ctx.env ? ctx.env.toUpperCase() : '');
-    setText(risk, `R1${ctx.env ? ` ${ctx.env.toUpperCase()}` : ''} 자동`);
     let lt: string;
     let lc: string;
     if (view.paused) {
@@ -600,9 +699,9 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   });
   const tick = setInterval(() => ctx.scheduler.invalidate(), 1_000);
 
-  type Probe = Record<string, { stats(): CanTraceStats; model: CanTraceModel; view: TraceView }>;
+  type Probe = Record<string, { stats(): CanTraceStats; model: CanTraceModel; view: TraceView; summary: RxSummary; txList: TxList }>;
   const g = globalThis as unknown as { __loomCan?: Probe };
-  if (import.meta.env.DEV) (g.__loomCan ??= {})[ctx.panelId] = { stats, model, view };
+  if (import.meta.env.DEV) (g.__loomCan ??= {})[ctx.panelId] = { stats, model, view, summary, txList };
 
   // catch up with anything already in the mirrors (shared subscription replay)
   consumeCan();
@@ -633,7 +732,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
 
 export const CAN_TRACE_MANIFEST: PanelManifest = {
   id: 'can.trace',
-  propsSchema: { type: 'object', properties: { channel: CHANNEL_PROP, ch: CHANNEL_PROP, rows: { type: 'integer', minimum: 1, maximum: 2_000_000 } } },
+  propsSchema: { type: 'object', properties: { channel: CHANNEL_PROP, ch: CHANNEL_PROP, rows: { type: 'integer', minimum: 1, maximum: 2_000_000 }, view: { type: 'string', enum: ['rxtx', 'trace'] } } },
   domain: 'can',
   title: 'CAN 트레이스',
   version: 1,
