@@ -15,6 +15,16 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+/** the canonical hex command line (the catalog search box is also an <input>) */
+const pduInput = (host: HTMLElement) => host.querySelector<HTMLInputElement>('[aria-label="UDS 요청 (hex)"]')!;
+/** logical-link grid: each row's title is the canonical one-line targetLine(), plus the cell text */
+const linkText = (host: HTMLElement) => {
+  const b = host.querySelector<HTMLElement>('[data-testid="uds-targets"]')!;
+  return `${[...b.querySelectorAll<HTMLElement>('[data-target]')].map((r) => r.title).join('\n')}\n${b.textContent}`;
+};
+const didRow = (host: HTMLElement, key: string) => host.querySelector<HTMLElement>(`[data-testid="uds-last-values"] [data-did="${key}"]`)?.textContent ?? '';
+const didCells = (host: HTMLElement, key: string) =>
+  [...(host.querySelector<HTMLElement>(`[data-testid="uds-last-values"] [data-did="${key}"]`)?.children ?? [])].map((c) => c.textContent);
 const rowsIn = (host: HTMLElement) => [...host.querySelectorAll<HTMLElement>('.vt-row[data-request-id]')].filter((e) => !e.hidden);
 
 describe('uds.console', () => {
@@ -55,11 +65,11 @@ describe('uds.console', () => {
       writeEv('r1', 'confirmed', { seq: 901, payload: { target: 'bcm', sid: '22', service: 'ReadDataByIdentifier', decoded: [{ did: 'F190', name: 'VIN', value: 'WVW123' }] } }),
     ]);
     expect(rowsIn(h.host).map((r) => r.dataset.requestId)).toEqual(['r1']);
-    const bar = h.host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+    const bar = linkText(h.host);
     expect(bar).toContain('sess=extended✓');
     expect(bar).toContain('TP ✓×4');
     expect(bar).toContain('제어: AGT claude-1');
-    expect(h.host.querySelector('[data-testid="uds-last-values"]')!.textContent).toContain('bcm:F190 VIN=WVW123');
+    expect(didCells(h.host, 'bcm:F190').slice(0, 5)).toEqual(['bcm', 'F190', 'VIN', 'WVW123', '']); // target · DID · name · value · unit
   });
 
   it('dry-run preview is debounced (150 ms) and Enter sends uds.request', async () => {
@@ -69,7 +79,7 @@ describe('uds.console', () => {
       (p as { dry_run?: boolean }).dry_run ? { service: 'ReadDataByIdentifier', did_name: 'VIN', risk: 'R0' } : { request_id: 'r-9' },
     );
     h.batch([ev({ kind: 'uds.state', payload: { target: 'bcm' } })]);
-    const input = h.host.querySelector('input')!;
+    const input = pduInput(h.host);
     for (const v of ['2', '22', '22 F', '22 F190']) {
       input.value = v;
       input.dispatchEvent(new Event('input'));
@@ -94,7 +104,7 @@ describe('uds.console', () => {
     h = mountPanel('uds.console', { targets: 'bcm' });
     h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? { service: 'WriteDataByIdentifier', risk: 'R2' } : {}));
     h.batch([ev({ kind: 'uds.state', payload: { target: 'bcm' } })]);
-    const input = h.host.querySelector('input')!;
+    const input = pduInput(h.host);
     input.value = '2E 0101 02';
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
@@ -179,7 +189,7 @@ const envelope = (f: FixtureEvent): LoomEvent =>
     ...(typeof f.payload.write_state === 'string' ? { risk: f.payload.risk as LoomEvent['risk'] } : {}),
     payload: f.payload,
   });
-const barText = (host: HTMLElement) => host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+const barText = linkText;
 const rowEl = (host: HTMLElement, id: string) => rowsIn(host).find((r) => r.dataset.requestId === id)!;
 const detailOf = (hh: Harness, id: string): Record<string, string> => {
   rowEl(hh.host, id).click();
@@ -258,7 +268,7 @@ describe('uds.console — canonical row events (fixtures/*.json)', () => {
     expect(res('r-7')).toContain('⛔ 거부');
     for (const id of ['r-3', 'r-4', 'r-5', 'r-7']) expect(res(id)).not.toMatch(/✓/);
     expect(res('r-1')).toContain('ReadDataByIdentifier');
-    expect(hh.host.querySelector('[data-testid="uds-last-values"]')!.textContent).toContain('ecu1:F190 VIN=LOOMSIM0000000001');
+    expect(didRow(hh.host, 'ecu1:F190')).toContain('VINLOOMSIM0000000001');
   });
 
   it('detail shows the real request/response bytes, hex NRC, DTCs and block reason', () => {
@@ -309,7 +319,7 @@ describe('uds.console — canonical dry-run preview (fixtures/dry_run.json)', ()
     h = mountPanel('uds.console', { targets: 'ecu1' });
     h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? write : { request_id: 'r-9' }));
     h.batch([envelope(fixture('state')[0]!)]);
-    const input = h.host.querySelector('input')!;
+    const input = pduInput(h.host);
     input.value = '2E F1A0 02';
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
@@ -334,7 +344,7 @@ describe('uds.console native late-join state', () => {
       h!.snapshotEnd('100');
     };
     deliver();
-    const bar = () => h!.host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+    const bar = () => linkText(h!.host);
     expect(bar()).toContain('ecu1 ● sim');
     expect(bar()).toContain('sess=extended✓');
     expect(bar()).not.toContain('foreign');
@@ -358,11 +368,200 @@ describe('uds.console native late-join state', () => {
       { domain: 'uds', kind: 'uds.snapshot', state: { kind: 'uds.state', payload: state('ecu2', 'up') } },
     ], events: [ev({ seq: '9', kind: 'uds.state', payload: state('ecu1', 'down') })] });
     h.snapshotEnd('10');
-    expect(h.host.querySelector('[data-testid="uds-targets"]')!.textContent).toContain('ecu1 ● sim');
+    expect(linkText(h.host)).toContain('ecu1 ● sim');
     h.batch([ev({ seq: '11', kind: 'uds.state', payload: state('ecu1', 'down') }), ev({ seq: '12', kind: 'uds.state', payload: state('ecu2', 'up') })]);
-    const bar = h.host.querySelector('[data-testid="uds-targets"]')!.textContent!;
+    const bar = linkText(h.host);
     expect(bar).toContain('ecu1 ○ down');
     expect(bar).not.toContain('ecu2');
     expect(h.net.calls).toEqual([]);
+  });
+});
+
+// ---- benchmark fidelity (DTS.monaco Diagnostic Services) — docs/impl/main/research/fidelity/uds.md ----
+import { buildPdu, detailPairs, filterCatalog, findTemplate, paramIssues, parsePdu, SERVICE_CATALOG, targetCells, emptyTarget } from './udsModel';
+
+const sends = (hh: Harness) => hh.net.calls.filter((c) => c.method === 'uds.request' && !(c.params as { dry_run?: boolean }).dry_run);
+const dryRuns = (hh: Harness) => hh.net.calls.filter((c) => c.method === 'uds.request' && (c.params as { dry_run?: boolean }).dry_run === true);
+const svcBtn = (host: HTMLElement, sid: string) => host.querySelector<HTMLButtonElement>(`[data-testid="uds-catalog"] [data-sid="${sid}"]`)!;
+const param = (host: HTMLElement, name: string) => host.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-testid="uds-params"] [aria-label="${name}"]`)!;
+
+describe('fidelity: service catalog → parameters → canonical PDU (never sends by itself)', () => {
+  it('lists only supported standard-service templates, grouped, searchable', () => {
+    const sids = SERVICE_CATALOG.map((t) => t.sid);
+    expect(sids).toEqual(['10', '11', '27', '28', '85', '22', '2E', '14', '19', '31']);
+    // R4 transfer/flash, immutable-deny 0x2A/0x86 and the TesterPresent keep-alive are not offered
+    for (const no of ['34', '36', '37', '3D', '2A', '86', '3E']) expect(findTemplate(no)).toBeNull();
+    expect(filterCatalog('0x22').map((t) => t.name)).toEqual(['ReadDataByIdentifier']);
+    expect(filterCatalog('dtc').map((t) => t.sid)).toEqual(['85', '19']); // name substring only
+
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(fixture('state')[0]!)]);
+    const tree = h.host.querySelector('[data-testid="uds-catalog"]')!;
+    expect(tree.textContent).toContain('[22] ReadDataByIdentifier');
+    expect(tree.textContent).toContain('Stored Data Transmission');
+    const search = h.host.querySelector<HTMLInputElement>('[aria-label="서비스 검색"]')!;
+    search.value = '19';
+    search.dispatchEvent(new Event('input'));
+    h.frame();
+    expect([...tree.querySelectorAll<HTMLElement>('[data-sid]')].map((b) => b.dataset.sid)).toEqual(['19']);
+    expect(h.net.calls).toEqual([]); // browsing the catalog is read-only
+  });
+
+  it('picking a service and editing parameters only rewrites the hex line + dry-run; Enter sends those bytes', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? { service: 'ReadDataByIdentifier', risk: 'R0' } : { request_id: 'r-9' }));
+    h.batch([envelope(fixture('state')[0]!)]);
+    svcBtn(h.host, '22').click();
+    h.frame();
+    expect(pduInput(h.host).value).toBe('22 F1 90');
+    expect(h.host.querySelector('[data-testid="uds-service"]')!.textContent).toBe('[22] ReadDataByIdentifier');
+    expect(svcBtn(h.host, '22').getAttribute('aria-pressed')).toBe('true');
+    const did = param(h.host, 'dataIdentifier') as HTMLInputElement;
+    expect(did.value).toBe('F190');
+    did.value = 'F18C';
+    did.dispatchEvent(new Event('input'));
+    expect(pduInput(h.host).value).toBe('22 F1 8C');
+    await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
+    expect(sends(h)).toHaveLength(0); // selection + edit never send
+    expect(dryRuns(h).map((c) => c.params)).toEqual([{ target: 'ecu1', bytes_hex: '22F18C', dry_run: true }]); // debounced: one preview
+    h.host.querySelector<HTMLButtonElement>('.uds-ds-transmit')!.click(); // explicit Transmit
+    expect(sends(h)).toEqual([{ method: 'uds.request', params: { target: 'ecu1', bytes_hex: '22F18C' } }]);
+  });
+
+  it('choice parameters and required-field hints; typing hex selects the matching template', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(fixture('state')[0]!)]);
+    svcBtn(h.host, '10').click();
+    const sel = param(h.host, 'diagnosticSessionType') as HTMLSelectElement;
+    expect(sel.value).toBe('03');
+    sel.value = '01';
+    sel.dispatchEvent(new Event('change'));
+    expect(pduInput(h.host).value).toBe('10 01');
+    expect(h.host.querySelector('[data-param="type"]')!.textContent).toContain('defaultSession');
+
+    svcBtn(h.host, '2E').click();
+    expect(pduInput(h.host).value).toBe('2E');
+    expect(h.host.querySelector('[data-testid="uds-param-issues"]')!.textContent).toContain('dataIdentifier 비어 있음');
+
+    const input = pduInput(h.host);
+    input.value = '31 01 FF01';
+    input.dispatchEvent(new Event('input'));
+    expect(h.host.querySelector('[data-testid="uds-service"]')!.textContent).toBe('[31] RoutineControl');
+    expect((param(h.host, 'routineIdentifier') as HTMLInputElement).value).toBe('FF01');
+    input.value = '3E 00';
+    input.dispatchEvent(new Event('input'));
+    expect(h.host.querySelector('[data-testid="uds-service"]')!.textContent).toContain('카탈로그 밖');
+    expect(h.net.calls.filter((c) => !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
+  });
+
+  it('write lock disables template selection and parameters; abort stays enabled', () => {
+    h = mountPanel('uds.console', { targets: 'bcm' });
+    h.frame();
+    expect(svcBtn(h.host, '22').disabled).toBe(false);
+    h.shell.tick(5_000);
+    h.frame();
+    expect(svcBtn(h.host, '22').disabled).toBe(true);
+    expect(h.host.querySelector<HTMLButtonElement>('.uds-ds-transmit')!.disabled).toBe(true);
+    expect(h.host.querySelector<HTMLButtonElement>('[data-testid="uds-current"] .danger')!.disabled).toBe(false);
+  });
+
+  it('model: build/parse/issues round-trip on standard templates', () => {
+    const rc = findTemplate('31')!;
+    expect(buildPdu(rc, { type: '01', rid: 'FF01', opt: '' })).toBe('31 01 FF 01');
+    expect(parsePdu(rc, '3101FF01AA')).toEqual({ type: '01', rid: 'FF01', opt: 'AA' });
+    expect(paramIssues(rc, { type: '01', rid: 'F' })).toEqual(['routineIdentifier hex 아님']);
+    expect(paramIssues(findTemplate('19')!, { type: '02', mask: 'FF' })).toEqual([]);
+  });
+});
+
+describe('fidelity: logical-link grid (TesterPresent ≠ CAN-TP, honest confidence)', () => {
+  it('one row per target with structured cells; TesterPresent column is the 0x3E keep-alive', () => {
+    const [connected, extended] = fixture('state') as [FixtureEvent, FixtureEvent];
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(connected)]);
+    const cell = (col: string) => h!.host.querySelector(`[data-target="ecu1"] [data-col="${col}"]`)!.textContent;
+    expect(cell('link')).toBe('● up');
+    expect(cell('backend')).toBe('sim');
+    expect(cell('addr')).toBe('DoIP 0x1001');
+    expect(cell('session')).toBe('default?'); // assumed, not confirmed
+    expect(cell('security')).toBe('🔒?');
+    expect(cell('tester-present')).toBe('off');
+    h.batch([envelope(extended)]);
+    expect(cell('session')).toBe('extended✓');
+    expect(cell('tester-present')).toBe('on ✓×1');
+    const header = [...h.host.querySelectorAll('[data-testid="uds-targets"] [role="columnheader"]')].map((c) => c.textContent);
+    expect(header).toContain('TesterPresent');
+    const tpHead = [...h.host.querySelectorAll<HTMLElement>('[role="columnheader"]')].find((c) => c.textContent === 'TesterPresent')!;
+    expect(tpHead.title).toContain('ISO-TP/CAN-TP 전송 상태가 아님');
+    const all = h.host.textContent!;
+    for (const no of ['cantp', 'CAN-TP 연결', 'EthDiag', 'canoe']) expect(all).not.toContain(no);
+  });
+
+  it('unreported link is never painted as up', () => {
+    expect(targetCells(emptyTarget('x'), 0, 'sim').link.text).toBe('? 미보고');
+  });
+
+  it('clicking a link row selects the target for the composer (no write)', () => {
+    h = mountPanel('uds.console');
+    h.batch([
+      ev({ kind: 'uds.state', payload: { target: 'a', backend: 'sim', link: { state: 'up' } } }),
+      ev({ kind: 'uds.state', payload: { target: 'b', backend: 'doip', addr: '0x1002', link: { state: 'up' } } }),
+    ]);
+    const row = h.host.querySelector<HTMLElement>('[data-testid="uds-targets"] [data-target="b"]')!;
+    row.click();
+    h.frame();
+    expect(h.host.querySelector<HTMLSelectElement>('[aria-label="대상"]')!.value).toBe('b');
+    expect(h.host.querySelector('[data-target="b"]')!.getAttribute('aria-selected')).toBe('true');
+    expect(h.net.calls).toEqual([]);
+  });
+});
+
+describe('fidelity: transaction block + DTC pane from canonical fixtures', () => {
+  const ALL = ['read_ok', 'pending_then_positive', 'nrc', 'read_timeout', 'write_outcome_unknown', 'sprmib', 'blocked_2a', 'dtc_list', 'late_response'];
+
+  it('expanded pairs follow the reference block order with daemon labels only', () => {
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.batch([envelope(fixture('state')[0]!), ...ALL.flatMap((n) => fixture(n)).map(envelope)]);
+    rowEl(h.host, 'r-3').click();
+    h.frame();
+    const keys = [...h.host.querySelectorAll('.vt-detail .disp-row dt')].map((d) => d.textContent);
+    expect(keys.slice(0, 7)).toEqual(['테스터', '서비스', '요청', '논리 링크', '응답 상태', '응답', 'NRC']);
+    const d = detailOf(h, 'r-3');
+    expect(d['서비스']).toBe('ReadDataByIdentifier — ✗ 0x31 requestOutOfRange');
+    expect(d['논리 링크']).toBe('ecu1 · sim DoIP 0x1001');
+    expect(detailOf(h, 'r-1')['  DID F190 VIN']).toBe('LOOMSIM0000000001');
+    expect(detailOf(h, 'r-2')['응답 상태']).toContain('pending(0x78) ×');
+    expect(detailOf(h, 'r-5')['응답 상태']).toMatch(/^불확정/); // ⌛? stays unknown, never success
+    expect(detailOf(h, 'r-5')['서비스']).toContain('⌛? 불확정');
+  });
+
+  it('detailPairs without a known target does not invent link data', () => {
+    const r = { requestId: 'x', state: 'confirmed', payload: { target: 'ghost', sid: 0x22 }, origin: 'agent', clientId: null, updates: 1, stageSeenMs: 0, firstSeenMs: 0 } as unknown as Parameters<typeof detailPairs>[0];
+    const m = Object.fromEntries(detailPairs(r, undefined));
+    expect(m['논리 링크']).toBe('ghost · ?');
+    expect(m['서비스']).toBe('SID 0x22 — ✓');
+    expect(m['응답']).toBe('—');
+  });
+
+  it('DTC pane shows raw payload.dtcs only; read/clear buttons fill templates and never send', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('uds.console', { targets: 'ecu1' });
+    h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? { service: 'ClearDiagnosticInformation', risk: 'R2' } : {}));
+    h.batch([envelope(fixture('state')[0]!), ...fixture('dtc_list').map(envelope)]);
+    h.frame();
+    const pane = h.host.querySelector<HTMLElement>('[data-testid="uds-dtc"]')!;
+    const rowsTxt = [...pane.querySelectorAll<HTMLElement>('[data-dtc]')].map((r) => [...r.children].map((c) => c.textContent));
+    expect(rowsTxt).toEqual([['923400', '0x09'], ['C10000', '0x2F']]);
+    expect(pane.textContent).toContain('r-8');
+    expect(pane.textContent).not.toMatch(/testFailed|MIL|confirmedDTC|warningIndicator|[PBCU]\d{4}-/); // MAIN D2: no status-bit / SAE decoding (codes stay raw, e.g. C10000)
+
+    [...pane.querySelectorAll('button')].find((b) => b.textContent!.startsWith('지우기'))!.click();
+    expect(pduInput(h.host).value).toBe('14 FF FF FF');
+    await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
+    expect(sends(h)).toHaveLength(0);
+    pduInput(h.host).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(sends(h)).toHaveLength(0); // R2 dry-run: second Enter still required
+    expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
 });

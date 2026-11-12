@@ -1,12 +1,24 @@
-// uds.console (M1) — uds-ui U1–U5, plan §5.1.4.
-//  target bar   : per target link/session/security/TP/P2 + control owner + [제어 가져오기 T]
-//  transactions : RowTable (one row per request_id, progressive stages, result symbol,
-//                 pending ×N, elapsed/limit). TesterPresent folded into the bar counter.
-//  last values  : decoded DID values of confirmed responses
-//  command line : hex → 150 ms idle → dry-run preview; Enter sends (R2+ previews need a
-//                 second Enter — UI mistake prevention only, the daemon policy decides, F1)
+// uds.console (M1) — uds-ui U1–U5, plan §5.1.4; benchmark-fidelity layout after the
+// Softing DTS.monaco "Diagnostic Services" control unit (docs/impl/main/research/fidelity/uds.md).
+//
+//  논리 링크 (Logical Link list)  : one grid row per target — link · transport(backend) · addr ·
+//                                   session · security · TesterPresent · P2/P2* · env · owner
+//                                   + [제어 가져오기 T]. TesterPresent is the 0x3E keep-alive,
+//                                   never an ISO-TP/CAN-TP transport state.
+//  진단 서비스 (service catalog)  : static ISO 14229-1 request templates (MAIN D1). Picking or
+//                                   editing one only rewrites the hex line — it never sends.
+//  설정 (Settings)                : logical link, service, parameter grid, canonical PDU hex line
+//                                   → 150 ms idle → daemon dry-run preview.
+//  현재 선택 (Current selection)  : 보내기 (Transmit) through the existing uds.request action
+//                                   (R2+ previews need a second Enter — UI mistake prevention
+//                                   only, the daemon policy decides, F1) · 중단 · 폴링 정지.
+//  트랜잭션 (trace)               : RowTable, one row per request_id, progressive stages; the
+//                                   expanded detail pairs follow the reference block order
+//                                   (MAIN D4). TesterPresent rows fold into the link grid.
+//  DTC / DID 값                   : raw payload.dtcs (MAIN D2) and daemon-decoded DID values.
 // Single-letter keys (T, !) only when the panel has focus and no input field does.
 
+import './uds.css';
 import {
   createLatchLine,
   createRowTable,
@@ -14,38 +26,72 @@ import {
   registerPanel,
   type PanelContext,
   type PanelInstance,
-  type RowLike,
 } from '../../sdk';
 import {
-  bytesText,
-  dtcText,
+  buildPdu,
+  defaultValues,
+  detailPairs,
   emptyTarget,
+  filterCatalog,
+  findTemplate,
   hexByte,
   isTesterPresent,
+  latestDtcs,
   leaseText,
   needsSecondEnter,
   normalizeHex,
-  nrcText,
+  paramIssues,
+  parsePdu,
   previewText,
   reduceTarget,
   reduceTargetState,
   resultSymbol,
+  SERVICE_GROUPS,
+  targetCells,
   targetLine,
+  templateLabel,
   timingText,
   updateLastValues,
   type LastValue,
+  type ParamValues,
+  type ServiceTemplate,
   type TargetView,
 } from './udsModel';
 
 export const PREVIEW_DEBOUNCE_MS = 150;
 const SECOND_ENTER_MS = 3_000;
 const MAX_TARGETS = 32; // C2: target bar entries (over → ignored + counted)
+const MAX_DID_ROWS = 64;
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
   if (text !== undefined) e.textContent = text;
   return e;
+}
+
+function button(text: string, cls?: string, title?: string): HTMLButtonElement {
+  const b = el('button', cls, text);
+  b.type = 'button';
+  if (title) b.title = title;
+  return b;
+}
+
+function colHead(text: string): HTMLSpanElement {
+  const c = el('span', undefined, text);
+  c.setAttribute('role', 'columnheader');
+  return c;
+}
+
+/** group box with a caption (the reference's framed control units) */
+function box(cls: string, caption: string, testid?: string): { root: HTMLElement; head: HTMLElement } {
+  const root = el('section', `uds-ds-box ${cls}`);
+  const head = el('div', 'uds-ds-caption');
+  head.append(el('span', 'uds-ds-title', caption));
+  root.append(head);
+  root.setAttribute('aria-label', caption);
+  if (testid) root.setAttribute('data-testid', testid);
+  return { root, head };
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : v === undefined || v === null ? '' : String(v));
@@ -81,33 +127,115 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       return null;
     });
 
-  // ---- DOM ----
-  const root = el('div', 'uds-panel');
+  // ---- DOM: logical links ----
+  const root = el('div', 'uds-panel uds-ds');
   root.tabIndex = 0;
-  const bar = el('div', 'uds-targets');
+  const links = box('uds-ds-links uds-targets', '논리 링크');
+  const bar = links.root;
   bar.setAttribute('data-testid', 'uds-targets');
-  const cursorEl = el('span', 'uds-cursor muted');
-  const tableHost = el('div', 'uds-table');
-  const lastEl = el('div', 'uds-last');
-  lastEl.setAttribute('data-testid', 'uds-last-values');
-  const cmd = el('div', 'uds-cmd');
+  links.head.append(el('span', 'muted', 'manager가 연결한 대상만 · 연결은 상단 인터페이스 연결'));
+  const linkGrid = el('div', 'uds-ds-grid uds-ds-linkgrid');
+  linkGrid.setAttribute('role', 'table');
+  linkGrid.setAttribute('aria-label', '논리 링크');
+  bar.append(linkGrid);
+
+  // ---- DOM: service catalog ----
+  const catalog = box('uds-ds-catalog', '진단 서비스', 'uds-catalog');
+  const search = el('input', 'uds-ds-search');
+  search.type = 'search';
+  search.placeholder = 'SID 또는 이름 (예: 22, Read)';
+  search.setAttribute('aria-label', '서비스 검색');
+  search.spellcheck = false;
+  const tree = el('div', 'uds-ds-tree');
+  tree.setAttribute('role', 'list');
+  catalog.root.append(search, tree, el('div', 'uds-ds-note muted', 'ISO 14229-1 요청 형식 · 선택은 PDU만 채움 (전송 없음)'));
+
+  // ---- DOM: settings (logical link / service / params / PDU) ----
+  const settings = box('uds-ds-settings', '설정', 'uds-settings');
+  const kv = el('div', 'uds-ds-kv');
   const targetSel = el('select');
   targetSel.setAttribute('aria-label', '대상');
-  const input = el('input');
+  const linkInfo = el('span', 'mono muted');
+  const linkCell = el('span', 'uds-ds-kv-v');
+  linkCell.append(targetSel, ' ', linkInfo);
+  const serviceCell = el('span', 'uds-ds-kv-v mono');
+  serviceCell.setAttribute('data-testid', 'uds-service');
+  kv.append(el('span', 'uds-ds-kv-k', '논리 링크'), linkCell, el('span', 'uds-ds-kv-k', '진단 서비스'), serviceCell);
+  const params = el('div', 'uds-ds-grid uds-ds-params');
+  params.setAttribute('role', 'table');
+  params.setAttribute('aria-label', '파라미터');
+  params.setAttribute('data-testid', 'uds-params');
+  const pduRow = el('div', 'uds-ds-pdu');
+  const input = el('input', 'mono');
   input.placeholder = '22 F190';
   input.setAttribute('aria-label', 'UDS 요청 (hex)');
   input.spellcheck = false;
-  const preview = el('span', 'uds-preview muted');
+  const clearBtn = button('✖', 'uds-ds-icon', 'PDU 지우기 (전송 없음)');
+  clearBtn.setAttribute('aria-label', 'PDU 지우기');
+  pduRow.append(el('span', 'uds-ds-kv-k', 'PDU'), input, clearBtn);
+  const preview = el('div', 'uds-preview uds-ds-preview muted');
   preview.setAttribute('data-testid', 'uds-preview');
-  const sendBtn = el('button', undefined, '보내기 ⏎');
-  sendBtn.type = 'button';
-  const abortBtn = el('button', 'danger', '중단 !');
-  abortBtn.type = 'button';
-  abortBtn.title = '선택 대상의 진행 중 요청 중단 (이미 보낸 요청은 ⌛? 불확정이 될 수 있음)';
-  const pollBtn = el('button', undefined, '폴링 정지');
-  pollBtn.type = 'button';
-  cmd.append('대상 ', targetSel, ' > ', input, ' ', preview, ' ', sendBtn, ' ', abortBtn, ' ', pollBtn);
-  root.append(createLatchLine(ctx), bar, cursorEl, tableHost, lastEl, cmd);
+  preview.setAttribute('aria-live', 'polite');
+  const issuesEl = el('div', 'uds-ds-issues');
+  issuesEl.setAttribute('data-testid', 'uds-param-issues');
+  settings.root.append(kv, params, pduRow, preview, issuesEl);
+
+  // ---- DOM: current selection ----
+  const current = el('div', 'uds-ds-current');
+  current.setAttribute('data-testid', 'uds-current');
+  const sendBtn = button('보내기 ⏎', 'uds-ds-transmit', 'Transmit — 현재 PDU를 uds.request로 보냄 (daemon dry-run·정책·ActionGate 경유)');
+  const abortBtn = button('중단 !', 'danger', '선택 대상의 진행 중 요청 중단 (이미 보낸 요청은 ⌛? 불확정이 될 수 있음)');
+  const pollBtn = button('폴링 정지', undefined, '선택 대상의 주기 요청(폴링) 정지 — 순환 시작은 UI에 없음');
+  current.append(el('span', 'uds-ds-title', '현재 선택'), sendBtn, abortBtn, pollBtn, el('span', 'muted', '서비스 선택·파라미터 편집은 보내지 않음'));
+
+  // ---- DOM: trace + side tabs ----
+  const trace = box('uds-ds-trace', '트랜잭션');
+  const cursorEl = el('span', 'uds-cursor muted');
+  trace.head.append(cursorEl);
+  const tableHost = el('div', 'uds-table');
+  trace.root.append(tableHost);
+
+  const side = el('section', 'uds-ds-box uds-ds-side');
+  const tabs = el('div', 'uds-ds-tabs');
+  tabs.setAttribute('role', 'tablist');
+  const dtcPane = el('div', 'uds-ds-pane');
+  dtcPane.setAttribute('data-testid', 'uds-dtc');
+  dtcPane.setAttribute('role', 'tabpanel');
+  const lastEl = el('div', 'uds-ds-pane');
+  lastEl.setAttribute('data-testid', 'uds-last-values');
+  lastEl.setAttribute('role', 'tabpanel');
+  const panes = { dtc: dtcPane, did: lastEl } as const;
+  type Tab = keyof typeof panes;
+  let tab: Tab = 'dtc';
+  const tabBtns = (Object.keys(panes) as Tab[]).map((k) => {
+    const b = button(k === 'dtc' ? 'DTC' : 'DID 값', 'uds-ds-tab');
+    b.setAttribute('role', 'tab');
+    b.dataset.tab = k;
+    b.addEventListener('click', () => {
+      tab = k;
+      syncTabs();
+    });
+    return b;
+  });
+  tabs.append(...tabBtns);
+  const dtcActions = el('div', 'uds-ds-actions');
+  const dtcReadBtn = button('읽기 템플릿 19 02 FF', undefined, 'ReadDTCInformation reportDTCByStatusMask를 PDU에 채움 (전송 없음)');
+  const dtcClearBtn = button('지우기 템플릿 14 FF FF FF', undefined, 'ClearDiagnosticInformation 전체 그룹을 PDU에 채움 (전송 없음, dry-run 등급 확인 필요)');
+  dtcActions.append(dtcReadBtn, dtcClearBtn);
+  const dtcBody = el('div');
+  dtcPane.append(dtcActions, dtcBody);
+  side.append(tabs, dtcPane, lastEl);
+  const syncTabs = () => {
+    for (const b of tabBtns) b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+    for (const k of Object.keys(panes) as Tab[]) panes[k].hidden = k !== tab;
+  };
+  syncTabs();
+
+  const top = el('div', 'uds-ds-top');
+  top.append(catalog.root, settings.root);
+  const bottom = el('div', 'uds-ds-bottom');
+  bottom.append(trace.root, side);
+  root.append(createLatchLine(ctx), bar, top, current, bottom);
 
   const table = createRowTable(tableHost, {
     columns: [
@@ -117,26 +245,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       { key: 'result', header: '결과', width: '10em', cell: (r) => resultSymbol(r) },
       { key: 'timing', header: 'p2/rtt', width: '7em', cell: (r, now) => timingText(r, now) },
     ],
-    detail: (r: RowLike) => {
-      const p = r.payload;
-      const lines: [string, string][] = [
-        ['request_id', r.requestId],
-        // canonical bytes{encoding,data} / resp_bytes first, legacy req_hex / resp_hex second
-        ['요청', bytesText(p.bytes) ?? bytesText(p.req_hex) ?? '—'],
-        ['응답', bytesText(p.resp_bytes) ?? bytesText(p.resp_hex) ?? '—'],
-        ['NRC', nrcText(p) ?? '—'],
-      ];
-      const dtcs = dtcText(p);
-      if (dtcs !== null) lines.push(['DTC', dtcs]);
-      const block = p.block && typeof p.block === 'object' ? (p.block as Record<string, unknown>) : null;
-      if (block) lines.push(['차단', `${str(block.class)} ${str(block.reason)}`.trim()]);
-      lines.push(
-        ['출처', `${r.origin}${r.clientId ? ` ${r.clientId}` : ''}`],
-        ['등급', r.risk ?? (typeof p.risk === 'string' ? p.risk : 'R?')],
-        ['갱신', `${r.updates}회 · ${r.state}`],
-      );
-      return lines;
-    },
+    detail: (r) => detailPairs(r, targets.get(str(r.payload.target) || (r.channel ?? ''))),
     onNeedRender: () => ctx.scheduler.invalidate(),
     ariaLabel: 'UDS 트랜잭션',
     emptyText: '요청 없음',
@@ -150,11 +259,16 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     return table.reveal(ref.requestId);
   });
 
-  // ---- command line ----
+  // ---- composer: template ⇄ canonical hex line ----
   let previewTimer: ReturnType<typeof setTimeout> | null = null;
   let previewAbort: AbortController | null = null;
   let previewRisk: unknown = null;
   let armedAt: number | null = null;
+  let tpl: ServiceTemplate | null = null;
+  let values: ParamValues = {};
+  let catalogQuery = '';
+  let catalogKey = '';
+  const paramInputs = new Map<string, HTMLInputElement | HTMLSelectElement>();
 
   const target = () => selectedTarget ?? [...targets.keys()][0] ?? null;
 
@@ -183,10 +297,119 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       });
   };
 
-  input.addEventListener('input', () => {
+  /** any PDU change: disarm the second Enter and re-run the (debounced) dry-run only */
+  const pduChanged = () => {
     armedAt = null;
     if (previewTimer) clearTimeout(previewTimer);
     previewTimer = setTimeout(runPreview, PREVIEW_DEBOUNCE_MS);
+  };
+
+  const renderIssues = () => {
+    const list = tpl ? paramIssues(tpl, values) : [];
+    issuesEl.textContent = list.length ? `⚠ ${list.join(' · ')} — 그대로 보내면 ECU가 거절할 수 있음` : '';
+  };
+
+  const renderService = () => {
+    const sid = normalizeHex(input.value)?.slice(0, 2) ?? null;
+    serviceCell.textContent = tpl ? templateLabel(tpl) : sid ? `SID 0x${sid} — 카탈로그 밖 (원시 hex 그대로)` : '—';
+  };
+
+  const renderParams = () => {
+    paramInputs.clear();
+    const head = el('div', 'uds-ds-row uds-ds-head');
+    head.setAttribute('role', 'row');
+    for (const h of ['파라미터', '값 (hex)', '의미']) {
+      const c = el('span', undefined, h);
+      c.setAttribute('role', 'columnheader');
+      head.append(c);
+    }
+    const out: HTMLElement[] = [head];
+    if (!tpl) {
+      out.push(el('div', 'uds-ds-empty muted', '서비스를 고르면 ISO 14229-1 파라미터가 나타납니다 · PDU에 hex를 직접 써도 됩니다'));
+      params.replaceChildren(...out);
+      return;
+    }
+    const sidRow = el('div', 'uds-ds-row uds-ds-fixed');
+    sidRow.setAttribute('role', 'row');
+    sidRow.append(el('span', undefined, 'SID'), el('span', 'mono', `0x${tpl.sid}`), el('span', 'muted', '고정'));
+    out.push(sidRow);
+    const w = writable();
+    for (const p of tpl.params) {
+      const row = el('div', 'uds-ds-row');
+      row.setAttribute('role', 'row');
+      row.dataset.param = p.key;
+      const meaning = el('span', 'muted');
+      const setMeaning = () => {
+        const c = p.choices?.find((x) => x.value === (values[p.key] ?? '').toUpperCase());
+        meaning.textContent = c ? c.label : p.bytes === null ? `가변 길이${p.optional ? ' · 선택' : ''}` : `${p.bytes}바이트${p.optional ? ' · 선택' : ''}`;
+      };
+      let field: HTMLInputElement | HTMLSelectElement;
+      if (p.choices) {
+        const sel = el('select', 'mono');
+        for (const c of p.choices) sel.append(Object.assign(el('option', undefined, `${c.value} ${c.label}`), { value: c.value }));
+        sel.value = values[p.key] ?? p.def;
+        sel.addEventListener('change', () => onParam(p.key, sel.value, setMeaning));
+        field = sel;
+      } else {
+        const inp = el('input', 'mono');
+        inp.value = values[p.key] ?? '';
+        inp.placeholder = p.bytes === null ? 'hex…' : '00'.repeat(p.bytes);
+        inp.spellcheck = false;
+        inp.addEventListener('input', () => onParam(p.key, inp.value, setMeaning));
+        field = inp;
+      }
+      field.setAttribute('aria-label', p.name);
+      field.disabled = !w;
+      paramInputs.set(p.key, field);
+      setMeaning();
+      row.append(el('span', undefined, p.name), field, meaning);
+      out.push(row);
+    }
+    params.replaceChildren(...out);
+  };
+
+  const onParam = (key: string, v: string, after: () => void) => {
+    if (!tpl) return;
+    values = { ...values, [key]: v };
+    input.value = buildPdu(tpl, values);
+    after();
+    renderIssues();
+    renderService();
+    pduChanged();
+  };
+
+  const applyTemplate = (t: ServiceTemplate, preset?: ParamValues) => {
+    if (!writable()) return;
+    tpl = t;
+    values = { ...defaultValues(t), ...preset };
+    input.value = buildPdu(t, values);
+    renderParams();
+    renderIssues();
+    renderService();
+    catalogKey = '';
+    pduChanged();
+  };
+
+  /** typing the hex line selects the matching template (if any) and reflects its fields */
+  const syncFromHex = () => {
+    const sid = input.value.replace(/\s+/g, '').slice(0, 2).toUpperCase();
+    const t = sid.length === 2 ? findTemplate(sid) : null;
+    if (t !== tpl) {
+      tpl = t;
+      values = t ? parsePdu(t, input.value) : {};
+      renderParams();
+      catalogKey = '';
+    } else if (t) {
+      values = parsePdu(t, input.value);
+      for (const [k, f] of paramInputs) if (f.value !== values[k]) f.value = values[k] ?? '';
+    }
+    renderIssues();
+    renderService();
+  };
+
+  input.addEventListener('input', () => {
+    syncFromHex();
+    pduChanged();
   });
 
   const submit = () => {
@@ -206,6 +429,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     input.value = '';
     preview.textContent = '';
     previewRisk = null;
+    syncFromHex();
   };
 
   input.addEventListener('keydown', (e) => {
@@ -215,6 +439,15 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     }
   });
   sendBtn.addEventListener('click', submit);
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    if (previewTimer) clearTimeout(previewTimer);
+    previewAbort?.abort();
+    previewRisk = null;
+    armedAt = null;
+    preview.textContent = '';
+    syncFromHex();
+  });
   abortBtn.addEventListener('click', () => {
     const t = target();
     if (t) void act('abort', { target: t });
@@ -225,8 +458,17 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   });
   targetSel.addEventListener('change', () => {
     selectedTarget = targetSel.value || null;
+    pduChanged(); // the preview belongs to a target
     ctx.scheduler.invalidate();
   });
+  search.addEventListener('input', () => {
+    catalogQuery = search.value;
+    ctx.scheduler.invalidate();
+  });
+  const dtcTpl = findTemplate('19');
+  const clrTpl = findTemplate('14');
+  dtcReadBtn.addEventListener('click', () => dtcTpl && applyTemplate(dtcTpl, { type: '02', mask: 'FF' }));
+  dtcClearBtn.addEventListener('click', () => clrTpl && applyTemplate(clrTpl, { group: 'FFFFFF' }));
   root.addEventListener('keydown', (e) => {
     const tag = (e.target as HTMLElement).tagName;
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -261,6 +503,8 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     targets.set(name, emptyTarget(name));
   };
 
+  const LINK_HEAD = ['링크', '대상', '전송', '주소', '세션', '보안', 'TesterPresent', 'P2/P2*', '환경', '제어', ''];
+  let linksKey = '';
   const renderTargets = () => {
     const env = ctx.env ?? '?';
     const tpBy = new Map<string, number>();
@@ -268,41 +512,161 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       const t = str(r.payload.target) || r.channel || '?';
       tpBy.set(t, (tpBy.get(t) ?? 0) + 1);
     }
-    const children: HTMLElement[] = [];
-    for (const t of targets.values()) {
-      const line = el('div', 'uds-target');
-      line.dataset.target = t.target;
-      line.append(el('span', 'mono', targetLine(t, tpBy.get(t.target) ?? 0, env)), ' ─ ', el('span', 'lease', leaseText(t, ctx.connId)), ' ');
-      const take = el('button', undefined, '제어 가져오기 T');
-      take.type = 'button';
-      take.disabled = !writable();
-      take.addEventListener('click', () => void act('takeover', { target: t.target }));
-      line.append(take);
-      children.push(line);
+    const w = writable();
+    const cur = target();
+    const views = [...targets.values()].map((t) => ({ t, c: targetCells(t, tpBy.get(t.target) ?? 0, env), line: targetLine(t, tpBy.get(t.target) ?? 0, env), lease: leaseText(t, ctx.connId) }));
+    const key = JSON.stringify([w, cur, targetsOverflow, views.map((v) => [v.line, v.lease, v.c.link.text])]);
+    if (key !== linksKey) {
+      linksKey = key;
+      const head = el('div', 'uds-ds-row uds-ds-head');
+      head.setAttribute('role', 'row');
+      for (const h of LINK_HEAD) {
+        const c = el('span', undefined, h);
+        c.setAttribute('role', 'columnheader');
+        if (h === 'TesterPresent') c.title = 'TesterPresent (0x3E) 유지 신호 — ISO-TP/CAN-TP 전송 상태가 아님';
+        head.append(c);
+      }
+      const children: HTMLElement[] = [head];
+      for (const v of views) {
+        const row = el('div', 'uds-ds-row uds-ds-link-row');
+        row.setAttribute('role', 'row');
+        row.dataset.target = v.t.target;
+        row.title = v.line;
+        row.setAttribute('aria-selected', String(v.t.target === cur));
+        const cell = (text: string, col: string, cls = '') => {
+          const c = el('span', `mono ${cls}`.trim(), text);
+          c.setAttribute('role', 'cell');
+          c.dataset.col = col;
+          return c;
+        };
+        const link = cell(v.c.link.text, 'link', v.c.link.cls);
+        if (v.c.link.title) link.title = v.c.link.title;
+        const tp = cell(v.c.testerPresent, 'tester-present');
+        tp.title = 'TesterPresent (0x3E) — ISO-TP/CAN-TP 아님';
+        const take = button('제어 가져오기 T');
+        take.disabled = !w;
+        take.addEventListener('click', (e) => {
+          e.stopPropagation();
+          void act('takeover', { target: v.t.target });
+        });
+        const takeCell = el('span');
+        takeCell.setAttribute('role', 'cell');
+        takeCell.append(take);
+        row.append(
+          link,
+          cell(v.t.target, 'target', 'uds-ds-strong'),
+          cell(v.c.backend, 'backend'),
+          cell(v.c.addr, 'addr'),
+          cell(v.c.session, 'session'),
+          cell(v.c.security, 'security'),
+          tp,
+          cell(v.c.p2, 'p2'),
+          cell(v.c.env, 'env'),
+          cell(v.lease, 'lease', 'lease'),
+          takeCell,
+        );
+        row.addEventListener('click', () => {
+          if (selectedTarget === v.t.target) return;
+          selectedTarget = v.t.target;
+          pduChanged();
+          ctx.scheduler.invalidate();
+        });
+        children.push(row);
+      }
+      if (views.length === 0) children.push(el('div', 'uds-ds-empty muted', '대상 없음 — 인터페이스 연결(UDS DoIP) 또는 에이전트의 loom uds connect로 연결하면 나타납니다'));
+      if (targetsOverflow) children.push(el('div', 'uds-ds-empty muted', `+${targetsOverflow} 대상 표시 안 됨`));
+      linkGrid.replaceChildren(...children);
     }
-    if (children.length === 0) children.push(el('div', 'muted', '대상 없음 — 에이전트가 loom uds connect로 연결하면 나타납니다'));
-    if (targetsOverflow) children.push(el('div', 'muted', `+${targetsOverflow} 대상 표시 안 됨`));
-    bar.replaceChildren(...children);
 
     const opts = [...targets.keys()];
     if (opts.join('\u0000') !== [...targetSel.options].map((o) => o.value).join('\u0000')) {
       targetSel.replaceChildren(...opts.map((o) => Object.assign(el('option', undefined, o), { value: o })));
     }
-    const cur = target();
     if (cur && targetSel.value !== cur) targetSel.value = cur;
+    const tv = cur ? targets.get(cur) : undefined;
+    linkInfo.textContent = tv ? `${tv.backend}${tv.addr ? ` ${tv.addr}` : ''}` : '';
   };
 
-  const renderLastValues = () => {
-    if (lastValues.size === 0) {
-      lastEl.textContent = '마지막 값: —';
-      return;
+  const renderCatalog = () => {
+    const w = writable();
+    const key = `${catalogQuery}|${tpl?.sid ?? ''}|${w}`;
+    if (key === catalogKey) return;
+    catalogKey = key;
+    const list = filterCatalog(catalogQuery);
+    const out: HTMLElement[] = [];
+    for (const g of SERVICE_GROUPS) {
+      const items = list.filter((t) => t.group === g);
+      if (!items.length) continue;
+      out.push(el('div', 'uds-ds-group', g));
+      for (const t of items) {
+        const b = button(templateLabel(t), 'uds-ds-svc mono');
+        b.setAttribute('role', 'listitem');
+        b.dataset.sid = t.sid;
+        b.setAttribute('aria-pressed', String(tpl === t));
+        b.disabled = !w;
+        b.addEventListener('click', () => applyTemplate(t));
+        out.push(b);
+      }
     }
+    if (!out.length) out.push(el('div', 'uds-ds-empty muted', '일치하는 표준 서비스 없음 — PDU에 hex를 직접 입력'));
+    tree.replaceChildren(...out);
+  };
+
+  let sideKey = '';
+  const renderSide = () => {
+    const cur = target();
+    const sec = Math.floor(performance.now() / 1000);
+    const key = `${rowsVersion}|${cur}|${tab === 'did' ? sec : ''}|${writable()}`;
+    if (key === sideKey) return;
+    sideKey = key;
+    dtcReadBtn.disabled = dtcClearBtn.disabled = !writable();
+
+    const dv = latestDtcs(rows.list(), cur);
+    const grid = el('div', 'uds-ds-grid uds-ds-dtcgrid');
+    grid.setAttribute('role', 'table');
+    grid.setAttribute('aria-label', 'DTC');
+    const head = el('div', 'uds-ds-row uds-ds-head');
+    head.setAttribute('role', 'row');
+    for (const h of ['DTC (hex)', '상태 바이트']) head.append(colHead(h));
+    grid.append(head);
+    if (!dv) grid.append(el('div', 'uds-ds-empty muted', `${cur ?? '대상'}: 확정된 0x19 응답 없음`));
+    else if (dv.entries.length === 0) grid.append(el('div', 'uds-ds-empty muted', '없음 (응답에 DTC 0개)'));
+    else
+      for (const d of dv.entries) {
+        const row = el('div', 'uds-ds-row');
+        row.setAttribute('role', 'row');
+        row.dataset.dtc = d.dtc;
+        row.append(el('span', 'mono', d.dtc), el('span', 'mono', d.status));
+        grid.append(row);
+      }
+    const src = el('div', 'uds-ds-note muted', dv ? `출처 ${dv.requestId} · payload.dtcs 원시값 (재매핑·상태 비트 해석 없음)` : 'payload.dtcs 원시값만 표시');
+    dtcBody.replaceChildren(grid, src);
+
+    const didGrid = el('div', 'uds-ds-grid uds-ds-didgrid');
+    didGrid.setAttribute('role', 'table');
+    didGrid.setAttribute('aria-label', 'DID 값');
+    const dh = el('div', 'uds-ds-row uds-ds-head');
+    dh.setAttribute('role', 'row');
+    for (const h of ['대상', 'DID', '이름', '값', '단위', '경과']) dh.append(colHead(h));
+    didGrid.append(dh);
     const now = performance.now();
-    const parts = [...lastValues.values()]
-      .slice(-12)
-      .reverse()
-      .map((v) => `${v.target}:${v.did} ${v.name ? `${v.name}=` : ''}${v.value}${v.unit ? ` ${v.unit}` : ''} (${Math.round((now - v.atMs) / 1000)}s)`);
-    lastEl.textContent = `마지막 값: ${parts.join(' · ')}`;
+    const vals = [...lastValues.values()].reverse().slice(0, MAX_DID_ROWS);
+    if (!vals.length) didGrid.append(el('div', 'uds-ds-empty muted', '마지막 값: — (daemon이 해석한 확정 응답만)'));
+    for (const v of vals) {
+      const row = el('div', 'uds-ds-row');
+      row.setAttribute('role', 'row');
+      row.dataset.did = `${v.target}:${v.did}`;
+      row.append(
+        el('span', 'mono', v.target),
+        el('span', 'mono', v.did),
+        el('span', undefined, v.name),
+        el('span', 'mono', v.value),
+        el('span', undefined, v.unit),
+        el('span', 'muted', `${Math.round((now - v.atMs) / 1000)}s`),
+      );
+      didGrid.append(row);
+    }
+    lastEl.replaceChildren(didGrid);
   };
 
   const draw = (): bigint => {
@@ -343,17 +707,23 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     table.setItems(mergeGaps(list, mirror.gaps));
     table.render();
     renderTargets();
-    renderLastValues();
+    renderCatalog();
+    renderSide();
     const c = ctx.agentCursor.seq();
     cursorEl.textContent = c === null ? '' : `에이전트 확인 위치 seq:${c}`;
     const w = writable();
     input.disabled = !w;
     sendBtn.disabled = !w;
+    clearBtn.disabled = !w;
     pollBtn.disabled = !w;
+    search.disabled = false; // browsing the catalog is read-only
+    for (const f of paramInputs.values()) f.disabled = !w;
     abortBtn.disabled = false; // safety direction: always available
     return mirror.headSeq;
   };
   const offFrame = ctx.scheduler.onFrame(draw);
+  renderParams();
+  renderService();
 
   return {
     mount(host) {
