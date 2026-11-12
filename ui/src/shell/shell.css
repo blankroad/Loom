@@ -291,6 +291,8 @@ button.danger { background: var(--err); color: #fff; border: 0; border-radius: 3
 .th-off { color: var(--muted); margin-right: 8px; }
 .th-b { padding: 0 2px; cursor: pointer; }
 .th-b.hl { background: var(--usr); color: #000; }
+.th-char { cursor: pointer; }
+.th-char.hl { background: var(--usr); color: #000; }
 .th-ascii { margin-left: 8px; color: var(--muted); }
 .term-error { color: var(--err); padding: 6px; }
 

@@ -64,6 +64,10 @@ export function presetForChannels(name: string, channels: Iterable<WorkspaceChan
 /** UDS service projection adds raw observations without inferring an ECU/transport binding. */
 export function servicePresetForChannels(service: ServiceDomain, channels: Iterable<WorkspaceChannel>): Preset {
   const name = SERVICE_PRESET[service];
+  if (service === 'can') {
+    const preset = presetForChannels(name, channels);
+    return { ...preset, slots: preset.slots.map((slot) => ({ ...slot, props: { ...slot.props, view: 'rxtx' } })) };
+  }
   if (service !== 'uds') return presetForChannels(name, channels);
   const definition = PRESETS.find((p) => p.name === name)!;
   const active = [...channels].filter((c) => c.state === 'open');

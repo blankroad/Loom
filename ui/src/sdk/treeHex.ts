@@ -14,6 +14,11 @@ export interface TreeNode {
   children?: TreeNode[];
 }
 
+export interface TreeHexOptions {
+  collapseTopLayers?: boolean;
+  onSelectNode?: (node: TreeNode | null) => void;
+}
+
 export const MAX_HEX_BYTES = 16 * 1024;
 
 interface FlatNode {
@@ -32,10 +37,11 @@ export class TreeHex {
   private readonly noteEl: HTMLDivElement;
   private flat: FlatNode[] = [];
   private byteEls: HTMLSpanElement[] = [];
+  private asciiEls: HTMLSpanElement[] = [];
   private selected: FlatNode | null = null;
   private range: { off: number; len: number } | null = null;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, private readonly options: TreeHexOptions = {}) {
     this.root = document.createElement('div');
     this.root.className = 'treehex';
     this.treeEl = document.createElement('div');
@@ -51,6 +57,7 @@ export class TreeHex {
     this.root.append(this.treeEl, right);
     container.append(this.root);
     this.treeEl.addEventListener('click', this.onTreeClick);
+    this.treeEl.addEventListener('keydown', this.onTreeKey);
     this.hexEl.addEventListener('click', this.onHexClick);
   }
 
@@ -61,6 +68,7 @@ export class TreeHex {
     this.range = null;
     this.treeEl.replaceChildren(...tree.map((n, i) => this.buildNode(n, String(i), 0, null)));
     this.renderHex(bytes);
+    this.options.onSelectNode?.(null);
     this.noteEl.replaceChildren();
     if (note) {
       if (note.href) {
@@ -108,6 +116,7 @@ export class TreeHex {
 
   dispose(): void {
     this.treeEl.removeEventListener('click', this.onTreeClick);
+    this.treeEl.removeEventListener('keydown', this.onTreeKey);
     this.hexEl.removeEventListener('click', this.onHexClick);
     this.root.remove();
   }
@@ -117,6 +126,7 @@ export class TreeHex {
     const el = document.createElement('div');
     el.className = 'th-node';
     el.setAttribute('role', 'treeitem');
+    el.tabIndex = 0;
     el.dataset.path = path;
     if (n.off !== undefined) el.dataset.off = String(n.off);
     if (n.len !== undefined) el.dataset.len = String(n.len);
@@ -124,7 +134,7 @@ export class TreeHex {
     const hasKids = !!n.children?.length;
     const tog = document.createElement('span');
     tog.className = 'th-tog';
-    tog.textContent = hasKids ? (depth === 0 ? '▾' : '▸') : ' ';
+    tog.textContent = hasKids ? (depth === 0 && !this.options.collapseTopLayers ? '▾' : '▸') : ' ';
     const label = document.createElement('span');
     label.textContent = n.label;
     el.append(tog, label);
@@ -134,7 +144,7 @@ export class TreeHex {
     if (hasKids) {
       const kids = document.createElement('div');
       kids.className = 'th-kids';
-      kids.hidden = depth !== 0; // top layers open, fields collapsed
+      kids.hidden = depth !== 0 || !!this.options.collapseTopLayers; // top layers open, fields collapsed
       el.setAttribute('aria-expanded', String(!kids.hidden));
       n.children!.forEach((c, i) => kids.append(this.buildNode(c, `${path}.${i}`, depth + 1, f)));
       wrap.append(kids);
@@ -145,6 +155,7 @@ export class TreeHex {
 
   private renderHex(bytes: Uint8Array | null): void {
     this.byteEls = [];
+    this.asciiEls = [];
     if (!bytes || bytes.length === 0) {
       this.hexEl.replaceChildren();
       return;
@@ -158,7 +169,8 @@ export class TreeHex {
       off.className = 'th-off';
       off.textContent = base.toString(16).padStart(4, '0');
       line.append(off);
-      let ascii = '';
+      const a = document.createElement('span');
+      a.className = 'th-ascii';
       for (let i = base; i < Math.min(base + 16, n); i++) {
         const b = bytes[i] as number;
         const s = document.createElement('span');
@@ -167,11 +179,13 @@ export class TreeHex {
         s.textContent = b.toString(16).padStart(2, '0');
         line.append(s);
         this.byteEls.push(s);
-        ascii += b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : '.';
+        const char = document.createElement('span');
+        char.className = 'th-char';
+        char.dataset.off = String(i);
+        char.textContent = b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : '.';
+        a.append(char);
+        this.asciiEls.push(char);
       }
-      const a = document.createElement('span');
-      a.className = 'th-ascii';
-      a.textContent = ascii;
       line.append(a);
       lines.push(line);
     }
@@ -185,7 +199,10 @@ export class TreeHex {
   }
 
   private selectFlat(f: FlatNode): void {
-    if (this.selected) this.selected.el.classList.remove('selected');
+    if (this.selected) {
+      this.selected.el.classList.remove('selected');
+      this.selected.el.setAttribute('aria-selected', 'false');
+    }
     this.selected = f;
     f.el.classList.add('selected');
     f.el.setAttribute('aria-selected', 'true');
@@ -198,13 +215,20 @@ export class TreeHex {
     const { off, len } = f.node;
     this.highlight(off !== undefined && len !== undefined ? { off, len } : null);
     f.el.scrollIntoView?.({ block: 'nearest' });
+    this.options.onSelectNode?.(f.node);
   }
 
   private highlight(r: { off: number; len: number } | null): void {
-    if (this.range) for (let i = this.range.off; i < this.range.off + this.range.len; i++) this.byteEls[i]?.classList.remove('hl');
+    if (this.range) for (let i = Math.max(0, this.range.off); i < Math.min(this.byteEls.length, this.range.off + this.range.len); i++) {
+      this.byteEls[i]?.classList.remove('hl');
+      this.asciiEls[i]?.classList.remove('hl');
+    }
     this.range = r;
     if (!r) return;
-    for (let i = r.off; i < r.off + r.len; i++) this.byteEls[i]?.classList.add('hl');
+    for (let i = Math.max(0, r.off); i < Math.min(this.byteEls.length, r.off + r.len); i++) {
+      this.byteEls[i]?.classList.add('hl');
+      this.asciiEls[i]?.classList.add('hl');
+    }
     this.byteEls[r.off]?.scrollIntoView?.({ block: 'nearest' });
   }
 
@@ -222,6 +246,20 @@ export class TreeHex {
       return;
     }
     this.selectFlat(f);
+  };
+
+  private onTreeKey = (e: KeyboardEvent): void => {
+    const path = (e.target as HTMLElement).closest<HTMLElement>('.th-node')?.dataset.path;
+    const f = this.flat.find((item) => item.path === path);
+    if (!f || !['ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(e.key)) return;
+    e.preventDefault();
+    this.selectFlat(f);
+    if (f.childrenEl && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      f.childrenEl.hidden = e.key === 'ArrowLeft';
+      f.el.setAttribute('aria-expanded', String(!f.childrenEl.hidden));
+      const toggle = f.el.querySelector('.th-tog');
+      if (toggle) toggle.textContent = f.childrenEl.hidden ? '▸' : '▾';
+    }
   };
 
   private onHexClick = (e: Event): void => {

@@ -66,7 +66,7 @@ export {
 } from './terminalView';
 export type { TerminalStats, TerminalViewOptions } from './terminalView';
 export { TreeHex, MAX_HEX_BYTES } from './treeHex';
-export type { TreeNode } from './treeHex';
+export type { TreeNode, TreeHexOptions } from './treeHex';
 export { parseEvidenceRef, formatRequestRef, formatSeqRef } from './evidenceRef';
 export type { EvidenceRef } from './evidenceRef';
 export { createLatchLine, LATCH_LINE_TEXT } from './latchLine';
