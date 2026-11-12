@@ -1,7 +1,7 @@
 // SimPsu fixtures: 60 s at 1 Hz with a SCPI no-response gap at t = 30 s.
 import type { LoomEvent } from '../../sdk';
 
-function rec(kind: string, seq: number, tS: number, payload: Record<string, unknown>, metrics?: LoomEvent['metrics']): LoomEvent {
+export function rec(kind: string, seq: number, tS: number, payload: Record<string, unknown>, metrics?: LoomEvent['metrics']): LoomEvent {
   const mono = BigInt(Math.round(tS * 1000)) * 1_000_000n;
   return {
     schema_version: 1,

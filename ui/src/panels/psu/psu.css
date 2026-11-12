@@ -1,0 +1,80 @@
+/* psu.gauge (panels/psu) — panel-scoped. BenchVue Instrument View tile layout, Loom tokens only
+   (--fg/--muted/--line/--panel/--ok/--warn/--err/--accent). Every selector is under .psu-tile so
+   nothing leaks into the shell; shell.css keeps its legacy .psu-* base rules. */
+.psu-tile {
+  --psu-accent: var(--accent);
+  border: 1px solid var(--psu-accent);
+  border-radius: 3px;
+  gap: 6px;
+  padding: 0 0 4px;
+  min-width: 0;
+}
+.psu-tile .psu-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.psu-tile .psu-ident { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.psu-tile .psu-kind { color: var(--muted); font-size: 11px; }
+.psu-tile .psu-badge { background: var(--psu-accent); color: var(--bg); padding: 0 6px; border-radius: 2px; font-weight: 700; }
+.psu-tile .psu-env { color: var(--muted); font-size: 11px; }
+.psu-tile .psu-out { font-weight: 700; }
+.psu-tile .psu-out.on { color: var(--ok); }
+.psu-tile .psu-out.off { color: var(--muted); }
+.psu-tile .psu-out.unknown { color: var(--warn); }
+.psu-tile .psu-chip { border: 1px solid var(--line); border-radius: 2px; padding: 0 5px; font-size: 11px; color: var(--fg); }
+.psu-tile .psu-chip.warn { border-color: var(--err); color: var(--err); font-weight: 700; }
+.psu-tile .psu-head-act { margin-left: auto; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.psu-tile .psu-stop { color: var(--err); font-weight: 700; }
+.psu-tile .psu-emergency { font-weight: 700; }
+
+/* ordinary output toggle, drawn as a switch (track + knob) — distinct from the red emergency button */
+.psu-tile .psu-switch { display: inline-flex; align-items: center; gap: 6px; }
+.psu-tile .psu-switch::before {
+  content: ''; width: 26px; height: 14px; border-radius: 7px; flex: none;
+  background: radial-gradient(circle at 7px 50%, var(--fg) 5px, transparent 5.5px), var(--line);
+}
+.psu-tile .psu-switch.on::before { background: radial-gradient(circle at 19px 50%, var(--fg) 5px, transparent 5.5px), var(--ok); }
+.psu-tile .psu-switch[aria-pressed='mixed']::before { opacity: 0.4; }
+
+/* meter (measured) dominates; setpoints are a separate, quieter column */
+.psu-tile .psu-vals { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 4px 10px; font: inherit; }
+.psu-tile .psu-cap { color: var(--muted); font-size: 11px; letter-spacing: 0.04em; }
+.psu-tile .psu-meter { flex: 3 1 260px; min-width: 0; text-align: right; }
+.psu-tile .psu-meter .psu-cap { text-align: left; }
+.psu-tile .psu-read { display: grid; grid-template-columns: minmax(0, 1fr) 2.6em 3.6em; align-items: baseline; column-gap: 8px; }
+.psu-tile .psu-num { font: 300 clamp(22px, 4.2vw, 40px) / 1.1 ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--fg); overflow: hidden; text-overflow: ellipsis; }
+.psu-tile .psu-unit { font-size: clamp(14px, 2.2vw, 22px); color: var(--fg); text-align: left; }
+.psu-tile .psu-note { font-size: 11px; color: var(--muted); text-align: left; }
+.psu-tile .psu-read.unknown .psu-num, .psu-tile .psu-read.unknown .psu-unit { color: var(--muted); }
+.psu-tile .psu-meter.stale .psu-num { color: var(--muted); }
+.psu-tile .psu-meta { font-size: 11px; color: var(--muted); }
+.psu-tile .psu-meter.stale .psu-meta { color: var(--warn); }
+.psu-tile .psu-setpoints { flex: 1 1 150px; border-left: 1px solid var(--line); padding-left: 12px; align-self: stretch; }
+.psu-tile .psu-setrow { display: flex; justify-content: space-between; gap: 8px; font: 13px ui-monospace, monospace; padding: 2px 0; }
+.psu-tile .psu-setlabel { color: var(--muted); font: 12px system-ui, sans-serif; }
+
+.psu-tile .psu-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 4px 10px; border-top: 1px solid var(--line); }
+.psu-tile .psu-field { display: inline-flex; align-items: center; gap: 4px; }
+.psu-tile .psu-field input { width: 6.5em; font-family: ui-monospace, monospace; }
+.psu-tile .psu-field input[aria-invalid='true'] { outline: 1px solid var(--err); }
+.psu-tile .psu-unit-s { color: var(--muted); }
+.psu-tile .psu-pending { font-size: 11px; color: var(--muted); }
+.psu-tile .psu-pending.dirty { color: var(--warn); }
+.psu-tile .psu-pending.err { color: var(--err); }
+
+/* 60 s observation: stacked lanes, one per quantity, shared time axis (cursor sync) */
+.psu-tile .psu-trend { border-top: 1px solid var(--line); padding: 4px 10px 0; min-width: 0; }
+.psu-tile .psu-trend-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.psu-tile .psu-trend-title { font-weight: 600; }
+.psu-tile .psu-trend-note { font-size: 11px; }
+.psu-tile .psu-lane-toggles { margin-left: auto; display: inline-flex; gap: 4px; }
+.psu-tile .psu-lane-btn { min-width: 2.2em; padding: 0 6px; }
+.psu-tile .psu-lane-btn[aria-pressed='false'] { opacity: 0.5; }
+.psu-tile .psu-lanes { min-height: 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.psu-tile .psu-lane { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.psu-tile .psu-lane[hidden] { display: none; }
+.psu-tile .psu-lane-label { width: 18px; flex: none; color: var(--muted); font-size: 11px; }
+.psu-tile .psu-lane-plot { flex: 1; min-width: 0; }
+.psu-tile .psu-foot { padding: 0 10px; font-size: 11px; }
+
+@media (max-width: 420px) {
+  .psu-tile .psu-setpoints { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+  .psu-tile .psu-head-act { margin-left: 0; }
+}

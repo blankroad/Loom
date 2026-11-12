@@ -1,15 +1,46 @@
 // psu.gauge (M1b, sim; _xteam/explore-ui.md). Same data source as the STOP panel's
 // "출력 유지 장치" (psu.state / outputs_held).
+//
+// Layout follows the Keysight BenchVue/PathWave Power Supply *Instrument View* output tile
+// (reference + deviations: docs/impl/main/research/fidelity/psu.md). Loom branding only.
+//   header       alias · SIM · output state · CV/CC (reported only) · protection (reported only)
+//                [STOP — 출력 유지 중] [! 비상 OFF] [출력 ON/OFF switch] R3
+//   meter        measured V / A / W — dominant, right-aligned, "—" when unknown;
+//                W marked "(계산)" when derived from V×I rather than reported
+//   setpoints    target voltage / current limit, visually separate from the meter
+//   set form     typed values never send; only [적용] (R2) does — no Enter / keystroke apply
+//   60 s view    stacked measured V / A / W lanes (logger-inspired), a source.gap breaks every
+//                lane (no interpolation). A memory window — NOT a persistent data log.
+// Actions:
 //   [! 비상 OFF]  psu.out{state:'off'} — safety direction: any right incl. watch, NO
 //                 confirmation, interlocks only warn (A3). Key `!` when the panel has focus.
+//                 Channel-scoped. Global STOP never calls it (STOP keeps outputs: badge).
 //   [출력 ON/OFF] psu.out — R3 badge (F1: policy default auto, badge always shown)
-//   [설정]        psu.set{v?, i?} — R2 badge
-//   60 s plot     measured V / I (uPlot), a source.gap breaks the line (no interpolation)
+//   [적용]        psu.set{v?, i?} — R2 badge
+// Not offered (no backend): OVP/OCP/range/priority-mode writes, All On, logging/export, Arb list.
 
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { CHANNEL_PROP, registerPanel, type PanelContext, type PanelInstance } from '../../sdk';
-import { fmt, monoS, readMetrics, reduceState, Series, type Meas, type PsuState } from './psuModel';
+import './psu.css';
+import {
+  EMPTY_MEAS,
+  eng,
+  fmt,
+  gapCauseLabel,
+  gapCauseSummary,
+  modeLabel,
+  monoS,
+  parseSetpoint,
+  protLabel,
+  readMetrics,
+  reduceState,
+  Series,
+  WINDOW_S,
+  type Lane,
+  type Meas,
+  type PsuState,
+} from './psuModel';
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag);
@@ -17,6 +48,18 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   if (text !== undefined) e.textContent = text;
   return e;
 };
+const tid = <E extends HTMLElement>(e: E, id: string): E => {
+  e.setAttribute('data-testid', id);
+  return e;
+};
+
+const LANES: readonly { key: Lane; label: string; unit: string; stroke: string }[] = [
+  { key: 'v', label: '전압', unit: 'V', stroke: '#19b3ad' },
+  { key: 'i', label: '전류', unit: 'A', stroke: '#e0b020' },
+  { key: 'p', label: '전력', unit: 'W', stroke: '#a3b1c2' },
+];
+const LANE_H = 88;
+let syncSeq = 0;
 
 export function createPsuGauge(ctx: PanelContext): PanelInstance {
   const ch = typeof ctx.props.channel === 'string' ? ctx.props.channel : 'bench';
@@ -24,12 +67,18 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   // emergency OFF stays enabled regardless (safety direction)
   const canOperate = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
   let state: PsuState = { setV: null, setI: null, out: null, prot: null, mode: null };
-  let meas: Meas = { v: null, i: null, p: null, atMs: null };
+  let meas: Meas = { ...EMPTY_MEAS };
+  let staleAfterGap = false; // a loss arrived after the last measurement
+  let statusPending = false;
+  const statusAbort = new AbortController();
   const series = new Series();
   let lastSeq = -1n;
   let gaps = 0;
-  let plot: uPlot | null = null;
+  const gapCauses = new Map<string, number>(); // label → count, from source.gap.payload.cause
+  const shown: Record<Lane, boolean> = { v: true, i: true, p: false };
+  const plots = new Map<Lane, uPlot>();
   let plotErr: string | null = null;
+  const syncKey = `psu-${ch}-${++syncSeq}`;
 
   const act = (id: string, params: object) =>
     ctx.act(id, params).catch((e: unknown) => {
@@ -37,84 +86,212 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
       return null;
     });
 
-  // ---- DOM ----
-  const root = el('div', 'psu-panel');
+  // ---- DOM: header ----
+  const root = el('div', 'psu-panel psu-tile');
   root.tabIndex = 0;
-  const head = el('div', 'psu-head');
-  head.setAttribute('data-testid', 'psu-head');
-  const stopBadge = el('span', 'psu-stop', 'STOP — 출력 유지 중');
+  const head = tid(el('div', 'psu-head'), 'psu-head');
+  const ident = el('span', 'psu-ident');
+  const badge = tid(el('span', 'psu-badge', ch), 'psu-badge');
+  badge.title = `PSU 별칭 ${ch}`;
+  const envChip = el('span', 'psu-env', `[${(ctx.env ?? '?').toUpperCase()}]`);
+  ident.append(el('span', 'psu-kind', 'PSU'), ' ', badge, ' ', envChip);
+  const outWord = tid(el('span', 'psu-out'), 'psu-out');
+  const modeChip = tid(el('span', 'psu-chip psu-mode'), 'psu-mode');
+  modeChip.title = '장치가 보고한 동작 모드 (추정하지 않음)';
+  const protChip = tid(el('span', 'psu-chip psu-prot'), 'psu-prot');
+  protChip.title = '장치가 보고한 보호 상태 (OVP/OCP 설정은 이 백엔드에서 미지원)';
+  const stopBadge = tid(el('span', 'psu-stop', 'STOP — 출력 유지 중'), 'psu-stop');
+  stopBadge.title = '전역 STOP은 자동화 쓰기를 멈출 뿐 PSU 출력을 끄지 않습니다';
   stopBadge.hidden = true;
-  const emergency = el('button', 'danger psu-emergency', '! 비상 OFF');
+  const emergency = tid(el('button', 'danger psu-emergency', '! 비상 OFF'), 'psu-emergency');
   emergency.type = 'button';
-  emergency.title = '확인 없이 즉시 출력 OFF (보기 자격도 가능, 인터록은 경고만)';
-  const vals = el('div', 'psu-vals');
-  vals.setAttribute('data-testid', 'psu-vals');
-  const ctl = el('div', 'psu-ctl');
-  const outBtn = el('button', undefined, '출력 ON');
+  emergency.title = `${ch} 채널만 확인 없이 즉시 출력 OFF (보기 자격도 가능, 인터록은 경고만)`;
+  const outBtn = tid(el('button', 'psu-switch', '출력 ON'), 'psu-output-toggle');
   outBtn.type = 'button';
   const r3 = el('span', 'risk risk-R3', 'R3');
-  const vIn = Object.assign(el('input'), { placeholder: 'V', inputMode: 'decimal' });
-  vIn.setAttribute('aria-label', '설정 전압');
-  const iIn = Object.assign(el('input'), { placeholder: 'A', inputMode: 'decimal' });
-  iIn.setAttribute('aria-label', '설정 전류');
-  const setBtn = el('button', undefined, '설정');
-  setBtn.type = 'button';
-  const r2 = el('span', 'risk risk-R2', 'R2');
-  ctl.append(outBtn, r3, ' ', vIn, iIn, setBtn, r2);
-  const plotHost = el('div', 'psu-plot');
-  const foot = el('div', 'muted');
-  root.append(head, vals, ctl, plotHost, foot);
+  const acts = el('span', 'psu-head-act');
+  acts.append(stopBadge, emergency, outBtn, r3);
+  head.append(ident, outWord, modeChip, protChip, acts);
 
+  // ---- DOM: meter (measured) + setpoints (targets) ----
+  const vals = tid(el('div', 'psu-vals'), 'psu-vals');
+  const meter = tid(el('section', 'psu-meter'), 'psu-meter');
+  meter.setAttribute('aria-label', '실측값');
+  const meterCap = el('div', 'psu-cap', '실측');
+  const readRow = (k: Lane) => {
+    const row = tid(el('div', 'psu-read'), `psu-meter-${k}`);
+    const n = el('span', 'psu-num');
+    const u = el('span', 'psu-unit');
+    const note = el('span', 'psu-note');
+    row.append(n, u, note);
+    return { row, n, u, note };
+  };
+  const rV = readRow('v');
+  const rI = readRow('i');
+  const rP = readRow('p');
+  const meterMeta = tid(el('div', 'psu-meta'), 'psu-meter-age');
+  meter.append(meterCap, rV.row, rI.row, rP.row, meterMeta);
+
+  const sets = tid(el('section', 'psu-setpoints'), 'psu-setpoints');
+  sets.setAttribute('aria-label', '설정값 (목표)');
+  const setRow = (label: string, id: string) => {
+    const row = tid(el('div', 'psu-setrow'), id);
+    const v = el('span', 'psu-setval');
+    row.append(el('span', 'psu-setlabel', label), v);
+    return v;
+  };
+  const sV = setRow('전압 설정', 'psu-setpoint-v');
+  const sI = setRow('전류 제한', 'psu-setpoint-i');
+  sets.append(el('div', 'psu-cap', '설정 (목표값)'), sV.parentElement!, sI.parentElement!);
+  vals.append(meter, sets);
+
+  // ---- DOM: set form (explicit apply only) ----
+  const ctl = tid(el('div', 'psu-ctl'), 'psu-set-form');
+  const field = (label: string, unit: string, id: string) => {
+    const wrap = el('label', 'psu-field');
+    const input = tid(Object.assign(el('input'), { inputMode: 'decimal', autocomplete: 'off' }), id);
+    input.setAttribute('aria-label', label === '전압 설정' ? '설정 전압' : '설정 전류');
+    wrap.append(el('span', 'psu-setlabel', label), input, el('span', 'psu-unit-s', unit));
+    return input;
+  };
+  const vIn = field('전압 설정', 'V', 'psu-set-v');
+  const iIn = field('전류 제한', 'A', 'psu-set-i');
+  const setBtn = tid(el('button', 'psu-apply', '적용'), 'psu-apply');
+  setBtn.type = 'button';
+  setBtn.title = '입력한 값만 장치에 보냅니다. 입력 중에는 아무것도 보내지 않습니다.';
+  const r2 = el('span', 'risk risk-R2', 'R2');
+  const pending = tid(el('span', 'psu-pending'), 'psu-set-pending');
+  pending.setAttribute('aria-live', 'polite');
+  ctl.append(vIn.parentElement!, iIn.parentElement!, setBtn, r2, pending);
+
+  // ---- DOM: 60 s observation (stacked lanes) ----
+  const trend = tid(el('section', 'psu-trend'), 'psu-trend');
+  const trendHead = el('div', 'psu-trend-head');
+  const toggles = el('span', 'psu-lane-toggles');
+  const laneBtn = new Map<Lane, HTMLButtonElement>();
+  for (const l of LANES) {
+    const b = tid(el('button', 'psu-lane-btn', `${l.unit}`), `psu-lane-${l.key}`);
+    b.type = 'button';
+    b.title = `${l.label} 레인 표시/숨김 (수집은 계속)`;
+    b.addEventListener('click', () => {
+      shown[l.key] = !shown[l.key];
+      ctx.scheduler.invalidate();
+    });
+    laneBtn.set(l.key, b);
+    toggles.append(b);
+  }
+  trendHead.append(
+    el('span', 'psu-trend-title', `${WINDOW_S}초 관측`),
+    el('span', 'psu-trend-note muted', '실측 추세 · 메모리 창 (저장 기록 아님)'),
+    toggles,
+  );
+  const plotHost = el('div', 'psu-plot psu-lanes');
+  const laneEl = new Map<Lane, { wrap: HTMLDivElement; host: HTMLDivElement }>();
+  for (const l of LANES) {
+    const wrap = tid(el('div', 'psu-lane'), `psu-lane-row-${l.key}`);
+    const host = el('div', 'psu-lane-plot');
+    wrap.append(el('span', 'psu-lane-label', l.unit), host);
+    laneEl.set(l.key, { wrap, host });
+    plotHost.append(wrap);
+  }
+  const plotMsg = el('div', 'psu-plot-msg muted');
+  plotMsg.hidden = true;
+  plotHost.append(plotMsg);
+  trend.append(trendHead, plotHost);
+  const foot = tid(el('div', 'psu-foot muted'), 'psu-foot');
+  root.append(head, vals, ctl, trend, foot);
+
+  // ---- behaviour ----
   const emergencyOff = () => void act('emergencyOff', { channel: ch, state: 'off' });
   emergency.addEventListener('click', emergencyOff);
-  outBtn.addEventListener('click', () => void act('output', { channel: ch, state: state.out ? 'off' : 'on' }));
+  outBtn.addEventListener('click', () => {
+    if (state.out === null) return; // unknown state: never guess a direction
+    void act('output', { channel: ch, state: state.out ? 'off' : 'on' });
+  });
+  const updatePending = () => {
+    const v = parseSetpoint(vIn.value);
+    const i = parseSetpoint(iIn.value);
+    vIn.setAttribute('aria-invalid', String(!v.ok));
+    iIn.setAttribute('aria-invalid', String(!i.ok));
+    if (!v.ok || !i.ok) {
+      pending.textContent = '0 이상의 숫자를 입력하세요';
+      pending.className = 'psu-pending err';
+      return;
+    }
+    const diff = (x: number | null, cur: number | null) => x !== null && x !== cur;
+    const dirty = diff(v.value, state.setV) || diff(i.value, state.setI);
+    pending.textContent = dirty ? '미적용 — [적용]을 눌러야 장치로 보냅니다' : '';
+    pending.className = dirty ? 'psu-pending dirty' : 'psu-pending';
+  };
+  vIn.addEventListener('input', updatePending);
+  iIn.addEventListener('input', updatePending);
   setBtn.addEventListener('click', () => {
-    const v = vIn.value.trim() === '' ? null : Number(vIn.value);
-    const i = iIn.value.trim() === '' ? null : Number(iIn.value);
-    if ((v !== null && !Number.isFinite(v)) || (i !== null && !Number.isFinite(i)) || (v === null && i === null)) {
+    const v = parseSetpoint(vIn.value);
+    const i = parseSetpoint(iIn.value);
+    if (!v.ok || !i.ok || (v.value === null && i.value === null)) {
       ctx.ui.toast('설정값을 확인하세요');
       return;
     }
-    void act('set', { channel: ch, ...(v !== null ? { v } : {}), ...(i !== null ? { i } : {}) });
+    void act('set', { channel: ch, ...(v.value !== null ? { v: v.value } : {}), ...(i.value !== null ? { i: i.value } : {}) }).then((r) => {
+      if (r === null) return; // failure toasted; keep the typed values for correction
+      vIn.value = '';
+      iIn.value = '';
+      updatePending();
+    });
   });
   root.addEventListener('keydown', (e) => {
     const tag = (e.target as HTMLElement).tagName;
-    if (tag === 'INPUT') return;
+    if (tag === 'INPUT') return; // Enter / typing in a field never applies
     if (e.key === '!') {
       e.preventDefault();
       emergencyOff();
     }
   });
 
-  const makePlot = (w: number, h: number) => {
-    if (plot || plotErr) return;
+  const makePlots = (w: number) => {
+    if (plots.size || plotErr) return;
     // no 2D canvas (headless / jsdom) → say so instead of failing inside uPlot's draw loop
     if (!document.createElement('canvas').getContext('2d')) {
       plotErr = '캔버스 없음';
-      plotHost.textContent = '플롯 사용 불가: 캔버스 없음 (값은 위에 표시)';
+      plotMsg.textContent = '플롯 사용 불가: 캔버스 없음 (값은 위에 표시)';
+      plotMsg.hidden = false;
       return;
     }
     try {
-      plot = new uPlot(
-        {
-          width: Math.max(200, w),
-          height: Math.max(80, h),
-          scales: { x: { time: false } },
-          series: [
-            { label: 't (s)' },
-            { label: 'V', stroke: '#19b3ad', scale: 'V', spanGaps: false },
-            { label: 'A', stroke: '#e0b020', scale: 'A', spanGaps: false },
-          ],
-          axes: [{}, { scale: 'V', label: 'V' }, { scale: 'A', side: 1, label: 'A', grid: { show: false } }],
-          legend: { show: true },
-        },
-        series.data(),
-        plotHost,
-      );
+      for (const l of LANES) {
+        const p = new uPlot(
+          {
+            width: Math.max(200, w - 28),
+            height: LANE_H,
+            scales: { x: { time: false } },
+            cursor: { sync: { key: syncKey } },
+            series: [{ label: 't (s)' }, { label: l.unit, stroke: l.stroke, spanGaps: false }],
+            axes: [
+              { size: 26, stroke: '#a9b8c9', grid: { stroke: '#293849' }, ticks: { stroke: '#405267' }, font: '11px ui-monospace, monospace' },
+              { size: 52, stroke: '#a9b8c9', grid: { stroke: '#293849' }, ticks: { stroke: '#405267' }, font: '11px ui-monospace, monospace' },
+            ],
+            legend: { show: false },
+          },
+          series.lane(l.key),
+          laneEl.get(l.key)!.host,
+        );
+        plots.set(l.key, p);
+      }
     } catch (e) {
+      for (const p of plots.values()) p.destroy();
+      plots.clear();
       plotErr = e instanceof Error ? e.message : String(e);
-      plotHost.textContent = `플롯 사용 불가: ${plotErr}`;
+      plotMsg.textContent = `플롯 사용 불가: ${plotErr}`;
+      plotMsg.hidden = false;
     }
+  };
+
+  const setRead = (r: { n: HTMLElement; u: HTMLElement; note: HTMLElement; row: HTMLElement }, x: number | null, unit: string, note = '') => {
+    const f = eng(x, unit);
+    r.n.textContent = f.num;
+    r.u.textContent = f.unit;
+    r.note.textContent = note;
+    r.row.classList.toggle('unknown', x === null);
   };
 
   const draw = (): bigint => {
@@ -124,56 +301,98 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
       const m = readMetrics(ev);
       if (m) {
         meas = { ...m, atMs: performance.now() };
-        series.push(monoS(ev), m.v, m.i);
+        staleAfterGap = false;
+        series.push(monoS(ev), m.v, m.i, m.p);
       }
       if (ev.kind === 'source.gap') {
         gaps++;
-        series.gap(monoS(ev)); // break the line — never interpolate across a loss
+        const cause = gapCauseLabel(ev.payload);
+        gapCauses.set(cause, (gapCauses.get(cause) ?? 0) + 1);
+        staleAfterGap = meas.atMs !== null;
+        series.gap(monoS(ev)); // break every lane — never interpolate across a loss
       }
     }
-    const outText = state.out === null ? '출력 ?' : state.out ? '● 출력 ON' : '○ 출력 OFF';
-    head.replaceChildren(
-      el('span', undefined, `PSU ${ch} [${(ctx.env ?? '?').toUpperCase()}] `),
-      el('span', `psu-out ${state.out ? 'on' : 'off'}`, outText),
-      el('span', `psu-prot ${state.prot && state.prot !== 'ok' ? 'warn' : ''}`, ` 보호 ${state.prot ?? '?'}`),
-      ' ',
-      stopBadge,
-      ' ',
-      emergency,
-    );
+    // header
+    outWord.textContent = state.out === null ? '출력 ?' : state.out ? '● 출력 ON' : '○ 출력 OFF';
+    outWord.className = `psu-out ${state.out === null ? 'unknown' : state.out ? 'on' : 'off'}`;
+    const mode = modeLabel(state.mode);
+    modeChip.textContent = mode ?? '';
+    modeChip.hidden = mode === null;
+    const prot = protLabel(state.prot);
+    protChip.textContent = prot.text;
+    protChip.classList.toggle('warn', prot.warn);
     stopBadge.hidden = !(ctx.stopLatched && state.out === true);
-    const age = meas.atMs === null ? '' : ` (age ${Math.round(performance.now() - meas.atMs)} ms)`;
-    vals.textContent = `설정 ${fmt(state.setV, 'V', 2)} / ${fmt(state.setI, 'A', 2)}${state.mode ? ` ${state.mode}` : ''} · 실측 ${fmt(meas.v, 'V')} ${fmt(meas.i, 'A')} ${fmt(meas.p, 'W', 2)}${age}`;
     const op = canOperate();
     outBtn.disabled = !op || state.out === null;
     outBtn.textContent = state.out ? '출력 OFF' : '출력 ON';
+    outBtn.setAttribute('aria-pressed', state.out === null ? 'mixed' : String(state.out));
+    outBtn.classList.toggle('on', state.out === true);
+    outBtn.title = state.out === null ? '출력 상태 미확인 — 토글 불가' : `출력 ${state.out ? '끄기' : '켜기'} (operate 권한, 쓰기 잠금 적용)`;
+    emergency.disabled = false; // safety direction: always available
+    root.classList.toggle('psu-is-on', state.out === true);
+    // meter
+    setRead(rV, meas.v, 'V');
+    setRead(rI, meas.i, 'A');
+    setRead(rP, meas.p, 'W', meas.p !== null && meas.pDerived ? '(계산)' : '');
+    rP.row.title = meas.pDerived ? '장치가 전력을 보고하지 않아 V×I로 계산' : '';
+    meter.classList.toggle('stale', staleAfterGap);
+    meterMeta.textContent =
+      meas.atMs === null
+        ? '측정 없음'
+        : `${staleAfterGap ? '측정 손실 후 미갱신 · 마지막 값 · ' : ''}age ${Math.round(performance.now() - meas.atMs)} ms`;
+    // setpoints
+    sV.textContent = fmt(state.setV, 'V', 2);
+    sI.textContent = fmt(state.setI, 'A', 2);
+    vIn.placeholder = state.setV === null ? 'V' : state.setV.toFixed(2);
+    iIn.placeholder = state.setI === null ? 'A' : state.setI.toFixed(2);
     setBtn.disabled = !op;
     vIn.disabled = !op;
     iIn.disabled = !op;
-    emergency.disabled = false; // safety direction: always available
-    foot.textContent = `${gaps ? `측정 손실(SCPI 무응답) ${gaps}회 — 선을 끊어 표시 · ` : ''}60 s 창 · ${series.t.length}점`;
-    plot?.setData(series.data());
+    updatePending();
+    // lanes
+    for (const l of LANES) {
+      laneEl.get(l.key)!.wrap.hidden = !shown[l.key];
+      const b = laneBtn.get(l.key)!;
+      b.setAttribute('aria-pressed', String(shown[l.key]));
+      plots.get(l.key)?.setData(series.lane(l.key));
+    }
+    foot.textContent = `${gaps ? `측정 손실 ${gaps}회 (${gapCauseSummary(gapCauses)}) — 선을 끊어 표시 · ` : ''}${WINDOW_S} s 창 · ${series.t.length}점`;
     return mirror.headSeq;
   };
   const offFrame = ctx.scheduler.onFrame(draw);
   const offAppend = mirror.onAppend(() => ctx.scheduler.invalidate());
-  const tick = setInterval(() => ctx.scheduler.invalidate(), 1_000); // age counter
+  // The native simulator advances measurements when polled. Authoritative status also
+  // reconciles setpoints/output after writes; never infer them from the user's draft.
+  const refreshStatus = () => {
+    if (statusPending || statusAbort.signal.aborted) return;
+    statusPending = true;
+    void ctx.query('psu.status', { ch }, statusAbort.signal).then((result) => {
+      if (statusAbort.signal.aborted) return;
+      const envelope = result as Record<string, unknown>;
+      const payload = envelope.data && typeof envelope.data === 'object' ? envelope.data : envelope;
+      state = reduceState(state, { kind: 'psu.state', payload } as Parameters<typeof reduceState>[1]);
+      ctx.scheduler.invalidate();
+    }).catch(() => { /* keep observed state; unavailable status is never converted to zero */ })
+      .finally(() => { statusPending = false; });
+  };
+  const tick = setInterval(() => { refreshStatus(); ctx.scheduler.invalidate(); }, 1_000);
 
   return {
     mount(host) {
       host.append(root);
-      makePlot(host.clientWidth - 12, 140);
+      makePlots(host.clientWidth - 12);
       ctx.scheduler.invalidate();
     },
     resize(w) {
-      if (!plot) makePlot(w - 12, 140);
-      else plot.setSize({ width: Math.max(200, w - 12), height: 140 });
+      if (!plots.size) makePlots(w - 12);
+      else for (const p of plots.values()) p.setSize({ width: Math.max(200, w - 40), height: LANE_H });
     },
     dispose() {
       clearInterval(tick);
+      statusAbort.abort();
       offFrame();
       offAppend();
-      plot?.destroy();
+      for (const p of plots.values()) p.destroy();
       root.remove();
     },
   };
@@ -195,7 +414,7 @@ registerPanel(
         mirrorRows: 1_000,
       },
     ],
-    queries: [],
+    queries: ['psu.status'],
     actions: [
       // two actions on the same RPC: the gate applies each spec's rights/safety rule
       { id: 'emergencyOff', rpc: 'psu.out', class: 'request', right: 'watch', confirm: 'none', safetyDirection: 'reduce', label: '비상 OFF' },
