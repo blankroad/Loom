@@ -11,13 +11,13 @@ const GEN_MARK_MS = 10_000;
 const STATE_LABEL = { open: '연결됨', closed: '닫힘', unknown: '상태 미확인' };
 
 /** Live interfaces first. Inactive discovery/history is retained behind explicit disclosure. */
-export function ChannelBar() {
+export function ChannelBar({ domains: scopedDomains }: { domains?: readonly string[] } = {}) {
   const { shell, showSlot, now } = useServices();
   useStoreVersion(shell);
   const [query, setQuery] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
-  const allChannels = [...shell.channels.values()];
+  const allChannels = [...shell.channels.values()].filter((c) => !scopedDomains || scopedDomains.includes(c.domain));
   const active = allChannels.filter((c) => c.state === 'open');
   const inactiveCount = allChannels.length - active.length;
   const chans = showInactive ? allChannels : active;

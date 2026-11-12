@@ -1,0 +1,136 @@
+spaceId 7
+CHECK empty service URL retained PASS — #/s/uart
+CHECK no inactive service navigation PASS — []
+CHECK empty UART scoped PASS
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-empty.png
+uart mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"generic","request_id":"w1","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0"},"schema_version":1}
+uart aux {"cmd":"uart.open","data":{"channel":"aux","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":1,"path":"sim://bootshell?split=0","profile":"generic","request_id":"w2","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794484752:seq:13"},"schema_version
+CHECK UART-only navigation PASS — ["uart"]
+CHECK uart scoped explorer PASS — ["uart/aux","uart/mcu"]
+CHECK uart exact view count PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart no foreign view PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart active aliases PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart single readable group PASS — 1
+CHECK uart no integration layout picker PASS
+CHECK uart shared STOP visible PASS
+CHECK uart no page overflow PASS
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-service.png
+can pt {"cmd":"can.open","data":{"backend":"sim","bus":"pt","channel":"pt","generation":1,"latched":false,"nodes":["BCM"],"nodes_already_running":[],"request_id":"w3","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794484752:seq:21"},"schema_version":1}
+eth mirror {"cmd":"eth.capture.start","data":{"backend":"sim","buffer_bytes_requested":"67108864","ch":"mirror","drop_stats":"available","health":{"decode_lag_ms":0,"decode_resets":0,"display_lost":0,"emitter_failures":0,"journal_available":false,"publication_permille":0,"queue_bytes":4096000,"queue_frames":0,"shown":0,"timestamp_fallbacks":0,"total":1,"tx_queue_bytes":0,"unrecorded":0},"iface":"sim0","journal_available":false,"linktype":1,"promisc":false,"request_id":"w4","snaplen":65535,"started_mono_ns"
+uds gw {"cmd":"uds.connect","data":{"entity":"127.0.0.1:53925","existing":false,"others_since_last":{"count":0,"from_cursor":"w:0","origins":[]},"state":{"addr":"DoIP 0x1001","backend":"sim","generation":1,"lease":null,"link":{"cause":"connected","state":"up"},"p2_ms":50,"p2_star_ms":5000,"security":{"confidence":"assumed","level":null},"session":{"confidence":"assumed","id":1,"name":"default"},"target":"gw","tester_present":null},"target":"gw"},"meta":{"env":"sim","latch":false,"record_health":"ok","s
+psu rail {"cmd":"psu.connect","data":{"ch":"rail","connected":true,"cycling":false,"generation":1,"idn":"Loom,SimPsu,0,1.0","imax":5,"inject":{"delay_ms":0,"no_response":0},"mode":"off","out":false,"poll_hz_actual":null,"poll_hz_req":5,"prot":"ok","request_id":"w5","samples":0,"set_i":1,"set_v":0,"state":"confirmed","timeouts":0,"vmax":16},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok
+CHECK five active services available PASS — ["uart","can","eth","psu","uds"]
+CHECK uart scoped explorer PASS — ["uart/aux","uart/mcu"]
+CHECK uart exact view count PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart no foreign view PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart active aliases PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart single readable group PASS — 1
+CHECK uart no integration layout picker PASS
+CHECK uart shared STOP visible PASS
+CHECK uart no page overflow PASS
+CHECK unrelated events keep UART route PASS
+uart service state {"route":"#/s/uart","heading":"UART 서비스","services":["uart","can","eth","psu","uds"],"current":["#/s/uart"],"channels":["uart/aux","uart/mcu"],"tabs":["UART 터미널 · mcu","UART 터미널 · aux"],"groups":1,"picker":false,"relations":[],"navGroups":["인터페이스 서비스","진단"],"text":"SERVICEUART 서비스단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기UART 터미널 · mcuUART 터미널 · aux최대화STOP — agent/script 쓰기 잠김(사용자 입력 가능)UART mcu ● open 115200 gen1 [SIM]입력권: 비어 있음반환지우기가져오기HOLD⏸키 ▾C
+CHECK uart scoped explorer PASS — ["uart/aux","uart/mcu"]
+CHECK uart exact view count PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart no foreign view PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart active aliases PASS — ["UART 터미널 · mcu","UART 터미널 · aux"]
+CHECK uart single readable group PASS — 1
+CHECK uart no integration layout picker PASS
+CHECK uart shared STOP visible PASS
+CHECK uart no page overflow PASS
+CHECK uart menu retains shared live state PASS — ["uart","can","eth","psu","uds"]
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-all-connected.png
+can service state {"route":"#/s/can","heading":"CAN 서비스","services":["uart","can","eth","psu","uds"],"current":["#/s/can"],"channels":["can/pt"],"tabs":["CAN 트레이스 · pt"],"groups":1,"picker":false,"relations":["#/s/uds"],"navGroups":["인터페이스 서비스","진단"],"text":"SERVICECAN 서비스단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기CAN 트레이스 · pt최대화STOP — agent/script 쓰기 잠김(사용자 입력 가능)CAN ptSIMLIVE⏸ 일시정지rx+txrxtx AGT USR DEV SCR시각(s)dir출처idlendata상태비고프레임 없음송신보내기 ⏎R1 SIM 자동보이는 0 / 링 0 (
+CHECK can scoped explorer PASS — ["can/pt"]
+CHECK can exact view count PASS — ["CAN 트레이스 · pt"]
+CHECK can no foreign view PASS — ["CAN 트레이스 · pt"]
+CHECK can active aliases PASS — ["CAN 트레이스 · pt"]
+CHECK can single readable group PASS — 1
+CHECK can no integration layout picker PASS
+CHECK can shared STOP visible PASS
+CHECK can no page overflow PASS
+CHECK can menu retains shared live state PASS — ["uart","can","eth","psu","uds"]
+CHECK can links to common diagnostics PASS — ["#/s/uds"]
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/can-all-connected.png
+eth service state {"route":"#/s/eth","heading":"Ethernet 서비스","services":["uart","can","eth","psu","uds"],"current":["#/s/eth"],"channels":["eth/mirror"],"tabs":["이더넷 패킷 · mirror"],"groups":1,"picker":false,"relations":["#/s/uds"],"navGroups":["인터페이스 서비스","진단"],"text":"SERVICEEthernet 서비스단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기이더넷 패킷 · mirror최대화eth.packets ─ mirror ● ?  pps ?  bps ?  커널 드롭: 알 수 없음  기록 ok  ts ?■ 캡처 정지캡처 시작…⇩ pcapng캡처 불가(권한) — 벤치 터미널에서 `loom doctor
+CHECK eth scoped explorer PASS — ["eth/mirror"]
+CHECK eth exact view count PASS — ["이더넷 패킷 · mirror"]
+CHECK eth no foreign view PASS — ["이더넷 패킷 · mirror"]
+CHECK eth active aliases PASS — ["이더넷 패킷 · mirror"]
+CHECK eth single readable group PASS — 1
+CHECK eth no integration layout picker PASS
+CHECK eth shared STOP visible PASS
+CHECK eth no page overflow PASS
+CHECK eth menu retains shared live state PASS — ["uart","can","eth","psu","uds"]
+CHECK eth links to common diagnostics PASS — ["#/s/uds"]
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/eth-all-connected.png
+uds service state {"route":"#/s/uds","heading":"UDS 진단","services":["uart","can","eth","psu","uds"],"current":["#/s/uds"],"channels":["can/pt","uds/gw","eth/mirror"],"tabs":["UDS 콘솔 · gw","CAN 트레이스 · pt","이더넷 패킷 · mirror"],"groups":1,"picker":false,"relations":["#/s/can","#/s/eth"],"navGroups":["인터페이스 서비스","진단"],"text":"DIAGNOSTICSUDS 진단단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기현재 연결 지원: DoIP·시뮬레이터. CAN·Ethernet 관찰 패널은 선택 ECU와의 대응 관계를 의미하지 않습니다.UDS 콘솔 · gwCAN 트레이스 
+CHECK uds scoped explorer PASS — ["can/pt","uds/gw","eth/mirror"]
+CHECK uds exact view count PASS — ["UDS 콘솔 · gw","CAN 트레이스 · pt","이더넷 패킷 · mirror"]
+CHECK uds no foreign view PASS — ["UDS 콘솔 · gw","CAN 트레이스 · pt","이더넷 패킷 · mirror"]
+CHECK uds active aliases PASS — ["UDS 콘솔 · gw","CAN 트레이스 · pt","이더넷 패킷 · mirror"]
+CHECK uds single readable group PASS — 1
+CHECK uds no integration layout picker PASS
+CHECK uds shared STOP visible PASS
+CHECK uds no page overflow PASS
+CHECK uds menu retains shared live state PASS — ["uart","can","eth","psu","uds"]
+CHECK UDS diagnostic workspace combines actual CAN and Ethernet observers PASS — ["can/pt","uds/gw","eth/mirror"]
+CHECK diagnostics classified separately PASS
+CHECK UDS links both transport observations PASS — ["#/s/can","#/s/eth"]
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uds-all-connected.png
+psu service state {"route":"#/s/psu","heading":"PSU 서비스","services":["uart","can","eth","psu","uds"],"current":["#/s/psu"],"channels":["psu/rail"],"tabs":["벤치 전원 (PSU) · rail"],"groups":1,"picker":false,"relations":[],"navGroups":["인터페이스 서비스","진단"],"text":"SERVICEPSU 서비스단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기벤치 전원 (PSU) · rail최대화PSU rail [SIM] ○ 출력 OFF 보호 ok STOP — 출력 유지 중 ! 비상 OFF설정 0.00 V / 1.00 A off · 실측 — V — A — W출력 ONR3 설정R2t (s)--V--A--60 s 창 · 0점UART 터미
+CHECK psu scoped explorer PASS — ["psu/rail"]
+CHECK psu exact view count PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu no foreign view PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu active aliases PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu single readable group PASS — 1
+CHECK psu no integration layout picker PASS
+CHECK psu shared STOP visible PASS
+CHECK psu no page overflow PASS
+CHECK psu menu retains shared live state PASS — ["uart","can","eth","psu","uds"]
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/psu-all-connected.png
+CHECK psu scoped explorer PASS — ["psu/rail"]
+CHECK psu exact view count PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu no foreign view PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu active aliases PASS — ["벤치 전원 (PSU) · rail"]
+CHECK psu single readable group PASS — 1
+CHECK psu no integration layout picker PASS
+CHECK psu shared STOP visible PASS
+CHECK psu no page overflow PASS
+CHECK reload keeps connected OFF PSU visible PASS
+CHECK integration all real channels PASS — ["uart/aux","uart/mcu","can/pt","uds/gw","eth/mirror","psu/rail"]
+CHECK integration six views PASS — ["CAN 트레이스 · pt","이더넷 패킷 · mirror","벤치 전원 (PSU) · rail","UART 터미널 · aux","UART 터미널 · mcu","UDS 콘솔 · gw"]
+CHECK integration layout tools available PASS
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/integration.png
+close mcu {"cmd":"uart.close","data":{"channel":"mcu","closed":true,"generation":1,"refs_left":0,"request_id":"w6","state":"sent","threads_left":0},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794484752:seq:50"},"schema_version":1}
+close aux {"cmd":"uart.close","data":{"channel":"aux","closed":true,"generation":1,"refs_left":0,"request_id":"w7","state":"sent","threads_left":0},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794484752:seq:177"},"schema_version":1}
+CHECK closed service leaves primary navigation PASS — ["can","eth","psu","uds"]
+CHECK closed UART stays honest empty service PASS
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-closed.png
+reopen mcu {"cmd":"uart.open","data":{"channel":"mcu","config":{"baud":115200,"data_bits":8,"flow":"none","parity":"none","stop_bits":"1"},"env":"sim","generation":2,"path":"sim://bootshell?split=0","profile":"generic","request_id":"w8","state":"sent"},"meta":{"env":"sim","latch":false,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":true,"others_since_last":{"count":"0","from_cursor":"e1794484752:seq:181"},"schema_versio
+CHECK reopen existing route restores only UART PASS
+CHECK late join domain scope PASS — {"route":"#/s/can","heading":"CAN 서비스","services":["uart","can","eth","psu","uds"],"current":["#/s/can"],"channels":["can/pt"],"tabs":["CAN 트레이스 · pt"],"groups":1,"picker":false,"relations":["#/s/uds"],"navGroups":["인터페이스 서비스","진단"],"text":"SERVICECAN 서비스단축키 ?패널 동작 ⌄이 브라우저 탭의 동작장치 연결과 송신 권한에는 영향을 주지 않습니다.새 채널 패널 자동 열기열지 않음 에이전트 가리키기 묻기자동 따라가기끄기CAN 트레이스 · pt최대화STOP — agent/script 쓰기 잠김(사용자 입력 가능)CAN ptSIMLIVE⏸ 일시정지rx+txrxtx AGT USR DEV SCR시각(s)dir출처idlendata상태비고프레임 없음송신보내기 ⏎R1 SIM 자동보이는 0 / 링 0 (상한 100,000) · 수신 0 fps · 화면 0 행/sCAN 트레이스 · pt opened","empty":false,"stop":true,"overflow":false}
+CHECK render callback fence PASS
+CHECK 768 STOP visible PASS
+CHECK 768 no horizontal page overflow PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-768.png
+CHECK render callback fence PASS
+CHECK 390 STOP visible PASS
+CHECK 390 no horizontal page overflow PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/uart-390.png
+CHECK service STOP enforces shared core latch PASS — {"cmd":"can.send","error":{"code":"E_STOPPED","message":"STOP is latched — ask the user (only a viewer can release it)","request_id":"w9","retryable":false},"meta":{"env":"sim","latch":true,"record_health":"ok","stream_epoch":"1794484752","truncated":false,"viewers":{"subscribed":1,"visible":1},"visibility":"visible"},"ok":false,"others_since_last":{"by_channel":{"core":"1"},"count":"1","from_cursor":"e1794484752:seq:201","kinds":{"core.latch":"1"},"origins":["user"]},"schema_version":1}
+CHECK render callback fence PASS
+shot /Users/ctmctm/workspace/Loom/docs/impl/main/evidence/ui-workbench/service-split-final/service-stop.png
+RESULT services PASS
+close {"ok":true}
+finish {"spaceId":7,"closedSpace":true,"keptManagedLabels":[],"closedManagedLabels":["p1"],"preservedUnmanagedCount":0}
+

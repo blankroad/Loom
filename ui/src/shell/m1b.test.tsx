@@ -69,6 +69,7 @@ describe('bootstrap exchange (contract 01 §1.3)', () => {
     const s = { [RETURN_KEY]: '/l/can-uds' };
     expect(await runBootstrap(bootDeps(`#boot=${CODE}`, ok, s).d)).toEqual({ kind: 'ok', next: '/l/can-uds' });
     expect(s[RETURN_KEY]).toBeUndefined(); // used once
+    expect(await runBootstrap(bootDeps(`#boot=${CODE}`, ok, { [RETURN_KEY]: '/s/uart' }).d)).toEqual({ kind: 'ok', next: '/s/uart' });
     expect(await runBootstrap(bootDeps(`#boot=${CODE}`, ok).d)).toEqual({ kind: 'ok', next: '/l/m1-default' });
   });
 

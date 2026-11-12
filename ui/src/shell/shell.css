@@ -77,6 +77,17 @@ kbd { font: 11px ui-monospace, monospace; padding: 1px 4px; border: 1px solid va
 .approvals-btn { background: var(--warn); color: #000; border: 0; border-radius: 4px; }
 .workbench-body { display: flex; flex: 1; min-height: 0; min-width: 0; }
 .workbench-sidebar { display: flex; flex-direction: column; flex: 0 0 256px; width: 256px; min-height: 0; overflow: auto; background: #141b23; border-right: 1px solid var(--line); }
+.service-nav { display: grid; gap: 3px; padding: 12px; border-bottom: 1px solid var(--line); }
+.service-nav a { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px; border-radius: 5px; color: #c8d4e2; text-decoration: none; }
+.service-nav a:hover, .service-nav a[aria-current='page'] { background: #263b48; color: #fff; }
+.service-nav a[aria-current='page'] { box-shadow: inset 2px 0 var(--accent); }
+.service-integration { margin-bottom: 5px; }
+.service-nav-label { padding: 8px 9px 3px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; }
+.service-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.service-relations { display: grid; gap: 2px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.service-relations > span { padding: 3px 9px; color: var(--muted); font-size: 10px; }
+.service-relations a { font-size: 11px; }
+.diagnostic-context { padding: 8px 16px; border-bottom: 1px solid var(--line); color: #b9c9d9; background: #17232d; font-size: 11px; }
 .sidebar-guide { margin: auto 16px 0; padding: 20px 0 16px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
 .sidebar-guide p { color: #c8d4e2; margin: 8px 0 5px; }
 .eyebrow { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: 1.2px; }

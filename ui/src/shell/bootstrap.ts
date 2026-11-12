@@ -18,7 +18,7 @@
 export const BOOTSTRAP_PATH = '/api/v1/bootstrap';
 export const RETURN_KEY = 'loom.returnTo';
 const CODE_RE = /^[A-Za-z0-9_-]{16,256}$/;
-const ROUTE_RE = /^\/(p|l)\/[A-Za-z0-9_./?=&%:-]{1,512}$/;
+const ROUTE_RE = /^\/(p|l|s)\/[A-Za-z0-9_./?=&%:-]{1,512}$/;
 
 export type BootReason = 'expired' | 'network' | 'malformed';
 export type BootResult = { kind: 'none' } | { kind: 'ok'; next: string } | { kind: 'failed'; reason: BootReason };

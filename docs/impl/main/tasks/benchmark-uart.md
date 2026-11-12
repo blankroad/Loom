@@ -1,0 +1,11 @@
+# UART benchmark / DONE
+
+Role: service-specific researcher/reviewer (Sol), foreground Herdr dedicated module workspace. Cwd Loom, shared tree base dbca34d. Own ONLY docs/impl/main/research/benchmark-uart.md. No product edits, index/commit, subagents/background workers, security changes. Other service owners work in parallel. Main owns implementation and aggregate; existing Opus broad draft docs/impl/main/research/service-tool-benchmarks.md is preliminary evidence, review rather than blindly repeat.
+
+Read relevant ui/src/panels/uart source, broad draft relevant section, and current task docs/impl/main/tasks/service-separation.md. Primary sources must be actually opened/retrieved, cite official clickable links with access date 2026-11-12. Need 2–3 representative tools, evidence of real adoption (vendor bundled, chip-vendor manual recommendation, measured usage if exists; vendor marketing and GitHub stars are NOT user-count rankings). Do not fabricate most-used #1 or use stale dirty STATUS merge blockers as current; baseline dbca34d already has actual simulator daemon browser canonical5 including TC1 PASS.
+
+Service-specific focus: Tera Term, PuTTY, CoolTerm; official serial manuals + silicon-vendor documented recommendations. Distinguish interactive VT terminal/direct key input from line/HEX sender. Current terminal uses immediate TerminalView input, explicit line composer is planned, not implemented. Multialias selection, logging, control keys, CR/LF, search, copying and connection settings.
+
+Deliver bounded Korean report ~80–120 lines: candidate/source/adoption-evidence table; 2–3 actual workflow/layout alternatives within this service, pros/cons and recommendation; current actual capabilities vs proposed UI; multi-interface behavior; acceptance checks for next implementation stage. Explicitly label physical hardware not tested and commercial software not run if only docs examined. No generic market report. Scope service separation first; do NOT redesign all panels. Return READY_FOR_REVIEW with report path and remaining uncertainties. Initial budget ~4min; preserve useful partial evidence if blocked, do not wait for other services.
+
+Main accepted this handoff; final integration evidence and model/workspace lifecycle are recorded in service-separation.md. No further worker edits required.

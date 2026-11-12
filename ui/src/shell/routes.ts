@@ -35,6 +35,15 @@ export interface WorkspaceChannel {
   state: 'open' | 'closed' | 'unknown';
 }
 
+export const SERVICE_DOMAINS = ['uart', 'can', 'eth', 'psu', 'uds'] as const;
+export type ServiceDomain = typeof SERVICE_DOMAINS[number];
+export const SERVICE_LABELS: Record<ServiceDomain, string> = { uart: 'UART', can: 'CAN', eth: 'Ethernet', uds: 'UDS', psu: 'PSU' };
+export const DIAGNOSTIC_OBSERVATION_DOMAINS = ['uds', 'can', 'eth'] as const;
+export function serviceAllowsDomain(service: ServiceDomain, domain: string): boolean {
+  return service === 'uds' ? DIAGNOSTIC_OBSERVATION_DOMAINS.some((d) => d === domain) : service === domain;
+}
+const SERVICE_PRESET: Record<ServiceDomain, string> = { uart: 'uart-only', can: 'can-only', eth: 'eth', uds: 'uds-only', psu: 'psu-only' };
+
 const PRESET_DOMAINS: Record<string, readonly string[]> = {
   'uart-only': ['uart'], 'can-only': ['can'], 'uds-only': ['uds'], 'psu-only': ['psu'], 'can-uds': ['can', 'uds'], eth: ['eth'],
 };
@@ -52,6 +61,19 @@ export function presetForChannels(name: string, channels: Iterable<WorkspaceChan
   return { ...definition, slots };
 }
 
+/** UDS service projection adds raw observations without inferring an ECU/transport binding. */
+export function servicePresetForChannels(service: ServiceDomain, channels: Iterable<WorkspaceChannel>): Preset {
+  const name = SERVICE_PRESET[service];
+  if (service !== 'uds') return presetForChannels(name, channels);
+  const definition = PRESETS.find((p) => p.name === name)!;
+  const active = [...channels].filter((c) => c.state === 'open');
+  const slots = DIAGNOSTIC_OBSERVATION_DOMAINS.flatMap((domain) => active.filter((c) => c.domain === domain).flatMap((c) => {
+    const slot = defaultPanelFor(c.domain, c.channel);
+    return slot ? [slot] : [];
+  }));
+  return { ...definition, slots };
+}
+
 /** Only complete, currently usable choices appear in the picker. */
 export function activePresets(channels: Iterable<WorkspaceChannel>, hasTestSession = false): Preset[] {
   const active = [...channels].filter((c) => c.state === 'open');
@@ -64,7 +86,7 @@ export function activePresets(channels: Iterable<WorkspaceChannel>, hasTestSessi
 
 export type Route =
   /** `name` = what the hash asked for (a saved layout or a preset); `preset` = that preset or the default */
-  | { kind: 'layout'; preset: Preset; name: string }
+  | { kind: 'layout'; preset: Preset; name: string; service?: ServiceDomain }
   | { kind: 'panel'; slot: Slot }
   | { kind: 'need-auth'; reason: 'expired' | 'network' | 'malformed' | null };
 
@@ -80,6 +102,12 @@ export function parseRoute(hash: string): Route {
     const props: Props = {};
     for (const [k, v] of new URLSearchParams(p[3] ?? '')) props[k] = v;
     return { kind: 'panel', slot: { panel: `${p[1]}.${p[2]}`, props } };
+  }
+  const s = /^\/s\/(uart|can|eth|uds|psu)$/.exec(h);
+  if (s) {
+    const service = s[1] as ServiceDomain;
+    const name = SERVICE_PRESET[service];
+    return { kind: 'layout', preset: PRESETS.find((x) => x.name === name)!, name, service };
   }
   const l = /^\/l\/([a-z0-9-]+)$/.exec(h);
   const preset = PRESETS.find((x) => x.name === l?.[1]) ?? (PRESETS[0] as Preset);

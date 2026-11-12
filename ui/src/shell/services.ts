@@ -19,7 +19,7 @@ import { ViewerReporter, type ReporterTimers } from '../store/viewerReport';
 import { ConfirmHost } from './confirmHost';
 import type { DockController } from './dock/dockHost';
 import { LocalLayoutStore, type LayoutBackend } from './dock/layoutStore';
-import { parseRoute, sameSlot, slotHash, type Slot } from './routes';
+import { parseRoute, sameSlot, serviceAllowsDomain, slotHash, type Slot } from './routes';
 
 export const TICK_MS = 250;
 const MAX_TOASTS = 5; // ring: oldest removed
@@ -258,10 +258,14 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
     };
   };
   const showSlot = (slot: Slot, options: { activate?: boolean } = {}): 'shown' | 'added' | 'routed' => {
+    const route = parseRoute(currentHash());
+    if (route.kind === 'layout' && route.service && !serviceAllowsDomain(route.service, slot.panel.split('.')[0] ?? '')) {
+      navigate(slotHash(slot));
+      return 'routed';
+    }
     // docking (M2): an open panel's tab is activated, a new one becomes a tab
     if (dock.current) return dock.current.open(slot, options);
     // no dock mounted (tests / need-auth): the M1 fallback below
-    const route = parseRoute(currentHash());
     const shown =
       // An eligible preset is not a mounted view. Without a dock, only explicit
       // links and previously opened fallback slots prove that it is displayed.
@@ -285,7 +289,7 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
       const ref = focusRef(req);
       if (dock.current) {
         // docking: activate the panel's tab (or add it as a tab), then reveal
-        dock.current.open(slot);
+        showSlot(slot);
         if (ref) revealSoon(ref);
         return;
       }

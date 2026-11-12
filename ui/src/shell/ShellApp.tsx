@@ -16,6 +16,8 @@ import { installPrefixKeys } from './prefixKeys';
 import type { ShellServices } from './services';
 import { ShellCtx, useServices } from './ShellContext';
 import { StopPanel } from './StopPanel';
+import { ServiceNav } from './ServiceNav';
+import { DIAGNOSTIC_OBSERVATION_DOMAINS, SERVICE_LABELS } from './routes';
 import { TopBar } from './TopBar';
 import { WorkbenchWelcome } from './WorkbenchWelcome';
 import { StepBand } from './test/TestScreen';
@@ -24,7 +26,7 @@ import './shell.css';
 function rememberedRoute(): string {
   try {
     const r = sessionStorage.getItem(RETURN_KEY);
-    return r && /^\/(p|l)\//.test(r) ? r : '/l/m1-default';
+    return r && /^\/(p|l|s)\//.test(r) ? r : '/l/m1-default';
   } catch {
     return '/l/m1-default';
   }
@@ -141,7 +143,8 @@ function ShellBody() {
       <StopPanel />
       <div className="workbench-body">
         <aside className="workbench-sidebar" aria-label="인터페이스 탐색기">
-          <ChannelBar />
+          <ServiceNav route={route} />
+          <ChannelBar domains={route.kind === 'layout' && route.service ? route.service === 'uds' ? DIAGNOSTIC_OBSERVATION_DOMAINS : [route.service] : route.kind === 'panel' ? [route.slot.panel.split('.')[0]!] : undefined} />
           <div className="sidebar-guide">
             <span className="eyebrow">탐색 안내</span>
             <p>인터페이스를 선택해 작업 패널을 여세요.</p>
@@ -150,13 +153,14 @@ function ShellBody() {
         </aside>
         <div className="workbench-main">
           <div className="workspace-heading">
-            <div><span className="eyebrow">WORKSPACE</span><h1>개발 워크벤치</h1></div>
+            <div><span className="eyebrow">{route.kind === 'layout' && route.service ? route.service === 'uds' ? 'DIAGNOSTICS' : 'SERVICE' : 'WORKSPACE'}</span><h1>{route.kind === 'layout' && route.service ? route.service === 'uds' ? 'UDS 진단' : `${SERVICE_LABELS[route.service]} 서비스` : '통합 작업 공간'}</h1></div>
             <button type="button" className="help-button" onClick={() => uiState.setHelpOpen(true)} title="키보드 단축키 (Ctrl-] ?)">단축키 <kbd>?</kbd></button>
           </div>
           <div className="sub-bar" role="region" aria-label="워크스페이스 도구">
-            <LayoutBar route={route} />
+            {!(route.kind === 'layout' && route.service) && <LayoutBar route={route} />}
             <TabSettingsControls />
           </div>
+          {route.kind === 'layout' && route.service === 'uds' && <div className="diagnostic-context" role="note">현재 연결 지원: DoIP·시뮬레이터. CAN·Ethernet 관찰 패널은 선택 ECU와의 대응 관계를 의미하지 않습니다.</div>}
           <div className={`workspace-surface${welcome ? ' has-welcome' : ''}`}>
             <div className="workspace-dock" inert={welcome || undefined} aria-hidden={welcome || undefined}>
               <DockLayout route={route} />

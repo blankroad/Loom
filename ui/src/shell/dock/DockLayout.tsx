@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useStoreVersion } from '../../store/hooks';
-import { activePresets, presetForChannels, PRESETS, type Route } from '../routes';
+import { activePresets, presetForChannels, servicePresetForChannels, PRESETS, type Route } from '../routes';
 import { useServices } from '../ShellContext';
 import { DockHost } from './dockHost';
 import { activeLayout } from './activeWorkspace';
@@ -17,7 +17,7 @@ const PRESET_NAMES: ReadonlySet<string> = new Set(PRESETS.map((p) => p.name));
 
 export function routeKey(r: Route): string {
   if (r.kind === 'panel') return `p:${r.slot.panel}?${JSON.stringify(r.slot.props)}`;
-  if (r.kind === 'layout') return `l:${r.name}`;
+  if (r.kind === 'layout') return r.service ? `s:${r.service}` : `l:${r.name}`;
   return 'none';
 }
 
@@ -69,7 +69,7 @@ export function DockLayout({ route }: { route: Route }) {
     const project = (): LoomLayout | null => {
       if (source) return activeLayout(source, services.shell.channels.values(), hasTest());
       // The explicit test route may open the test screen before a session exists.
-      const preset = presetForChannels(route.name, services.shell.channels.values(), hasTest(), route.name === 'test');
+      const preset = route.service ? servicePresetForChannels(route.service, services.shell.channels.values()) : presetForChannels(route.name, services.shell.channels.values(), hasTest(), route.name === 'test');
       if (!preset.slots.length) return null;
       if (preset.slots.length > MAX_PANELS && !warnedLimit) {
         warnedLimit = true;
@@ -77,7 +77,7 @@ export function DockLayout({ route }: { route: Route }) {
       }
       const bounded = { ...preset, slots: preset.slots.slice(0, MAX_PANELS) };
       const layout = presetToLayout(bounded);
-      if (route.name === 'm1-default') layout.root = { tabs: bounded.slots, active: 0 };
+      if (route.name === 'm1-default' || route.service) layout.root = { tabs: bounded.slots, active: 0 };
       return layout;
     };
     const initial = project();
@@ -103,8 +103,8 @@ export function DockLayout({ route }: { route: Route }) {
   }, [key, services]);
 
   return <div className="dock-container">
-    <main ref={el} className="dock-host" data-testid="layout" data-layout={route.kind === 'layout' ? route.name : ''} />
-    {panelCount === 0 && <div className="dock-empty" data-testid="dock-empty"><span aria-hidden="true">▤</span><h2>관찰할 인터페이스를 선택하세요</h2><p>왼쪽에서 채널과 보기를 선택하면 이곳에 열립니다.</p><p>여러 탭을 열고 끌어서 나란히 배치할 수 있습니다.</p></div>}
+    <main ref={el} className="dock-host" data-testid="layout" data-layout={route.kind === 'layout' ? route.name : ''} data-service={route.kind === 'layout' ? route.service : undefined} />
+    {panelCount === 0 && <div className="dock-empty" data-testid="dock-empty"><span aria-hidden="true">▤</span>{route.kind === 'layout' && route.service ? <><h2>{route.service === 'uds' ? '활성 UDS·CAN·Ethernet 채널이 없습니다' : `활성 ${route.service.toUpperCase()} 인터페이스가 없습니다`}</h2><p>인터페이스 연결에서 장치를 추가하면 이 화면의 채널과 보기가 나타납니다.</p></> : <><h2>관찰할 인터페이스를 선택하세요</h2><p>왼쪽에서 채널과 보기를 선택하면 이곳에 열립니다.</p><p>여러 탭을 열고 끌어서 나란히 배치할 수 있습니다.</p></>}</div>}
   </div>;
 }
 
