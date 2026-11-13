@@ -1,0 +1,64 @@
+{
+  "format": "relay-uart-macros-v1",
+  "macros": [
+    {
+      "id": "login",
+      "name": "Login",
+      "target": "active",
+      "variable": "operator",
+      "shortcut": "1",
+      "steps": [
+        {
+          "type": "send",
+          "value": "{{value}}"
+        },
+        {
+          "type": "delay",
+          "value": "800"
+        },
+        {
+          "type": "send",
+          "value": "help"
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "name": "Read status",
+      "target": "active",
+      "variable": "1",
+      "shortcut": "2",
+      "steps": [
+        {
+          "type": "send",
+          "value": "status"
+        },
+        {
+          "type": "delay",
+          "value": "1500"
+        },
+        {
+          "type": "send",
+          "value": "sensors read {{value}}"
+        }
+      ]
+    },
+    {
+      "id": "macro-mwf05yaf-9",
+      "name": "QA persist",
+      "target": "active",
+      "variable": "",
+      "shortcut": "",
+      "steps": [
+        {
+          "type": "send",
+          "value": "persist-check"
+        },
+        {
+          "type": "delay",
+          "value": "1000"
+        }
+      ]
+    }
+  ]
+}

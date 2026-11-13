@@ -1,0 +1,66 @@
+{
+ "vp": "1440x900",
+ "panes": [
+  {
+   "id": "pane-mwf02m0x-1",
+   "theme": "dark",
+   "tabs": [
+    "tab-mwf02m0y-3"
+   ],
+   "baud": "115200",
+   "tx": "8 B",
+   "w": 522,
+   "h": 331
+  },
+  {
+   "id": "pane-mwf036cb-2",
+   "theme": "dark",
+   "tabs": [
+    "tab-mwf036cb-3"
+   ],
+   "baud": "57600",
+   "tx": "0 B",
+   "w": 522,
+   "h": 240
+  },
+  {
+   "id": "pane-mwf02m0y-2",
+   "theme": "light",
+   "tabs": [
+    "tab-mwf02m0y-4"
+   ],
+   "baud": "9600",
+   "tx": "0 B",
+   "w": 352,
+   "h": 580
+  },
+  {
+   "id": "pane-mwf0379j-5",
+   "theme": "dark",
+   "tabs": [
+    "tab-mwf0379j-6"
+   ],
+   "baud": "115200",
+   "tx": "0 B",
+   "w": 280,
+   "h": 580
+  }
+ ],
+ "ratios": [
+  "58",
+  "45",
+  "56"
+ ],
+ "macros": [
+  "↳Login3 steps · Alt+1",
+  "↳Read status3 steps · Alt+2",
+  "↳QA persist2 steps"
+ ],
+ "profiles": [
+  "mcu",
+  "aux",
+  "console",
+  "debug"
+ ],
+ "runner": "MANUAL"
+}

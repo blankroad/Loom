@@ -1,0 +1,852 @@
+{
+  "when": "2026-11-13T14:21:18.538Z",
+  "env": "jsdom (ui/node_modules), not a browser; geometry & pointer drag NOT covered",
+  "results": [
+    {
+      "name": "initial 2 panes mcu|aux",
+      "pass": true,
+      "info": {
+        "split": "sdi8l3",
+        "dir": "row",
+        "r": 0.56,
+        "a": {
+          "leaf": "pdi8l1",
+          "no": 1,
+          "tabs": [
+            "mcu"
+          ],
+          "on": "mcu",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "w": 1200,
+            "h": 800
+          }
+        },
+        "b": {
+          "leaf": "pdi8l2",
+          "no": 2,
+          "tabs": [
+            "aux"
+          ],
+          "on": "aux",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "w": 1200,
+            "h": 800
+          }
+        }
+      }
+    },
+    {
+      "name": "mcu boot log present",
+      "pass": true
+    },
+    {
+      "name": "terminals default dark",
+      "pass": true
+    },
+    {
+      "name": "split down on pane2 -> 3 panes nested",
+      "pass": true,
+      "info": {
+        "split": "sdj075",
+        "dir": "col",
+        "r": 0.5,
+        "a": {
+          "leaf": "pdi8l2",
+          "no": 2,
+          "tabs": [
+            "aux"
+          ],
+          "on": "aux",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "w": 1200,
+            "h": 800
+          }
+        },
+        "b": {
+          "leaf": "pdj074",
+          "no": 3,
+          "tabs": [],
+          "on": null,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "w": 1200,
+            "h": 800
+          }
+        }
+      }
+    },
+    {
+      "name": "open console into empty pane3",
+      "pass": true
+    },
+    {
+      "name": "split right pane3 -> 4 panes depth 3",
+      "pass": true
+    },
+    {
+      "name": "opening already-open mcu moves tab (no duplicate port)",
+      "pass": true,
+      "info": {
+        "panes": 3,
+        "tabs": [
+          [
+            "mcu",
+            3
+          ],
+          [
+            "aux",
+            1
+          ],
+          [
+            "console",
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "name": "theme toggle affects only aux",
+      "pass": true,
+      "info": [
+        [
+          "mcu",
+          "dark"
+        ],
+        [
+          "aux",
+          "light"
+        ],
+        [
+          "console",
+          "dark"
+        ]
+      ]
+    },
+    {
+      "name": "snapshot exposes bounded xterm buffer facts (selection, cursorY, visible<=20, tail<=20)",
+      "pass": true,
+      "info": {
+        "cursorY": 23,
+        "tail": [
+          "[    0.103] ready.",
+          "",
+          "loom-mcu login: "
+        ]
+      }
+    },
+    {
+      "name": "aux xterm theme background light, mcu dark",
+      "pass": true
+    },
+    {
+      "name": "aux term-wrap has t-light class, others dark",
+      "pass": true
+    },
+    {
+      "name": "maximize pane1",
+      "pass": true
+    },
+    {
+      "name": "maximize CSS hides non-max branches + dividers, max chain flex 1 (static; geometry=QA)",
+      "pass": true
+    },
+    {
+      "name": "restore keeps split ratio",
+      "pass": true,
+      "info": {
+        "r0": 0.5,
+        "r": 0.5
+      }
+    },
+    {
+      "name": "restore",
+      "pass": true
+    },
+    {
+      "name": "no Send button / send row / inline prompt",
+      "pass": true
+    },
+    {
+      "name": "vendored xterm loaded (globalThis.Terminal)",
+      "pass": true
+    },
+    {
+      "name": "each visible tab has xterm slot with its persistent host",
+      "pass": true
+    },
+    {
+      "name": "xterm host element survives re-render (same instance re-attached)",
+      "pass": true
+    },
+    {
+      "name": "login flow over terminal path",
+      "pass": true,
+      "info": {
+        "gid": null,
+        "macro": "L1",
+        "status": "done",
+        "step": 6,
+        "steps": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ]
+      }
+    },
+    {
+      "name": "device echo assembled into log (\"login: root\"), password not echoed",
+      "pass": true,
+      "info": "om-mcu login: root23:20:28.239loom23:20:28.239Password: 23:20:28.301Welcome, root. Type 'help' for commands.23:20:28.301매크로 ■ L1 완료 · 0.2s23:20:29.131[    2.226] TLM vbat=12.41V ibat=0.84A temp=41.3C can0=1526/204 err=023:20:30.134[    3.229] TLM vbat=12.42V ibat=0.85A temp=41.4C can0=1539/206 err=0"
+    },
+    {
+      "name": "Tab completion: sta<Tab> -> status executed",
+      "pass": true,
+      "info": "t=0.86A temp=41.4C can0=1552/208 err=023:20:32.139[    5.234] TLM vbat=12.43V ibat=0.86A temp=41.5C can0=1565/210 err=023:20:33.142[    6.237] TLM vbat=12.44V ibat=0.86A temp=41.5C can0=1578/212 err=0"
+    },
+    {
+      "name": "history ↑ (ESC[A) recalls + runs status",
+      "pass": true,
+      "info": {
+        "gid": null,
+        "macro": "H1",
+        "status": "done",
+        "step": 2,
+        "steps": [
+          "ok",
+          "ok"
+        ]
+      }
+    },
+    {
+      "name": "Ctrl+U + ←← insert edits line to \"temp\"",
+      "pass": true,
+      "info": {
+        "rr": {
+          "gid": null,
+          "macro": "E1",
+          "status": "done",
+          "step": 2,
+          "steps": [
+            "ok",
+            "ok"
+          ]
+        },
+        "hit": [
+          "mcu> status",
+          "mcu> status",
+          "mcu> temp"
+        ]
+      }
+    },
+    {
+      "name": "paste run 1: status→its output→temp→its output (no reversal)",
+      "pass": true,
+      "info": {
+        "iS": 78,
+        "iF": 101,
+        "iT": 274,
+        "iTmp": 295
+      }
+    },
+    {
+      "name": "paste run 2: status→its output→temp→its output (no reversal)",
+      "pass": true,
+      "info": {
+        "iS": 78,
+        "iF": 101,
+        "iT": 274,
+        "iTmp": 295
+      }
+    },
+    {
+      "name": "paste run 3: status→its output→temp→its output (no reversal)",
+      "pass": true,
+      "info": {
+        "iS": 78,
+        "iF": 101,
+        "iT": 274,
+        "iTmp": 295
+      }
+    },
+    {
+      "name": "Ctrl+C: ^C echoed, fresh prompt, TX counted",
+      "pass": true,
+      "info": "8 err=023:20:41.266매크로 ▶ C1 시작 → mcu (/dev/ttyUSB0)23:20:41.272abc^C23:20:41.272mcu> abc^C23:20:41.303매크로 ■ C1 완료 · 0.0s"
+    },
+    {
+      "name": "disconnect state + overlay",
+      "pass": true
+    },
+    {
+      "name": "reconnect",
+      "pass": true
+    },
+    {
+      "name": "hex view renders bytes",
+      "pass": true
+    },
+    {
+      "name": "back to TERM re-attaches same xterm host",
+      "pass": true
+    },
+    {
+      "name": "▶ runs immediately: no confirm/target popup, no editor",
+      "pass": true
+    },
+    {
+      "name": "Read status completes on mcu",
+      "pass": true,
+      "info": {
+        "gid": null,
+        "macro": "Read status",
+        "status": "done",
+        "step": 5,
+        "steps": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ]
+      }
+    },
+    {
+      "name": "macro created with 3 steps",
+      "pass": true,
+      "info": {
+        "id": "m-dvecp",
+        "name": "Slow probe",
+        "hotkey": "",
+        "target": "active",
+        "steps": 3,
+        "pinned": true
+      }
+    },
+    {
+      "name": "macro renamed",
+      "pass": true
+    },
+    {
+      "name": "macro duplicated",
+      "pass": true
+    },
+    {
+      "name": "macro deleted",
+      "pass": true
+    },
+    {
+      "name": "custom macro running at delay step",
+      "pass": true,
+      "info": {
+        "gid": null,
+        "macro": "Slow probe v2",
+        "status": "running",
+        "step": 2,
+        "steps": [
+          "ok",
+          "run",
+          "pending"
+        ]
+      }
+    },
+    {
+      "name": "stopped: status stopped, step3 skipped",
+      "pass": true,
+      "info": {
+        "gid": null,
+        "macro": "Slow probe v2",
+        "status": "stopped",
+        "step": 2,
+        "steps": [
+          "ok",
+          "fail",
+          "skip"
+        ]
+      }
+    },
+    {
+      "name": "stopped: no \"status\" sent after stop (only \"version\")",
+      "pass": true,
+      "info": [
+        "version"
+      ]
+    },
+    {
+      "name": "disconnect aborts macro; reconnect never resumes it",
+      "pass": true,
+      "info": {
+        "run": {
+          "gid": null,
+          "macro": "DR1",
+          "status": "stopped",
+          "step": 2,
+          "steps": [
+            "ok",
+            "fail",
+            "skip"
+          ]
+        },
+        "sends": [
+          "version"
+        ]
+      }
+    },
+    {
+      "name": "port select lists detected ports with description + in-use badge",
+      "pass": true,
+      "info": [
+        "/dev/ttyUSB0 — FTDI FT232R USB UART (0403:6001) · 사용 중: mcu (pane 3)",
+        "/dev/ttyUSB1 — Silicon Labs CP2102N USB to UART Bridge (10c4:ea60) · 사용 중: aux (pane 1)",
+        "/dev/ttyUSB2 — Prolific PL2303GT USB Serial (067b:23a3) · 사용 중: console (pane 2)",
+        "/dev/ttyACM0 — STMicroelectronics STLINK-V3 VCP (0483:374b) · 저장됨: debug",
+        "/dev/ttyUSB3 — QinHeng CH340 serial (1a86:7523) · 사용 가능",
+        "수동 입력…"
+      ]
+    },
+    {
+      "name": "new session defaults to a free detected port",
+      "pass": true,
+      "info": "/dev/ttyUSB3"
+    },
+    {
+      "name": "selecting in-use port offers focus/move",
+      "pass": true
+    },
+    {
+      "name": "save+open on in-use port refused (no duplicate physical port)",
+      "pass": true
+    },
+    {
+      "name": "free port saved + opened as new tab",
+      "pass": true
+    },
+    {
+      "name": "discovery reflects newly opened port",
+      "pass": true,
+      "info": {
+        "path": "/dev/ttyUSB3",
+        "product": "CH340 serial",
+        "openBy": "dup0",
+        "savedAs": [
+          "dup0"
+        ]
+      }
+    },
+    {
+      "name": "opening 2nd profile on same physical port does not duplicate (focuses mcu)",
+      "pass": true
+    },
+    {
+      "name": "gutter on by default, rows show HH:mm:ss.SSS host times",
+      "pass": true,
+      "info": [
+        "23:20:42.213",
+        "23:20:42.213",
+        "23:20:42.213",
+        "23:20:42.581"
+      ]
+    },
+    {
+      "name": "VT buffer has no injected timestamps (tail lines raw)",
+      "pass": true,
+      "info": [
+        "[   22.219] TLM vbat=12.41V ibat=0.85A temp=41.8C can0=1773/242 err=0",
+        "[   23.221] TLM vbat=12.40V ibat=0.85A temp=41.7C can0=1786/244 err=0",
+        "mcu> "
+      ]
+    },
+    {
+      "name": "ts toggle hides gutter (data-ts=off), same xterm host kept",
+      "pass": true
+    },
+    {
+      "name": "picker cancel -> idle, no recorder, message shown",
+      "pass": true
+    },
+    {
+      "name": "file record starts after explicit pick; suggested name alias+time.log",
+      "pass": true,
+      "info": "mcu-20261113-232051.log"
+    },
+    {
+      "name": "tab shows rec dot + pill state recording",
+      "pass": true
+    },
+    {
+      "name": "commit-on-close fake: file grows on ~1s checkpoints BEFORE stop",
+      "pass": true,
+      "info": {
+        "c1": 1,
+        "len1": 977,
+        "len2": 1075,
+        "closes": 2
+      }
+    },
+    {
+      "name": "honest counters: committed == file bytes, pending >= 0, lastSavedAt set",
+      "pass": true,
+      "info": {
+        "committed": 1106,
+        "file": 1075,
+        "pending": 0,
+        "last": "2026-11-13 23:20:53.305"
+      }
+    },
+    {
+      "name": "stop flushes+closes: state closed, written==committed==file bytes",
+      "pass": true,
+      "info": {
+        "ri": {
+          "state": "closed",
+          "w": 1241,
+          "c": 1241
+        },
+        "file": 1183
+      }
+    },
+    {
+      "name": ".log format: header, timestamped RX/TX lines in order, footer",
+      "pass": true,
+      "info": [
+        "2026-11-13 23:20:51.405 TX  status",
+        "2026-11-13 23:20:51.395 RX  mcu> status",
+        "2026-11-13 23:20:51.467 TX  temp",
+        "2026-11-13 23:20:51.466 RX  mcu> temp",
+        "2026-11-13 23:20:51.529 RX  [   25.332] TLM vbat=12.39V ibat=0.86A temp=41.7C can0=1812/248 err=0",
+        "2026-11-13 23:20:52.237 RX  [   26.334] TLM vbat=12.38V ibat=0.86A temp=41.7C can0=1825/250 err=0"
+      ]
+    },
+    {
+      "name": "serialized writes keep stream order despite random write latency",
+      "pass": true,
+      "info": {
+        "iS": 239,
+        "iT": 589,
+        "iO": 660
+      }
+    },
+    {
+      "name": "write failure -> recState error with message, pill rec-error",
+      "pass": true,
+      "info": [
+        "QuotaExceededError: disk full (mock)"
+      ]
+    },
+    {
+      "name": "stalled file writes: backlog capped (test limit 16 KiB) -> explicit error state",
+      "pass": true,
+      "info": [
+        "파일 쓰기가 밀려 대기 16.0 kB > 16.0 kB — 기록 중지 (이미 확정된 0 B는 파일에 있음)"
+      ]
+    },
+    {
+      "name": "macroStop keeps already-sent manual input queued (version answered)",
+      "pass": true,
+      "info": " rx 1981 tx 274 err 023:21:05.452OK23:21:05.452mcu> version23:21:05.515ecu-app 4.12.0+g7c1e2d9 (2026-10-28) bootloader 2.3.123:21:05.515OK23:21:06.290[   39.384] TLM vbat=12.36V ibat=0.82A temp=41.0C can0=1994/276 err=023:21:07.292[   40.387] TLM vbat=12.37V ibat=0.84A temp=41.0C can0=2007/278 err=0"
+    },
+    {
+      "name": "macroStop: no further macro step sent (no \"temp\")",
+      "pass": true,
+      "info": [
+        {
+          "t": 1794579665391,
+          "text": "status"
+        }
+      ]
+    },
+    {
+      "name": "fileTs checkbox disabled for JSONL (applies to .log only)",
+      "pass": true
+    },
+    {
+      "name": "jsonl buffer: recorded RX bytes == bytes received while paused+cleared",
+      "pass": true,
+      "info": {
+        "rec": 47,
+        "delta": 47
+      }
+    },
+    {
+      "name": "jsonl records parse with type/t/ms/dir/data",
+      "pass": true,
+      "info": [
+        "{\"type\":\"data\",\"t\":\"2026-11-13T23:21:09.509+09:00\",\"ms\":1794579669509,\"dir\":\"rx\",\"len\":4,\"data\":\"\\r\\u001b[K\"}",
+        "{\"type\":\"stop\",\"t\":\"2026-11-13T23:21:10.952+09:00\",\"ms\":1794579670952,\"reason\":\"사용자 중지\",\"rxBytes\":47,\"txBytes\":0}"
+      ]
+    },
+    {
+      "name": "buffer sink is labelled as not-a-file (committed stays 0) + export offered",
+      "pass": true
+    },
+    {
+      "name": "recording isolated per target (aux not recording)",
+      "pass": true
+    },
+    {
+      "name": "disconnect stops+closes recording with explicit reason",
+      "pass": true,
+      "info": "포트 닫힘으로 기록 종료"
+    },
+    {
+      "name": "reconnect does not resume recording",
+      "pass": true
+    },
+    {
+      "name": "sidebar ▶ runs immediately on current session (no popup)",
+      "pass": true
+    },
+    {
+      "name": "✎ opens editor only, never runs",
+      "pass": true
+    },
+    {
+      "name": "missing var: inline vars dialog (not editor), nothing sent",
+      "pass": true
+    },
+    {
+      "name": "after filling var it runs with saved value",
+      "pass": true
+    },
+    {
+      "name": "default send target = current session",
+      "pass": true
+    },
+    {
+      "name": "All: recipients = connected writable, read-only debug excluded + shown",
+      "pass": true,
+      "info": {
+        "on": true,
+        "recipients": [
+          "mcu",
+          "aux",
+          "console"
+        ],
+        "excluded": [
+          "debug:읽기 전용"
+        ]
+      }
+    },
+    {
+      "name": "pane headers mark ALL recipient / excluded",
+      "pass": true
+    },
+    {
+      "name": "newly opened port does not silently join recipients",
+      "pass": true
+    },
+    {
+      "name": "typed bytes routed to every recipient, not to excluded/new ports",
+      "pass": true,
+      "info": {
+        "tx0": {
+          "mcu": 377,
+          "aux": 9,
+          "console": 0,
+          "debug": 0,
+          "dup0": 0
+        },
+        "tx1": {
+          "mcu": 385,
+          "aux": 18,
+          "console": 8,
+          "debug": 0,
+          "dup0": 0
+        }
+      }
+    },
+    {
+      "name": "All-mode ▶ starts one run per recipient with shared group id",
+      "pass": true
+    },
+    {
+      "name": "disconnect cancels that target only; others complete; aux dropped from recipients",
+      "pass": true,
+      "info": {
+        "aux": [
+          "version"
+        ],
+        "mcu": [
+          "version",
+          "status"
+        ],
+        "rec": [
+          "mcu",
+          "console"
+        ]
+      }
+    },
+    {
+      "name": "global Stop: every target stopped, no further step sent",
+      "pass": true,
+      "info": [
+        [
+          "mcu",
+          "stopped"
+        ],
+        [
+          "console",
+          "stopped"
+        ]
+      ]
+    },
+    {
+      "name": "back to Current: typing reaches only the focused session",
+      "pass": true,
+      "info": {
+        "tx2": {
+          "mcu": 408,
+          "aux": 27,
+          "console": 31,
+          "debug": 0,
+          "dup0": 0
+        },
+        "tx3": {
+          "mcu": 413,
+          "aux": 27,
+          "console": 31,
+          "debug": 0,
+          "dup0": 0
+        }
+      }
+    },
+    {
+      "name": "toolbar toggle collapses sidebar (aria-expanded=false)",
+      "pass": true
+    },
+    {
+      "name": "toolbar toggle reopens sidebar",
+      "pass": true
+    },
+    {
+      "name": "rail: Sessions view shown open",
+      "pass": true
+    },
+    {
+      "name": "group collapses independently",
+      "pass": true
+    },
+    {
+      "name": "rail: pressing active Sessions again collapses",
+      "pass": true
+    },
+    {
+      "name": "only own prefix keys written (+unrelated preserved)",
+      "pass": true,
+      "info": [
+        "unrelated.key",
+        "loomUartOpus.v1.mig2",
+        "loomUartOpus.v1.mig3",
+        "loomUartOpus.v1.sessions",
+        "loomUartOpus.v1.macros",
+        "loomUartOpus.v1.ui",
+        "loomUartOpus.v1.runVars",
+        "loomUartOpus.v1.recPrefs",
+        "loomUartOpus.v1.layout"
+      ]
+    },
+    {
+      "name": "reload: sidebar collapsed + group state persisted",
+      "pass": true
+    },
+    {
+      "name": "reload: recording never auto-resumes (prefs only persisted)",
+      "pass": true
+    },
+    {
+      "name": "reload: send target resets to Current (no implicit All)",
+      "pass": true
+    },
+    {
+      "name": "reload: macro persisted",
+      "pass": true
+    },
+    {
+      "name": "reload: layout + tabs restored",
+      "pass": true,
+      "info": {
+        "split": "sdj075",
+        "dir": "col",
+        "r": 0.5,
+        "a": {
+          "leaf": "pdi8l2",
+          "no": 1,
+          "tabs": [
+            "aux",
+            "debug",
+            "dup0"
+          ],
+          "on": "aux",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "w": 1200,
+            "h": 800
+          }
+        },
+        "b": {
+          "split": "sdj287",
+          "dir": "row",
+          "r": 0.5,
+          "a": {
+            "leaf": "pdj074",
+            "no": 2,
+            "tabs": [
+              "console"
+            ],
+            "on": "console",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1200,
+              "h": 800
+            }
+          },
+          "b": {
+            "leaf": "pdj286",
+            "no": 3,
+            "tabs": [
+              "mcu"
+            ],
+            "on": "mcu",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1200,
+              "h": 800
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "reload: aux theme light restored, others dark",
+      "pass": true
+    },
+    {
+      "name": "last pane close keeps 1 empty pane with picker",
+      "pass": true
+    },
+    {
+      "name": "import adds macro, conflicting hotkey cleared",
+      "pass": true,
+      "info": {
+        "id": "m-em2v1",
+        "name": "Imported AT",
+        "hotkey": "",
+        "target": "active",
+        "steps": 2,
+        "pinned": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loom UART Bench · Opus</title>
+<meta name="description" content="Opus proposal: UART workbench module inside the shared Bench Light shell — nested split panes, per-pane session tabs, user macros. Local simulation, no hardware.">
+<link rel="stylesheet" href="vendor/xterm/xterm.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+    <symbol id="i-split-r" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M8 2.5v11"/></symbol>
+    <symbol id="i-split-d" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 8h12"/></symbol>
+    <symbol id="i-max" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9"/></symbol>
+    <symbol id="i-restore" viewBox="0 0 16 16"><path d="M13.5 6.5h-4v-4M2.5 9.5h4v4M9.5 6.5 14 2M6.5 9.5 2 14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+    <symbol id="i-pane-x" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 6.5l4 4M10 6.5l-4 4"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.6M8 12.6v1.6M14.2 8h-1.6M3.4 8H1.8M12.4 3.6l-1.1 1.1M4.7 11.3l-1.1 1.1M12.4 12.4l-1.1-1.1M4.7 4.7 3.6 3.6"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 16 16"><path d="M5.5 2v3M10.5 2v3M4 5h8v2.5a4 4 0 0 1-8 0zM8 11.5V14"/></symbol>
+    <symbol id="i-unplug" viewBox="0 0 16 16"><path d="M5.5 2v3M10.5 2v3M4 5h8v2.5a4 4 0 0 1-8 0zM8 11.5V14M2 2l12 12"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 14 14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 16 16"><path d="M5.5 3v10M10.5 3v10"/></symbol>
+    <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 2.8v10.4L13 8z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.8 6.5v4.5M9.2 6.5v4.5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 16 16"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1.2"/><path d="M3 10.5V3.8A1.3 1.3 0 0 1 4.3 2.5H10.5"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+    <symbol id="i-sessions" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M4.5 6l2 2-2 2M8 10.5h3.5"/></symbol>
+    <symbol id="i-macro" viewBox="0 0 16 16"><path d="M9 1.8 3.5 9h4L7 14.2 12.5 7h-4z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/></symbol>
+    <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 10.5v-8M4.5 6 8 2.5 11.5 6M3 13.5h10"/></symbol>
+    <symbol id="i-kbd" viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="8.5" rx="1.5"/><path d="M4 7h.01M6.5 7h.01M9 7h.01M11.5 7h.01M5 10h6"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.2 9.8A5.6 5.6 0 0 1 6.2 2.8a5.6 5.6 0 1 0 7 7z"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 16 16"><path d="M2.8 6.2A5.3 5.3 0 1 1 3 10M2.5 2.8v3.6h3.6"/></symbol>
+    <symbol id="i-more" viewBox="0 0 16 16"><path d="M3.5 8h.01M8 8h.01M12.5 8h.01" stroke-width="2.6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 16 16"><path d="M2.5 8h9M8 4.5 11.5 8 8 11.5M13.5 3v10"/></symbol>
+    <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 1.8h5.5L12.5 5v9.2H4zM9.5 1.8V5h3"/></symbol>
+    <symbol id="i-can" viewBox="0 0 16 16"><path d="M2 5h12M2 11h12M5 5v6M11 5v6"/></symbol>
+    <symbol id="i-eth" viewBox="0 0 16 16"><rect x="6" y="1.8" width="4" height="3.4" rx=".6"/><rect x="1.8" y="10.8" width="4" height="3.4" rx=".6"/><rect x="10.2" y="10.8" width="4" height="3.4" rx=".6"/><path d="M8 5.2v2.8M3.8 10.8V8h8.4v2.8"/></symbol>
+    <symbol id="i-uds" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M8 5v3.2l2 1.4"/></symbol>
+    <symbol id="i-psu" viewBox="0 0 16 16"><path d="M9 1.8 4 9h4l-1 5.2L12 7H8z"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell" id="shell">
+  <!-- ===== Common OUTER SHELL (Bench Light). Module-agnostic: service nav, compact connection summary, status bar. ===== -->
+  <header class="shell-hdr" data-shell="header">
+    <span class="shell-brand"><span class="logo">L</span>Loom</span>
+    <nav class="svcnav" aria-label="서비스 모듈 (이 프로토타입: UART만)">
+      <button type="button" aria-current="page" data-svc="uart"><svg class="i"><use href="#i-sessions"/></svg><span>UART</span></button>
+    </nav>
+    <span class="grow"></span>
+    <span class="env-chip" title="로컬 시뮬레이션: 실제 직렬 포트나 장비에 연결하지 않습니다">SIM</span>
+    <span class="conn-chip" id="shellConn" aria-live="polite"><span class="dot"></span><span>UART</span></span>
+  </header>
+
+  <!-- ===== UART MODULE (owned by the UART service; mounts inside the shell main slot) ===== -->
+  <main class="mod-uart" id="modUart" data-module="uart">
+    <nav class="rail" aria-label="UART 패널">
+      <button type="button" id="railSessions" data-side="sessions" aria-pressed="true" aria-controls="side" title="저장된 세션 — 다시 누르면 접기 (Alt+1)"><svg class="i"><use href="#i-sessions"/></svg><span>세션</span></button>
+      <button type="button" id="railMacros" data-side="macros" aria-pressed="false" aria-controls="side" title="매크로 — 다시 누르면 접기 (Alt+2)"><svg class="i"><use href="#i-macro"/></svg><span>매크로</span></button>
+    </nav>
+
+    <div class="mtbar" role="toolbar" aria-label="UART 작업 공간">
+      <button type="button" class="tbtn" data-cmd="toggle-side" id="tbSide" aria-controls="side" aria-expanded="true" aria-pressed="true" title="저장된 세션·매크로 패널 접기/펼치기 (Alt+0)"><svg class="i"><use href="#i-sessions"/></svg><span id="tbSideLabel">세션 목록 접기</span></button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="new-session" title="새 UART 세션 저장"><svg class="i"><use href="#i-plus"/></svg>새 세션</button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="split-right" id="tbSplitRight" title="활성 pane을 오른쪽으로 분할 (Alt+Shift+=)"><svg class="i"><use href="#i-split-r"/></svg>오른쪽 분할</button>
+      <button type="button" class="tbtn" data-cmd="split-down" id="tbSplitDown" title="활성 pane을 아래로 분할 (Alt+Shift+-)"><svg class="i"><use href="#i-split-d"/></svg>아래 분할</button>
+      <button type="button" class="tbtn" data-cmd="maximize" id="tbMax" title="활성 pane 최대화/복원 (Alt+Shift+Enter)"><svg class="i"><use href="#i-max"/></svg><span id="tbMaxLabel">최대화</span></button>
+      <button type="button" class="tbtn" data-cmd="close-pane" id="tbClosePane" title="활성 pane 닫기 (Alt+Shift+W)"><svg class="i"><use href="#i-pane-x"/></svg>pane 닫기</button>
+      <span class="vdiv"></span>
+      <div class="bc" role="group" aria-label="키 입력 대상 (터미널 타이핑만, 매크로는 매크로 패널)"><span class="bc-l">키 입력 대상</span>
+        <span class="seg"><button type="button" id="bcCur" data-cmd="bc-current" aria-pressed="true" title="터미널 키 입력을 현재 세션에만 (기본) — 매크로 대상은 매크로 패널에서">현재 세션</button><button type="button" id="bcAll" data-cmd="bc-all" aria-pressed="false" title="터미널 키 입력을 지금 연결된 쓰기 가능 세션 모두에 (켤 때 수신자 고정) — 매크로에는 영향 없음">연결된 모두</button></span>
+        <span class="bc-badge" id="bcBadge" aria-live="polite"></span></div>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="new-macro" title="새 매크로"><svg class="i"><use href="#i-macro"/></svg>새 매크로</button>
+      <button type="button" class="tbtn" data-cmd="export" title="세션·매크로 JSON 내보내기"><svg class="i"><use href="#i-down"/></svg>내보내기</button>
+      <button type="button" class="tbtn" data-cmd="import" title="JSON 가져오기"><svg class="i"><use href="#i-up"/></svg>가져오기</button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="reset-layout" title="레이아웃만 초기 상태(mcu | aux)로"><svg class="i"><use href="#i-reset"/></svg><span>레이아웃<span class="tl-x"> 초기화</span></span></button>
+      <button type="button" class="tbtn" data-cmd="keys" title="단축키 (?)"><svg class="i"><use href="#i-kbd"/></svg>단축키</button>
+      <span class="grow"></span>
+      <span class="ctx" id="tbCtx"></span>
+    </div>
+
+    <aside class="side" id="side" aria-label="세션과 매크로">
+      <!-- filled by app.js -->
+    </aside>
+    <div class="backdrop" id="sideBackdrop"></div>
+
+    <section class="work" id="work" aria-label="UART 터미널 작업 공간">
+      <div class="tree-root" id="treeRoot"></div>
+    </section>
+  </main>
+
+  <footer class="shell-status" data-shell="status" id="shellStatus">
+    <span class="st-target" id="stTarget"></span>
+    <span class="st-extra" id="stExtra"></span>
+    <span class="grow"></span>
+    <span class="proto">프로토타입 · 로컬 시뮬레이션, 실장비 없음</span>
+    <button type="button" data-cmd="keys" title="단축키">?</button>
+  </footer>
+</div>
+
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<dialog id="dlgSession"></dialog>
+<dialog id="dlgMacro"></dialog>
+<dialog id="dlgRun"></dialog>
+<dialog id="dlgKeys"></dialog>
+<dialog id="dlgConfirm"></dialog>
+<dialog id="dlgRec" aria-label="UART 기록"></dialog>
+<div class="drop-ov" id="dropOv"><span id="dropLabel"></span></div>
+<div class="insert-mark" id="insertMark"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="vendor/xterm/xterm.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

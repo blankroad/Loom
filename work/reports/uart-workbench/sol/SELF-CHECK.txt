@@ -1,0 +1,40 @@
+PASS initial independent mcu + aux panes with meaningful logs
+PASS new saved session opens independent tab
+PASS nested split tree, not fixed layout presets
+PASS pointer event resize changes split ratio and CSS basis; respects subtree minimums
+PASS native DnD handlers move exact tab without cloning connection
+PASS per-terminal light theme independence and persistence
+PASS direct input sends only to selected instance and receives response
+PASS connection settings independent of other sessions and saved profile
+PASS HEX view exposes encoded raw bytes with ASCII
+PASS search filters output and highlights matching content
+PASS pause freezes display while retaining incoming data
+PASS resume catches up
+PASS clear affects view only and keeps log/counters
+PASS user macro created with send/delay/variable and persisted
+PASS edit updates user macro
+PASS duplicate uses new identity and independent steps
+PASS delete removes only confirmed macro
+PASS run locks exact target and substitutes variable
+PASS stop cancels delay and every subsequent send
+PASS macro completion reports all steps
+PASS disconnect aborts active macro and blocks manual sends
+PASS maximize shows one pane
+PASS restore keeps original nested layout
+PASS reload retains macro, settings, layout, per-terminal themes; no autorun
+PASS 390 auto-collapse does not persist a user collapse choice
+PASS 390 visit then desktop reload shows library without a user toggle
+PASS explicit mobile expand survives reload and responsive default
+PASS explicit collapse survives desktop reload
+PASS legacy ambiguous automatic collapse resets without losing sessions or macros
+PASS 768 QA dimensions allocate 280/280 leaves in a 569px scrollable tree
+PASS nested four-pane QA dimensions enforce every subtree minimum without height inflation
+PASS undersized viewport grows tree to subtree minima for workspace scrolling
+PASS appending logs does not mutate definite tree or split extents
+PASS responsive 768: controls exist, minimum tree supports reachable vertical mobile layout
+PASS responsive 390: controls exist, minimum tree supports reachable vertical mobile layout
+PASS closing final pane leaves explicit recoverable empty workspace
+PASS empty workspace reopens a saved session
+PASS no application code depends on remote assets or unsafe execution
+
+38 targeted DOM/state checks passed. Geometry uses an explicit mock rect; this is NOT rendered browser QA.

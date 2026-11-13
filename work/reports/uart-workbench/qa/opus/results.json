@@ -1,0 +1,2940 @@
+[
+ {
+  "t": "2026-11-13T13:19:53.080Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "initial-render",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "fresh Opus 1440: ≥2 panes, Bench Light, dark terminals, no page overflow",
+  "observed": {
+   "vp": "1440x900",
+   "docW": 1440,
+   "docH": 900,
+   "panes": [
+    [
+     "pane active",
+     314,
+     96,
+     624,
+     772
+    ],
+    [
+     "pane",
+     944,
+     96,
+     490,
+     772
+    ]
+   ],
+   "keys": [
+    "loomUartOpus.v1.sessions",
+    "loomUartOpus.v1.macros",
+    "loomUartOpus.v1.runVars",
+    "loomUartOpus.v1.ui",
+    "loomUartOpus.v1.layout"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/01-initial-1440.png"
+ },
+ {
+  "t": "2026-11-13T13:19:54.913Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "initial-render",
+  "viewport": "768x1024",
+  "pass": true,
+  "expected": "initial render at width: ≥2 panes, no page hscroll",
+  "observed": {
+   "vp": "768x1024",
+   "docW": 768,
+   "docH": 1024,
+   "panes": [
+    [
+     "pane active",
+     50,
+     96,
+     395,
+     896
+    ],
+    [
+     "pane",
+     451,
+     96,
+     311,
+     896
+    ]
+   ],
+   "keys": [
+    "loomUartOpus.v1.sessions",
+    "loomUartOpus.v1.macros",
+    "loomUartOpus.v1.runVars",
+    "loomUartOpus.v1.ui",
+    "loomUartOpus.v1.layout"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/02-initial-768.png"
+ },
+ {
+  "t": "2026-11-13T13:19:56.714Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "initial-render",
+  "viewport": "390x844",
+  "pass": true,
+  "expected": "initial render at width: ≥2 panes, no page hscroll",
+  "observed": {
+   "vp": "390x844",
+   "docW": 390,
+   "docH": 1683,
+   "panes": [
+    [
+     "pane active",
+     6,
+     159,
+     378,
+     1044
+    ],
+    [
+     "pane",
+     6,
+     1211,
+     378,
+     440
+    ]
+   ],
+   "keys": [
+    "loomUartOpus.v1.sessions",
+    "loomUartOpus.v1.macros",
+    "loomUartOpus.v1.runVars",
+    "loomUartOpus.v1.ui",
+    "loomUartOpus.v1.layout"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/03-initial-390.png"
+ },
+ {
+  "t": "2026-11-13T13:22:18.843Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "nested-split-4pane",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "split-down pane1 (+console), split-right aux (+debug): 4 leaves nested row/col; each ≥240×150 (Opus minima); no page overflow",
+  "observed": {
+   "pickerItems": [
+    "s-mcu",
+    "s-aux",
+    "s-console",
+    "s-debug"
+   ],
+   "panesAfterRight": 4,
+   "g0": {
+    "docH": 900,
+    "docW": 1440,
+    "panes": [
+     [
+      "1",
+      624,
+      772
+     ],
+     [
+      "2",
+      490,
+      772
+     ]
+    ],
+    "dividers": [
+     [
+      "s72qv3",
+      "split row",
+      6,
+      772,
+      "56",
+      "240",
+      "240"
+     ]
+    ]
+   },
+   "g1": {
+    "docH": 900,
+    "docW": 1440,
+    "panes": [
+     [
+      "1",
+      624,
+      383
+     ],
+     [
+      "2",
+      309,
+      383
+     ],
+     [
+      "3",
+      309,
+      383
+     ],
+     [
+      "4",
+      490,
+      772
+     ]
+    ],
+    "dividers": [
+     [
+      "sankr2",
+      "split col",
+      624,
+      6,
+      "50",
+      "150",
+      "150"
+     ],
+     [
+      "sap6l4",
+      "split row",
+      6,
+      383,
+      "50",
+      "240",
+      "240"
+     ],
+     [
+      "s72qv3",
+      "split row",
+      6,
+      772,
+      "56",
+      "486",
+      "240"
+     ]
+    ]
+   },
+   "snap": {
+    "tree": "{\"split\":\"s72qv3\",\"dir\":\"row\",\"r\":0.56,\"a\":{\"split\":\"sankr2\",\"dir\":\"col\",\"r\":0.5,\"a\":{\"leaf\":\"p72qv1\",\"no\":1,\"tabs\":[\"mcu\"],\"on\":\"mcu\",\"rect\":{\"x\":314,\"y\":96,\"w\":624,\"h\":383}},\"b\":{\"split\":\"sap6l4\",\"dir\":\"row\",\"r\":0.5,\"a\":{\"leaf\":\"pankr1\",\"no\":2,\"tabs\":[\"console\"],\"on\":\"console\",\"rect\":{\"x\":314,\"y\":485,\"w\":309,\"h\":383}},\"b\":{\"leaf\":\"pap6l3\",\"no\":3,\"tabs\":[\"debug\"],\"on\":\"debug\",\"rect\":{\"x\":629,\"y\":485,\"w\":309,\"h\":383}}}},\"b\":{\"leaf\":\"p72qv2\",\"no\":4,\"tabs\":[\"aux\"],\"on\":\"aux\",\"rect\":{\"x\":944,\"y\":96,\"w\":490,\"h\":772}}}"
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/10-nested-4pane-1440.png"
+ },
+ {
+  "t": "2026-11-13T13:22:42.452Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "divider-x-pointer-drag",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "root row divider native drag −120: left subtree width −~120, divider spans parent, aria updates, no doc growth",
+  "observed": {
+   "before": {
+    "row": true,
+    "thick": 6,
+    "span": 772,
+    "parentSpan": 772,
+    "cx": 940.84375,
+    "cy": 482,
+    "now": "56",
+    "mina": "486",
+    "minb": "240",
+    "kids": [
+     624,
+     490
+    ],
+    "leaves": [
+     [
+      624,
+      383
+     ],
+     [
+      309,
+      383
+     ],
+     [
+      309,
+      383
+     ],
+     [
+      490,
+      772
+     ]
+    ],
+    "docH": 900
+   },
+   "after": {
+    "row": true,
+    "thick": 6,
+    "span": 772,
+    "parentSpan": 772,
+    "cx": 820.84375,
+    "cy": 482,
+    "now": "45",
+    "mina": "486",
+    "minb": "240",
+    "kids": [
+     504,
+     610
+    ],
+    "leaves": [
+     [
+      504,
+      383
+     ],
+     [
+      249,
+      383
+     ],
+     [
+      249,
+      383
+     ],
+     [
+      610,
+      772
+     ]
+    ],
+    "docH": 900
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:22:44.633Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "divider-y-pointer-drag",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "col divider native drag +90: top height +~90, spans parent, aria updates",
+  "observed": {
+   "before": {
+    "row": false,
+    "thick": 6,
+    "span": 504,
+    "parentSpan": 504,
+    "cx": 565.921875,
+    "cy": 482,
+    "now": "50",
+    "mina": "150",
+    "minb": "150",
+    "kids": [
+     383,
+     383
+    ],
+    "leaves": [
+     [
+      504,
+      383
+     ],
+     [
+      249,
+      383
+     ],
+     [
+      249,
+      383
+     ],
+     [
+      610,
+      772
+     ]
+    ],
+    "docH": 900
+   },
+   "after": {
+    "row": false,
+    "thick": 6,
+    "span": 504,
+    "parentSpan": 504,
+    "cx": 565.921875,
+    "cy": 571.9921875,
+    "now": "62",
+    "mina": "150",
+    "minb": "150",
+    "kids": [
+     473,
+     293
+    ],
+    "leaves": [
+     [
+      504,
+      473
+     ],
+     [
+      249,
+      293
+     ],
+     [
+      249,
+      293
+     ],
+     [
+      610,
+      772
+     ]
+    ],
+    "docH": 900
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:22:46.979Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "divider-x-min-clamp-subtree",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "root row drag −900: left subtree ≥ data-mina (nested row 240+6+240), all leaves ≥240 wide",
+  "observed": {
+   "kids": [
+    486,
+    628
+   ],
+   "mina": "486",
+   "leaves": [
+    [
+     486,
+     473
+    ],
+    [
+     240,
+     293
+    ],
+    [
+     240,
+     293
+    ],
+    [
+     628,
+     772
+    ]
+   ],
+   "now": "44"
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:22:50.258Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "divider-y-min-clamp",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "col drag +900: bottom ≥150 (Opus min height), leaves ≥150 tall",
+  "observed": {
+   "kids": [
+    616,
+    150
+   ],
+   "minb": "150",
+   "leaves": [
+    [
+     486,
+     616
+    ],
+    [
+     240,
+     150
+    ],
+    [
+     240,
+     150
+    ],
+    [
+     628,
+     772
+    ]
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:22:52.171Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "divider-keyboard",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "focused divider: ArrowRight +2, Shift+ArrowRight +10, Enter → 50",
+  "observed": {
+   "k0": "44",
+   "k1": "46",
+   "k2": "56",
+   "k3": "50"
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:23:04.178Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "workspace-height-stable-idle",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "12s idle with telemetry: doc/pane heights constant while terminal scrollHeight grows",
+  "observed": {
+   "i0": {
+    "docH": 900,
+    "leaves": [
+     616,
+     150,
+     150,
+     772
+    ],
+    "lines": [
+     2161,
+     1306,
+     6588,
+     668
+    ]
+   },
+   "i1": {
+    "docH": 900,
+    "leaves": [
+     616,
+     150,
+     150,
+     772
+    ],
+    "lines": [
+     2636,
+     1363,
+     8792,
+     668
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:23:20.014Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "min-size-pane-usable",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "at Opus stated minimum leaf (240×150), each pane's send button is fully inside the pane and hit-testable",
+  "observed": [
+   {
+    "pane": "1",
+    "pane_wh": [
+     557,
+     616
+    ],
+    "sendRect": [
+     588,
+     654
+    ],
+    "paneRight": 871,
+    "sendFullyInside": true,
+    "sendHitTestOk": true,
+    "termVisibleH": 512
+   },
+   {
+    "pane": "2",
+    "pane_wh": [
+     276,
+     150
+    ],
+    "sendRect": [
+     538,
+     604
+    ],
+    "paneRight": 590,
+    "sendFullyInside": false,
+    "sendHitTestOk": true,
+    "termVisibleH": 46
+   },
+   {
+    "pane": "3",
+    "pane_wh": [
+     276,
+     150
+    ],
+    "sendRect": [
+     805,
+     872
+    ],
+    "paneRight": 871,
+    "sendFullyInside": false,
+    "sendHitTestOk": true,
+    "termVisibleH": 46
+   },
+   {
+    "pane": "4",
+    "pane_wh": [
+     557,
+     772
+    ],
+    "sendRect": [
+     1151,
+     1217
+    ],
+    "paneRight": 1434,
+    "sendFullyInside": true,
+    "sendHitTestOk": true,
+    "termVisibleH": 668
+   }
+  ],
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/12-clamp-1440.png"
+ },
+ {
+  "t": "2026-11-13T13:24:12.609Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "direct-input-target-independent",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "native type 'uname -a'+Enter in console input: only console TX increases",
+  "observed": {
+   "before": {
+    "mcu": {
+     "id": "t12qv",
+     "pane": 1,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 9907
+    },
+    "aux": {
+     "id": "t22qv",
+     "pane": 4,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 1774
+    },
+    "console": {
+     "id": "t1odv",
+     "pane": 2,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 2075
+    },
+    "debug": {
+     "id": "t2pza",
+     "pane": 3,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 21805
+    }
+   },
+   "after": {
+    "mcu": {
+     "id": "t12qv",
+     "pane": 1,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 9978
+    },
+    "aux": {
+     "id": "t22qv",
+     "pane": 4,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 1774
+    },
+    "console": {
+     "id": "t1odv",
+     "pane": 2,
+     "theme": "dark",
+     "tx": 9,
+     "rx": 2087
+    },
+    "debug": {
+     "id": "t2pza",
+     "pane": 3,
+     "theme": "dark",
+     "tx": 0,
+     "rx": 21997
+    }
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:24:14.873Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "per-terminal-theme-independent",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "[data-act=theme] on console: only console .term-wrap light, others dark",
+  "observed": {
+   "th": [
+    [
+     "t12qv",
+     "dark",
+     "rgba(0, 0, 0, 0)"
+    ],
+    [
+     "t1odv",
+     "light",
+     "rgba(0, 0, 0, 0)"
+    ],
+    [
+     "t2pza",
+     "dark",
+     "rgba(0, 0, 0, 0)"
+    ],
+    [
+     "t22qv",
+     "dark",
+     "rgba(0, 0, 0, 0)"
+    ]
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/20-input-theme.png"
+ },
+ {
+  "t": "2026-11-13T13:24:17.814Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "tab-pointer-drag-to-tabstrip",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "real pointer drag (down/12 moves/up) console tab onto aux tabstrip: same tab id joins aux pane; source pane removed 4→3; theme light + TX preserved; ghost shown",
+  "observed": {
+   "feedback": {
+    "ghost": true,
+    "insertMark": true,
+    "dropLabel": "pane 4: 위에 분할"
+   },
+   "before": {
+    "id": "t1odv",
+    "pane": 2,
+    "theme": "light",
+    "tx": 9,
+    "rx": 2142
+   },
+   "after": {
+    "id": "t1odv",
+    "pane": 3,
+    "theme": "light",
+    "tx": 9,
+    "rx": 2142
+   },
+   "aux": {
+    "id": "t22qv",
+    "pane": 3,
+    "theme": "dark",
+    "tx": 0,
+    "rx": 1852
+   },
+   "panes": [
+    [
+     "1",
+     [
+      "t12qv"
+     ]
+    ],
+    [
+     "2",
+     [
+      "t2pza"
+     ]
+    ],
+    [
+     "3",
+     [
+      "t22qv",
+      "t1odv"
+     ]
+    ]
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/21-tab-drag-in-progress.png"
+ },
+ {
+  "t": "2026-11-13T13:24:42.397Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "tab-pointer-drag-inactive-center",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "drag INACTIVE aux tab to centre of debug pane body: joins debug pane, pane count unchanged (source keeps console)",
+  "observed": {
+   "inactiveAtStart": true,
+   "dropLabel": {
+    "ov": "drop-ov show",
+    "label": "pane 2: 이 pane에 탭으로"
+   },
+   "p0": [
+    {
+     "no": "1",
+     "tabs": [
+      "t12qv"
+     ],
+     "on": "t12qv",
+     "rect": [
+      314,
+      96,
+      557,
+      616
+     ]
+    },
+    {
+     "no": "2",
+     "tabs": [
+      "t2pza"
+     ],
+     "on": "t2pza",
+     "rect": [
+      314,
+      718,
+      557,
+      150
+     ]
+    },
+    {
+     "no": "3",
+     "tabs": [
+      "t22qv",
+      "t1odv"
+     ],
+     "on": "t1odv",
+     "rect": [
+      877,
+      96,
+      557,
+      772
+     ]
+    }
+   ],
+   "p1": [
+    {
+     "no": "1",
+     "tabs": [
+      "t12qv"
+     ],
+     "on": "t12qv",
+     "rect": [
+      314,
+      96,
+      557,
+      616
+     ]
+    },
+    {
+     "no": "2",
+     "tabs": [
+      "t2pza",
+      "t22qv"
+     ],
+     "on": "t22qv",
+     "rect": [
+      314,
+      718,
+      557,
+      150
+     ]
+    },
+    {
+     "no": "3",
+     "tabs": [
+      "t1odv"
+     ],
+     "on": "t1odv",
+     "rect": [
+      877,
+      96,
+      557,
+      772
+     ]
+    }
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:24:46.482Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "tab-pointer-drag-edge-split",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "drag mcu (sole tab) to right edge of console pane: new split to the right of console; source pane removed so count stays",
+  "observed": {
+   "dropLabel": {
+    "ov": "drop-ov show",
+    "label": "pane 3: 오른쪽에 분할"
+   },
+   "p1": [
+    {
+     "no": "1",
+     "tabs": [
+      "t12qv"
+     ],
+     "on": "t12qv",
+     "rect": [
+      314,
+      96,
+      557,
+      616
+     ]
+    },
+    {
+     "no": "2",
+     "tabs": [
+      "t2pza",
+      "t22qv"
+     ],
+     "on": "t22qv",
+     "rect": [
+      314,
+      718,
+      557,
+      150
+     ]
+    },
+    {
+     "no": "3",
+     "tabs": [
+      "t1odv"
+     ],
+     "on": "t1odv",
+     "rect": [
+      877,
+      96,
+      557,
+      772
+     ]
+    }
+   ],
+   "p2": [
+    {
+     "no": "1",
+     "tabs": [
+      "t2pza",
+      "t22qv"
+     ],
+     "on": "t22qv",
+     "rect": [
+      314,
+      96,
+      557,
+      772
+     ]
+    },
+    {
+     "no": "2",
+     "tabs": [
+      "t1odv"
+     ],
+     "on": "t1odv",
+     "rect": [
+      877,
+      96,
+      276,
+      772
+     ]
+    },
+    {
+     "no": "3",
+     "tabs": [
+      "t12qv"
+     ],
+     "on": "t12qv",
+     "rect": [
+      1159,
+      96,
+      276,
+      772
+     ]
+    }
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/22-edge-drop-split.png"
+ },
+ {
+  "t": "2026-11-13T13:24:46.954Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "tab-move-alt-shift-arrow",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "native Alt+Shift+ArrowRight with console focused moves console tab to neighbour/new pane",
+  "observed": {
+   "before": {
+    "id": "t1odv",
+    "pane": 2,
+    "theme": "light",
+    "tx": 9
+   },
+   "after": {
+    "id": "t1odv",
+    "pane": 2,
+    "theme": "light",
+    "tx": 9
+   },
+   "p3": [
+    {
+     "no": "1",
+     "tabs": [
+      "t2pza",
+      "t22qv"
+     ],
+     "on": "t22qv",
+     "rect": [
+      314,
+      96,
+      557,
+      772
+     ]
+    },
+    {
+     "no": "2",
+     "tabs": [
+      "t12qv",
+      "t1odv"
+     ],
+     "on": "t1odv",
+     "rect": [
+      877,
+      96,
+      557,
+      772
+     ]
+    }
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:25:08.049Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "tab-move-alt-shift-arrow",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "console tab (sole tab of its pane) moves into right neighbour (mcu pane); source pane removed",
+  "observed": {
+   "before": "pane2=[console], pane3=[mcu]",
+   "after": "pane2=[mcu, console] (3→2 panes, renumbered)"
+  },
+  "screenshot": null,
+  "rerunOf": "tab-move-alt-shift-arrow",
+  "rerunReason": "re-evaluation of same observation: QA asserted on pane number which renumbers in DOM order; tab membership proves move."
+ },
+ {
+  "t": "2026-11-13T13:25:10.454Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "pane-maximize",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "[data-act=max] pane 2: .maxed, #treeRoot.has-max, only it visible full width",
+  "observed": {
+   "g0": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 2
+     },
+     {
+      "no": "2",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 2
+     }
+    ],
+    "hasMax": false,
+    "picker": false,
+    "conns": [
+     "mcu:connected",
+     "aux:connected",
+     "console:connected",
+     "debug:connected"
+    ]
+   },
+   "g1": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": false,
+      "w": 0,
+      "h": 0,
+      "maxed": false,
+      "tabs": 2
+     },
+     {
+      "no": "2",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": true,
+      "tabs": 2
+     }
+    ],
+    "hasMax": true,
+    "picker": false,
+    "conns": [
+     "mcu:connected",
+     "aux:connected",
+     "console:connected",
+     "debug:connected"
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/23-maximized.png"
+ },
+ {
+  "t": "2026-11-13T13:25:10.816Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "pane-restore",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "toggle again restores original extents",
+  "observed": {
+   "g2": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 2
+     },
+     {
+      "no": "2",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 2
+     }
+    ],
+    "hasMax": false,
+    "picker": false,
+    "conns": [
+     "mcu:connected",
+     "aux:connected",
+     "console:connected",
+     "debug:connected"
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:25:11.188Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "close-tab",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "close console tab: removed; panes remain",
+  "observed": {
+   "g3": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 2
+     },
+     {
+      "no": "2",
+      "vis": true,
+      "w": 557,
+      "h": 772,
+      "maxed": false,
+      "tabs": 1
+     }
+    ],
+    "hasMax": false,
+    "picker": false,
+    "conns": [
+     "mcu:connected",
+     "aux:connected",
+     "debug:connected"
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:25:12.359Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "close-pane",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "close pane 1 (debug+aux): 1 pane remains full width; its tabs closed",
+  "observed": {
+   "g4": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 1120,
+      "h": 772,
+      "maxed": false,
+      "tabs": 1
+     }
+    ],
+    "hasMax": false,
+    "picker": false,
+    "conns": [
+     "mcu:connected"
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:25:14.074Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "close-last-pane-recovery",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "closing last pane keeps one empty pane with .picker",
+  "observed": {
+   "g5": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 1120,
+      "h": 772,
+      "maxed": false,
+      "tabs": 0
+     }
+    ],
+    "hasMax": false,
+    "picker": true,
+    "conns": []
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/24-last-pane-closed.png"
+ },
+ {
+  "t": "2026-11-13T13:25:14.629Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "empty-pane-pick-recovery",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "picker s-mcu opens mcu tab, connected",
+  "observed": {
+   "g6": {
+    "panes": [
+     {
+      "no": "1",
+      "vis": true,
+      "w": 1120,
+      "h": 772,
+      "maxed": false,
+      "tabs": 1
+     }
+    ],
+    "hasMax": false,
+    "picker": false,
+    "conns": [
+     "mcu:connected"
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:25:36.581Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "pane-maximize",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "maximized pane (left or right child) fills #treeRoot width/height",
+  "observed": {
+   "res": {
+    "1": {
+     "tree": [
+      314,
+      1120,
+      772
+     ],
+     "panes": [
+      [
+       "1",
+       true,
+       314,
+       557,
+       772
+      ],
+      [
+       "2",
+       false,
+       0,
+       0,
+       0
+      ]
+     ],
+     "divider": [
+      "block"
+     ]
+    },
+    "2": {
+     "tree": [
+      314,
+      1120,
+      772
+     ],
+     "panes": [
+      [
+       "1",
+       false,
+       0,
+       0,
+       0
+      ],
+      [
+       "2",
+       true,
+       877,
+       557,
+       772
+      ]
+     ],
+     "divider": [
+      "block"
+     ]
+    }
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/25-max-pane2-2pane.png",
+  "rerunOf": "pane-maximize (characterize left/right)"
+ },
+ {
+  "t": "2026-11-13T13:26:27.219Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-create",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "#dlgMacro: name, target s-aux, send version / delay 3000 / send must-not-send → saved + persisted",
+  "observed": {
+   "stored": {
+    "id": "m-fa5h9",
+    "name": "QA stop proof",
+    "target": "s-aux",
+    "hotkey": "",
+    "confirm": true,
+    "pinned": true,
+    "vars": [],
+    "steps": [
+     {
+      "type": "send",
+      "text": "version",
+      "eol": "session"
+     },
+     {
+      "type": "delay",
+      "ms": 3000
+     },
+     {
+      "type": "send",
+      "text": "must-not-send",
+      "eol": "session"
+     }
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/31-macro-created.png"
+ },
+ {
+  "t": "2026-11-13T13:27:20.523Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-run-confirm-target",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "#dlgRun shows resolved target aux · /dev/ttyUSB1, data-tab = aux tab id",
+  "observed": {
+   "target": "aux연결됨 /dev/ttyUSB1 · 9600 8N1 · EOL CRLF · pane 2",
+   "tab": "t4w8z"
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/32-run-confirm.png"
+ },
+ {
+  "t": "2026-11-13T13:27:20.524Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-run-waits",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "after Run: .runstrip running, macroSends=[version], waiting on delay",
+  "observed": {
+   "strip": {
+    "status": "running",
+    "steps": [
+     "step ok",
+     "step run",
+     "step "
+    ]
+   },
+   "a1": {
+    "id": "t4w8z",
+    "tx": 9,
+    "run": {
+     "macro": "QA stop proof",
+     "status": "running",
+     "step": 2,
+     "steps": [
+      "ok",
+      "run",
+      "pending"
+     ]
+    },
+    "macroSends": [
+     {
+      "t": 1794576435306,
+      "text": "version"
+     }
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/33-macro-running.png"
+ },
+ {
+  "t": "2026-11-13T13:27:20.524Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-stop-no-followup",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "Stop during 3000ms delay; after 4000ms macroSends still [version], TX unchanged, strip stopped",
+  "observed": {
+   "waitedMs": 4319,
+   "strip2": {
+    "status": "stopped",
+    "steps": [
+     "step ok",
+     "step fail",
+     "step skip"
+    ]
+   },
+   "a2": {
+    "id": "t4w8z",
+    "tx": 9,
+    "run": {
+     "macro": "QA stop proof",
+     "status": "stopped",
+     "step": 2,
+     "steps": [
+      "ok",
+      "fail",
+      "skip"
+     ]
+    },
+    "macroSends": [
+     {
+      "t": 1794576435306,
+      "text": "version"
+     }
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/34-macro-stopped.png"
+ },
+ {
+  "t": "2026-11-13T13:27:42.277Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-run-waits",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "running, macroSends texts = [version], step 2 run",
+  "observed": {
+   "steps": [
+    "ok",
+    "run",
+    "pending"
+   ],
+   "sendTexts": [
+    "version"
+   ],
+   "tx": 9
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/33-macro-running.png",
+  "rerunOf": "macro-run-waits",
+  "rerunReason": "re-evaluation of same observation: macroSends entries are {t,text}; QA compared to string array."
+ },
+ {
+  "t": "2026-11-13T13:27:42.278Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-stop-no-followup",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "after Stop + 4319ms: sendTexts [version], TX 9 unchanged, strip stopped ok/fail/skip",
+  "observed": {
+   "sendTexts": [
+    "version"
+   ],
+   "tx": 9,
+   "steps": [
+    "ok",
+    "fail",
+    "skip"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/34-macro-stopped.png",
+  "rerunOf": "macro-stop-no-followup",
+  "rerunReason": "re-evaluation of same observation: macroSends entries are {t,text}; QA compared to string array."
+ },
+ {
+  "t": "2026-11-13T13:27:49.705Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-run-complete",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "uninterrupted run: status done, sends version then must-not-send",
+  "observed": {
+   "c0": {
+    "tx": 9
+   },
+   "c1": {
+    "id": "t4w8z",
+    "tx": 33,
+    "run": {
+     "macro": "QA stop proof",
+     "status": "done",
+     "step": 3,
+     "steps": [
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    "sends": [
+     "version",
+     "version",
+     "must-not-send"
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/35-macro-done.png"
+ },
+ {
+  "t": "2026-11-13T13:27:52.420Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-edit",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "edit: rename, capture hotkey Alt+7, step3 up → persisted same id",
+  "observed": {
+   "e": {
+    "id": "m-fa5h9",
+    "name": "QA stop proof edited",
+    "hotkey": "Alt+7",
+    "steps": [
+     "send:version",
+     "send:must-not-send",
+     "delay:3000"
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:27:53.770Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-duplicate",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "[data-act=dup-macro] creates copy with new id and same steps",
+  "observed": {
+   "dialogOpened": false,
+   "dup": {
+    "id": "m-hwpmc",
+    "name": "QA stop proof edited (복사)",
+    "hotkey": "",
+    "steps": [
+     "send:version",
+     "send:must-not-send",
+     "delay:3000"
+    ]
+   },
+   "count": 4
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:27:56.206Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-delete",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "[data-act=del-macro] (+confirm) removes only the duplicate",
+  "observed": {
+   "confirmDialogs": [],
+   "remaining": [
+    "Login",
+    "Read status",
+    "QA stop proof edited"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/36-macro-after-delete.png"
+ },
+ {
+  "t": "2026-11-13T13:28:23.798Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-hotkey-confirm-no-autosend",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "native Alt+7 opens #dlgRun for aux target; nothing sent before confirm",
+  "observed": {
+   "hk": {
+    "runDlg": true,
+    "target": "t4w8z"
+   },
+   "before": 3,
+   "after": 3
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:28:30.840Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-esc-stop",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "Esc in active pane during delay stops run; only first send occurs",
+  "observed": {
+   "run": {
+    "macro": "QA stop proof edited",
+    "status": "stopped",
+    "step": 2,
+    "steps": [
+     "ok",
+     "fail",
+     "skip"
+    ]
+   },
+   "newSends": [
+    "version"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/37-esc-stopped.png"
+ },
+ {
+  "t": "2026-11-13T13:28:36.240Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-cancel-on-disconnect",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "disconnect during 3000ms delay aborts run; no must-not-send",
+  "observed": {
+   "clickAfterRunMs": 1095,
+   "conn": "disconnected",
+   "run": {
+    "macro": "QA stop proof edited",
+    "status": "failed",
+    "step": 3,
+    "steps": [
+     "ok",
+     "ok",
+     "fail"
+    ]
+   },
+   "newSends": [
+    "version"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/38-cancel-on-disconnect.png"
+ },
+ {
+  "t": "2026-11-13T13:28:36.797Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "connect-toggle",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "disconnect shows overlay; overlay connect reconnects",
+  "observed": {
+   "during": "disconnected",
+   "after": "connected"
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:29:06.122Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "macro-cancel-on-disconnect-reconnect",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "disconnect during the 3000ms delay then reconnect (still inside delay): run must not continue to send 'must-not-send' to the reconnected port",
+  "observed": {
+   "clickDisconnectMs": 1088,
+   "clickReconnectMs": 2051,
+   "runAtDisconnect": {
+    "macro": "QA stop proof edited",
+    "status": "running",
+    "step": 2,
+    "steps": [
+     "ok",
+     "run",
+     "pending"
+    ]
+   },
+   "connAtDisconnect": "disconnected",
+   "after": {
+    "conn": "connected",
+    "run": {
+     "macro": "QA stop proof edited",
+     "status": "done",
+     "step": 3,
+     "steps": [
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    "newSends": [
+     "version",
+     "must-not-send"
+    ]
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/39-FAIL-disconnect-reconnect-resumes.png"
+ },
+ {
+  "t": "2026-11-13T13:29:19.160Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "min-size-pane-usable",
+  "viewport": "1440x900",
+  "pass": false,
+  "superseded": true,
+  "expected": "(spec change) USER: terminal-native inline input, no Send button; min-pane acceptance re-evaluated on revised hash",
+  "observed": "original FAIL evidence kept (send overflow 14px at 276px pane)",
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:29:19.161Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "direct-input-target-independent",
+  "viewport": "1440x900",
+  "pass": false,
+  "deferred": true,
+  "expected": "(spec change) acceptance requires terminal click→type→Enter inline prompt, history/paste/edit; old-hash form-input PASS not accepted",
+  "observed": "deferred to revised hash",
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:29:41.102Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "hex-text-view",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "mcu HEX shows hex bytes, aux stays text; TEXT restores",
+  "observed": {
+   "hex": {
+    "mode": "hex",
+    "hexLike": true
+   },
+   "auxMode": "text",
+   "text": {
+    "mode": "text",
+    "hexLike": false
+   }
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/40-hex.png"
+ },
+ {
+  "t": "2026-11-13T13:29:45.742Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "pause-resume",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "pause: rendered lines frozen while RX grows; pill shows +N; resume renders backlog",
+  "observed": {
+   "p0": [
+    322,
+    21304
+   ],
+   "p1": [
+    322,
+    21517
+   ],
+   "pill": "재개 +3",
+   "p2": [
+    326,
+    21588
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:29:46.882Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "log-search",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "search 'TLM' highlights and shows cur/total count",
+  "observed": {
+   "cnt": "1/272",
+   "marks": 272
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:29:48.626Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "clear-view-only",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "clear wipes screen only; RX/TX counters kept",
+  "observed": {
+   "c0": [
+    327,
+    21659,
+    0
+   ],
+   "c1": [
+    0,
+    21730,
+    0
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/41-clear.png"
+ },
+ {
+  "t": "2026-11-13T13:30:08.073Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "session-settings-apply-independent",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "aux settings baud 115200: aux session+open tab frame update, sys line; mcu unchanged; mismatched baud RX garbled",
+  "observed": {
+   "s0": {
+    "mcu": 115200,
+    "aux": 9600,
+    "console": 115200,
+    "debug": 921600
+   },
+   "s1": {
+    "mcu": 115200,
+    "aux": 115200,
+    "console": 115200,
+    "debug": 921600
+   },
+   "frames": {
+    "before": [
+     "9600 8N1 · none · CRLF · echo",
+     "115200 8N1 · none · CR · echo"
+    ],
+    "after": [
+     "115200 8N1 · none · CRLF · echo",
+     "115200 8N1 · none · CR · echo"
+    ]
+   },
+   "auxTail": [
+    "22:29:54.901+EVT: VIN_SAG 11.82V 3ms",
+    "22:29:57.900+HB 0085 vin=12.37 iout=0.42 rly=0101",
+    "22:30:00.901+HB 0086 vin=12.35 iout=0.42 rly=0101",
+    "22:30:03.739설정 적용: /dev/ttyUSB1 @ 115200 8N1 · flow none · EOL CRLF · echo on",
+    "22:30:03.901xþØàxàààÆþxÆþàþxÆàØxØ~~",
+    "22:30:06.903xþØàxààÿÆþxÆþàþxÆþØxØ~~"
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/42-aux-baud-mismatch.png"
+ },
+ {
+  "t": "2026-11-13T13:30:53.124Z",
+  "phase": "A",
+  "sourceHash": {
+   "index": "3470995f",
+   "styles": "2b761965",
+   "app": "cff8a670"
+  },
+  "check": "session-exclusivity-move",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "picking already-open aux in new pane moves the existing aux tab (same id), never duplicates the port",
+  "observed": {
+   "t0": [
+    "mcu@1:t3i2v",
+    "aux@2:t4w8z"
+   ],
+   "p0": [
+    [
+     "1",
+     [
+      "mcu"
+     ]
+    ],
+    [
+     "2",
+     [
+      "aux"
+     ]
+    ]
+   ],
+   "t1": [
+    "mcu@1:t3i2v",
+    "aux@2:t4w8z"
+   ],
+   "p1": [
+    [
+     "1",
+     [
+      "mcu"
+     ]
+    ],
+    [
+     "2",
+     [
+      "aux"
+     ]
+    ]
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/43-session-exclusive.png"
+ },
+ {
+  "t": "2026-11-13T13:39:15.601Z",
+  "phase": "EARLY-xterm (not acceptance)",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "57defddb"
+  },
+  "check": "early-xterm-init-render",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "EARLY (not acceptance): real xterm Terminal present, one .xterm per pane with helper textarea and non-trivial screen, no exceptions, no page overflow",
+  "observed": {
+   "ev": [],
+   "vp": "1440x900",
+   "docW": 1440,
+   "docH": 900,
+   "TerminalType": "function",
+   "termVersion": null,
+   "xtermCount": 2,
+   "panes": [
+    {
+     "no": "1",
+     "pane": [
+      314,
+      96,
+      557,
+      772
+     ],
+     "host": [
+      323,
+      164,
+      547,
+      701
+     ],
+     "hostClass": "xhost",
+     "xterm": [
+      323,
+      164,
+      547,
+      701
+     ],
+     "screen": [
+      338,
+      170,
+      534,
+      684
+     ],
+     "viewport": [
+      323,
+      164,
+      547,
+      701
+     ],
+     "helperTextarea": true,
+     "taRect": [
+      458,
+      674,
+      8,
+      18
+     ],
+     "canvas": 0,
+     "domRows": 38,
+     "firstRows": [
+      "· 포트 열림: /dev/ttyUSB0 @ 115200 8N1 · flow none",
+      "· 작업대 다시 불러옴: 레이아웃·탭·테마 복원 (이전 화면 로그는 저장하지 ",
+      "않음)"
+     ],
+     "sendBtn": false
+    },
+    {
+     "no": "2",
+     "pane": [
+      877,
+      96,
+      557,
+      772
+     ],
+     "host": [
+      886,
+      164,
+      547,
+      701
+     ],
+     "hostClass": "xhost",
+     "xterm": [
+      886,
+      164,
+      547,
+      701
+     ],
+     "screen": [
+      901,
+      170,
+      534,
+      684
+     ],
+     "viewport": [
+      886,
+      164,
+      547,
+      701
+     ],
+     "helperTextarea": true,
+     "taRect": [
+      901,
+      314,
+      8,
+      18
+     ],
+     "canvas": 0,
+     "domRows": 38,
+     "firstRows": [
+      "· 포트 열림: /dev/ttyUSB1 @ 9600 8N1 · flow none",
+      "· 작업대 다시 불러옴: 레이아웃·탭·테마 복원 (이전 화면 로그는 저장하지 ",
+      "않음)"
+     ],
+     "sendBtn": false
+    }
+   ],
+   "snapshotKeys": [
+    "layout",
+    "activePane",
+    "maxPane",
+    "panes",
+    "tabs",
+    "macros",
+    "sessions",
+    "storageKeys"
+   ],
+   "snapTab0": "{\"id\":\"t3i2v\",\"alias\":\"mcu\",\"pane\":1,\"conn\":\"connected\",\"mode\":\"text\",\"theme\":\"dark\",\"rx\":1063,\"tx\":0,\"lines\":27,\"paused\":false,\"xterm\":{\"cols\":71,\"rows\":38,\"attached\":true,\"opened\":true,\"focused\":false,\"bg\":\"#0f1216\",\"cursorX\":16},\"deviceLine\":{\"prompt\":\"loom-mcu login: \",\"buffer\":\"\",\"cursor\":0},\"r"
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/E01-early-xterm-1440.png",
+  "early": true
+ },
+ {
+  "t": "2026-11-13T13:39:49.888Z",
+  "phase": "EARLY-xterm (not acceptance)",
+  "early": true,
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "57defddb"
+  },
+  "check": "early-xterm-focus-fit",
+  "viewport": "1440x900",
+  "pass": null,
+  "expected": "observation only",
+  "observed": {
+   "focus": "mouse click in mcu .xterm-screen → activeElement textarea.xterm-helper-textarea in pane 1; snapshot xterm.focused mcu=true aux=false",
+   "fit": [
+    {
+     "alias": "mcu",
+     "cols": 62,
+     "rows": 36,
+     "host": [
+      547,
+      701
+     ],
+     "screen": [
+      467,
+      648
+     ],
+     "rowH": 18,
+     "unusedRight": 65,
+     "unusedBottom": 47,
+     "cell": 7.53
+    },
+    {
+     "alias": "aux",
+     "cols": 62,
+     "rows": 36,
+     "host": [
+      547,
+      701
+     ],
+     "screen": [
+      467,
+      648
+     ],
+     "rowH": 18,
+     "unusedRight": 65,
+     "unusedBottom": 47,
+     "cell": 7.53
+    }
+   ],
+   "cjk": "Korean sys lines render letter-spaced (wide-char cells wider than Hangul glyphs) — E01",
+   "storage": "keys still loomUartOpus.v1.* plus new loomUartOpus.v1.mig2; fresh load still prints '작업대 다시 불러옴' restore line"
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/E02-early-xterm-focus-1440.png"
+ },
+ {
+  "t": "2026-11-13T13:43:54.987Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "served-hash-matches-freeze",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "in-browser SHA-256 of served files == REV3 manifest; loaded app.js 134271 bytes",
+  "observed": {
+   "served": {
+    "index": "7925c44f",
+    "styles": "819bf45f",
+    "app": "6b4ae726",
+    "xterm": "14903579"
+   },
+   "loaded": [
+    [
+     "styles.css",
+     35121
+    ],
+    [
+     "app.js",
+     134271
+    ],
+    [
+     "xterm.js",
+     488663
+    ],
+    [
+     "styles.css",
+     35121
+    ],
+    [
+     "app.js",
+     134271
+    ],
+    [
+     "xterm.js",
+     488663
+    ]
+   ],
+   "removedOwnedKeys": [
+    "loomUartOpus.v1.sessions",
+    "loomUartOpus.v1.macros",
+    "loomUartOpus.v1.runVars",
+    "loomUartOpus.v1.mig2",
+    "loomUartOpus.v1.ui",
+    "loomUartOpus.v1.layout"
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:43:54.988Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "initial-render",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "fresh REV3 1440: 2 fitted xterm tabs, no send row, mcu at login prompt, no page overflow",
+  "observed": {
+   "docW": 1440,
+   "docH": 900,
+   "keys": [
+    "loomUartOpus.v1.sessions",
+    "loomUartOpus.v1.macros",
+    "loomUartOpus.v1.runVars",
+    "loomUartOpus.v1.mig2",
+    "loomUartOpus.v1.ui",
+    "loomUartOpus.v1.layout"
+   ],
+   "sendBtns": 0,
+   "tabs": [
+    {
+     "alias": "mcu",
+     "pane": 1,
+     "cols": 80,
+     "rows": 38,
+     "prompt": "loom-mcu login: "
+    },
+    {
+     "alias": "aux",
+     "pane": 2,
+     "cols": 62,
+     "rows": 38,
+     "prompt": ""
+    }
+   ],
+   "ports": [
+    {
+     "path": "/dev/ttyUSB0",
+     "product": "FT232R USB UART",
+     "openBy": "mcu",
+     "savedAs": [
+      "mcu"
+     ]
+    },
+    {
+     "path": "/dev/ttyUSB1",
+     "product": "CP2102N USB to UART Bridge",
+     "openBy": "aux",
+     "savedAs": [
+      "aux"
+     ]
+    },
+    {
+     "path": "/dev/ttyUSB2",
+     "product": "PL2303GT USB Serial",
+     "openBy": null,
+     "savedAs": [
+      "console"
+     ]
+    },
+    {
+     "path": "/dev/ttyACM0",
+     "product": "STLINK-V3 VCP",
+     "openBy": null,
+     "savedAs": [
+      "debug"
+     ]
+    },
+    {
+     "path": "/dev/ttyUSB3",
+     "product": "CH340 serial",
+     "openBy": null,
+     "savedAs": []
+    }
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/R01-initial-1440.png"
+ },
+ {
+  "t": "2026-11-13T13:44:19.954Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-click-focus",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "real click in mcu .xterm-screen focuses mcu xterm helper textarea",
+  "observed": {
+   "focused": true
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:21.393Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-typed-enter-login",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "type root⏎ → Password: prompt; type loom⏎ (not echoed) → mcu> prompt",
+  "observed": {
+   "afterUser": {
+    "prompt": "Password: ",
+    "tail": [
+     "[   25.002] TLM vbat=12.38V ibat=0.86A temp=41.7C can0=1825/250 err=0",
+     "[   26.001] TLM vbat=12.37V ibat=0.85A temp=41.6C can0=1838/252 err=0",
+     "[   27.001] TLM vbat=12.37V ibat=0.84A temp=41.6C can0=1851/254 err=0",
+     "loom-mcu login: root",
+     "[   28.001] TLM vbat=12.36V ibat=0.82A temp=41.5C can0=1864/256 err=0",
+     "Password: "
+    ]
+   },
+   "afterPass": {
+    "prompt": "mcu> ",
+    "tail": [
+     "loom-mcu login: root",
+     "[   28.001] TLM vbat=12.36V ibat=0.82A temp=41.5C can0=1864/256 err=0",
+     "Password: ",
+     "Welcome, root. Type 'help' for commands.",
+     "[   29.002] TLM vbat=12.36V ibat=0.81A temp=41.5C can0=1877/258 err=0",
+     "mcu> "
+    ]
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:22.415Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-tab-complete-unique",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "type 'ver' + native Tab → buffer 'version'; Enter executes (output) and TX grows",
+  "observed": {
+   "afterTab": "version ",
+   "tail": [
+    "[   29.002] TLM vbat=12.36V ibat=0.81A temp=41.5C can0=1877/258 err=0",
+    "mcu> version ",
+    "ecu-app 4.12.0+g7c1e2d9 (2026-10-28) bootloader 2.3.1",
+    "OK",
+    "[   30.002] TLM vbat=12.35V ibat=0.80A temp=41.4C can0=1890/260 err=0",
+    "mcu> "
+   ],
+   "tx": [
+    10,
+    15
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:22.727Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-tab-complete-ambiguous",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "'lo' + Tab lists candidates (log on/log off/logout), buffer kept",
+  "observed": {
+   "buf": "log",
+   "tail": [
+    "[   29.002] TLM vbat=12.36V ibat=0.81A temp=41.5C can0=1877/258 err=0",
+    "mcu> version ",
+    "ecu-app 4.12.0+g7c1e2d9 (2026-10-28) bootloader 2.3.1",
+    "OK",
+    "[   30.002] TLM vbat=12.35V ibat=0.80A temp=41.4C can0=1890/260 err=0",
+    "mcu> log"
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:22.942Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-ctrl-u",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "Ctrl+U clears line buffer",
+  "observed": {
+   "buf": "",
+   "tail": [
+    "[   30.002] TLM vbat=12.35V ibat=0.80A temp=41.4C can0=1890/260 err=0",
+    "mcu> "
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:23.578Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-history-cursor-edit",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "ArrowUp recalls 'version'; ←← then X → 'versiXon'; Home Y, End Backspace → 'YversiXo'",
+  "observed": {
+   "h1": "version ",
+   "h2": [
+    "versioXn ",
+    7
+   ],
+   "h3": [
+    "YversioXn",
+    9
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:23.992Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-ctrl-c-no-selection",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "Ctrl+C without selection sends ^C: line discarded (^C shown), fresh mcu> prompt",
+  "observed": {
+   "buf": "",
+   "tail": [
+    "ecu-app 4.12.0+g7c1e2d9 (2026-10-28) bootloader 2.3.1",
+    "OK",
+    "[   30.002] TLM vbat=12.35V ibat=0.80A temp=41.4C can0=1890/260 err=0",
+    "[   31.051] TLM vbat=12.35V ibat=0.79A temp=41.4C can0=1903/262 err=0",
+    "mcu> YversioXn^C",
+    "mcu> "
+   ],
+   "tx": [
+    37,
+    38
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:24.964Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-ctrl-l",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "Ctrl+L clears screen; prompt at top",
+  "observed": {
+   "cy": 1,
+   "visibleNonEmpty": [
+    "[   32.001] TLM vbat=12.35V ibat=0.78A temp=41.3C can0=1916/264 err=0",
+    "mcu> "
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/R10-xterm-keys-after-ctrl-l.png"
+ },
+ {
+  "t": "2026-11-13T13:44:24.967Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-per-tab-independent-input",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "all mcu typing left aux TX/buffer/focus unchanged",
+  "observed": {
+   "aux0": {
+    "tx": 0,
+    "buf": ""
+   },
+   "aux1": {
+    "tx": 0,
+    "buf": "",
+    "focused": false
+   }
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:53.259Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-tab-complete-unique",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "'ver'+Tab → 'version ' (shell-style trailing space); Enter prints 'ecu-app 4.12.0… OK', TX 10→15",
+  "observed": {
+   "afterTab": "version ",
+   "out": "ecu-app 4.12.0+g7c1e2d9 (2026-10-28) bootloader 2.3.1 / OK"
+  },
+  "screenshot": null,
+  "rerunOf": "xterm-tab-complete-unique",
+  "rerunReason": "re-evaluation of same observation; QA expected no trailing space"
+ },
+ {
+  "t": "2026-11-13T13:44:53.261Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-history-cursor-edit",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "↑ recalls 'version '; ←← X inserts before 'n ' → 'versioXn '; Home Y / End Backspace → 'YversioXn' (cursor 9)",
+  "observed": {
+   "h1": "version ",
+   "h2": "versioXn ",
+   "h3": "YversioXn"
+  },
+  "screenshot": null,
+  "rerunOf": "xterm-history-cursor-edit",
+  "rerunReason": "re-evaluation; QA omitted completion's trailing space; edit semantics correct"
+ },
+ {
+  "t": "2026-11-13T13:44:54.716Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-tab-complete-ambiguous",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "'lo'+Tab extends to common prefix 'log'; second Tab lists candidates; buffer kept",
+  "observed": {
+   "buf": "log",
+   "tail": [
+    "[   59.002] TLM vbat=12.44V ibat=0.85A temp=40.7C can0=2267/318 err=0",
+    "[   60.002] TLM vbat=12.44V ibat=0.86A temp=40.8C can0=2280/320 err=0",
+    "[   60.002] W: can0: tx mailbox timeout, retry 1",
+    "[   61.001] TLM vbat=12.43V ibat=0.86A temp=40.8C can0=2293/322 err=0",
+    "[   62.003] TLM vbat=12.43V ibat=0.86A temp=40.8C can0=2306/324 err=0",
+    "mcu> log",
+    "log on    log off    logout",
+    "mcu> log"
+   ]
+  },
+  "screenshot": null,
+  "rerunOf": "xterm-tab-complete-ambiguous",
+  "rerunReason": "1st attempt pressed Tab once; bash-style 1st Tab = common prefix"
+ },
+ {
+  "t": "2026-11-13T13:44:56.397Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-multiline-paste",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "native paste 'status\\ntemp\\n' executes both lines in order",
+  "observed": {
+   "tail": [
+    "can0    rx 2306 tx 324 err 0",
+    "OK",
+    "tmp117  41.6 C",
+    "mcu     47.8 C",
+    "OK",
+    "[   63.002] TLM vbat=12.42V ibat=0.85A temp=40.9C can0=2319/326 err=0",
+    "[   64.001] TLM vbat=12.41V ibat=0.84A temp=40.9C can0=2332/328 err=0",
+    "mcu> "
+   ],
+   "tx": [
+    44,
+    56
+   ]
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:44:57.318Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-ansi-render",
+  "viewport": "1440x900",
+  "pass": true,
+  "expected": "device ANSI SGR sequences render as coloured spans (≥2 distinct colours) in xterm DOM",
+  "observed": {
+   "count": 26,
+   "samples": [
+    [
+     "xterm-dim",
+     "",
+     "[   43.003] TLM vbat=12.39V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   44.001] TLM vbat=12.40V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   45.002] TLM vbat=12.41V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   46.002] TLM vbat=12.41V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   47.002] TLM vbat=12.42V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   48.003] TLM vbat=12.43V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ],
+    [
+     "xterm-fg-3",
+     "",
+     "[   48.003] W: can0: tx mailbo",
+     "rgb(227, 179, 65)"
+    ],
+    [
+     "xterm-dim",
+     "",
+     "[   49.001] TLM vbat=12.43V ib",
+     "rgba(208, 215, 222, 0.5)"
+    ]
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/R11-xterm-ansi-paste.png"
+ },
+ {
+  "t": "2026-11-13T13:45:18.873Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-multiline-paste",
+  "viewport": "1440x900",
+  "pass": false,
+  "expected": "after Ctrl+L, native paste 'status\\ntemp\\n': both prompts echoed in order with outputs; TX +12 (status\\r + temp\\r)",
+  "observed": {
+   "visible": [
+    "[   85.003] TLM vbat=12.38V ibat=0.82A temp=41.8C can0=2605/370 err=0",
+    "mcu> status",
+    "temp",
+    "tmp117  41.6 C",
+    "mcu     48.3 C",
+    "OK",
+    "fw      ecu-app 4.12.0+g7c1e2d9",
+    "uptime  85.4 s",
+    "vbat    12.40 V",
+    "state   RUN",
+    "can0    rx 2605 tx 370 err 0",
+    "OK",
+    "[   86.002] TLM vbat=12.39V ibat=0.80A temp=41.8C can0=2618/372 err=0",
+    "mcu> "
+   ],
+   "tx": [
+    62,
+    74
+   ]
+  },
+  "screenshot": "/Users/ctmctm/workspace/Loom/work/reports/uart-workbench/qa/opus/shots/R11-xterm-paste.png",
+  "rerunOf": "xterm-multiline-paste",
+  "rerunReason": "1st: echoed command lines scrolled out of 8-line tail window; TX +12 already matched"
+ },
+ {
+  "t": "2026-11-13T13:46:47.924Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-multiline-paste",
+  "viewport": "1440x900",
+  "pass": false,
+  "diagnosis": true,
+  "expected": "diagnosis only (no browser action); latest status remains FAIL until native rerun",
+  "observed": {
+   "route": "ego keyboard.paste = native Cmd+V with clipboard text → browser paste event → xterm paste handler (normalises \\n→\\r) → Terminal.onData → keyInput() maps \\r→session EOL (mcu CR) → transmit() → sim line discipline",
+   "evidence1stAttempt": {
+    "txDelta": 12,
+    "expectedBytes": "status\\r(7)+temp\\r(5)=12",
+    "outputsInTail": [
+     "can0 rx 2306 tx 324 err 0",
+     "OK",
+     "tmp117 41.6 C",
+     "mcu 47.8 C",
+     "OK"
+    ]
+   },
+   "cause": "QA observation window: snapshot tail[] (last 8 lines examined) no longer contained the echoed \"mcu> status\"/\"mcu> temp\" lines because command output followed; product handling consistent with app.js:189,233,265-282",
+   "verdict": "no product bug identified; native rerun (Ctrl+L then paste, check visible[]) blocked: TaskSpace 15 ownership agentDelegatedToUser and takeOverTaskSpace denied by permission classifier"
+  },
+  "screenshot": null
+ },
+ {
+  "t": "2026-11-13T13:47:06.368Z",
+  "phase": "R3",
+  "sourceHash": {
+   "index": "7925c44f",
+   "styles": "819bf45f",
+   "app": "6b4ae726",
+   "xterm": "14903579"
+  },
+  "check": "xterm-multiline-paste",
+  "viewport": "1440x900",
+  "pass": false,
+  "classification": {
+   "productBug": "order race: Sim.key Enter handling on independent 40+rand60ms timers; later command response can overtake earlier (MAIN source check)",
+   "qaOverstrict": "1st-attempt FAIL from 8-line tail + exact echo prefix requirement; outputs were in order in that run"
+  },
+  "expected": "next freeze: native paste of N lines → commands processed and answered in arrival order, TX = sum of lines+EOL",
+  "observed": "pending owner fix; rerun on new freeze",
+  "screenshot": null
+ }
+]

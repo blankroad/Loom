@@ -1,0 +1,41 @@
+{
+  "when": "2026-11-13T14:50:01.300Z",
+  "env": "jsdom focused regression",
+  "results": [
+    {
+      "name": "mixed fixed [aux, unresolved]: label says 실행 차단(미해결), aux is connected",
+      "pass": true,
+      "info": "고정 · 실행 차단(미해결) → aux · 제외 미해결 profile-missing2(저장된 세션 없음)"
+    },
+    {
+      "name": "mixed fixed blocked entirely in scope active: zero TX on every session (incl. known aux), block toast",
+      "pass": true,
+      "info": {
+        "tx0": {
+          "mcu": 0,
+          "aux": 0
+        },
+        "tx1": {
+          "mcu": 0,
+          "aux": 0
+        },
+        "toast": "“MixFix” 실행 차단: 고정 대상 1개 미해결 (profile-missing2) — 일부만 보내지 않습니다. ⋯ 편집에서 다시 지정하세요"
+      }
+    },
+    {
+      "name": "mixed fixed blocked entirely in scope all: zero TX on every session (incl. known aux), block toast",
+      "pass": true,
+      "info": {
+        "tx0": {
+          "mcu": 0,
+          "aux": 0
+        },
+        "tx1": {
+          "mcu": 0,
+          "aux": 0
+        },
+        "toast": "“MixFix” 실행 차단: 고정 대상 1개 미해결 (profile-missing2) — 일부만 보내지 않습니다. ⋯ 편집에서 다시 지정하세요"
+      }
+    }
+  ]
+}

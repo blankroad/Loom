@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loom · UART workbench</title>
+<link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+</head>
+<body>
+<div class="app">
+<header class="app-header">
+  <div class="identity"><span class="brand-mark" aria-hidden="true">L</span><strong>Loom</strong><nav class="shell-nav" aria-label="Service"><span aria-current="page">⌁ UART</span></nav></div>
+  <div class="header-right"><span id="shell-connection" class="shell-connection">Local bench</span><span class="prototype">Local simulation · no hardware</span><button id="help-button" class="quiet" title="Keyboard shortcuts">? <span class="wide-label">Shortcuts</span></button></div>
+</header>
+<div class="app-body">
+<aside id="sidebar" aria-label="Session and macro library">
+  <div class="rail-heading"><span>WORKSPACE</span><button id="collapse-rail" class="icon" title="Collapse library" aria-label="Collapse library">‹</button></div>
+  <details id="sessions-section" open>
+    <summary><span>Saved sessions <span id="session-count" class="count">4</span></span></summary>
+    <div class="section-content"><div class="section-note">BENCH / STM32 · REV C</div><div id="saved-sessions"></div><button id="new-session" class="add-button">＋ New session</button></div>
+  </details>
+  <details id="macros-section" open>
+    <summary><span>Macros <span id="macro-count" class="count">2</span></span></summary>
+    <div class="section-content"><div class="section-note">YOUR REUSABLE SEQUENCES</div><div id="macro-list"></div><button id="new-macro" class="add-button">＋ Create macro</button><button id="export-macros" class="text-button">↓ Export macros JSON</button></div>
+  </details>
+  <div class="rail-bottom"><span class="small-dot"></span><span id="save-status">Saved on this device</span><span class="rail-footnote">Drag tabs to move between panes.<br>Split the focused pane to build your desk.</span></div>
+</aside>
+<main>
+  <div class="desk-heading"><div><div class="eyebrow">UART / WORKSPACE 01</div><h1>Bench console</h1></div><button id="toggle-rail" class="quiet" aria-expanded="true">☰ <span>Library</span></button></div>
+  <div class="desk-toolbar">
+    <div class="open-control"><label class="sr-only" for="open-profile">Session to open</label><select id="open-profile"></select><button id="open-tab">＋ Tab</button></div>
+    <span class="toolbar-divider"></span>
+    <div class="button-group"><button id="split-right" title="Split focused pane to the right (Alt+Shift+R)"><span class="split-symbol">◫</span> Split right</button><button id="split-down" title="Split focused pane below (Alt+Shift+D)"><span class="split-symbol">⊟</span> Split down</button></div>
+    <div class="toolbar-tail"><span id="pane-count"></span><button id="restore-all" hidden>Restore layout</button></div>
+  </div>
+  <div id="tree-scroll"><div id="pane-tree" aria-label="Resizable terminal workspace"></div></div>
+  <section id="macro-runner" aria-label="Macro runner"></section>
+  <footer class="desk-footer"><span id="focus-status"></span><span id="desk-status" role="status">Ready when you are.</span></footer>
+</main>
+</div>
+</div>
+<dialog id="editor-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+<div id="toast" role="status"></div>
+</body>
+</html>
