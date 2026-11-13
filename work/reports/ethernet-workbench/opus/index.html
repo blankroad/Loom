@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loom Ethernet Bench · Opus</title>
+<meta name="description" content="Opus proposal: Ethernet workbench module inside the shared Bench Light shell — multi-channel simulated capture, packet list/details/bytes, display vs capture filters, simulated TCP/UDP socket test with templates. Local simulation only, no real network.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 2.8v10.4L13 8z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 16 16"><path d="M5.5 3v10M10.5 3v10"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.8 6.5v4.5M9.2 6.5v4.5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/></symbol>
+    <symbol id="i-kbd" viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="8.5" rx="1.5"/><path d="M4 7h.01M6.5 7h.01M9 7h.01M11.5 7h.01M5 10h6"/></symbol>
+    <symbol id="i-sessions" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M4.5 6l2 2-2 2M8 10.5h3.5"/></symbol>
+    <symbol id="i-eth" viewBox="0 0 16 16"><rect x="6" y="1.8" width="4" height="3.4" rx=".6"/><rect x="1.8" y="10.8" width="4" height="3.4" rx=".6"/><rect x="10.2" y="10.8" width="4" height="3.4" rx=".6"/><path d="M8 5.2v2.8M3.8 10.8V8h8.4v2.8"/></symbol>
+    <symbol id="i-follow" viewBox="0 0 16 16"><path d="M2 5h9M8.5 2.5 11 5 8.5 7.5M14 11H5M7.5 8.5 5 11l2.5 2.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 16 16"><path d="M2.5 8h9M8 4.5 11.5 8 8 11.5M13.5 3v10"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 16 16"><path d="M2 3h12L9.5 8.5V13l-3-1.5v-3z"/></symbol>
+    <symbol id="i-color" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="3" rx=".8"/><rect x="2" y="7" width="12" height="3" rx=".8"/><path d="M2 12.5h12"/></symbol>
+    <symbol id="i-scroll" viewBox="0 0 16 16"><path d="M8 2.5v10M4.5 9 8 12.5 11.5 9M3 14h10"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 16 16"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1.2"/><path d="M3 10.5V3.8A1.3 1.3 0 0 1 4.3 2.5H10.5"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 16 16"><path d="M3.5 8h.01M8 8h.01M12.5 8h.01" stroke-width="2.6"/></symbol>
+    <symbol id="i-burst" viewBox="0 0 16 16"><path d="M9 1.8 3.5 9h4L7 14.2 12.5 7h-4z"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell" id="shell">
+  <!-- ===== Common OUTER SHELL (Bench Light) ===== -->
+  <header class="shell-hdr" data-shell="header">
+    <span class="shell-brand"><span class="logo">L</span>Loom</span>
+    <nav class="svcnav" aria-label="서비스 모듈">
+      <a href="../../uart-workbench/opus/index.html" data-svc="uart"><svg class="i"><use href="#i-sessions"/></svg><span>UART</span></a>
+      <a href="./index.html" aria-current="page" data-svc="eth"><svg class="i"><use href="#i-eth"/></svg><span>Ethernet</span></a>
+    </nav>
+    <span class="grow"></span>
+    <span class="env-chip" title="로컬 시뮬레이션: 실제 NIC 캡처나 네트워크 송신을 하지 않습니다">SIM</span>
+    <span class="conn-chip" id="shellConn" aria-live="polite"><span class="dot"></span><span>ETH</span></span>
+  </header>
+
+  <!-- ===== ETHERNET MODULE ===== -->
+  <main class="mod-eth" id="modEth" data-module="eth">
+    <div class="mtbar" role="toolbar" aria-label="Ethernet 작업 공간">
+      <button type="button" class="tbtn" data-cmd="add-channel" title="SIM 채널 추가 (최대 4)"><svg class="i"><use href="#i-plus"/></svg>채널 추가</button>
+      <button type="button" class="tbtn" data-cmd="start-all" title="정지된 모든 채널 캡처 시작"><svg class="i"><use href="#i-play"/></svg>모두 시작</button>
+      <button type="button" class="tbtn" data-cmd="stop-all" title="모든 채널 캡처 정지 (기록 유지)"><svg class="i"><use href="#i-stop"/></svg>모두 정지</button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="pause-view" id="tbPause" aria-pressed="false" title="화면 갱신만 일시정지 — 캡처는 계속 (Space, 목록 포커스 시)"><svg class="i"><use href="#i-pause"/></svg><span id="tbPauseLabel">표시 일시정지</span></button>
+      <button type="button" class="tbtn" data-cmd="autoscroll" id="tbAuto" aria-pressed="true" title="새 패킷으로 자동 스크롤"><svg class="i"><use href="#i-scroll"/></svg>자동 스크롤</button>
+      <button type="button" class="tbtn" data-cmd="colorize" id="tbColor" aria-pressed="true" title="프로토콜 색상 규칙"><svg class="i"><use href="#i-color"/></svg>색상</button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="follow" id="tbFollow" title="선택 패킷의 TCP/UDP 대화 따라가기"><svg class="i"><use href="#i-follow"/></svg>스트림 따라가기</button>
+      <button type="button" class="tbtn" data-cmd="export" title="표시된 패킷 내보내기 (CSV / pcap)"><svg class="i"><use href="#i-down"/></svg>내보내기</button>
+      <button type="button" class="tbtn" data-cmd="clear-view" title="선택 범위 채널의 보존 기록 지우기"><svg class="i"><use href="#i-trash"/></svg>기록 지우기</button>
+      <span class="vdiv"></span>
+      <button type="button" class="tbtn" data-cmd="toggle-socket" id="tbSocket" aria-pressed="false" aria-controls="sock" title="TCP/UDP 소켓 테스트 패널 (Alt+S)"><svg class="i"><use href="#i-send"/></svg>소켓 테스트</button>
+      <button type="button" class="tbtn" data-cmd="keys" title="단축키 (?)"><svg class="i"><use href="#i-kbd"/></svg>단축키</button>
+      <span class="grow"></span>
+      <span class="ctx" id="tbCtx"></span>
+    </div>
+
+    <section class="chbar" id="chbar" aria-label="열린 채널"></section>
+
+    <section class="fbar" aria-label="필터">
+      <div class="frow scope-row">
+        <span class="flab" title="표시 범위: 어느 채널의 보존 패킷을 목록에 보일지">범위</span>
+        <span class="seg" id="scopeSeg" role="radiogroup" aria-label="표시 채널 범위"></span>
+        <span class="capf" id="capfSummary" title="캡처 필터는 채널별로 캡처 시점에 적용 — 일치하지 않는 패킷은 저장되지 않음"></span>
+      </div>
+      <div class="frow dfrow">
+        <label class="flab" for="dfInput" title="표시 필터: 이미 캡처된 패킷 중 무엇을 보일지 (Ctrl+/)"><svg class="i"><use href="#i-filter"/></svg>표시 필터</label>
+        <div class="dfwrap">
+          <input id="dfInput" class="dfin" type="text" spellcheck="false" autocomplete="off" placeholder="예: doip || tcp.port == 7000 — Enter 적용, Esc 되돌리기" aria-describedby="dfMsg" role="combobox" aria-expanded="false" aria-controls="dfSug" aria-autocomplete="list">
+          <ul class="dfsug" id="dfSug" role="listbox" hidden></ul>
+        </div>
+        <button type="button" class="btn" data-cmd="df-apply" id="dfApply">적용</button>
+        <button type="button" class="btn ghost" data-cmd="df-clear" id="dfClear" title="표시 필터 지우기">지우기</button>
+        <span class="dfcount" id="dfCount" aria-live="polite"></span>
+      </div>
+      <div class="dfmsg" id="dfMsg" aria-live="polite"></div>
+    </section>
+
+    <div class="wsp" id="wsp">
+      <section class="cap" id="cap" aria-label="패킷 캡처 작업 공간">
+        <div class="plist" id="plist">
+          <div class="pl-head" role="row">
+            <span class="c-no">No.</span><span class="c-t">Time</span><span class="c-ch">Ch</span><span class="c-src">Source</span><span class="c-dst">Destination</span><span class="c-pr">Protocol</span><span class="c-len">Length</span><span class="c-info">Info</span>
+          </div>
+          <div class="pl-body" id="plBody" tabindex="0" role="grid" aria-label="패킷 목록 (↑↓ 선택)" aria-rowcount="0">
+            <div class="pl-spacer" id="plSpacer"></div>
+            <div class="pl-rows" id="plRows"></div>
+            <div class="pl-empty" id="plEmpty" hidden></div>
+          </div>
+          <div class="pl-notice" id="plNotice" hidden></div>
+        </div>
+        <div class="divider h" id="divList" role="separator" aria-orientation="horizontal" aria-label="목록/상세 경계 크기 조절" tabindex="0"></div>
+        <div class="lower" id="lower">
+          <div class="dtl" id="dtl" aria-label="패킷 상세">
+            <div class="pane-h"><span>패킷 상세</span><span class="grow"></span><button type="button" class="ibtn" data-cmd="tree-expand" title="모두 펼치기">＋</button><button type="button" class="ibtn" data-cmd="tree-collapse" title="모두 접기">－</button></div>
+            <div class="tree" id="tree" role="tree" tabindex="0" aria-label="디코드 트리"></div>
+          </div>
+          <div class="divider v" id="divLower" role="separator" aria-orientation="vertical" aria-label="상세/바이트 경계 크기 조절" tabindex="0"></div>
+          <div class="byt" id="byt" aria-label="패킷 바이트">
+            <div class="pane-h"><span>바이트</span><span class="grow"></span><span class="bsel" id="bSel"></span></div>
+            <div class="hex" id="hex" tabindex="0"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sock" id="sock" aria-label="TCP/UDP 소켓 테스트" hidden></aside>
+    </div>
+  </main>
+
+  <footer class="shell-status" data-shell="status" id="shellStatus">
+    <span class="st-target" id="stTarget"></span>
+    <span class="st-extra" id="stExtra"></span>
+    <span class="grow"></span>
+    <span class="proto">프로토타입 · 로컬 시뮬레이션, 실제 NIC/네트워크 없음</span>
+    <button type="button" data-cmd="keys" title="단축키">?</button>
+  </footer>
+</div>
+
+<dialog id="dlgChannel" aria-label="채널"></dialog>
+<dialog id="dlgFollow" class="dlg-wide" aria-label="스트림 따라가기"></dialog>
+<dialog id="dlgExport" aria-label="내보내기"></dialog>
+<dialog id="dlgKeys" aria-label="단축키"></dialog>
+<dialog id="dlgConfirm" aria-label="확인"></dialog>
+<div class="menu" id="menu" role="menu" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="pkt.js"></script>
+<script src="app.js"></script>
+<script src="sock.js"></script>
+<script src="tools.js"></script>
+</body>
+</html>

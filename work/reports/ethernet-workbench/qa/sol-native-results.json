@@ -1,0 +1,393 @@
+{
+  "phase": "initial runnable source",
+  "hashes": {
+    "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+    "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+    "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+    "app.js": "5c91c4ea45b249368911b0f729d3ff1e74c5d2208cb7b87ba8a51a0265cf23ea"
+  },
+  "results": [
+    {
+      "name": "1440 initial render",
+      "pass": false
+    },
+    {
+      "name": "field selection matches Ethernet type bytes",
+      "pass": true
+    },
+    {
+      "name": "valid display filter narrows DoIP",
+      "pass": true,
+      "observed": {
+        "n": 10,
+        "rows": [
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP",
+          "DoIP"
+        ]
+      }
+    },
+    {
+      "name": "invalid filter retains previous rows",
+      "pass": true,
+      "observed": {
+        "n": 10,
+        "invalid": "true",
+        "message": "Unsupported expression: doip ==. Use a listed field or protocol; combine with &&. Previous valid results retained."
+      }
+    },
+    {
+      "name": "keyboard selection updates packet reference",
+      "pass": true
+    },
+    {
+      "name": "native horizontal divider drag changes height",
+      "pass": true,
+      "observed": {
+        "before": 275,
+        "after": 199
+      }
+    },
+    {
+      "name": "channel controls remain actionable while capture live",
+      "pass": false,
+      "observed": "Start bench succeeded; Start vehicle click detached for3144ms while renderChannels replaces complete sidebar each1100ms. Currentbenchcapturing/vehicleStopped. Native coordinate Stop bench used after observed selector failure to leave stable state.",
+      "classification": "product interaction churn",
+      "finding": "F1"
+    },
+    {
+      "name": "UDP local send yields directional TX/RX transcript",
+      "pass": true,
+      "observed": "TX7.261000sbench / #53not captured192.168.10.10:49152 → 192.168.10.20:13400 · UDP02 fd 00 07 00 00 00 00........RX7.398000sbench / #54not captured192.168.10.20:13400 → 192.168.10.10:49152 · UDP02 fd 00 07 00 00 00 00........"
+    },
+    {
+      "name": "invalid HEX blocks Send",
+      "pass": false
+    },
+    {
+      "name": "text send and template update",
+      "pass": true
+    },
+    {
+      "name": "disconnect blocks Send",
+      "pass": true
+    },
+    {
+      "name": "TCP simulator send yields transcript",
+      "pass": true
+    },
+    {
+      "name": "reload preserves template without auto connect/send",
+      "pass": true,
+      "observed": {
+        "sendDisabled": true,
+        "log": "A quiet line, ready for your test.Connect → send once → inspect TX / RX",
+        "templates": "DoIP alive checkUDP · 192.168.10.20:13400 · TEXTEditRun onceRead bench statusTCP · 192.168.10.20:5000 · TEXTEditRun once"
+      }
+    },
+    {
+      "name": "template Edit restores saved payload",
+      "pass": true
+    },
+    {
+      "name": "invalid HEX blocks transmission on Send",
+      "pass": true,
+      "observed": {
+        "log": "A quiet line, ready for your test.Connect → send once → inspect TX / RX",
+        "error": "HEX needs complete byte pairs (00–ff), separated by optional whitespace.",
+        "size": "HEX needs complete byte pairs (00–ff), separated by optional whitespace."
+      },
+      "rerunOf": "invalid HEX blocks Send",
+      "diagnosis": "previous expected disabled button; actual validates on Send; zero TX and explicit error are acceptance"
+    },
+    {
+      "name": "F1 retest controls actionable while live",
+      "pass": true,
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "9db03615599d061b4e4930a3ac9a28b02b05becd3a1e901cdcbedcc31dc1e3de"
+      }
+    },
+    {
+      "name": "pause freezes display while capture grows",
+      "pass": true,
+      "observed": {
+        "frozen": {
+          "n": 33,
+          "c": 17
+        },
+        "paused": {
+          "n": 33,
+          "c": 18
+        }
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "9db03615599d061b4e4930a3ac9a28b02b05becd3a1e901cdcbedcc31dc1e3de"
+      }
+    },
+    {
+      "name": "resume catches up",
+      "pass": true,
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "9db03615599d061b4e4930a3ac9a28b02b05becd3a1e901cdcbedcc31dc1e3de"
+      }
+    },
+    {
+      "name": "stop one channel independently; other continues",
+      "pass": true,
+      "observed": {
+        "counts": [
+          19,
+          18
+        ],
+        "later": [
+          19,
+          19
+        ]
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "9db03615599d061b4e4930a3ac9a28b02b05becd3a1e901cdcbedcc31dc1e3de"
+      }
+    },
+    {
+      "name": "native vertical divider drag changes detail width",
+      "pass": true,
+      "observed": {
+        "before": 556.359375,
+        "after": 649.359375
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "c3a409c23e0a49ce5474c5d59f8b3897cff18380bdf186cce9607417c8bcc50f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "9db03615599d061b4e4930a3ac9a28b02b05becd3a1e901cdcbedcc31dc1e3de"
+      }
+    },
+    {
+      "name": "add simulated third channel; only actual open channels shown",
+      "pass": true
+    },
+    {
+      "name": "follow selected TCP conversation shows directional payload",
+      "pass": true,
+      "observed": "#3 · 0.411000s · 192.168.10.10:49152 → 192.168.10.20:5000 · 12 bytesGET STATUS..47 45 54 20 53 54 41 54 55 53 0d 0a#9 · 1.233000s · 192.168.10.20:5000 → 192.168.10.10:49152 · 11 bytesSTATUS OK..53 54 41 54 55 53 20 4f 4b 0d 0a#15 · 2.055000s · 192.168.10.10:49152 → 192.168.10.20:5000 · 12 bytesGET STATUS..47 45 54 20 53 54 41 54 55 53 0d 0a#21 · 2."
+    },
+    {
+      "name": "browser CSV download has actual displayed packet rows",
+      "pass": true,
+      "observed": {
+        "count": 38,
+        "lines": 39,
+        "file": "loom-sol-displayed-packets.csv"
+      }
+    },
+    {
+      "name": "responsive capture 768",
+      "pass": false,
+      "observed": {
+        "w": 768,
+        "scrollW": 1141
+      }
+    },
+    {
+      "name": "responsive capture 390",
+      "pass": false,
+      "observed": {
+        "w": 390,
+        "scrollW": 965
+      }
+    },
+    {
+      "name": "F2 after dragged desktop responsive 768",
+      "pass": true,
+      "observed": {
+        "w": 768,
+        "scrollW": 768
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "2d415969cdab0f9db9982a32cc90dadb241bca2383c7074b128a07ceec5d6c9f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 after dragged desktop responsive 390",
+      "pass": false,
+      "observed": {
+        "w": 390,
+        "scrollW": 524
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "2d415969cdab0f9db9982a32cc90dadb241bca2383c7074b128a07ceec5d6c9f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 fresh390 fits viewport",
+      "pass": false,
+      "observed": {
+        "w": 390,
+        "scrollW": 524
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "2d415969cdab0f9db9982a32cc90dadb241bca2383c7074b128a07ceec5d6c9f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "390 Socket Send control reachable",
+      "pass": false,
+      "observed": {
+        "x": 261.7734375,
+        "right": 350,
+        "y": 437.09375,
+        "bottom": 463.09375,
+        "w": 390,
+        "h": 900,
+        "scrollW": 524
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "2d415969cdab0f9db9982a32cc90dadb241bca2383c7074b128a07ceec5d6c9f",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 final fresh390 capture fits",
+      "pass": false,
+      "observed": {
+        "w": 390,
+        "sw": 375
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "3471411e5af71c744e3940351097d89cc04d3bcef37c0c8a43a5c7e9bbbf190b",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 final390 socket fits and Send reachable",
+      "pass": false,
+      "observed": {
+        "x": 261.7734375,
+        "right": 350,
+        "y": 825.1875,
+        "bottom": 851.1875,
+        "w": 390,
+        "h": 900,
+        "sw": 375
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "3471411e5af71c744e3940351097d89cc04d3bcef37c0c8a43a5c7e9bbbf190b",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 final dragged1440 to768",
+      "pass": false,
+      "observed": {
+        "w": 768,
+        "sw": 1091
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "3471411e5af71c744e3940351097d89cc04d3bcef37c0c8a43a5c7e9bbbf190b",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 final dragged1440 to390",
+      "pass": false,
+      "observed": {
+        "w": 390,
+        "sw": 375
+      },
+      "source": {
+        "index.html": "0cab5bc25c1ad48c35ba65cc39a28048f982c431ca0231d68749ac28e3a180a4",
+        "styles.css": "3471411e5af71c744e3940351097d89cc04d3bcef37c0c8a43a5c7e9bbbf190b",
+        "engine.js": "2f3f3233af884fe3d5a1d5b7bd68ebf961fa660fec5451ef987322232b0bd6a2",
+        "app.js": "8df0e695ba947677a5905f5f825bd15cd8c8f14b0601fa6fd78da3615f0cefcf"
+      }
+    },
+    {
+      "name": "F2 settled dragged desktop to768",
+      "pass": true,
+      "observed": {
+        "w": 768,
+        "sw": 768
+      },
+      "diagnosis": "No horizontal overflow means scrollWidth <= innerWidth (vertical scrollbar subtracts15px); wait observable resize clamp before measuring"
+    },
+    {
+      "name": "F2 settled dragged desktop to390",
+      "pass": true,
+      "observed": {
+        "w": 390,
+        "sw": 375
+      },
+      "diagnosis": "No horizontal overflow means scrollWidth <= innerWidth (vertical scrollbar subtracts15px); wait observable resize clamp before measuring"
+    },
+    {
+      "name": "F2 settled fresh390 capture",
+      "pass": true,
+      "observed": {
+        "w": 390,
+        "sw": 375
+      },
+      "diagnosis": "No horizontal overflow means scrollWidth <= innerWidth (vertical scrollbar subtracts15px); wait observable resize clamp before measuring"
+    },
+    {
+      "name": "F2 settled390 socket fits and Send reachable",
+      "pass": true,
+      "observed": {
+        "x": 261.7734375,
+        "right": 350,
+        "y": 825.1875,
+        "bottom": 851.1875,
+        "w": 390,
+        "h": 900,
+        "sw": 375
+      },
+      "diagnosis": "No horizontal overflow means scrollWidth <= innerWidth (vertical scrollbar subtracts15px); wait observable resize clamp before measuring"
+    },
+    {
+      "name": "socket send captured on target channel only",
+      "pass": true,
+      "observed": {
+        "log": "TX4.521000spowertrain / #33captured192.168.30.10:49152 → 192.168.10.20:13400 · UDP02 fd 00 07 00 00 00 00........RX4.658000spowertrain / #34captured192.168.10.20:13400 → 192.168.30.10:49152 · UDP02 fd 00 07 00 00 00 00........",
+        "other": [
+          "○ Stopped · Link UP10 pkt",
+          "○ Stopped · Link UP10 pkt"
+        ]
+      }
+    }
+  ]
+}

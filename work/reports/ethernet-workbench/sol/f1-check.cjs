@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {JSDOM}=require('../../../../ui/node_modules/jsdom');
+const dom=new JSDOM(fs.readFileSync(path.join(__dirname,'index.html'),'utf8'),{url:'http://localhost:4180/ethernet-workbench/sol/index.html',runScripts:'outside-only',pretendToBeVisual:true});
+const w=dom.window;let tick;w.TextEncoder=TextEncoder;w.setInterval=fn=>{tick=fn;return 1;};w.HTMLElement.prototype.scrollIntoView=()=>{};
+for(const f of ['engine.js','app.js'])w.eval(fs.readFileSync(path.join(__dirname,f),'utf8'));
+const $=s=>w.document.querySelector(s);
+$('[data-toggle="sim1"]').click();
+const vehicle=$('[data-toggle="sim2"]'),captureFilter=$('[data-capture="sim2"]'),socketChannel=$('#socket-channel'),view=$('#view-channel'),payload=$('#payload');
+vehicle.focus();for(let i=0;i<4;i++)tick();
+assert.equal($('[data-toggle="sim2"]'),vehicle);assert.equal($('[data-capture="sim2"]'),captureFilter);assert.equal($('#socket-channel'),socketChannel);assert.equal($('#view-channel'),view);assert.equal($('#payload'),payload);assert.equal(w.document.activeElement,vehicle);assert($('[data-channel="sim1"] .channel-meta').textContent.includes('19 pkt'));
+vehicle.click();assert($('[data-channel="sim2"]').textContent.includes('Capturing'));tick();assert($('[data-channel="sim2"] .channel-meta').textContent.includes('16 pkt'));
+$('#socket-tab').click();$('#payload').focus();$('#payload').value='41 42';const option=$('#socket-channel option');for(let i=0;i<3;i++)tick();assert.equal(w.document.activeElement,payload);assert.equal($('#payload').value,'41 42');assert.equal($('#socket-channel option'),option);assert.equal($('#socket-channel'),socketChannel);
+$('#capture-tab').click();const details=$('#packet-detail details');details.open=false;tick();assert.equal($('#packet-detail details'),details);assert.equal(details.open,false);
+console.log('PASS F1: vehicle Start node/focus survives four traffic ticks; Start succeeds, both independent counts advance.');
+console.log('PASS F1: capture selector, view/socket selectors and option, focused payload node/value survive traffic ticks.');
+console.log('PASS F1: selected detail DOM and collapsed state survive append ticks.');
+console.log('Source-local jsdom checks only; ROOT owns native retest.');w.close();

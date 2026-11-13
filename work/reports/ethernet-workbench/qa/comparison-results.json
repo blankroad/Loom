@@ -1,0 +1,26 @@
+[
+  {
+    "name": "comparison Opus link navigates",
+    "pass": true
+  },
+  {
+    "name": "comparison Sol link navigates",
+    "pass": true
+  },
+  {
+    "name": "comparison fits 1440",
+    "pass": true,
+    "observed": {
+      "w": 1440,
+      "sw": 1440
+    }
+  },
+  {
+    "name": "comparison fits 390",
+    "pass": true,
+    "observed": {
+      "w": 390,
+      "sw": 390
+    }
+  }
+]

@@ -1,0 +1,315 @@
+{
+ "when": "2026-11-13T15:24:10.364Z",
+ "pass": 60,
+ "total": 60,
+ "results": [
+  {
+   "name": "two SIM channels open & live initially",
+   "pass": true,
+   "info": [
+    [
+     "ecu-doip",
+     26
+    ],
+    [
+     "body-someip",
+     39
+    ]
+   ]
+  },
+  {
+   "name": "channel cards only for open channels + SIM badge",
+   "pass": true
+  },
+  {
+   "name": "fixture covers ARP/UDP/TCP/DoIP/SOME/IP/SOME/IP-SD",
+   "pass": true,
+   "info": [
+    "SOME/IP-SD",
+    "DoIP",
+    "SOME/IP",
+    "ARP",
+    "TCP"
+   ]
+  },
+  {
+   "name": "every frame: info re-decodes, checksums correct, ip.src bytes, length coherent",
+   "pass": true,
+   "info": null
+  },
+  {
+   "name": "select -> list row .sel + details tree",
+   "pass": true
+  },
+  {
+   "name": "bytes pane has exactly len hex cells",
+   "pass": true,
+   "info": 68
+  },
+  {
+   "name": "field->bytes: IPv4 Source Address highlights offsets 26..29",
+   "pass": true,
+   "info": [
+    26,
+    27,
+    28,
+    29
+   ]
+  },
+  {
+   "name": "byte->field: offset 13 selects Ethernet Type node",
+   "pass": true,
+   "info": "Type: IPv4 (0x0800)"
+  },
+  {
+   "name": "keyboard ArrowDown selects next row",
+   "pass": true
+  },
+  {
+   "name": "F7 previous packet (global)",
+   "pass": true
+  },
+  {
+   "name": "display filter doip -> only DoIP rows, shown<captured",
+   "pass": true,
+   "info": [
+    15,
+    65
+   ]
+  },
+  {
+   "name": "count text shows displayed/captured",
+   "pass": true
+  },
+  {
+   "name": "live validation marks invalid",
+   "pass": true
+  },
+  {
+   "name": "invalid apply keeps prior filter + results",
+   "pass": true
+  },
+  {
+   "name": "cidr + && filter -> SOME/IP-SD rows only",
+   "pass": true,
+   "info": 8
+  },
+  {
+   "name": "loom.ch filter -> only ecu-doip channel",
+   "pass": true
+  },
+  {
+   "name": "scope=channel -> only that channel; captured count per scope",
+   "pass": true
+  },
+  {
+   "name": "O2 filter excludes selection -> first match selected, details coherent",
+   "pass": true
+  },
+  {
+   "name": "O2 empty filter result -> selection & panes cleared",
+   "pass": true
+  },
+  {
+   "name": "stop A: A frozen + history retained, B keeps capturing",
+   "pass": true,
+   "info": [
+    26,
+    12
+   ]
+  },
+  {
+   "name": "stopped card shows STOPPED + start button",
+   "pass": true
+  },
+  {
+   "name": "restart A resumes capture",
+   "pass": true
+  },
+  {
+   "name": "pause view: list frozen while capture continues",
+   "pass": true
+  },
+  {
+   "name": "paused notice counts pending",
+   "pass": true
+  },
+  {
+   "name": "paused banner resume button node stable across ticks",
+   "pass": true
+  },
+  {
+   "name": "resume catches up",
+   "pass": true
+  },
+  {
+   "name": "O4 resumed: paused notice hidden (no stale paused text) + CSS [hidden] rule",
+   "pass": true
+  },
+  {
+   "name": "invalid capture filter blocks add",
+   "pass": true
+  },
+  {
+   "name": "third channel added live with capture filter applied at capture",
+   "pass": true,
+   "info": [
+    2,
+    2
+   ]
+  },
+  {
+   "name": "scope seg lists 3 channels + all",
+   "pass": true
+  },
+  {
+   "name": "retention bounded per channel, drop counted + notice",
+   "pass": true,
+   "info": [
+    50,
+    43
+   ]
+  },
+  {
+   "name": "view never holds evicted packets",
+   "pass": true
+  },
+  {
+   "name": "socket drawer opens",
+   "pass": true
+  },
+  {
+   "name": "send disabled while closed",
+   "pass": true
+  },
+  {
+   "name": "template run while closed -> blocked with reason, nothing sent",
+   "pass": true
+  },
+  {
+   "name": "TCP connect -> established, SYN/SYN-ACK/ACK captured on A",
+   "pass": true
+  },
+  {
+   "name": "hex validation error shown",
+   "pass": true
+  },
+  {
+   "name": "invalid hex not sent",
+   "pass": true
+  },
+  {
+   "name": "template TX traceable on channel A + deterministic RX",
+   "pass": true,
+   "info": [
+    2,
+    2
+   ]
+  },
+  {
+   "name": "transcript has timestamped TX/RX with frame refs",
+   "pass": true
+  },
+  {
+   "name": "nothing leaked to channel B",
+   "pass": true
+  },
+  {
+   "name": "template port mismatch blocked",
+   "pass": true
+  },
+  {
+   "name": "B session independent (closed) while A connected",
+   "pass": true
+  },
+  {
+   "name": "UDP SOME/IP request -> Response 0x80 on B",
+   "pass": true
+  },
+  {
+   "name": "save template persists to own prefix",
+   "pass": true
+  },
+  {
+   "name": "edit/update template",
+   "pass": true
+  },
+  {
+   "name": "O5 repeat traffic keeps Stop/inputs/log DOM nodes stable + entered values",
+   "pass": true
+  },
+  {
+   "name": "O5 Stop click on the captured node stops repeat (no further TX)",
+   "pass": true
+  },
+  {
+   "name": "disconnect stops repeat + blocks send",
+   "pass": true,
+   "info": [
+    7,
+    7
+   ]
+  },
+  {
+   "name": "connect to non-listening port -> RST, refused",
+   "pass": true
+  },
+  {
+   "name": "follow stream shows directional ASCII (STAT? client red / STAT seq server blue)",
+   "pass": true
+  },
+  {
+   "name": "follow \"only this stream\" applies tcp.stream filter",
+   "pass": true
+  },
+  {
+   "name": "pcap: magic a1b2c3d4 LE, linktype 1, packet count == displayed rows, lengths match",
+   "pass": true,
+   "info": [
+    33,
+    33
+   ]
+  },
+  {
+   "name": "csv rows == displayed + header",
+   "pass": true
+  },
+  {
+   "name": "storage only under own prefix (plus unrelated untouched)",
+   "pass": true
+  },
+  {
+   "name": "reload: 3 channels restored, templates restored",
+   "pass": true
+  },
+  {
+   "name": "reload: no socket session open, no TX sent",
+   "pass": true
+  },
+  {
+   "name": "reload: display filter restored",
+   "pass": true
+  },
+  {
+   "name": "O1 parseText encodes full code points + escapes",
+   "pass": true,
+   "info": [
+    65,
+    240,
+    159,
+    152,
+    128,
+    237,
+    149,
+    156,
+    13,
+    10,
+    65
+   ]
+  },
+  {
+   "name": "close channel removes card, others keep live",
+   "pass": true
+  }
+ ]
+}

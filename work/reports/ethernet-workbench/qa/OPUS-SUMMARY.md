@@ -1,0 +1,16 @@
+# Opus / ACCEPTED
+
+Final source freeze: index `afc51f89`, styles `d3b22f7d`, packet engine `70dd5bf4`, app `78f74d20`, socket `0c7cdf95`, tools `7c77056a`. Root matched all seven source/check-script hashes, read full HANDOFF/SURVEY and local60/60 evidence. Native Ego Lite task16 p1, actual interactions and browser downloads; raw attempts retained in `opus-native-results.json`.
+
+Native passed: 1440 human density; exact field↔byte selection; keyboard packet navigation; valid/invalid display filter with prior result retained; native x/y divider drag; capture768/390 fits; both channels independently start, pause freezes17rows while captured6→7, resume and independent stop retain history; adding generic channel; capture filter admits UDP and excludes two ARP frames before storage; TCP DoIP routing activation and UDP identification deterministic TX/RX on target channel; invalid HEX zero-TX, disconnected Send blocked; named template storage/reload without auto-connect/send; native UTF-8 `A😀한` exact8 TX/RX bytes; repeat Stop at100×200ms works, controls retain100/200, no further TX600ms afterward; Follow TCP both directions, Hex Dump and only-stream filter; actual CSV9data rows+header and PCAP745bytes/9records, parsed header/linktype/lengths and first frame bytes identical to the displayed packet; mobile Socket Send reachable without page overflow.
+
+Resolved findings, with affected native retests:
+- O1 UTF16 halves encoded as replacements → encode complete code points, native exact-byte TX/RX passed.
+- O2 filtered-out selection silently retained unrelated details → first matching selection or clear on empty; native both paths passed.
+- O3 module implicit grid column widened390 viewport to647 → shrinkable module and pane containment; native390/768 passed, no global overflow mask.
+- O4 `display:flex` overrode hidden pause notice → scoped hidden rule and empty notice; native resumed paused=false/hidden=true/display=none passed.
+- O5 repeated TX/RX rebuilt the socket controls, detaching Stop → change-detected rendering/log-only updates and retained repeat values; native semantic Stop passed. During diagnosis, native coordinate Stop was used after observed selector failure, and zero further TX verified before disconnect/capture-stop cleanup.
+
+QA expectation corrections retained: a virtualized overscan `nth0` row moved when auto-scrolled into view; choosing an actually visible stable data-no row succeeded. Default10×200ms repeat completed before the Stop action; longer repeat exposed O5 and the final100×200ms semantic Stop retest passed. Unfinished capture scenario at390 timed out before O3 correction; its remaining channel/pause checks were then completed separately. No fake success or synthetic UI event injection.
+
+Root cleared only newly created `loom.eth.opus.v1.*` keys from the neutral comparison page (clearing-state guidance already read), removing QA templates and channels. Final screenshots start from two default channels; module screenshots and mobile socket screenshots visually inspected. All other storage and old UART space15 preserved. This is local simulation, not NIC capture or real network transmission. Follow joins retained segment payloads; no complete TCP reassembly. PCAP classic has no per-channel interface metadata.

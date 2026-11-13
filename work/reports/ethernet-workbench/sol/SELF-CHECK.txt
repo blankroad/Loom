@@ -1,0 +1,12 @@
+PASS coherent fixture fields, IPv4 and transport lengths/checksums, DoIP/SOMEIP payloads
+PASS independent start/stop, capture filters and bounded retention
+PASS display filter valid subset and invalid-state retention
+PASS pause display freezes rows while capture advances; resume catches up
+PASS TCP/UDP local send, exact TX/RX bytes, capture stopped, disconnect and independent connections
+PASS invalid payload/endpoint and template save/edit/reload without active automation
+PASS DOM initial rows, selection, keyboard and bidirectional field/byte highlight
+PASS DOM filter invalid retains existing rows; independent live and display pause
+PASS DOM socket validation, TX/RX capture, template edit/run/persistence, export and conversation
+PASS DOM add channel and source constraints
+
+10 focused checks passed. jsdom is source-local; no native browser/layout acceptance claimed.

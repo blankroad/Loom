@@ -1,0 +1,4 @@
+PASS F1: vehicle Start node/focus survives four traffic ticks; Start succeeds, both independent counts advance.
+PASS F1: capture selector, view/socket selectors and option, focused payload node/value survive traffic ticks.
+PASS F1: selected detail DOM and collapsed state survive append ticks.
+Source-local jsdom checks only; ROOT owns native retest.

@@ -1,0 +1,13 @@
+# Sol / ACCEPTED
+
+Final runtime SHA prefixes: index `0cab5bc2`, styles `3471411e`, engine `2f3f3233`, app `8df0e695`. Root independently matched all 16 manifest entries and read HANDOFF/SURVEY/source-local evidence. Native Ego Lite task16 p1; raw attempts and earlier failures preserved in `sol-native-results.json`.
+
+Native passed: 1440 rendering and human density; actual field→byte matching; valid DoIP filter, invalid-state retention and clear; keyboard packet selection; native horizontal and vertical divider drags; two captures independently started, display pause freezes rows while counts grow, resume catches up, stop one leaves other live; add third channel; UDP/TCP simulator TX/RX, invalid HEX zero-TX, disconnect blocks send, template update/edit/reload with no auto connection/send; targeted captured send on powertrain while other channels stopped; selected TCP directional conversation; actual browser CSV download (38 displayed rows + header, file `sol-export.csv`); responsive fresh and dragged-desktop→768/390, socket Send reachable; UART navigation points to existing UART mockup.
+
+Real failures resolved and natively rechecked:
+- F1: traffic ticks replaced channel/input DOM, detaching the next channel's Start action. Owner changed ticks to update counters and packet data without rebuilding controls; native two-channel/pause/stop checks passed.
+- F2: inline desktop split and intrinsic grid minimum widened mobile document. Owner clamped splits on resize, bounded pane/grid items and made the outer shell column shrinkable. Native 768 scrollWidth768; 390 scrollWidth375 with 15px vertical scrollbar, fresh and after desktop drag; reachable socket controls. No document overflow mask.
+
+QA expectation issues are not hidden: Ego resets viewport1309 between invocations, so every script pins viewport; no-horizontal-overflow assertion is `scrollWidth <= innerWidth`, not strict equality when vertical scrollbar consumes15px. Resize clamp is observed before measurement. HEX validation happens on Send, so acceptance is explicit error plus zero TX rather than a disabled button. Original false records remain with succeeding corrected checks.
+
+After testing, root removed only the newly created `loom.eth.sol.v1` key from a neutral same-origin comparison page (clearing-state guidance read) to remove QA's third channel/template edits. Fresh final screenshots restore the two initial stopped channels; no other storage or user data cleared. Latest `sol-final-capture-{1440,768,390}.png` inspected visually. Local simulation only; no native NIC, OS sockets or hardware tested. Conversation is retained payloads, not TCP reassembly. Own source checks were initial10 plus affected F1/F2 regressions, not repeated unchanged suites.

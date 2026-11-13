@@ -1,0 +1,10 @@
+No.,Time,Channel,Interface,Source,Destination,Protocol,Length,Info
+11,2.851033,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","TCP",60,"49200 → 13400 [SYN] Seq=0 Win=64240 Len=0"
+12,2.851533,"ecu-doip",sim0,"192.168.10.20","192.168.10.31","TCP",60,"13400 → 49200 [SYN, ACK] Seq=0 Ack=1 Win=64240 Len=0"
+13,2.851833,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","TCP",60,"49200 → 13400 [ACK] Seq=1 Ack=1 Win=64240 Len=0"
+14,2.853033,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","DoIP",69,"Routing activation request SA=0x0e80"
+15,2.856033,"ecu-doip",sim0,"192.168.10.20","192.168.10.31","DoIP",71,"Routing activation response (success)"
+16,2.856433,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","TCP",60,"49200 → 13400 [ACK] Seq=16 Ack=18 Win=64240 Len=0"
+27,4.250099,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","DoIP",68,"Diagnostic message 0x0e80 → 0x1001 UDS TesterPresent Req 3e 80"
+28,4.252199,"ecu-doip",sim0,"192.168.10.20","192.168.10.31","DoIP",69,"Diagnostic message ACK 0x1001 → 0x0e80"
+29,4.252599,"ecu-doip",sim0,"192.168.10.31","192.168.10.20","TCP",60,"49200 → 13400 [ACK] Seq=30 Ack=33 Win=64240 Len=0"

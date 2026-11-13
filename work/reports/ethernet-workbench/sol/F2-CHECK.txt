@@ -1,0 +1,3 @@
+PASS F2: desktop pointer split at 649px clamps to 336 + 6 + 250 inside 592px at viewport768, then removes pixel columns at390.
+PASS F2: fresh390 has no pixel split; table/grid/flex children shrink with pane-local scrolling, mobile inspection stacks.
+Source-local resize math and CSS containment checks only. Native scrollWidth/layout retest belongs to ROOT.

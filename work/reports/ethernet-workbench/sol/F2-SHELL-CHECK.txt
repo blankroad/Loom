@@ -1,0 +1,3 @@
+PASS F2 shell: explicit minmax(0,1fr) outer track and shrinkable bounded direct children.
+PASS F2 shell: inactive socket pane hidden; channel rail retains internal overflow; no document overflow mask.
+CSS/DOM source assertions only. ROOT native 390px rendered scrollWidth remains the acceptance test.

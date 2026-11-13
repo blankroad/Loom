@@ -1,0 +1,322 @@
+{
+  "phase": "capture early source; socket not yet implemented",
+  "hashes": {
+    "index.html": "ffa4f7370ae8c11d7dcb6ac1cfb49b1b1bf59a7ea2d6e7fac261a062fb07d85a",
+    "styles.css": "ddef280a688d1f7af3272d16918d72382479409b3d166895b1c9541420ff0185",
+    "pkt.js": "70dd5bf45d8a238cea1927483b8d796593a9711a8c77aec8f5e8fb18846e3308",
+    "app.js": "744192a135e7d3cee8b747f27ded6bba6bbba986f007efc2b7bbc9b8a114e0fc"
+  },
+  "results": [
+    {
+      "name": "1440 capture renders coherent selected packet",
+      "pass": true
+    },
+    {
+      "name": "EtherType field highlights matching hex and ASCII bytes",
+      "pass": true
+    },
+    {
+      "name": "byte selection chooses source IPv4 field",
+      "pass": true
+    },
+    {
+      "name": "display DoIP filter narrows correct protocol",
+      "pass": true,
+      "observed": {
+        "s": {
+          "now": 80200,
+          "channels": [
+            {
+              "id": "ch1-cue7",
+              "alias": "ecu-doip",
+              "iface": "sim0",
+              "live": false,
+              "captured": 52,
+              "retained": 52,
+              "dropped": 0,
+              "cfExcluded": 0,
+              "capFilter": ""
+            },
+            {
+              "id": "ch2-cue7",
+              "alias": "body-someip",
+              "iface": "sim1",
+              "live": false,
+              "captured": 87,
+              "retained": 87,
+              "dropped": 0,
+              "cfExcluded": 0,
+              "capFilter": ""
+            }
+          ],
+          "scope": "all",
+          "shown": 31,
+          "capturedInScope": 139,
+          "paused": false,
+          "df": "doip",
+          "sel": {
+            "no": 30,
+            "len": 98,
+            "proto": "SOME/IP-SD"
+          },
+          "selNode": "3.11"
+        },
+        "protos": [
+          "DoIP"
+        ]
+      }
+    },
+    {
+      "name": "invalid filter preserves previous result",
+      "pass": true,
+      "observed": "필터 오류 — Expected a value after \"==\". · 이전 결과 유지 (적용됨: doip)"
+    },
+    {
+      "name": "keyboard next packet updates selected details",
+      "pass": true
+    },
+    {
+      "name": "native divider drag divList",
+      "pass": true,
+      "observed": {
+        "before": 336.4140625,
+        "after": 279.421875
+      }
+    },
+    {
+      "name": "native divider drag divLower",
+      "pass": true,
+      "observed": {
+        "before": 785.3984375,
+        "after": 848.3671875
+      }
+    },
+    {
+      "name": "responsive capture 768",
+      "pass": true,
+      "observed": {
+        "w": 768,
+        "sw": 768
+      }
+    },
+    {
+      "name": "capture scenario interrupted",
+      "pass": false,
+      "observed": "Error: page.waitForFunction timed out after 3000ms on page p1; last URL was \"http://127.0.0.1:4180/ethernet-workbench/opus/index.html\"; last title was \"Loom Ethernet Bench · Opus\"."
+    },
+    {
+      "name": "TCP routing activation produces channel-specific TX/RX",
+      "pass": true,
+      "observed": "46.5000·SYN → 192.168.10.20:13400 #446.5015·연결됨 (SIM) 192.168.10.10:51001 ⇄ 192.168.10.20:1340047.6500TX02 fd 00 05 00 00 00 07 0e 00 00 00 00 00 00 15 B #1547.6520RX02 fd 00 06 00 00 00 09 0e 00 10 01 10 00 00 00 00 17 B #16"
+    },
+    {
+      "name": "invalid HEX gives error and no TX",
+      "pass": true,
+      "observed": {
+        "n": 1,
+        "error": "HEX가 아닌 문자: \"0g\""
+      }
+    },
+    {
+      "name": "disconnect blocks Send",
+      "pass": true
+    },
+    {
+      "name": "UDP vehicle identification gets deterministic response",
+      "pass": true
+    },
+    {
+      "name": "save named packet template",
+      "pass": true
+    },
+    {
+      "name": "template persists; reload has no socket connection or auto-send",
+      "pass": true
+    },
+    {
+      "name": "both channels start and capture",
+      "pass": true
+    },
+    {
+      "name": "display pause freezes rows while capture continues",
+      "pass": true,
+      "observed": {
+        "shown": [
+          17,
+          17
+        ],
+        "cap": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "name": "stop first retains history; second continues",
+      "pass": true
+    },
+    {
+      "name": "O2 filter-out selection matches visible DoIP result",
+      "pass": true
+    },
+    {
+      "name": "O2 empty result clears details and bytes",
+      "pass": true
+    },
+    {
+      "name": "O3 revised capture fits 768",
+      "pass": true,
+      "observed": {
+        "w": 768,
+        "sw": 768
+      }
+    },
+    {
+      "name": "O3 revised capture fits 390",
+      "pass": true,
+      "observed": {
+        "w": 390,
+        "sw": 390
+      }
+    },
+    {
+      "name": "add generic simulated channel",
+      "pass": true,
+      "observed": {
+        "id": "ch1-k6el",
+        "alias": "lab-echo",
+        "iface": "sim2",
+        "live": true,
+        "captured": 0,
+        "retained": 0,
+        "dropped": 0,
+        "cfExcluded": 0,
+        "capFilter": ""
+      }
+    },
+    {
+      "name": "O1 native UTF8 text TX/RX byte identity",
+      "pass": true,
+      "observed": {
+        "preview": "8 B · 41 f0 9f 98 80 ed 95 9c",
+        "tx": [
+          65,
+          240,
+          159,
+          152,
+          128,
+          237,
+          149,
+          156
+        ],
+        "rx": [
+          65,
+          240,
+          159,
+          152,
+          128,
+          237,
+          149,
+          156
+        ]
+      }
+    },
+    {
+      "name": "generic socket scenario interrupted",
+      "pass": false,
+      "observed": "ElementResolutionError: page.click timed out after 3004ms: Selector [data-act=\"sk-rep-stop\"] matched 0 elements"
+    },
+    {
+      "name": "O5 repeated-send Stop remains actionable",
+      "pass": false,
+      "observed": "100x1000ms repeat ongoing; semantic Stop detaches3121ms because send and response force render(true), rebuilding stop and composer on every TX/RX. Native coordinate Stop succeeded, no subsequent TX after1600ms.",
+      "cleanup": {
+        "stopped": 43,
+        "later": 43,
+        "repeat": false
+      }
+    },
+    {
+      "name": "Follow TCP shows both directional payloads",
+      "pass": true
+    },
+    {
+      "name": "Follow Hex Dump displays raw DoIP data",
+      "pass": true
+    },
+    {
+      "name": "Follow only-stream filter applies selected conversation",
+      "pass": true
+    },
+    {
+      "name": "actual CSV download matches displayed rows",
+      "pass": true,
+      "observed": {
+        "rows": 9,
+        "lines": 10
+      }
+    },
+    {
+      "name": "actual PCAP parses with exact record count and frame bytes",
+      "pass": true,
+      "observed": {
+        "bytes": 745,
+        "packets": 9,
+        "expected": 9
+      }
+    },
+    {
+      "name": "O4 resumed state hides stale pause banner",
+      "pass": true,
+      "observed": {
+        "paused": false,
+        "hidden": true,
+        "display": "none"
+      }
+    },
+    {
+      "name": "390 Socket Send reachable without page overflow",
+      "pass": true,
+      "observed": {
+        "x": 13,
+        "right": 85.140625,
+        "y": 672.15625,
+        "bottom": 698.15625,
+        "w": 390,
+        "h": 900,
+        "sw": 390
+      }
+    },
+    {
+      "name": "O5 final semantic Stop works during rapid repeated sends",
+      "pass": true,
+      "observed": {
+        "a": {
+          "n": 1,
+          "t": 2550,
+          "count": "100",
+          "ms": "200"
+        },
+        "b": {
+          "n": 1,
+          "repeat": false
+        }
+      }
+    },
+    {
+      "name": "capture filter admits UDP and excludes ARP before storage",
+      "pass": true,
+      "observed": {
+        "filter": "udp",
+        "captured": 1,
+        "excluded": 2,
+        "protocols": [
+          17
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Earlier nth0 virtualized overscan row detached when auto-scroll-to-target changed rendered window; visible stable data-no selector succeeded. Not a claimed product failure."
+  ]
+}
