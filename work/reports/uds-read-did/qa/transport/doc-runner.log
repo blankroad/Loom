@@ -1,0 +1,5 @@
+    Checking tokio v1.54.1
+    Checking loom-uds-doip v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-doip)
+ Documenting loom-uds-runner v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-runner)
+    Finished `dev` profile [unoptimized] target(s) in 2.77s
+   Generated /tmp/loom-uds-transport-check/doc/loom_uds_runner/index.html

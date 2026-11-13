@@ -1,6 +1,6 @@
 [package]
 name = "loom-uds-runner"
-description = "UDS transaction runner: Transport trait (DoIP adapter + fake), per-target serial execution, P2/P2*/0x78/deadline/generation rules, late-response quarantine and write_state mapping."
+description = "UDS transaction runner: Transport/Connector traits (DoIP adapter behind the default `doip` feature + fake), per-target serial execution, P2/P2*/0x78/deadline/generation rules, late-response quarantine and write_state mapping."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -13,10 +13,18 @@ tracing = { workspace = true }
 loom-proto = { workspace = true }
 loom-domain-api = { workspace = true }
 loom-uds-codec = { path = "../loom-uds-codec" }
-loom-uds-doip = { path = "../loom-uds-doip" }
+loom-uds-doip = { path = "../loom-uds-doip", optional = true }
+
+[features]
+default = ["doip"]
+doip = ["dep:loom-uds-doip"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 
 [lints]
 workspace = true
+
+[[test]]
+name = "doip_e2e"
+required-features = ["doip"]

@@ -7,6 +7,11 @@
 //! 127.0.0.1 with the virtual ECU behind it and connects with the real DoIP client, so simulated
 //! traffic takes exactly the hardware path.
 //!
+//! Link lifecycle is transport-neutral: a target owns an `Arc<dyn Connector>` and every link
+//! (initial connect and each reconnect, generation + 1) comes from [`Connector::connect`]. `uds.connect`
+//! builds a [`DoipConnector`]; [`UdsManager::connect_link`] attaches any other connector (future
+//! CAN-TP / vendor Ethernet diagnostics) through the same request, lease, lane and runner logic.
+//!
 //! Events are published through the caller's [`CallCtx`] **before** the handler returns
 //! (publish-before-reply, E7): `uds.tx` requested/accepted (only for rows the gateway did not
 //! open itself) and sent, `uds.rx` per received PDU (0x78
@@ -14,6 +19,7 @@
 //! [`TargetSession`] changes. Background events (link loss, reconnect) use the context of the
 //! call that connected the target (`publisher`).
 
+use std::any::Any;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -26,10 +32,11 @@ use loom_proto::event::{Env, Origin, PayloadBytes, Risk, WriteState};
 use loom_proto::num::U64;
 use loom_uds_codec::response::{parse_dtc_by_status_response, parse_read_did_response};
 use loom_uds_codec::{DidLookup, NEGATIVE_RESPONSE_SID, StandardDids, classify_response, nrc_name};
-use loom_uds_doip::{ActivationType, ClientConfig, DoipClient, DoipEntity, EntityConfig, LinkEvent};
+use loom_uds_doip::{ActivationType, ClientConfig, DoipEntity, EntityConfig};
 use loom_uds_runner::{
-    AbortKind, AbortScope, Access, DoipTransport, MonoClock, Priority, RejectReason, Runner, RunnerConfig,
-    RunnerEvent, RunnerHandle, RunnerObserver, TxnRequest, TxnResult, TxnStatus,
+    AbortKind, AbortScope, Access, Connector, DoipConnector, Link, LinkEvents, LinkSignal, MonoClock,
+    Priority, RejectReason, Runner, RunnerConfig, RunnerEvent, RunnerHandle, RunnerObserver, TxnRequest,
+    TxnResult, TxnStatus,
 };
 use loom_uds_sim::{SimEcu, SimNetwork};
 use serde_json::{Value, json};
@@ -210,20 +217,22 @@ impl WriteLog {
     }
 }
 
-/// Runner, its event queue and the DoIP client — only touched while holding the gate.
+/// Runner, its event queue and the current link's resources — only touched while holding the gate.
 #[derive(Debug)]
 struct Gate {
     handle: Option<RunnerHandle>,
     task: Option<JoinHandle<Runner>>,
     events: mpsc::Receiver<OwnedEvent>,
-    client: Option<DoipClient>,
+    /// [`Link::resources`] of the link the runner's transport belongs to (DoIP: the client).
+    link: Option<Box<dyn Any + Send>>,
 }
 
-/// Simulated side kept alive while the target exists.
+/// Simulated side kept alive while the target exists (`connect --sim`, DoIP loopback only).
 #[derive(Debug)]
 struct SimSide {
     entity: DoipEntity,
     network: Arc<Mutex<SimNetwork>>,
+    ecu_la: u16,
 }
 
 /// One connected ECU.
@@ -231,9 +240,8 @@ struct SimSide {
 pub struct Target {
     name: String,
     env: Env,
-    la: u16,
     auto_reconnect: bool,
-    client_cfg: Mutex<ClientConfig>,
+    connector: Arc<dyn Connector>,
     session: Mutex<TargetSession>,
     gate: tokio::sync::Mutex<Gate>,
     lanes: PriorityGate,
@@ -388,7 +396,7 @@ impl Target {
     pub fn sim_did(&self, did: u16) -> Option<Vec<u8>> {
         let sim = self.sim.as_ref()?;
         lock(&sim.network)
-            .get(self.la)
+            .get(sim.ecu_la)
             .and_then(|e| e.did(did).map(<[u8]>::to_vec))
     }
 
@@ -404,7 +412,7 @@ impl Target {
     pub fn with_sim_ecu<R>(&self, f: impl FnOnce(&mut SimEcu) -> R) -> Option<R> {
         let sim = self.sim.as_ref()?;
         let mut net = lock(&sim.network);
-        net.get_mut(self.la).map(f)
+        net.get_mut(sim.ecu_la).map(f)
     }
 
     fn publish(&self, ctx: &CallCtx, d: EventDraft) {
@@ -501,42 +509,35 @@ impl Target {
         self.publish_bg(self.state_draft());
     }
 
-    /// Reconnect with generation + 1 and swap the runner's transport. Returns the new link
-    /// event receiver, or `None` after [`MAX_RECONNECT_ATTEMPTS`].
-    async fn reconnect(&self) -> Option<mpsc::Receiver<LinkEvent>> {
+    /// Reconnect with generation + 1 through the target's connector and swap the runner's
+    /// transport. Nothing that was in flight is resent. Returns the new link's signal source, or
+    /// `None` after [`MAX_RECONNECT_ATTEMPTS`].
+    async fn reconnect(&self) -> Option<Box<dyn LinkEvents>> {
         for attempt in 1..=MAX_RECONNECT_ATTEMPTS {
             tokio::time::sleep(RECONNECT_INTERVAL).await;
             let generation = lock(&self.session).generation().saturating_add(1);
-            let cfg = {
-                let mut c = lock(&self.client_cfg);
-                c.generation = u64::from(generation);
-                c.clone()
-            };
-            let (client, link_rx) = match DoipClient::connect(cfg).await {
-                Ok(v) => v,
+            let link = match open_link(self.connector.as_ref(), u64::from(generation)).await {
+                Ok(l) => l,
                 Err(e) => {
                     tracing::info!(target = %self.name, attempt, "uds reconnect failed: {e}");
                     continue;
                 }
             };
-            let doip_target = match client.open_target(self.la) {
-                Ok(t) => t,
-                Err(e) => {
-                    tracing::warn!(target = %self.name, "uds reconnect open_target: {e}");
-                    continue;
-                }
-            };
+            let Link {
+                transport,
+                events,
+                resources,
+            } = link;
             {
                 let _permit = self
                     .lanes
                     .acquire(Lane::Control, Origin::Script, "reconnect")
                     .await;
                 let mut gate = self.gate.lock().await;
-                self.restart_runner(&mut gate, |r| {
-                    r.replace_transport(Box::new(DoipTransport::new(doip_target)))
-                })
-                .await;
-                gate.client = Some(client);
+                self.restart_runner(&mut gate, |r| r.replace_transport(transport))
+                    .await;
+                // The old link's resources go only after its transport left the runner.
+                gate.link = Some(resources);
             }
             let now = self.now();
             lock(&self.session).link_up(now);
@@ -544,30 +545,48 @@ impl Target {
             self.presend.update(&self.name, |p| p.quarantined.clear());
             self.sync_presend();
             self.publish_bg(self.state_draft());
-            return Some(link_rx);
+            return Some(events);
         }
         None
     }
 }
 
-async fn watch_link(target: Arc<Target>, mut rx: mpsc::Receiver<LinkEvent>) {
+/// One connector attempt, holding the connector to its generation contract: a link reporting
+/// any other generation is dropped (closed) and the attempt fails.
+async fn open_link(connector: &dyn Connector, generation: u64) -> Result<Link, String> {
+    let link = connector.connect(generation).await.map_err(|e| e.to_string())?;
+    let got = link.transport.generation();
+    if got != generation {
+        drop(link);
+        return Err(format!(
+            "connector {} returned link generation {got}, expected {generation}",
+            connector.endpoint()
+        ));
+    }
+    Ok(link)
+}
+
+/// `uds.state` link cause when a link's signal source ended without a `Down`.
+pub const LINK_EVENTS_ENDED: &str = "link signal source ended";
+
+async fn watch_link(target: Arc<Target>, mut events: Box<dyn LinkEvents>) {
     loop {
-        let Some(ev) = rx.recv().await else { return };
-        match ev {
-            LinkEvent::Closed { reason } | LinkEvent::Error { reason } => {
-                target.on_link_down(&reason);
-                if !target.auto_reconnect {
-                    return;
-                }
-                match target.reconnect().await {
-                    Some(new_rx) => rx = new_rx,
-                    None => return,
-                }
-            }
-            LinkEvent::RxOverflow { dropped_total, .. } => {
+        let reason = match events.next().await {
+            Some(LinkSignal::Down { reason }) => reason,
+            Some(LinkSignal::RxOverflow { dropped_total }) => {
                 tracing::warn!(target = %target.name, dropped_total, "uds rx queue overflow");
+                continue;
             }
-            _ => {}
+            // Nobody can report the loss of this link any more: never stay online on it.
+            None => LINK_EVENTS_ENDED.to_owned(),
+        };
+        target.on_link_down(&reason);
+        if !target.auto_reconnect {
+            return;
+        }
+        match target.reconnect().await {
+            Some(next) => events = next,
+            None => return,
         }
     }
 }
@@ -584,6 +603,17 @@ pub struct ConnectSpec {
     pub activation: u8,
     pub auto_reconnect: bool,
     pub timeout: Duration,
+}
+
+/// [`UdsManager::connect_link`] parameters: a target over any [`Connector`].
+#[derive(Debug, Clone)]
+pub struct LinkSpec {
+    pub name: String,
+    /// `uds.state` backend label (`doip`, `sim`, …).
+    pub backend: String,
+    pub env: Env,
+    pub auto_reconnect: bool,
+    pub connector: Arc<dyn Connector>,
 }
 
 /// The UDS domain's runtime state: one per registration (see [`crate::UdsModule`]).
@@ -688,7 +718,12 @@ impl UdsManager {
             .await
             .map_err(|e| DomainError::new(ErrorCode::Internal, format!("sim DoIP entity: {e}")))?;
             let addr = entity.tcp_addr();
-            (addr, Some(SimSide { entity, network }), "sim", Env::Sim)
+            let sim = SimSide {
+                entity,
+                network,
+                ecu_la: spec.la,
+            };
+            (addr, Some(sim), "sim", Env::Sim)
         } else {
             let host = spec
                 .host
@@ -703,13 +738,48 @@ impl UdsManager {
         let mut cfg = ClientConfig::new(addr, spec.tester_la);
         cfg.activation_type = ActivationType(spec.activation);
         cfg.connect_timeout = spec.timeout;
-        cfg.generation = 1;
-        let (client, link_rx) = DoipClient::connect(cfg.clone())
+        let link = LinkSpec {
+            name: spec.name,
+            backend: backend.into(),
+            env,
+            auto_reconnect: spec.auto_reconnect,
+            connector: Arc::new(DoipConnector::new(cfg, spec.la)),
+        };
+        let mut data = self.attach(ctx, link, sim).await?;
+        data["entity"] = json!(addr.to_string());
+        Ok(data)
+    }
+
+    /// Connect (or return the existing connection of) a target over any [`Connector`]. Same
+    /// request/lease/lane/runner/reconnect behaviour as `uds.connect`; only the link differs.
+    pub async fn connect_link(&self, ctx: &CallCtx, spec: LinkSpec) -> Result<Value, DomainError> {
+        if let Some(t) = lock(&self.targets).get(&spec.name).cloned() {
+            return Ok(json!({"target": t.name, "state": t.state(), "existing": true}));
+        }
+        if lock(&self.targets).len() >= MAX_TARGETS {
+            return Err(DomainError::new(
+                ErrorCode::Busy,
+                format!("at most {MAX_TARGETS} UDS targets"),
+            ));
+        }
+        self.attach(ctx, spec, None).await
+    }
+
+    /// Open the first link (generation 1), start the runner, register and watch the target.
+    async fn attach(
+        &self,
+        ctx: &CallCtx,
+        spec: LinkSpec,
+        sim: Option<SimSide>,
+    ) -> Result<Value, DomainError> {
+        let link = open_link(spec.connector.as_ref(), 1)
             .await
-            .map_err(|e| DomainError::new(ErrorCode::NotOpen, format!("DoIP connect {addr}: {e}")))?;
-        let doip_target = client.open_target(spec.la).map_err(|e| {
-            DomainError::new(ErrorCode::NotOpen, format!("DoIP target 0x{:04X}: {e}", spec.la))
-        })?;
+            .map_err(|e| DomainError::new(ErrorCode::NotOpen, e))?;
+        let Link {
+            transport,
+            events: link_events,
+            resources,
+        } = link;
 
         let (tx, events) = mpsc::channel(CAP_RUNNER_EVENTS);
         let observer = Arc::new(QueueObserver {
@@ -717,12 +787,12 @@ impl UdsManager {
             dropped: AtomicU64::new(0),
         });
         let mut session = TargetSession::new(spec.name.clone());
-        session.set_endpoint(backend, format!("DoIP 0x{:04X}", spec.la));
+        session.set_endpoint(spec.backend, spec.connector.endpoint());
         let clock = HubClock::from_ctx(ctx);
         session.link_up(Duration::from_nanos(clock.mono_ns()));
         let (p2, p2s) = session.timing();
         let runner = Runner::new(
-            Box::new(DoipTransport::new(doip_target)),
+            transport,
             RunnerConfig {
                 p2: Duration::from_millis(u64::from(p2)),
                 p2_star: Duration::from_millis(u64::from(p2s)),
@@ -735,16 +805,15 @@ impl UdsManager {
         let ctl_handle = handle.clone();
         let target = Arc::new(Target {
             name: spec.name.clone(),
-            env,
-            la: spec.la,
+            env: spec.env,
             auto_reconnect: spec.auto_reconnect,
-            client_cfg: Mutex::new(cfg),
+            connector: spec.connector,
             session: Mutex::new(session),
             gate: tokio::sync::Mutex::new(Gate {
                 handle: Some(handle),
                 task: Some(task),
                 events,
-                client: Some(client),
+                link: Some(resources),
             }),
             lanes: PriorityGate::default(),
             ctl_handle: Mutex::new(Some(ctl_handle)),
@@ -766,11 +835,9 @@ impl UdsManager {
             m.insert(spec.name.clone(), target.clone());
         }
         target.sync_presend();
-        tokio::spawn(watch_link(target.clone(), link_rx));
+        tokio::spawn(watch_link(target.clone(), link_events));
         target.publish(ctx, target.state_draft());
-        Ok(
-            json!({"target": target.name, "state": target.state(), "existing": false, "entity": addr.to_string()}),
-        )
+        Ok(json!({"target": target.name, "state": target.state(), "existing": false}))
     }
 
     /// Run one request through lease → gate → runner, publishing every stage.

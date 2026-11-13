@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized] target(s) in 0.14s
+     Running tests/transport.rs (/tmp/loom-uds-transport-check/debug/deps/transport-b983029bd97aac1a)
+
+running 4 tests
+test failed_first_connect_leaves_nothing ... ok
+test link_events_eof_is_link_loss ... ok
+test reconnect_through_connector_keeps_generation_and_never_resends ... ok
+test uds_logic_runs_unchanged_over_an_injected_connector ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+

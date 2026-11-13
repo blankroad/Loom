@@ -88,8 +88,14 @@ pub trait Transport: Send {
         until: Instant,
     ) -> BoxFuture<'a, Result<Instant, TransportError>>;
 
-    /// Wait for transport confirmation of the last submitted PDU (DoIP diagnostic ACK; immediate
-    /// for transports without one). Resolves with the instant the P2 timer starts.
+    /// Wait for transport confirmation of the last submitted PDU. Resolves with the instant the
+    /// P2 timer starts, which must be when the *whole* request has been handed over to the target
+    /// under the transport's own definition. DoIP: the diagnostic ACK. A transport without such an
+    /// acknowledgement may resolve immediately only if `submit` already completed that handoff. A
+    /// segmented transport (ISO-TP) must resolve when the last consecutive frame has been
+    /// transmitted, after any flow control. Enqueueing the PDU or sending the first frame does not
+    /// count. Segmentation and flow control stay inside the adapter; the receive side is covered
+    /// by [`Incoming::RxStart`] plus the runner's completion limit.
     fn confirm<'a>(&'a mut self, until: Instant) -> BoxFuture<'a, Result<Instant, TransportError>>;
 
     /// Next received item before `until`.

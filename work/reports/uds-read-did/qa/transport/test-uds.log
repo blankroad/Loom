@@ -1,0 +1,81 @@
+   Compiling loom-uds v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds)
+    Finished `test` profile [unoptimized] target(s) in 3.37s
+     Running unittests src/lib.rs (/tmp/loom-uds-transport-check/debug/deps/loom_uds-45e67aa279f53da8)
+
+running 2 tests
+test text::tests::grammar ... ok
+test lanes::tests::order_cancel_and_caps ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cli.rs (/tmp/loom-uds-transport-check/debug/deps/cli-3c33b4c042524eda)
+
+running 7 tests
+test renders_rows_state_and_dry_run ... ok
+test command_tree_is_valid ... ok
+test renders_negative_and_unknown_rows_from_error_detail ... ok
+test connect ... ok
+test writes ... ok
+test reads_and_queries ... ok
+test params_match_registered_schemas ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/e2e.rs (/tmp/loom-uds-transport-check/debug/deps/e2e-f16a9c2a805df4e9)
+
+running 7 tests
+test presend_sees_user_lease ... ok
+test response_to_result_publish_latency ... ok
+test abort_key_stops_in_flight_and_waiting ... ok
+test stop_latch_stops_agents_not_users ... ok
+test agent_and_user_over_sim_doip ... ok
+test user_request_jumps_waiting_agent_requests ... ok
+test on_latch_hook_stops_agent_and_script_release_resends_nothing ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.61s
+
+     Running tests/evidence.rs (/tmp/loom-uds-transport-check/debug/deps/evidence-dba7ceb254e6d78b)
+
+running 2 tests
+test dtc_absent_on_real_sim_records ... ok
+test later_passes_respect_the_time_budget ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/fixtures.rs (/tmp/loom-uds-transport-check/debug/deps/fixtures-401c13af2eaa04c2)
+
+running 2 tests
+test row_events_are_self_sufficient_for_the_ui_row_store ... ok
+test fixtures_match_types ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/transport.rs (/tmp/loom-uds-transport-check/debug/deps/transport-b983029bd97aac1a)
+
+running 4 tests
+test failed_first_connect_leaves_nothing ... ok
+test link_events_eof_is_link_loss ... ok
+test reconnect_through_connector_keeps_generation_and_never_resends ... ok
+test uds_logic_runs_unchanged_over_an_injected_connector ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+
+     Running tests/uds.rs (/tmp/loom-uds-transport-check/debug/deps/uds-e263a17429f7bd8a)
+
+running 7 tests
+test table_cases ... ok
+test target_session_follows_the_sim ... ok
+test dry_run_shapes ... ok
+test registers_cleanly ... ok
+test typed_args_and_presend ... ok
+test every_defined_sid_has_a_rule_and_all_256_classify_fast ... ok
+test random_input_never_panics ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+   Doc-tests loom_uds
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

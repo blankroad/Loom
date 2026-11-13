@@ -1,0 +1,92 @@
+   Compiling loom-uds-runner v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-runner)
+    Finished `test` profile [unoptimized] target(s) in 1.60s
+     Running unittests src/lib.rs (/tmp/loom-uds-transport-check/debug/deps/loom_uds_runner-48a5b4bee26bcceb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/doip_e2e.rs (/tmp/loom-uds-transport-check/debug/deps/doip_e2e-15c30e6021a71c7c)
+
+running 4 tests
+test nack_ack_loss_and_link_loss_over_doip ... ok
+test late_response_over_doip_is_quarantined_then_released ... ok
+test read_write_and_suppressed_over_doip ... ok
+test abort_during_long_response_pending_over_doip ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/gate_fixes.rs (/tmp/loom-uds-transport-check/debug/deps/gate_fixes-146e9fefabdd0a1e)
+
+running 10 tests
+test dropping_during_submit_reserves_u_before_possible_handoff ... ok
+test direct_and_async_handle_paths_validate_request_ids ... ok
+test on_time_stamp_survives_delayed_executor ... ok
+test dropped_handle_receiver_does_not_drop_transaction ... ok
+test dropped_execute_preserves_u_and_cannot_confirm_next_write ... ok
+test byte_quota_bounds_lanes_and_is_reusable_after_abort ... ok
+test late_stamps_cannot_succeed_in_any_response_phase ... ok
+test invalid_metadata_and_pdus_rejected_before_admission ... ok
+test target_byte_limit_includes_in_flight_and_all_priority_lanes ... ok
+test probe_configuration_rejects_oversized_candidates ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/priority_abort.rs (/tmp/loom-uds-transport-check/debug/deps/priority_abort-ed2994802c673d82)
+
+running 10 tests
+test abort_before_send_sends_nothing ... ok
+test aborted_read_in_flight_is_failed_and_stop_kind_maps_to_e_stopped ... ok
+test dropping_every_handle_finishes_the_queue_then_stops ... ok
+test read_is_retried_once_after_busy_repeat_request_when_enabled ... ok
+test aborted_write_in_flight_is_outcome_unknown_and_its_answer_quarantined ... ok
+test abort_by_origin_and_by_request_id ... ok
+test writes_and_default_config_are_never_retried ... ok
+test abort_all_empties_the_queue_but_keeps_abort_priority ... ok
+test user_request_runs_before_waiting_agents ... ok
+test per_priority_caps_overflow_is_busy ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/runner.rs (/tmp/loom-uds-transport-check/debug/deps/runner-ff60a00d4b3a3f8c)
+
+running 30 tests
+test completion_limit_after_rx_start ... ok
+test generation_change_mid_request ... ok
+test counterexample_same_sid_other_did_is_quarantined ... ok
+test generation_change_read_is_failed ... ok
+test echo_mismatch_is_never_the_answer ... ok
+test deadline_counts_queue_wait ... ok
+test nrc_is_failed_with_nrc ... ok
+test late_response_is_marked_late_and_releases ... ok
+test confirmed_ecu_reset_releases_quarantine ... ok
+test p2_boundary ... ok
+test late_answer_during_next_request_is_not_used ... ok
+test link_loss_mid_write_is_outcome_unknown ... ok
+test late_pending_does_not_release_final_does ... ok
+test p2_star_timeout_after_pending ... ok
+test quiet_period_longer_than_deadline_is_refused ... ok
+test positive_read_is_confirmed_with_timestamps ... ok
+test pending_switches_to_p2_star ... ok
+test probe_success_does_not_release ... ok
+test pending_count_is_bounded ... ok
+test sprmib_without_response_is_ok_suppressed ... ok
+test reconnect_releases_quarantine ... ok
+test transport_failures ... ok
+test unresolved_capacity_is_bounded_and_never_evicts ... ok
+test sprmib_nrc_and_pending_still_reported ... ok
+test write_timeout_is_outcome_unknown_and_not_resent ... ok
+test timed_out_probe_is_not_reused ... ok
+test verified_late_window_releases_quarantine ... ok
+test total_deadline_bounds_pending_chain ... ok
+test queue_full_is_busy ... ok
+test random_responses_never_confuse_the_runner ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests loom_uds_runner
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

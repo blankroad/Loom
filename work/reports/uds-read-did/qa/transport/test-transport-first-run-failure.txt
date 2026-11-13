@@ -1,0 +1,15 @@
+# First run of `cargo test -p loom-uds --test transport` (before test-only fixes).
+# NOTE: the raw log file was overwritten by the passing rerun; the lines below are copied verbatim
+# from the session's command output, not the original file.
+test failed_first_connect_leaves_nothing ... ok
+test link_events_eof_is_link_loss ... ok
+test uds_logic_runs_unchanged_over_an_injected_connector ... FAILED
+test reconnect_through_connector_keeps_generation_and_never_resends ... ok
+thread 'uds_logic_runs_unchanged_over_an_injected_connector' panicked at crates/loom-uds/tests/transport.rs:286:5:
+assertion `left == right` failed: "quarantine: SID 0x22 may still answer late" Some(Rejected(Quarantine { sid: 34 }))
+  left: Failed
+ right: Confirmed
+test result: FAILED. 3 passed; 1 failed
+# Cause: the read ends at P2 (well before the 300 ms total timeout), so a 500 ms sleep landed before
+# the 600 ms late answer. Fix: sleep 900 ms. A second, test-only fix: the late-rx JSON path is
+# payload.bytes.data (not .hex). Production code unchanged by either fix.
