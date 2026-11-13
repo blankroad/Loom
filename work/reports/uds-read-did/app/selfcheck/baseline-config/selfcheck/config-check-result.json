@@ -1,0 +1,296 @@
+{
+ "when": "2026-11-13T22:06:16.291Z",
+ "pass": 72,
+ "total": 72,
+ "results": [
+  {
+   "name": "host: IPv4 / hostname / trailing-dot FQDN accepted",
+   "pass": true
+  },
+  {
+   "name": "host: invalid IPv4/IPv6/host:port/underscore/empty labels rejected with field error",
+   "pass": true,
+   "info": []
+  },
+  {
+   "name": "host: IPv6 restriction explicit (not silent)",
+   "pass": true
+  },
+  {
+   "name": "port: 1 and 65535 ok; 0, 65536, 13400.5, 1e3, -1, empty rejected",
+   "pass": true
+  },
+  {
+   "name": "logical address: 0x prefix ok, 5 hex digits rejected (no truncation), non-hex rejected",
+   "pass": true
+  },
+  {
+   "name": "logical address: tester == ECU rejected",
+   "pass": true
+  },
+  {
+   "name": "CAN 11-bit: 7FF ok, 800 rejected; 29-bit: 1FFFFFFF ok, 20000000 rejected",
+   "pass": true
+  },
+  {
+   "name": "CAN: format switch 29->11 with 18DA00F1 flags field, never truncates",
+   "pass": true
+  },
+  {
+   "name": "CAN: Tx == Rx rejected, bitrate must be listed metadata",
+   "pass": true
+  },
+  {
+   "name": "timing: integers in range; decimal/exponent/out-of-range/P2*<P2 rejected",
+   "pass": true
+  },
+  {
+   "name": "EthDiag: adapter required, control chars/oversize endpoint rejected; no DoIP fields",
+   "pass": true
+  },
+  {
+   "name": "channel: only SIM channels",
+   "pass": true
+  },
+  {
+   "name": "save preset-target with changes creates custom u1 r1 (base preset) and applies it",
+   "pass": true
+  },
+  {
+   "name": "preset object immutable and values unchanged",
+   "pass": true
+  },
+  {
+   "name": "invalid values / duplicate name save refused, store unchanged",
+   "pass": true
+  },
+  {
+   "name": "update custom: same id, rev 2",
+   "pass": true
+  },
+  {
+   "name": "id counter not consumed by refused saves (next is u2)",
+   "pass": true
+  },
+  {
+   "name": "reset path: apply unchanged preset -> active preset, customs kept",
+   "pass": true
+  },
+  {
+   "name": "online: save/apply-preset/delete-active refused in engine; no mutation, no disconnect/abort",
+   "pass": true
+  },
+  {
+   "name": "txn snapshot: profile u1 r3, host 10.0.0.6, timing 1000/5000",
+   "pass": true
+  },
+  {
+   "name": "online: deleting a non-active custom allowed, does not touch connection",
+   "pass": true
+  },
+  {
+   "name": "other context (BCM CAN-TP, offline) saves independently while DoIP in flight",
+   "pass": true
+  },
+  {
+   "name": "in-flight txn completes positive with original snapshot",
+   "pass": true
+  },
+  {
+   "name": "after disconnect/save/reconnect: #2 uses r4 ecu-test.local:15000 P2 2000; #1 keeps r3 10.0.0.6",
+   "pass": true
+  },
+  {
+   "name": "confirmed value provenance = #2 r4 (monotonic rule intact)",
+   "pass": true
+  },
+  {
+   "name": "trace export rows carry profile id/rev/source, timing and config values per request",
+   "pass": true
+  },
+  {
+   "name": "deleting the active profile (offline) falls back to preset; old txns keep provenance",
+   "pass": true
+  },
+  {
+   "name": "ECU/route isolation: BCM customs not listed for GW DoIP or BCM EthDiag",
+   "pass": true
+  },
+  {
+   "name": "cross-context target rejected (cannot save BCM CAN profile into GW CAN-TP)",
+   "pass": true
+  },
+  {
+   "name": "cap: 60 customs, create (new or from changed preset) refused code limit, store/active unchanged",
+   "pass": true
+  },
+  {
+   "name": "cap: update existing and unchanged preset apply still allowed",
+   "pass": true
+  },
+  {
+   "name": "cap: refused creates consumed no id (next after delete is u61)",
+   "pass": true
+  },
+  {
+   "name": "cap: a full saved set reloads without drops",
+   "pass": true
+  },
+  {
+   "name": "preset defaults preserved: timeout exactly at P2 1000 ms",
+   "pass": true
+  },
+  {
+   "name": "P2 300 < SIM latency 400: timeout at 300, reply at 400 recorded late/ignored, nothing confirmed",
+   "pass": true
+  },
+  {
+   "name": "P2* 500 < SIM 0x78 interval 1200: timeout 500 ms after first 0x78 (SIM interval independent)",
+   "pass": true
+  },
+  {
+   "name": "later 0x78/62 after P2* timeout are late & ignored",
+   "pass": true
+  },
+  {
+   "name": "late-reply SIM offset follows configured P2 (+1200)",
+   "pass": true
+  },
+  {
+   "name": "v1 prefs migrate: ECU/route/DID/SIM restored, presets active, no link/txn/timers",
+   "pass": true
+  },
+  {
+   "name": "after save: schema 2 written to same key, v1 top-level prefs kept, config holds 1 profile + active",
+   "pass": true
+  },
+  {
+   "name": "storage: no history/link/draft persisted",
+   "pass": true
+  },
+  {
+   "name": "reload: custom profile restored & active; still offline, no txn/timers",
+   "pass": true
+  },
+  {
+   "name": "corrupt saved entries dropped (3), valid kept, active falls back to preset, notice shown",
+   "pass": true
+  },
+  {
+   "name": "unparseable prefs -> defaults + notice; unknown schema -> profiles ignored + notice",
+   "pass": true
+  },
+  {
+   "name": "config export: own format, customs only, separate file name",
+   "pass": true
+  },
+  {
+   "name": "import: malformed/wrong format/empty/one-bad-entry/unknown ECU all rejected, store unchanged",
+   "pass": true
+  },
+  {
+   "name": "import valid: added as new id, name collision renamed, active/link unchanged, no txn",
+   "pass": true
+  },
+  {
+   "name": "panel opens scoped (BCM · DoIP), preset target, Save disabled (already applied), focus in panel",
+   "pass": true
+  },
+  {
+   "name": "field-local errors live (host/port/ecuLA) with aria-invalid",
+   "pass": true
+  },
+  {
+   "name": "invalid Save: no mutation (customs 0, storage same), focus first invalid field",
+   "pass": true
+  },
+  {
+   "name": "profile select locked while dirty",
+   "pass": true
+  },
+  {
+   "name": "Escape closes, keeps draft (dirty dot), focus returns to button",
+   "pass": true
+  },
+  {
+   "name": "switch route: CAN-TP panel shows its own clean preset draft (no leak)",
+   "pass": true
+  },
+  {
+   "name": "CAN format change flags ID instead of truncating; hint follows format",
+   "pass": true
+  },
+  {
+   "name": "Cancel discards CAN-TP draft and closes",
+   "pass": true
+  },
+  {
+   "name": "switch back: DoIP dirty draft retained (host 999.1.1.1)",
+   "pass": true
+  },
+  {
+   "name": "Revert restores saved values",
+   "pass": true
+  },
+  {
+   "name": "Save label explains new custom from preset",
+   "pass": true
+  },
+  {
+   "name": "Save applies: provenance chip, route summary/req target show custom, presets intact",
+   "pass": true
+  },
+  {
+   "name": "online: draft editable, Save disabled, status + explicit disconnect action shown",
+   "pass": true
+  },
+  {
+   "name": "in-flight request: disconnect button names the request it will end",
+   "pass": true
+  },
+  {
+   "name": "submit while online refused (engine), request still in flight, link still online",
+   "pass": true
+  },
+  {
+   "name": "detail shows request-time profile + timing snapshot",
+   "pass": true
+  },
+  {
+   "name": "explicit disconnect from panel ends #1 as link-lost (user action)",
+   "pass": true
+  },
+  {
+   "name": "offline Save -> r2 applied; #1 keeps r1 192.0.2.10",
+   "pass": true
+  },
+  {
+   "name": "Delete needs confirmation (first click arms)",
+   "pass": true
+  },
+  {
+   "name": "Delete confirmed: active falls back to preset with message; history row unchanged",
+   "pass": true
+  },
+  {
+   "name": "Duplicate creates unsaved new draft named …사본",
+   "pass": true
+  },
+  {
+   "name": "C2: after Escape-reopen draft shown; after Cancel+reopen #cf-host DOM = saved host",
+   "pass": true
+  },
+  {
+   "name": "C2: Cancel twice in a row (same target) still rebuilds DOM from saved (port)",
+   "pass": true
+  },
+  {
+   "name": "SIM panel separately labelled; client timing shown from profile",
+   "pass": true
+  },
+  {
+   "name": "accessibility: every config input/select has a label[for]",
+   "pass": true
+  }
+ ]
+}

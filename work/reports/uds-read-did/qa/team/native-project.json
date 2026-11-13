@@ -1,0 +1,151 @@
+{
+  "format": "loom-uds-project/1",
+  "version": 1,
+  "exportedAt": "2026-11-13T23:23:42.050Z",
+  "app": "loom-uds-read-did (local SIM)",
+  "sections": {
+    "core": {
+      "catalog": {
+        "format": "loom-uds-catalog/1",
+        "ecus": [
+          {
+            "id": "QAECU",
+            "name": "QA ECU <b>문자</b>",
+            "doipLA": 4660,
+            "canTx": 1536,
+            "canRx": 1544
+          }
+        ],
+        "dids": [
+          {
+            "did": "1234",
+            "name": "QA 전압",
+            "long": "",
+            "type": "uint",
+            "recLen": 2,
+            "byteOffset": 0,
+            "length": 2,
+            "endian": "big",
+            "scale": 0.2,
+            "offset": -10,
+            "decimals": 1,
+            "unit": "V"
+          }
+        ],
+        "fixtures": {
+          "BCM": {
+            "1234": "00 7B"
+          },
+          "GW": {
+            "1234": "00 7B"
+          },
+          "QAECU": {
+            "1234": "00 7B"
+          }
+        }
+      },
+      "profiles": {
+        "format": "loom-uds-read-did-config/1",
+        "profiles": [],
+        "active": {}
+      },
+      "services": {
+        "tpInterval": 1000,
+        "tpMode": "80",
+        "dtcMask": "FF",
+        "sprmib": false
+      }
+    },
+    "workflow": {
+      "format": "loom-uds-workflow/1",
+      "commands": [
+        {
+          "id": "c1",
+          "name": "QA 팀 VIN",
+          "desc": "저장 명령 검증 <b>문자 그대로</b>",
+          "folder": "QA",
+          "mode": "raw",
+          "rawText": "22 F1 90",
+          "target": {
+            "ecu": "BCM",
+            "transport": "doip"
+          }
+        }
+      ],
+      "watches": [
+        {
+          "id": "w1",
+          "did": "0101",
+          "target": {
+            "ecu": "BCM",
+            "transport": "doip"
+          },
+          "intervalMs": 200
+        }
+      ],
+      "sequences": [
+        {
+          "id": "s1",
+          "name": "QA VIN → 전압",
+          "target": {
+            "ecu": "BCM",
+            "transport": "doip"
+          },
+          "loops": 1,
+          "stopOnError": true,
+          "steps": [
+            {
+              "mode": "did",
+              "didText": "F190",
+              "delayMs": 0,
+              "expect": {
+                "status": "positive",
+                "prefix": "62 F1 90"
+              }
+            },
+            {
+              "mode": "did",
+              "didText": "0101",
+              "delayMs": 200,
+              "expect": {
+                "status": "positive",
+                "prefix": "62 01 01"
+              }
+            }
+          ]
+        }
+      ],
+      "prefs": {
+        "tab": "sequences",
+        "folder": ""
+      }
+    },
+    "trace": {
+      "v": 1,
+      "timeMode": "abs",
+      "viewerTime": "rel"
+    },
+    "layout": {
+      "v": 1,
+      "cur": {
+        "didW": 269,
+        "valsW": 266,
+        "seqPct": null,
+        "bytesPct": null,
+        "max": null
+      },
+      "named": [
+        {
+          "name": "QA 넓은 DID",
+          "l": {
+            "didW": 269,
+            "valsW": null,
+            "seqPct": null,
+            "bytesPct": null,
+            "max": null
+          }
+        }
+      ]
+    }
+  }
+}

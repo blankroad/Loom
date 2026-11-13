@@ -1,0 +1,283 @@
+{
+  "format": "loom-uds-read-did-trace/1",
+  "exportedAt": "2026-11-13T22:04:27.723Z",
+  "note": "Local SIM trace. Mock routes; bytes are UDS PDUs only (no CAN-TP/DoIP/EthDiag frames).",
+  "transactions": [
+    {
+      "no": 1,
+      "t0": "2026-11-13T22:03:11.103Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH2 · 0x0E80→0x1201",
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 401,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "profileId": "u1",
+      "profileName": "QA BCM DoIP",
+      "profileSource": "custom",
+      "profileBase": "preset:BCM|doip",
+      "profileRev": 1,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 1,
+      "config": {
+        "channel": "ETH2",
+        "host": "192.0.2.10",
+        "port": 14500,
+        "testerLA": 3712,
+        "ecuLA": 4609,
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 401,
+          "kind": "positive",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "t0": "2026-11-13T22:03:16.452Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH2 · 0x0E80→0x1201",
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 402,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "profileId": "u1",
+      "profileName": "QA BCM DoIP",
+      "profileSource": "custom",
+      "profileBase": "preset:BCM|doip",
+      "profileRev": 2,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 3,
+      "config": {
+        "channel": "ETH2",
+        "host": "ecu-test.local",
+        "port": 15000,
+        "testerLA": 3712,
+        "ecuLA": 4609,
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "positive",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "t0": "2026-11-13T22:03:48.804Z",
+      "ecu": "BCM",
+      "transport": "CAN-TP",
+      "route": "CAN2 · 0x1FFFFFFF→0x1FFFFFFE",
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "",
+      "status": "timeout",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 101,
+      "appliedToConfirmed": false,
+      "simScenario": "positive",
+      "profileId": "u2",
+      "profileName": "QA CAN29",
+      "profileSource": "custom",
+      "profileBase": "preset:BCM|cantp",
+      "profileRev": 1,
+      "p2Ms": 100,
+      "p2starMs": 600,
+      "connectionGen": 1,
+      "config": {
+        "channel": "CAN2",
+        "bitrate": 250000,
+        "idFormat": "29",
+        "txId": 536870911,
+        "rxId": 536870910,
+        "p2": 100,
+        "p2star": 600
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 101,
+          "kind": "timeout",
+          "bytes": "",
+          "ignored": false,
+          "note": "P2 100 ms 안에 최종 응답 없음 — 응답 바이트 없음, 자동 재시도 없음"
+        },
+        {
+          "dtMs": 402,
+          "kind": "late",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": true,
+          "note": "타임아웃 이후 수신 — 무시됨 (상태·확정 값 변경 없음)"
+        }
+      ]
+    },
+    {
+      "no": 4,
+      "t0": "2026-11-13T22:03:54.283Z",
+      "ecu": "BCM",
+      "transport": "CAN-TP",
+      "route": "CAN2 · 0x1FFFFFFF→0x1FFFFFFE",
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "",
+      "status": "timeout",
+      "nrc": "",
+      "pendingCount": 1,
+      "elapsedMs": 1003,
+      "appliedToConfirmed": false,
+      "simScenario": "pending",
+      "profileId": "u2",
+      "profileName": "QA CAN29",
+      "profileSource": "custom",
+      "profileBase": "preset:BCM|cantp",
+      "profileRev": 2,
+      "p2Ms": 500,
+      "p2starMs": 600,
+      "connectionGen": 3,
+      "config": {
+        "channel": "CAN2",
+        "bitrate": 250000,
+        "idFormat": "29",
+        "txId": 536870911,
+        "rxId": 536870910,
+        "p2": 500,
+        "p2star": 600
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 401,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 600 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 1003,
+          "kind": "timeout",
+          "bytes": "",
+          "ignored": false,
+          "note": "P2* 600 ms 안에 최종 응답 없음 — 응답 바이트 없음, 자동 재시도 없음"
+        },
+        {
+          "dtMs": 1602,
+          "kind": "late",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": true,
+          "note": "타임아웃 이후 수신 — 무시됨 (상태·확정 값 변경 없음)"
+        }
+      ]
+    },
+    {
+      "no": 5,
+      "t0": "2026-11-13T22:04:25.284Z",
+      "ecu": "BCM",
+      "transport": "EthDiag",
+      "route": "ETH2 · 벤더 어댑터 (mock) · BCM",
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 1,
+      "elapsedMs": 1602,
+      "appliedToConfirmed": true,
+      "simScenario": "pending",
+      "profileId": "u3",
+      "profileName": "QA EthDiag",
+      "profileSource": "custom",
+      "profileBase": "preset:BCM|ethdiag",
+      "profileRev": 1,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 1,
+      "config": {
+        "channel": "ETH2",
+        "adapter": "QA 벤더 어댑터",
+        "endpoint": "bench-ethdiag/ECU-A",
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 1602,
+          "kind": "positive",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "format": "loom-uds-read-did-trace/1",
+  "exportedAt": "2026-11-13T22:27:37.762Z",
+  "note": "Local SIM trace. Mock routes; bytes are UDS PDUs only (no CAN-TP/DoIP/EthDiag frames).",
+  "transactions": [
+    {
+      "no": 1,
+      "t0": "2026-11-13T22:27:35.668Z",
+      "ecu": "GW",
+      "transport": "CAN-TP",
+      "route": "CAN1 · 0x7E0→0x7E8",
+      "kind": "raw",
+      "sid": "0x19",
+      "sidName": "ReadDTCInformation",
+      "requestLen": 4,
+      "did": "",
+      "didName": "",
+      "request": "19 00 FF 00",
+      "finalResponse": "7F 19 11",
+      "status": "nrc",
+      "nrc": "0x11",
+      "pendingCount": 0,
+      "elapsedMs": 402,
+      "appliedToConfirmed": false,
+      "simScenario": "positive",
+      "profileId": "preset:GW|cantp",
+      "profileName": "프리셋 GW CAN-TP",
+      "profileSource": "preset",
+      "profileBase": "preset:GW|cantp",
+      "profileRev": 0,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 1,
+      "config": {
+        "channel": "CAN1",
+        "bitrate": 500000,
+        "idFormat": "11",
+        "txId": 2016,
+        "rxId": 2024,
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "19 00 FF 00",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "nrc",
+          "bytes": "7F 19 11",
+          "ignored": false,
+          "note": "serviceNotSupported"
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "t0": "2026-11-13T22:27:36.105Z",
+      "ecu": "GW",
+      "transport": "CAN-TP",
+      "route": "CAN1 · 0x7E0→0x7E8",
+      "kind": "raw",
+      "sid": "0x22",
+      "sidName": "ReadDataByIdentifier",
+      "requestLen": 3,
+      "did": "F190",
+      "didName": "VIN",
+      "request": "22 F1 90",
+      "finalResponse": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 402,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "profileId": "preset:GW|cantp",
+      "profileName": "프리셋 GW CAN-TP",
+      "profileSource": "preset",
+      "profileBase": "preset:GW|cantp",
+      "profileRev": 0,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 1,
+      "config": {
+        "channel": "CAN1",
+        "bitrate": 500000,
+        "idFormat": "11",
+        "txId": 2016,
+        "rxId": 2024,
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 90",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "positive",
+          "bytes": "62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "t0": "2026-11-13T22:27:36.778Z",
+      "ecu": "GW",
+      "transport": "CAN-TP",
+      "route": "CAN1 · 0x7E0→0x7E8",
+      "kind": "did",
+      "sid": "0x22",
+      "sidName": "ReadDataByIdentifier",
+      "requestLen": 3,
+      "did": "F18C",
+      "didName": "ECU Serial Number",
+      "request": "22 F1 8C",
+      "finalResponse": "62 F1 8C 53 49 4D 2D 47 57 2D 30 30 30 32 33 33",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 401,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "profileId": "preset:GW|cantp",
+      "profileName": "프리셋 GW CAN-TP",
+      "profileSource": "preset",
+      "profileBase": "preset:GW|cantp",
+      "profileRev": 0,
+      "p2Ms": 1000,
+      "p2starMs": 5000,
+      "connectionGen": 1,
+      "config": {
+        "channel": "CAN1",
+        "bitrate": 500000,
+        "idFormat": "11",
+        "txId": 2016,
+        "rxId": 2024,
+        "p2": 1000,
+        "p2star": 5000
+      },
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 F1 8C",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 401,
+          "kind": "positive",
+          "bytes": "62 F1 8C 53 49 4D 2D 47 57 2D 30 30 30 32 33 33",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

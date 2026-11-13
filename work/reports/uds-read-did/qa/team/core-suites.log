@@ -1,0 +1,11 @@
+# core suites 2026-11-13T23:24Z (jsdom source-local, not browser)
+check: 70/70 PASS
+raw-check: 55/55 PASS
+config-check: 72/72 PASS
+integration-check: 43/43 PASS
+services-check: 46/46 PASS
+catalog-check: 44/44 PASS
+workflow-check: workflow-check: 117/117 PASS (host: real host.js)
+trace-check: trace-check 76/76 PASS
+layout-check: layout-check 49/49 PASS
+project-check: project-check: 50/51 PASS

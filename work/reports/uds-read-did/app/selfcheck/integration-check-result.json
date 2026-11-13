@@ -1,0 +1,203 @@
+{
+  "when": "2026-11-13T23:26:46.187Z",
+  "note": "jsdom source-local, not browser acceptance",
+  "scripts": [
+    "engine.js",
+    "app.js",
+    "tools.js",
+    "config.js",
+    "host.js",
+    "catalog.js",
+    "services.js",
+    "project.js",
+    "workflow.js",
+    "trace-tools.js",
+    "layout.js"
+  ],
+  "results": [
+    {
+      "name": "H1 window.LoomWorkbench exists, frozen, version 1, engine/constants identical to core",
+      "pass": true
+    },
+    {
+      "name": "H1 mount slots present exactly once",
+      "pass": true
+    },
+    {
+      "name": "H1 script order: engine,app,tools,config,host before every feature module",
+      "pass": true
+    },
+    {
+      "name": "H1 clock is the engine clock (fake clock in checks)",
+      "pass": true
+    },
+    {
+      "name": "H2 context snapshot {ecu,transport,profile} preset, offline",
+      "pass": true
+    },
+    {
+      "name": "H2 context is a copy (mutation does not retarget)",
+      "pass": true
+    },
+    {
+      "name": "H2 editor() read-only snapshot",
+      "pass": true
+    },
+    {
+      "name": "H2 compose fills editor, raw mode, zero TX",
+      "pass": true
+    },
+    {
+      "name": "H2 compose invalid mode refused",
+      "pass": true
+    },
+    {
+      "name": "H3 send offline refused (no auto-connect), zero TX",
+      "pass": true
+    },
+    {
+      "name": "H3 explicit-context send: GW/CAN-TP txn while current is BCM/DoIP; source stamped; selection not stolen",
+      "pass": true
+    },
+    {
+      "name": "H3 busy context refused (serial guard), no queue",
+      "pass": true
+    },
+    {
+      "name": "H3 invalid input refused",
+      "pass": true
+    },
+    {
+      "name": "H3 manual-source send selects its row",
+      "pass": true
+    },
+    {
+      "name": "H3 subscribe got one created event per TX (no duplicates)",
+      "pass": true,
+      "info": [
+        "txn+",
+        "txn+",
+        "txn",
+        "txn",
+        "txn+",
+        "txn",
+        "tool",
+        "tool"
+      ]
+    },
+    {
+      "name": "H4 cancelOwned refuses wrong owner (manual txn not cancellable as watch)",
+      "pass": true
+    },
+    {
+      "name": "H4 completed txns: cancelOwned refuses not-active",
+      "pass": true
+    },
+    {
+      "name": "H4 cancelOwned cancels own active txn only",
+      "pass": true
+    },
+    {
+      "name": "H5 onRender re-entrant refresh does not loop synchronously",
+      "pass": true
+    },
+    {
+      "name": "H5 onRender unsubscribe works",
+      "pass": true
+    },
+    {
+      "name": "H6 trace view rows drive history",
+      "pass": true
+    },
+    {
+      "name": "H6 empty filtered view clears selection + detail (no hidden-row detail)",
+      "pass": true
+    },
+    {
+      "name": "H6 null restores base rows",
+      "pass": true
+    },
+    {
+      "name": "H6 invalid view rejected",
+      "pass": true
+    },
+    {
+      "name": "H7 project.register rejects reserved key / bad impl",
+      "pass": true
+    },
+    {
+      "name": "H7 activity.list aggregates with key; forEcu",
+      "pass": true
+    },
+    {
+      "name": "H7 activity unregister",
+      "pass": true
+    },
+    {
+      "name": "H8 tool drawer: one panel visible, tab selected",
+      "pass": true
+    },
+    {
+      "name": "H8 close hides drawer",
+      "pass": true
+    },
+    {
+      "name": "I1 every mount populated by its owner module (no empty slot)",
+      "pass": true,
+      "info": []
+    },
+    {
+      "name": "I1 owner globals present: workflow, trace, layout, project, services, catalog",
+      "pass": true
+    },
+    {
+      "name": "I1 boot: zero TX, nothing running, all offline",
+      "pass": true
+    },
+    {
+      "name": "I2 TP + watch started explicitly on BCM/DoIP",
+      "pass": true
+    },
+    {
+      "name": "I2 activity aggregates tp + workflow (watch)",
+      "pass": true
+    },
+    {
+      "name": "I2 never two overlapping requests on the context (serial guard honoured by TP + watch)",
+      "pass": true,
+      "info": 25
+    },
+    {
+      "name": "I2 sources stamped tester-present + watch; TP skipped busy slots",
+      "pass": true
+    },
+    {
+      "name": "I2 automation never stole selection",
+      "pass": true
+    },
+    {
+      "name": "I3 trace display paused: rows frozen while engine keeps receiving",
+      "pass": true
+    },
+    {
+      "name": "I3 resume shows live rows",
+      "pass": true
+    },
+    {
+      "name": "I4 project guard lists running TP, watch and online link (import must be refused)",
+      "pass": true
+    },
+    {
+      "name": "I5 after explicit stops: no further TX, nothing cancelled, activity empty",
+      "pass": true
+    },
+    {
+      "name": "I6 reload: watch definition + custom ECU restored, but nothing running / sent / connected / timers",
+      "pass": true
+    },
+    {
+      "name": "I7 trace status filter \"suppressed\" shows only 3E 80 rows",
+      "pass": true
+    }
+  ]
+}

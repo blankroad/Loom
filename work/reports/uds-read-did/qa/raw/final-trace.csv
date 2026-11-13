@@ -1,0 +1,4 @@
+no,t0,ecu,transport,route,kind,sid,requestLen,did,didName,request,finalResponse,status,nrc,pendingCount,elapsedMs,appliedToConfirmed,simScenario,events
+1,2026-11-13T22:27:35.668Z,GW,CAN-TP,CAN1 · 0x7E0→0x7E8,raw,0x19,4,,,19 00 FF 00,7F 19 11,nrc,0x11,0,402,false,positive,+0ms tx 19 00 FF 00 | +402ms nrc 7F 19 11
+2,2026-11-13T22:27:36.105Z,GW,CAN-TP,CAN1 · 0x7E0→0x7E8,raw,0x22,3,F190,VIN,22 F1 90,62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31,positive,,0,402,true,positive,+0ms tx 22 F1 90 | +402ms positive 62 F1 90 4C 4F 4F 4D 53 49 4D 30 30 30 30 30 30 30 30 30 31
+3,2026-11-13T22:27:36.778Z,GW,CAN-TP,CAN1 · 0x7E0→0x7E8,did,0x22,3,F18C,ECU Serial Number,22 F1 8C,62 F1 8C 53 49 4D 2D 47 57 2D 30 30 30 32 33 33,positive,,0,401,true,positive,+0ms tx 22 F1 8C | +401ms positive 62 F1 8C 53 49 4D 2D 47 57 2D 30 30 30 32 33 33

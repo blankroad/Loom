@@ -1,0 +1,11 @@
+no,t0,ecu,transport,route,did,didName,request,finalResponse,status,nrc,pendingCount,elapsedMs,appliedToConfirmed,simScenario,events
+1,2026-11-13T16:09:06.162Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,62 01 01 04 E7,positive,,0,402,true,positive,+0ms tx 22 01 01 | +402ms positive 62 01 01 04 E7
+2,2026-11-13T16:09:08.315Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,7F 22 31,nrc,0x31,0,403,false,nrc,+0ms tx 22 01 01 | +403ms nrc 7F 22 31
+3,2026-11-13T16:09:10.412Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,62 01 01 04 E8,positive,,2,2803,true,pending,+0ms tx 22 01 01 | +401ms pending 7F 22 78 | +1601ms pending 7F 22 78 | +2803ms positive 62 01 01 04 E8
+4,2026-11-13T16:09:13.780Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,,timeout,,0,1001,false,timeout,+0ms tx 22 01 01 | +1001ms timeout | +2202ms late(ignored) 62 01 01 04 E9
+5,2026-11-13T16:09:16.956Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,62 01 01 04 EA,positive,,0,403,true,positive,+0ms tx 22 01 01 | +403ms positive 62 01 01 04 EA
+6,2026-11-13T16:09:33.014Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,,cancelled,,1,1083,false,pending,+0ms tx 22 01 01 | +403ms pending 7F 22 78 | +1083ms cancel | +1602ms late(ignored) 7F 22 78 | +2803ms late(ignored) 62 01 01 04 EB
+7,2026-11-13T16:09:36.202Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,62 01 01 04 EC,positive,,0,403,true,positive,+0ms tx 22 01 01 | +403ms positive 62 01 01 04 EC
+8,2026-11-13T16:09:37.347Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,,link-lost,,0,404,false,disconnect,+0ms tx 22 01 01 | +404ms link
+9,2026-11-13T16:09:41.581Z,BCM,DoIP,ETH1 · 0x0E00→0x1001,0101,Supply Voltage,22 01 01,62 01 01 04 E7,positive,,5,6401,false,pending,+0ms tx 22 01 01 | +401ms pending 7F 22 78 | +1602ms pending 7F 22 78 | +2800ms pending 7F 22 78 | +4000ms pending 7F 22 78 | +5201ms pending 7F 22 78 | +6401ms positive 62 01 01 04 E7
+10,2026-11-13T16:09:45.763Z,BCM,CAN-TP,CAN1 · 0x740→0x748,0101,Supply Voltage,22 01 01,62 01 01 04 ED,positive,,0,402,true,positive,+0ms tx 22 01 01 | +402ms positive 62 01 01 04 ED

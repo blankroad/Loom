@@ -1,0 +1,414 @@
+{
+  "format": "loom-uds-read-did-trace/1",
+  "exportedAt": "2026-11-13T16:10:00.896Z",
+  "note": "Local SIM trace. Mock routes; bytes are UDS PDUs only (no CAN-TP/DoIP/EthDiag frames).",
+  "transactions": [
+    {
+      "no": 1,
+      "t0": "2026-11-13T16:09:06.162Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 E7",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 402,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "positive",
+          "bytes": "62 01 01 04 E7",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "t0": "2026-11-13T16:09:08.315Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "7F 22 31",
+      "status": "nrc",
+      "nrc": "0x31",
+      "pendingCount": 0,
+      "elapsedMs": 403,
+      "appliedToConfirmed": false,
+      "simScenario": "nrc",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 403,
+          "kind": "nrc",
+          "bytes": "7F 22 31",
+          "ignored": false,
+          "note": "requestOutOfRange"
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "t0": "2026-11-13T16:09:10.412Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 E8",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 2,
+      "elapsedMs": 2803,
+      "appliedToConfirmed": true,
+      "simScenario": "pending",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 401,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 1601,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 2803,
+          "kind": "positive",
+          "bytes": "62 01 01 04 E8",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 4,
+      "t0": "2026-11-13T16:09:13.780Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "",
+      "status": "timeout",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 1001,
+      "appliedToConfirmed": false,
+      "simScenario": "timeout",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 1001,
+          "kind": "timeout",
+          "bytes": "",
+          "ignored": false,
+          "note": "P2 1000 ms 안에 최종 응답 없음 — 응답 바이트 없음, 자동 재시도 없음"
+        },
+        {
+          "dtMs": 2202,
+          "kind": "late",
+          "bytes": "62 01 01 04 E9",
+          "ignored": true,
+          "note": "타임아웃 이후 수신 — 무시됨 (상태·확정 값 변경 없음)"
+        }
+      ]
+    },
+    {
+      "no": 5,
+      "t0": "2026-11-13T16:09:16.956Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 EA",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 403,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 403,
+          "kind": "positive",
+          "bytes": "62 01 01 04 EA",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 6,
+      "t0": "2026-11-13T16:09:33.014Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "",
+      "status": "cancelled",
+      "nrc": "",
+      "pendingCount": 1,
+      "elapsedMs": 1083,
+      "appliedToConfirmed": false,
+      "simScenario": "pending",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 403,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 1083,
+          "kind": "cancel",
+          "bytes": "",
+          "ignored": false,
+          "note": "테스터 측 대기 중단 — 이후 도착하는 응답은 무시됨"
+        },
+        {
+          "dtMs": 1602,
+          "kind": "late",
+          "bytes": "7F 22 78",
+          "ignored": true,
+          "note": "취소 이후 수신 — 무시됨 (상태·확정 값 변경 없음)"
+        },
+        {
+          "dtMs": 2803,
+          "kind": "late",
+          "bytes": "62 01 01 04 EB",
+          "ignored": true,
+          "note": "취소 이후 수신 — 무시됨 (상태·확정 값 변경 없음)"
+        }
+      ]
+    },
+    {
+      "no": 7,
+      "t0": "2026-11-13T16:09:36.202Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 EC",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 403,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 403,
+          "kind": "positive",
+          "bytes": "62 01 01 04 EC",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 8,
+      "t0": "2026-11-13T16:09:37.347Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "",
+      "status": "link-lost",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 404,
+      "appliedToConfirmed": false,
+      "simScenario": "disconnect",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 404,
+          "kind": "link",
+          "bytes": "",
+          "ignored": false,
+          "note": "응답 없음 — 이후 이 연결 세대의 응답은 도착할 수 없음"
+        }
+      ]
+    },
+    {
+      "no": 9,
+      "t0": "2026-11-13T16:09:41.581Z",
+      "ecu": "BCM",
+      "transport": "DoIP",
+      "route": "ETH1 · 0x0E00→0x1001",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 E7",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 5,
+      "elapsedMs": 6401,
+      "appliedToConfirmed": false,
+      "simScenario": "pending",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 401,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 1602,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 2800,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 4000,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 5201,
+          "kind": "pending",
+          "bytes": "7F 22 78",
+          "ignored": false,
+          "note": "P2* 5000 ms 타이머 재시작"
+        },
+        {
+          "dtMs": 6401,
+          "kind": "positive",
+          "bytes": "62 01 01 04 E7",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "no": 10,
+      "t0": "2026-11-13T16:09:45.763Z",
+      "ecu": "BCM",
+      "transport": "CAN-TP",
+      "route": "CAN1 · 0x740→0x748",
+      "did": "0101",
+      "didName": "Supply Voltage",
+      "request": "22 01 01",
+      "finalResponse": "62 01 01 04 ED",
+      "status": "positive",
+      "nrc": "",
+      "pendingCount": 0,
+      "elapsedMs": 402,
+      "appliedToConfirmed": true,
+      "simScenario": "positive",
+      "events": [
+        {
+          "dtMs": 0,
+          "kind": "tx",
+          "bytes": "22 01 01",
+          "ignored": false,
+          "note": ""
+        },
+        {
+          "dtMs": 402,
+          "kind": "positive",
+          "bytes": "62 01 01 04 ED",
+          "ignored": false,
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

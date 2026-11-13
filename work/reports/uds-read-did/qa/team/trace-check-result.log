@@ -1,0 +1,388 @@
+{
+ "check": "trace-check",
+ "pass": 76,
+ "fail": 0,
+ "total": 76,
+ "results": [
+  {
+   "id": "A1 sid",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A2 did",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A3 nrc final + pending 78",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A4 hex byte-aligned",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A5 text",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A6 status/route/profile",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A7 invalid fields reported, not applied",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A8 empty filter inactive",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B1 three rows",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B2 filter DID → 1 row + count",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B3 status nrc → selected row is the nrc row",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B4 empty result clears selection + detail",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B5 invalid filter visible error, aria-invalid",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B6 clear restores, inputs emptied",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B7 hex search on response bytes",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B8 existing JSON export unchanged by display filter",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C1 engine continues while paused",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C2 display frozen",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C3 selected detail = frozen snapshot",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C4 frozen clone immutable + elapsed frozen",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C5 paused notice counts new events",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C6 filter applies to frozen rows",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C7 explicit traceScope excludes other ECU frozen rows",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C8 scope all includes GW frozen",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C9 resume shows live, detail live",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C10 timeText rel/abs",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D1 idb store, idle, no auto start",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D2 starting is not claimed as recording",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D3 activity registered while starting",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D4 start promise resolves recording",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D5 engine evicted early rows",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D6 stop → idle, closed segment, activity cleared",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D7 every txn captured despite eviction/pause/filter",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D8 tx/pending/nrc/timeout/late(timeout+after-cancel)/cancel/positive events",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D9 ctx + marks + header",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D10 meta records == stored lines, bytes == utf8",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D11 tx record carries profile + immutable route config/fields + timing",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D12 raw request bytes exact",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D13 JSONL download = exact stored bytes",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D14 JSON download records",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D15 viewer reconstructs all txns, no engine effect",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D16 viewer txn exact: late + status + profile/config",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D17 viewer filter",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D18 viewer detail shows config + late",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D19 viewer has no send controls",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D20 Esc closes viewer",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D21 two segments",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D22 delete arms first (confirm button, nothing deleted)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D23 delete confirm removes only selected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D24 reload: recording NOT resumed, segment listed interrupted",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D25 quota error → error state, visible, no false recording",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D26 start failure → not recording",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D27 rotation creates parts; retention keeps ≤ max",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D28 rotated part self-contained (header + parse ok)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D29 IDB open failure → honest memory fallback notice",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E1 valid JSONL opens; label escaped (no injected element)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E2 bad hex rejects whole file with line number, previous model kept",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E3 missing header rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E4 unknown format rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E5 orphan ev rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E6 non-object / wrong types rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E7 overlong string rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E8 size cap",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E9 bad config value rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E10 future status token accepted (suppressed)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E11 bad status token rejected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E12 trace/1 export opens (exact bytes/profile/config/events)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E13 viewer import never touches engine",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E14 project section trace registered, pure validate",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E15 import applies prefs only + persisted",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E17 strict import THROWS on storage failure, prefs untouched",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E18 defaults(): fresh, valid, factory prefs",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E16 export of section has no log data",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F1 no network/send APIs in trace-tools",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F2 onRender callback does not refresh",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F3 viewer overlay fixed + mobile rules",
+   "pass": true,
+   "note": ""
+  }
+ ]
+}

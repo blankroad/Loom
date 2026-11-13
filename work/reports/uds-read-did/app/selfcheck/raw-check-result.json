@@ -1,0 +1,257 @@
+{
+ "when": "2026-11-13T23:24:42.836Z",
+ "pass": 55,
+ "total": 55,
+ "results": [
+  {
+   "name": "A1 spaced/compact/0x/tab/newline/mixed all -> exactly 22 F1 90 (3 B)",
+   "pass": true,
+   "info": []
+  },
+  {
+   "name": "A2 empty/odd/non-hex/comma/bare-or-long 0x rejected with error, no bytes",
+   "pass": true,
+   "info": []
+  },
+  {
+   "name": "A3 errors name the offending token",
+   "pass": true
+  },
+  {
+   "name": "A4 arbitrary payload kept: zeros/FF/one-byte/non-22 SID",
+   "pass": true
+  },
+  {
+   "name": "A5 4095 B accepted exactly; 4096 B rejected (cap, not truncation)",
+   "pass": true
+  },
+  {
+   "name": "A6 text length > RAW_TEXT_MAX rejected explicitly",
+   "pass": true
+  },
+  {
+   "name": "A7 rawDidOf only for exact 22 hi lo",
+   "pass": true
+  },
+  {
+   "name": "B1 offline / invalid raw -> refused, zero TX",
+   "pass": true
+  },
+  {
+   "name": "B2 invalid raw while online -> code invalid, zero TX, no timers",
+   "pass": true
+  },
+  {
+   "name": "B3 raw 22F190: kind raw, SID 0x22, exact request, positive VIN applied (provenance kind raw)",
+   "pass": true
+  },
+  {
+   "name": "B4 request bytes are exactly the input (no 22 prepended, no padding)",
+   "pass": true,
+   "info": [
+    "31 01 FF 00",
+    "3E 80",
+    "3E",
+    "00",
+    "FF",
+    "62 F1 90",
+    "2E F1 90 41 42",
+    "22",
+    "22 F1",
+    "22 F1 90 00",
+    "22 F1 90 F1 8C",
+    "22 12 34"
+   ]
+  },
+  {
+   "name": "B5 mock replies: unmodelled SID -> 7F SID 11 (SID echoed); 3E 80 suppressed; 3E -> 7F 3E 13; malformed/multi-DID 22 -> 7F 22 13; unknown DID -> 7F 22 31",
+   "pass": true,
+   "info": [
+    "7F 31 11",
+    "suppressed",
+    "7F 3E 13",
+    "7F 00 11",
+    "7F FF 11",
+    "7F 62 11",
+    "7F 2E 11",
+    "7F 22 13",
+    "7F 22 13",
+    "7F 22 13",
+    "7F 22 13",
+    "7F 22 31"
+   ]
+  },
+  {
+   "name": "B6 none of the non-DID / malformed raw requests touch confirmed values",
+   "pass": true
+  },
+  {
+   "name": "C1 NRC scenario echoes SID: 7F 31 22",
+   "pass": true
+  },
+  {
+   "name": "C2 pending scenario: 7F 2E 78 ×2 then mock 7F 2E 11; P2* armed; no DID apply",
+   "pass": true
+  },
+  {
+   "name": "C3 DID path unchanged: kind did, 7F 22 78 then 62 F1 8C, applied",
+   "pass": true
+  },
+  {
+   "name": "C4 raw timeout + late 62: status timeout, late ignored, confirmed still #1",
+   "pass": true
+  },
+  {
+   "name": "C5 generic positive (SID+0x40, non-22) decodes as generic, never DID echo",
+   "pass": true
+  },
+  {
+   "name": "C6 decode: 7F with mismatched SIDRQ flagged; raw request fields; one-byte safe",
+   "pass": true
+  },
+  {
+   "name": "C7 legacy decodePdu(bytes, did) signature unchanged for DID path",
+   "pass": true
+  },
+  {
+   "name": "D1 raw txn snapshots custom profile/route/timing",
+   "pass": true
+  },
+  {
+   "name": "D2 one active per context across modes (DID and raw both busy)",
+   "pass": true
+  },
+  {
+   "name": "D3 online config guard still holds for raw context",
+   "pass": true
+  },
+  {
+   "name": "D4 other route independent: CAN-TP raw 22 01 01 positive while DoIP raw pending",
+   "pass": true
+  },
+  {
+   "name": "D5 cancel raw: later 7F 31 78/11 recorded as ignored late, status stays cancelled",
+   "pass": true
+  },
+  {
+   "name": "E1 default mode DID; mode radios labelled; Read label 읽기",
+   "pass": true
+  },
+  {
+   "name": "E2 Raw mode: textarea labelled, default 22 F1 90 preview 3 B, button 전송, hint mentions grammar+limit+Ctrl/⌘+Enter",
+   "pass": true
+  },
+  {
+   "name": "E3 empty raw submit -> zero TX, error, aria-invalid, focus textarea",
+   "pass": true
+  },
+  {
+   "name": "E4 invalid raw (non-hex/odd/0x/comma) never sends; preview shows no partial bytes",
+   "pass": true
+  },
+  {
+   "name": "E5 plain Enter in textarea does not send",
+   "pass": true
+  },
+  {
+   "name": "E6 Ctrl+Enter sends exactly 22 F1 90 as raw",
+   "pass": true
+  },
+  {
+   "name": "E7 raw exact-shape row: RAW tag + F190 VIN; detail 요청 row raw; confirmed RAW tag",
+   "pass": true
+  },
+  {
+   "name": "E8 ⌘+Enter non-22 raw: row RAW 0x31 RoutineControl, no VIN/DID label, NRC 7F 31 11",
+   "pass": true
+  },
+  {
+   "name": "E9 non-22 detail: SIDRQ-NR matches 0x31, serviceNotSupported, applied box says unrelated to DID values",
+   "pass": true
+  },
+  {
+   "name": "E10 raw Tx event decodes SID/subFunction/parameters with offsets",
+   "pass": true
+  },
+  {
+   "name": "E11 edit raw + switch mode/route while #3 pending: txn and row unchanged",
+   "pass": true
+  },
+  {
+   "name": "E12 per-mode inputs kept across switches (raw 10 03, DID F18C)",
+   "pass": true
+  },
+  {
+   "name": "E13 busy context: 전송 disabled, message names #3",
+   "pass": true
+  },
+  {
+   "name": "E14 pending raw finishes with echoed SID 7F 2E 11; VIN confirmed still from #1",
+   "pass": true
+  },
+  {
+   "name": "E15 DID list pick switches to DID mode, raw text kept, no TX",
+   "pass": true
+  },
+  {
+   "name": "E16 mode radiogroup ←→ toggles and moves focus",
+   "pass": true
+  },
+  {
+   "name": "E17 one-byte raw 3E: sent, 7F 3E 13 (incorrectMessageLength), detail renders",
+   "pass": true
+  },
+  {
+   "name": "E18 4095 B raw preview: exact normalized text + 4095 B count",
+   "pass": true
+  },
+  {
+   "name": "E19 4095 B raw sent exactly; hex pane 256 rows; row/fields truncated text with length",
+   "pass": true
+  },
+  {
+   "name": "E20 export JSON: kind/sid/sidName/requestLen; non-22 raw has empty did/didName; exact request",
+   "pass": true
+  },
+  {
+   "name": "E21 export CSV has kind,sid,requestLen columns; raw row values",
+   "pass": true
+  },
+  {
+   "name": "E22 prefs: reqMode raw + rawText persisted, schema 2, no history/link",
+   "pass": true
+  },
+  {
+   "name": "E23 reload: raw mode + text restored, no link, no TX, no timers",
+   "pass": true
+  },
+  {
+   "name": "E24 oversize raw text: rejected, never truncated in editor, not persisted (key omitted)",
+   "pass": true
+  },
+  {
+   "name": "F1 config-era schema-2 prefs (no reqMode/rawText): DID mode, default raw text, profiles+active identical",
+   "pass": true
+  },
+  {
+   "name": "F2 after mode change save: config block unchanged byte-for-byte, other prefs kept",
+   "pass": true
+  },
+  {
+   "name": "F3 bad reqMode/rawText types fall back to DID / default, profiles still loaded",
+   "pass": true
+  },
+  {
+   "name": "G1 CSS: raw preview wraps (overflow-wrap anywhere) + scroll bound; narrow raw grid single column",
+   "pass": true
+  },
+  {
+   "name": "G1b history header relabelled DID · SID (raw rows may show SID)",
+   "pass": true
+  },
+  {
+   "name": "G2 no transport framing invented: hex caption still says UDS PDU only",
+   "pass": true
+  }
+ ]
+}

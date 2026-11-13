@@ -1,0 +1,182 @@
+{
+  "when": "2026-11-13T23:24:45.980Z",
+  "note": "jsdom source-local, not browser acceptance",
+  "results": [
+    {
+      "name": "C1 presets: BCM/GW + 3 DIDs listed read-only (no edit/delete buttons)",
+      "pass": true
+    },
+    {
+      "name": "C1 engine refuses preset edit/delete",
+      "pass": true
+    },
+    {
+      "name": "C1 preset entries frozen",
+      "pass": true
+    },
+    {
+      "name": "C2 invalid ECU: preset id / empty name / tester LA / duplicate CAN id → errors, nothing added",
+      "pass": true
+    },
+    {
+      "name": "C2 ECU ABS added: selector option, presets kept, no connect/TX",
+      "pass": true
+    },
+    {
+      "name": "C2 preset profiles derived from custom addresses",
+      "pass": true
+    },
+    {
+      "name": "C2 duplicate address refused (engine)",
+      "pass": true
+    },
+    {
+      "name": "C3 select ABS: ctx/route/name show custom ECU",
+      "pass": true
+    },
+    {
+      "name": "C3 custom profile on custom ECU validates against registry",
+      "pass": true
+    },
+    {
+      "name": "C3 read on custom ECU: default SIM fixture F18C, route snapshot custom profile",
+      "pass": true
+    },
+    {
+      "name": "C4 invalid DID: preset DID refused, offset+len > recLen refused, nothing added",
+      "pass": true
+    },
+    {
+      "name": "C4 live preview: expected PDU 62 F1 A0 00 01 2C, decoded -10.0 °C, lengths",
+      "pass": true
+    },
+    {
+      "name": "C4 preview flags length mismatch (fixture 2 B vs record 3 B)",
+      "pass": true
+    },
+    {
+      "name": "C4 invalid fixture hex shown, blocks save",
+      "pass": true
+    },
+    {
+      "name": "C4 invalid fixture not saved",
+      "pass": true
+    },
+    {
+      "name": "C4 DID F1A0 added (custom, bounded fields), fixture on all ECUs",
+      "pass": true
+    },
+    {
+      "name": "C4 DID appears in DID list + quick select + values pane",
+      "pass": true
+    },
+    {
+      "name": "C4 custom DID read → configured fixture response (not 7F 31), exact raw bytes, decoded value confirmed",
+      "pass": true
+    },
+    {
+      "name": "C4 detail shows user-defined decoder note (not ODX)",
+      "pass": true
+    },
+    {
+      "name": "C5 DID redefined; earlier txn detail still decodes with request-time definition",
+      "pass": true
+    },
+    {
+      "name": "C5 new read uses new definition (uint 3 B = 300 cnt)",
+      "pass": true
+    },
+    {
+      "name": "C5 per-ECU fixture edit (setFixture GW only)",
+      "pass": true
+    },
+    {
+      "name": "C5 fixture removed → SIM ECU 7F 22 31",
+      "pass": true
+    },
+    {
+      "name": "C6 rename while online allowed (name only); txn labels immutable",
+      "pass": true
+    },
+    {
+      "name": "C6 address change while online refused (no silent disconnect)",
+      "pass": true
+    },
+    {
+      "name": "C7 delete step 1 shows blocking reasons (online), explicit disconnect button, nothing deleted",
+      "pass": true
+    },
+    {
+      "name": "C7 second click still refused while online",
+      "pass": true
+    },
+    {
+      "name": "C7 explicit [disconnect] → offline",
+      "pass": true
+    },
+    {
+      "name": "C7 offline-but-running automation still blocks delete",
+      "pass": true
+    },
+    {
+      "name": "C7 delete refused while activity running",
+      "pass": true
+    },
+    {
+      "name": "C7 explicit [stop automation] calls owner stop",
+      "pass": true
+    },
+    {
+      "name": "C7 blockers cleared → box switches to explicit confirm text naming profiles removed; still not deleted",
+      "pass": true
+    },
+    {
+      "name": "C7 deleted: ECU gone, its profiles gone, current ECU falls back to preset, history rows keep ABS",
+      "pass": true
+    },
+    {
+      "name": "C8 stored: schema 2, additive catalog key with custom ECU/DID/fixtures, no history/link",
+      "pass": true
+    },
+    {
+      "name": "C8 reload: custom ECU before saved.ecu validation → EPS restored as current, CAN-TP",
+      "pass": true
+    },
+    {
+      "name": "C8 reload: custom-ECU profile not dropped, active; DID + fixture restored; no notice",
+      "pass": true
+    },
+    {
+      "name": "C8 reload: nothing connected/sent, no timers",
+      "pass": true
+    },
+    {
+      "name": "C9 old schema-2 prefs without catalog: presets only; EPS profile dropped with notice; ecu falls back",
+      "pass": true
+    },
+    {
+      "name": "C9 corrupt catalog entries dropped individually (valid EPS kept), visible notice",
+      "pass": true
+    },
+    {
+      "name": "C9 wrong catalog format → presets only",
+      "pass": true
+    },
+    {
+      "name": "C10 custom ECU bound 32",
+      "pass": true
+    },
+    {
+      "name": "C10 fixture bound 255 B",
+      "pass": true
+    },
+    {
+      "name": "C10 sint/uint length ≤ 6, scale ≠ 0",
+      "pass": true
+    },
+    {
+      "name": "C10 decoders: LE uint 0x1234=4660, sint 0xFF=-1, ascii/bytes",
+      "pass": true
+    }
+  ]
+}

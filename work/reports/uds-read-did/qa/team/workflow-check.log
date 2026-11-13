@@ -1,0 +1,593 @@
+{
+ "check": "workflow-check",
+ "host": "real host.js",
+ "pass": 117,
+ "total": 117,
+ "results": [
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "workflow instance booted once from host"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "host = real host.js"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "owned subtrees rendered inside both mounts"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "single subtree (no duplicate boot)"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "no TX / no activity at boot"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "nothing written at boot"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "normalizes DID/prefix"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "validate does not mutate input"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects unknown version: 알 수 없는 형식/버전 \"loom-uds-workflow/2\" — loom-uds-workflow/1만 지원"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects odd DID: 명령 #1: 홀수 자릿수(3) — 4자리 hex가 필요합니다 (예: F190)"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects odd raw: 명령 #1: 3번째 토큰 \"9\": 홀수 자릿수(1) — 바이트 경계가 모호함"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects comma raw: 명령 #1: 1번째 토큰 \"22,F1\": 16진수 문자만 (0-9, A-F) — 구분자는 공백·탭·줄바꿈"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects duplicate id: 중복 id c1"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects dangling command ref: 시퀀스 #1 단계 1: 존재하지 않는 명령 c9"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects steps×loops > 1000: 시퀀스 #1: 단계×반복 최대 1000회 전송"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects zero loops: 시퀀스 #1: 반복 1–100"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects interval below min: 감시 #1: 주기 200–60000 ms 정수"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects watch without target: 감시 #1: 대상 필요"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects control char name: 명령 #1 이름: 제어 문자 불가"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects unknown transport: 명령 #1: 알 수 없는 경로"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "rejects too many commands: 명령: 최대 200개"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "expect response accepts NRC"
+  },
+  {
+   "group": "model",
+   "ok": true,
+   "msg": "prefix mismatch fails"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "new command editor opens"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "invalid DID refused, nothing saved"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "saved normalized command"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "own key holds definitions only"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "unrelated key untouched"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "load fills editor, zero TX"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "run offline refused with visible error"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "run sends via shared engine with current context, source stamped"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "explicit run in current context selects its row (like manual Read)"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "busy refused, in-flight not cancelled"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "command txn completed normally"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "saved bound raw command"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "bound target offline refused (no auto connect)"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "bound other-ECU run: no target switch, no selection steal"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "bound raw exact bytes to GW while current = BCM"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "duplicate"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "delete"
+  },
+  {
+   "group": "commands",
+   "ok": true,
+   "msg": "folder filter"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "editing B shows B"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "A unsaved draft restored after editing B"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "draft not committed"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "main request editor untouched by library editing"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "B draft restored"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "save current → raw draft from editor"
+  },
+  {
+   "group": "command drafts preserved",
+   "ok": true,
+   "msg": "saved current request, zero TX"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "bounded unique recent, newest first"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent survives history clear (runtime only)"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent tab lists"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent → editor, zero TX"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent → command draft with target binding"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent bounded to 20"
+  },
+  {
+   "group": "recent",
+   "ok": true,
+   "msg": "recent never persisted"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "watch added via form"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "duplicate watch refused visibly"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "start offline refused (no auto connect)"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "explicit start → first poll now"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "running watch registered as activity"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "never more than one in-flight request per context"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "watch polls never select rows"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "values/unit/samples (7 sent, value 12.60)"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "value comes from engine confirmed entry of that txn"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "actual cadence 500 (500)"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "sparkline + min/max rendered"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "slow response → busy skips (8), no overlap, no queue growth"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "skip visible"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "manual read issued between polls"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "watch skipped while manual in flight"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "manual txn completed (never cancelled)"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "NRC retains previous value and its age"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "timeout retains previous value"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "stop → no further polls, activity cleared"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "link loss stops watch"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "reconnect does not auto-resume"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "two rows share a context without overlap, both updated"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "non-numeric value → no fake chart"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "interval select focusable in open watch drawer"
+  },
+  {
+   "group": "watch",
+   "ok": true,
+   "msg": "runtime ticks never rebuild the focused control"
+  },
+  {
+   "group": "watch reload",
+   "ok": true,
+   "msg": "definitions restored on reload"
+  },
+  {
+   "group": "watch reload",
+   "ok": true,
+   "msg": "reload: no watch/sequence/TX auto start"
+  },
+  {
+   "group": "watch reload",
+   "ok": true,
+   "msg": "corrupt storage → defaults + visible notice, original kept"
+  },
+  {
+   "group": "watch reload",
+   "ok": true,
+   "msg": "unknown stored version rejected visibly"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "sequence saved"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "run offline refused, zero TX"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "explicit run, target frozen at start"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "running sequence registered as activity"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "sequence passed (passed )"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "exactly steps×loops real TX, all to frozen target"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "strictly sequential (one in flight)"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "sequence sends never steal selection"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "each step sent only after previous terminal"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "step delay honoured"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "per-step results recorded"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "run view shows results"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "completed run summary shows full count (not step 1)"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "fail-fast stops after first mismatch"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "failed run summary shows the failing step"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "continue-on-error runs all steps, reports failures"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "stop cancels owned in-flight txn"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "no sends after stop"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "foreign busy → step fails, manual not cancelled"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "manual completes"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "watch yields to sequence on same context (skip reason sequence), no overlap"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "command referenced by sequence cannot be deleted"
+  },
+  {
+   "group": "sequence",
+   "ok": true,
+   "msg": "editor rejects invalid loops visibly"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "invalid import rejected atomically"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "standalone import refused while running (no implicit stop)"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "project section \"workflow\" registered"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "project validate pure"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "project validate rejects unknown version"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "project import while running throws (stop-first), never stops jobs"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "project import replaces definitions only, nothing starts"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "standalone import when stopped"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "undo import restores previous definitions"
+  },
+  {
+   "group": "import + project",
+   "ok": true,
+   "msg": "export downloads JSON file"
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+/* Loom UDS workbench — project file panel (owner A). Scoped to .pj inside #projectMount; core tokens only. */
+.pj { display: flex; flex-direction: column; gap: 10px; min-width: 0; font-size: 12px; color: var(--text); }
+.pj-sec { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; background: var(--bg); min-width: 0; }
+.pj-h { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.pj-hint { margin: 0; font-size: 11px; color: var(--muted); }
+.pj-hint code { font: 11px var(--mono); }
+.pj-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pj .btn.sm { height: 22px; padding: 0 7px; font-size: 11.5px; }
+.pj-tbl { border-collapse: collapse; width: 100%; font-size: 11.5px; }
+.pj-tbl th, .pj-tbl td { text-align: left; padding: 2px 6px; border-bottom: 1px solid var(--line2); vertical-align: top; overflow-wrap: anywhere; }
+.pj-tbl thead th { font-size: 10.5px; color: var(--muted); background: var(--sf); border-bottom-color: var(--line); }
+.pj-tbl tbody th { font-weight: 600; color: var(--muted); white-space: nowrap; width: 1%; }
+.pj-tbl td { font-family: var(--mono); font-size: 11px; }
+.pj-tbl tr.keep td { color: var(--warn); }
+.pj-prev:empty { display: none; }
+.pj-prev { display: flex; flex-direction: column; gap: 6px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.pj-file { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; overflow-wrap: anywhere; }
+.pj-t { font: 11px var(--mono); color: var(--muted); }
+.pj-ok { font-size: 11px; color: var(--ok); font-weight: 600; }
+.pj-guard { border: 1px solid var(--warn-bd); background: var(--warn-bg); border-radius: var(--radius); padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.pj-guard ul { margin: 0; padding-left: 16px; }
+.pj-k { font: 600 10.5px var(--mono); padding: 0 4px; border-radius: 3px; background: var(--bg); border: 1px solid var(--warn-bd); color: var(--warn); }
+.pj-k.k-busy { color: var(--pend); }
+.pj-msg { font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
+.pj-msg:empty { display: none; }
+.pj-msg.ok { color: var(--ok); }
+.pj-msg.bad { color: var(--err); }
+.pj-msg.severe { background: var(--err-bg); border: 1px solid var(--err); border-radius: var(--radius); padding: 4px 6px; font-weight: 600; }
+@media (max-width: 560px) { .pj-tbl tbody th { white-space: normal; width: auto; } }

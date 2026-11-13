@@ -1,0 +1,51 @@
+/* Flexible layout (worker B, item 6). Overrides only via own classes/vars on #wsp / #detail; loaded last.
+   Handles are position:absolute → out of grid flow (never an implicit grid track). */
+#wsp { position: relative; }
+#detail { position: relative; }
+#wsp.lo-did:not(.did-collapsed) { --did-w: var(--lo-did); }
+#wsp.lo-vals:not(.vals-collapsed) { --vals-w: var(--lo-vals); }
+@media (min-width: 1181px) {
+  #detail.lo-cols { grid-template-columns: minmax(160px, var(--lo-seq, 30%)) minmax(0, 1fr) minmax(180px, var(--lo-bytes, 30%)); }
+}
+@media (max-width: 1180px) {
+  /* vals moves below the centre; a desktop DID width is capped so the centre column cannot be squeezed */
+  #wsp.lo-did:not(.did-collapsed) { --did-w: min(var(--lo-did), 26vw); }
+  #loHVals, #loHSeq, #loHBytes { display: none !important; }
+}
+@media (max-width: 860px) { #loHDid { display: none !important; } }
+
+.lo-h { position: absolute; top: 6px; bottom: 6px; width: 6px; z-index: 4; cursor: col-resize; touch-action: none; outline: none; }
+#detail > .lo-h { top: 0; bottom: 0; }
+.lo-h::after { content: ""; position: absolute; top: 0; bottom: 0; left: 2px; width: 2px; border-radius: 2px; background: transparent; }
+.lo-h:hover::after, .lo-h.dragging::after, .lo-h:focus-visible::after { background: var(--selbd); }
+.lo-h:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 2px; }
+body.resizing { cursor: col-resize; user-select: none; }
+
+/* maximize (desktop/tablet only; ≤560 keeps the single vertical stack) */
+@media (min-width: 561px) {
+  #wsp.lo-max-hist, #wsp.lo-max-detail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); grid-template-areas: "center"; }
+  #wsp.lo-max-hist > #didPane, #wsp.lo-max-hist > #didRail, #wsp.lo-max-hist > #vals, #wsp.lo-max-hist > #valsRail,
+  #wsp.lo-max-detail > #didPane, #wsp.lo-max-detail > #didRail, #wsp.lo-max-detail > #vals, #wsp.lo-max-detail > #valsRail { display: none !important; }
+  #wsp.lo-max-hist #divHist, #wsp.lo-max-hist #detail { display: none; }
+  #wsp.lo-max-hist .center { grid-template-rows: auto minmax(0, 1fr); }
+  #wsp.lo-max-detail #hist, #wsp.lo-max-detail #divHist { display: none; }
+  #wsp.lo-max-detail .center { grid-template-rows: auto minmax(0, 1fr); }
+}
+@media (max-width: 560px) { .lo-h { display: none !important; } }
+
+/* controls (#layoutToolsMount, inline in the context row) */
+.lo-tools { position: relative; display: inline-flex; align-items: center; gap: 2px; }
+.lo-b { height: 24px; padding: 0 7px; font-size: 11.5px; white-space: nowrap; }
+.lo-b[aria-pressed="true"] { background: var(--sel); border-color: var(--selbd); color: var(--accent); font-weight: 600; }
+.lo-pop { position: absolute; z-index: 45; right: 0; top: calc(100% + 4px); width: 300px; max-width: calc(100vw - 24px); background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(31, 35, 40, .16); padding: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 6px; }
+.lo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lo-row small { color: var(--muted); }
+.lo-row .fld { flex: 1; min-width: 0; height: 26px; padding: 0 6px; border: 1px solid var(--line); border-radius: 4px; }
+.lo-list { list-style: none; margin: 0; padding: 0; max-height: 180px; overflow: auto; border-top: 1px solid var(--line2); }
+.lo-list li { display: flex; align-items: center; gap: 4px; padding: 2px 0; border-bottom: 1px solid var(--line2); }
+.lo-list li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lo-none, .lo-msg { margin: 0; color: var(--muted); }
+.lo-msg:empty { display: none; }
+@media (max-width: 560px) {
+  .lo-pop { position: fixed; left: 12px; right: 12px; top: 96px; width: auto; }
+}

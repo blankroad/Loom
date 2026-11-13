@@ -1,0 +1,190 @@
+{
+  "when": "2026-11-13T23:24:45.160Z",
+  "note": "jsdom source-local, not browser acceptance",
+  "results": [
+    {
+      "name": "S1 services panel mounted in #servicesMount; no TX/timers from boot",
+      "pass": true
+    },
+    {
+      "name": "S1 session request offline refused, zero TX, message shown",
+      "pass": true
+    },
+    {
+      "name": "S1 connect: tester view \"assumed default\", server default, no S3",
+      "pass": true
+    },
+    {
+      "name": "S1 10 03 → 50 03 00 32 01 F4, source service, txn through engine/profile snapshot",
+      "pass": true
+    },
+    {
+      "name": "S1 extended confirmed (tester), server extended, S3 armed 5000 ms",
+      "pass": true
+    },
+    {
+      "name": "S1 ECU-reported P2server/P2* shown as metadata; client profile P2/P2* unchanged (1000/5000)",
+      "pass": true
+    },
+    {
+      "name": "S1 non-DID positive never touches confirmed DID values",
+      "pass": true
+    },
+    {
+      "name": "S1 session chip shows extended + S3",
+      "pass": true
+    },
+    {
+      "name": "S1 0x50 decoder: session/P2server/P2*server fields",
+      "pass": true
+    },
+    {
+      "name": "S2 S3 not expired at 4999 ms",
+      "pass": true
+    },
+    {
+      "name": "S2 S3 expiry at 5000 ms → server default, tester \"expired\" (not just requested label)",
+      "pass": true
+    },
+    {
+      "name": "S3 10 02 from default → 7F 10 22 (SIM fixture), tester state unchanged",
+      "pass": true
+    },
+    {
+      "name": "S3 Raw 10 03 updates the SAME context session state",
+      "pass": true
+    },
+    {
+      "name": "S3 10 02 from extended → 50 02",
+      "pass": true
+    },
+    {
+      "name": "S3 other context (BCM CAN-TP) independent",
+      "pass": true
+    },
+    {
+      "name": "S3 10 malformed: 1 B → 13, unknown sub 05 → 12, 3 B → 13",
+      "pass": true
+    },
+    {
+      "name": "S3 10 83 (SPRMIB): status suppressed, server extended, tester \"unknown\" (not confirmed)",
+      "pass": true
+    },
+    {
+      "name": "S4 timeout on 10 01: tester unknown, server unchanged (request never processed)",
+      "pass": true
+    },
+    {
+      "name": "S5 TP explicit start: immediate 3E 80 txn source tester-present, activity listed",
+      "pass": true
+    },
+    {
+      "name": "S5 3E 80 suppressed; selection not stolen",
+      "pass": true
+    },
+    {
+      "name": "S5 TP keeps extended alive past S3 (12 s later still extended)",
+      "pass": true
+    },
+    {
+      "name": "S5 actual cadence 2000 ms shown",
+      "pass": true
+    },
+    {
+      "name": "S5 TP skips while manual request busy (no queue), never cancels manual",
+      "pass": true
+    },
+    {
+      "name": "S5 manual completes normally after TP skip",
+      "pass": true
+    },
+    {
+      "name": "S5 TP stop: no further TX, activity cleared",
+      "pass": true
+    },
+    {
+      "name": "S5 after stop S3 expires (no fake background success)",
+      "pass": true
+    },
+    {
+      "name": "S5 link down stops TP with reason",
+      "pass": true
+    },
+    {
+      "name": "S5 reconnect does NOT auto-resume TP (no TX in 10 s)",
+      "pass": true
+    },
+    {
+      "name": "S5 reconnect resets session to assumed default",
+      "pass": true
+    },
+    {
+      "name": "S5 raw 3E 00 → 7E 00",
+      "pass": true
+    },
+    {
+      "name": "S5 3E 01 → 12, 3E 00 00 → 13",
+      "pass": true
+    },
+    {
+      "name": "S6 19 02 FF → 59 02 FF + 3 BCM fixture records (4 B each)",
+      "pass": true
+    },
+    {
+      "name": "S6 DTC table: codes/status/flags/descriptions from parsed bytes",
+      "pass": true
+    },
+    {
+      "name": "S6 mask 01 (testFailed) → only 1 record; diff notes mask differs",
+      "pass": true
+    },
+    {
+      "name": "S6 invalid mask → no TX",
+      "pass": true
+    },
+    {
+      "name": "S6 19 01 FF → 59 01 FF 01 00 03",
+      "pass": true
+    },
+    {
+      "name": "S6 clear needs explicit second click (no TX on first)",
+      "pass": true
+    },
+    {
+      "name": "S6 14 FF FF FF in default session → 7F 14 22; DTCs kept",
+      "pass": true
+    },
+    {
+      "name": "S6 extended + clear → 54; SIM DTC memory empty",
+      "pass": true
+    },
+    {
+      "name": "S6 raw 19 02 FF after clear → 59 02 FF (0 records); diff shows 3 gone",
+      "pass": true
+    },
+    {
+      "name": "S6 SIM restore is local (no TX) and labelled SIM",
+      "pass": true
+    },
+    {
+      "name": "S6 malformed: 19 → 13, 19 02 → 13, 19 05 → 12, 14 group≠FFFFFF → 31",
+      "pass": true
+    },
+    {
+      "name": "S6 GW fixture separate",
+      "pass": true
+    },
+    {
+      "name": "S6 non-DID services never wrote confirmed DID values",
+      "pass": true
+    },
+    {
+      "name": "S7 services prefs persisted (interval/mode/mask), no running state/history",
+      "pass": true
+    },
+    {
+      "name": "S7 reload: TP not running, zero TX, offline, no timers",
+      "pass": true
+    }
+  ]
+}

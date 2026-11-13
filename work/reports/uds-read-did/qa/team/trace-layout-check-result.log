@@ -1,0 +1,253 @@
+{
+ "check": "layout-check",
+ "pass": 49,
+ "fail": 0,
+ "total": 49,
+ "results": [
+  {
+   "id": "A1 module boots, 4 separators in #wsp/#detail",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A2 separators have role/orientation/aria/tabindex",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A3 controls in #layoutToolsMount only",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "A4 core divider untouched",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B1 DID width → own class + var",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B2 min clamp",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B3 max clamp",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B4 centre min kept (vals clamped by room)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B5 detail middle ≥ 25%",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B6 ArrowRight widens DID by 16",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B7 Shift+ArrowLeft −64",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B8 vals handle direction (Left widens)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B9 Home resets that dimension only",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "B10 persisted",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C1 maximize history class + pressed",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C2 handles hidden while maximized",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C3 switch to detail max",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C4 Esc inside tool drawer does not restore layout",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C5 Esc restores",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "C6 button toggles restore",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D1 DID collapsed → DID handle hidden; collapsed rail width not overridden",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D2 expand → DID handle visible",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D3 ≤1180: vals/detail handles hidden, DID kept",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D4 768: DID handle hidden",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "D5 390: maximize ignored (single stack), buttons disabled",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E1 save named",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E2 reset → defaults, named kept",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E3 load named",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E4 overwrite same name",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E5 name validation",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E6 cap 12",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E7 popover lists names escaped",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "E8 Esc closes popover",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F1 validate pure: version, ranges, max, dup names",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F2 project section registered; validate does not mutate",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F3 section import applies + persists",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F4 section export round-trips",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F10 defaults(): fresh object each call, valid, = factory layout",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F8 strict import THROWS on storage failure, state untouched (rollback-safe)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F9 convenience save failure visible, no throw",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F5 reload restores layout",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F6 unknown stored version ignored → defaults",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "F7 corrupt stored → defaults",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G1 handles absolute (no implicit grid track)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G2 widths via own vars only, collapsed rail respected",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G3 ≤1180 DID cap + handle hides; ≤560 no handles; maximize only ≥561",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G4 detail columns only ≥1181",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G5 no send/connect/network in layout.js",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "id": "G6 onRender only repositions (no refresh)",
+   "pass": true,
+   "note": ""
+  }
+ ]
+}

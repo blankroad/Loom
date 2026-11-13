@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loom UDS Read DID · Opus</title>
+<meta name="description" content="Opus implementation: UDS Read DID (0x22) workbench inside the shared Bench Light shell — ECU and transport route selection, exact request PDU, transaction history, response sequence and raw→decoded values. Local simulation only; mock routes, no real bus or socket.">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="catalog.css">
+<link rel="stylesheet" href="services.css">
+<link rel="stylesheet" href="project.css">
+<link rel="stylesheet" href="workflow.css">
+<link rel="stylesheet" href="trace-tools.css">
+<link rel="stylesheet" href="layout.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sessions" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M4.5 6l2 2-2 2M8 10.5h3.5"/></symbol>
+    <symbol id="i-eth" viewBox="0 0 16 16"><rect x="6" y="1.8" width="4" height="3.4" rx=".6"/><rect x="1.8" y="10.8" width="4" height="3.4" rx=".6"/><rect x="10.2" y="10.8" width="4" height="3.4" rx=".6"/><path d="M8 5.2v2.8M3.8 10.8V8h8.4v2.8"/></symbol>
+    <symbol id="i-diag" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="9" rx="1.5"/><path d="M4.5 7.5h1.5l1-2 2 4 1-2h1.5M6 14h4"/></symbol>
+    <symbol id="i-read" viewBox="0 0 16 16"><path d="M2.5 8h9M8 4.5 11.5 8 8 11.5M13.5 3v10"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.8 6.5v4.5M9.2 6.5v4.5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 16 16"><path d="M5.5 2v3M10.5 2v3M4 5h8v2.5a4 4 0 0 1-8 0zM8 11.5V14"/></symbol>
+    <symbol id="i-unplug" viewBox="0 0 16 16"><path d="M5.5 2v3M10.5 2v3M4 5h8v2.5a4 4 0 0 1-8 0zM8 11.5V14M2 2l12 12"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1.2"/><path d="M3 10.5V3.8A1.3 1.3 0 0 1 4.3 2.5H10.5"/></symbol>
+    <symbol id="i-side" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 2.5v11"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell" id="shell">
+  <!-- ===== Common OUTER SHELL (Bench Light, from selected Ethernet Opus) ===== -->
+  <header class="shell-hdr" data-shell="header">
+    <span class="shell-brand"><span class="logo">L</span>Loom</span>
+    <nav class="svcnav" aria-label="서비스 모듈">
+      <a href="../../uart-workbench/opus/index.html" data-svc="uart"><svg class="i"><use href="#i-sessions"/></svg><span>UART</span></a>
+      <a href="../../ethernet-workbench/opus/index.html" data-svc="eth"><svg class="i"><use href="#i-eth"/></svg><span>Ethernet</span></a>
+      <a href="./index.html" aria-current="page" data-svc="uds"><svg class="i"><use href="#i-diag"/></svg><span>UDS</span></a>
+    </nav>
+    <span class="grow"></span>
+    <span class="env-chip" title="로컬 시뮬레이션: 실제 CAN/Ethernet 송수신이나 진단 하드웨어를 사용하지 않습니다">SIM</span>
+    <span class="conn-chip" id="shellConn" aria-live="polite"><span class="dot"></span><span>UDS</span></span>
+  </header>
+
+  <!-- ===== UDS READ DID MODULE ===== -->
+  <main class="mod-uds" id="modUds" data-module="uds">
+    <section class="ctxbar" id="ctxbar" aria-label="진단 대상과 경로">
+      <div class="ctx-row">
+        <label class="flab" for="selEcu">ECU</label>
+        <select id="selEcu" class="fld ecu-sel" aria-describedby="ecuName"></select>
+        <span class="ecu-name" id="ecuName"></span>
+        <span class="vdiv"></span>
+        <span class="flab" id="routeLab">경로</span>
+        <span class="seg" id="segRoute" role="radiogroup" aria-labelledby="routeLab"></span>
+        <span class="route-sum" id="routeSum" title="경로 주소 요약 — 상세는 '주소 상세'"></span>
+        <span class="cfg-prov" id="cfgProv"></span>
+        <span class="link-st" id="linkSt" aria-live="polite"></span>
+        <button type="button" class="btn" id="btnLink" data-cmd="link-toggle"></button>
+        <span class="grow"></span>
+        <button type="button" class="btn ghost disc" id="btnCfg" data-cmd="toggle-cfg" aria-expanded="false" aria-controls="cfgPanel"><svg class="i"><use href="#i-chev"/></svg>연결 설정<span class="dirty-dot" id="cfgDirty" title="저장 안 된 초안" hidden></span></button>
+        <button type="button" class="btn ghost disc" id="btnRouteInfo" data-cmd="toggle-route-info" aria-expanded="false" aria-controls="routeInfo"><svg class="i"><use href="#i-chev"/></svg>주소 상세</button>
+        <button type="button" class="btn ghost disc simbtn" id="btnSim" data-cmd="toggle-sim" aria-expanded="false" aria-controls="simPanel"><svg class="i"><use href="#i-chev"/></svg>SIM 옵션 <b id="simSummary"></b></button>
+      </div>
+      <div class="ctx-tools" id="ctxTools">
+        <span class="conn-ov" id="connOverview" aria-label="활성 연결 개요"></span>
+        <span class="sess-chip" id="sessChip" aria-live="polite"></span>
+        <span class="grow"></span>
+        <div class="tooltabs" id="toolTabs" role="tablist" aria-label="도구 서랍">
+          <button type="button" role="tab" id="tt-services" data-tool="services" aria-controls="tp-services" aria-selected="false">서비스</button>
+          <button type="button" role="tab" id="tt-catalog" data-tool="catalog" aria-controls="tp-catalog" aria-selected="false">ECU·DID</button>
+          <button type="button" role="tab" id="tt-workflow" data-tool="workflow" aria-controls="tp-workflow" aria-selected="false">명령·시퀀스</button>
+          <button type="button" role="tab" id="tt-watch" data-tool="watch" aria-controls="tp-watch" aria-selected="false">감시</button>
+          <button type="button" role="tab" id="tt-project" data-tool="project" aria-controls="tp-project" aria-selected="false">프로젝트</button>
+        </div>
+        <div class="mount mount-inline" id="layoutToolsMount" data-owner="layout"></div>
+      </div>
+      <div class="route-info" id="routeInfo" hidden></div>
+      <form class="cfg-panel" id="cfgPanel" role="region" aria-labelledby="cfgTitle" novalidate autocomplete="off" hidden></form>
+      <div class="sim-panel" id="simPanel" hidden></div>
+    </section>
+
+    <aside class="tooldrawer" id="toolDrawer" aria-label="도구 서랍" hidden>
+      <div class="td-h"><b id="toolTitle"></b><span class="grow"></span><button type="button" class="ibtn" id="toolClose" title="도구 서랍 닫기 (Esc)" aria-label="도구 서랍 닫기"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <section class="td-panel" role="tabpanel" id="tp-services" aria-labelledby="tt-services" hidden><div class="mount" id="servicesMount" data-owner="services"></div></section>
+      <section class="td-panel" role="tabpanel" id="tp-catalog" aria-labelledby="tt-catalog" hidden><div class="mount" id="catalogMount" data-owner="catalog"></div></section>
+      <section class="td-panel" role="tabpanel" id="tp-workflow" aria-labelledby="tt-workflow" hidden><div class="mount" id="workflowMount" data-owner="workflow"></div></section>
+      <section class="td-panel" role="tabpanel" id="tp-watch" aria-labelledby="tt-watch" hidden><div class="mount" id="watchMount" data-owner="workflow"></div></section>
+      <section class="td-panel" role="tabpanel" id="tp-project" aria-labelledby="tt-project" hidden><div class="mount" id="projectMount" data-owner="project"></div></section>
+    </aside>
+
+    <div class="wsp" id="wsp">
+      <aside class="didpane pane" id="didPane" aria-label="DID 목록">
+        <div class="pane-h"><span>DID 목록</span><span class="grow"></span><button type="button" class="ibtn" data-cmd="collapse-did" title="DID 목록 접기" aria-controls="didPane"><svg class="i"><use href="#i-side"/></svg></button></div>
+        <div class="did-search"><input id="didSearch" class="fld" type="search" placeholder="이름 또는 hex 검색" aria-label="DID 검색" autocomplete="off" spellcheck="false"></div>
+        <ul class="didlist" id="didList" role="listbox" aria-label="Read DID 빠른 선택 (선택만으로 전송하지 않음)" tabindex="0"></ul>
+        <p class="pane-note">선택은 요청 편집기에만 채웁니다. 전송은 <b>읽기</b>로만.</p>
+      </aside>
+      <button type="button" class="rail" id="didRail" data-cmd="expand-did" title="DID 목록 펼치기" hidden><svg class="i"><use href="#i-side"/></svg><span>DID</span></button>
+
+      <section class="center" id="center">
+        <form class="req m-did" id="req" aria-label="UDS 요청 (DID 읽기 / Raw PDU)" novalidate autocomplete="off">
+          <div class="req-target" id="reqTarget"></div>
+          <div class="req-row">
+            <span class="seg sm mode-seg" id="segMode" role="radiogroup" aria-label="요청 모드 (←→)"><button type="button" role="radio" data-mode="did" aria-checked="true" title="DID 읽기 — SID 0x22 + DID 자동 구성">DID</button><button type="button" role="radio" data-mode="raw" aria-checked="false" title="Raw UDS PDU — 입력한 바이트(SID 포함) 그대로 전송">Raw</button></span>
+            <span class="kv-c did-only" title="서비스 고정: ReadDataByIdentifier"><span class="k">SID</span><b>0x22</b><small>ReadDataByIdentifier</small></span>
+            <label class="kv-c did-c did-only" for="didInput"><span class="k">DID</span>
+              <input id="didInput" class="fld did-in" type="text" inputmode="text" maxlength="12" spellcheck="false" autocomplete="off" placeholder="F190" aria-describedby="didMsg reqPdu" aria-invalid="false">
+            </label>
+            <select id="didQuick" class="fld did-quick did-only" aria-label="빠른 DID 선택"></select>
+            <span class="did-name did-only" id="didName"></span>
+            <span class="pdu did-only" id="reqPdu" aria-live="polite"></span>
+            <span class="pdu raw-only" id="rawSum" aria-live="polite"></span>
+            <span class="grow"></span>
+            <button type="submit" class="btn primary" id="btnRead" data-cmd="read" title="요청 전송 (DID 입력란에서 Enter)"><svg class="i"><use href="#i-read"/></svg><span id="btnReadLabel">읽기</span></button>
+            <button type="button" class="btn danger" id="btnCancel" data-cmd="cancel" title="이 대상·경로의 진행 중 요청 취소" disabled><svg class="i"><use href="#i-x"/></svg><span id="btnCancelLabel">취소</span></button>
+          </div>
+          <div class="raw-row raw-only">
+            <div class="raw-ed">
+              <label class="k" for="rawInput">Raw UDS PDU <small>(SID 포함 hex)</small></label>
+              <textarea id="rawInput" class="fld raw-in" rows="2" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="22 F1 90" aria-describedby="didMsg rawSum rawHint" aria-invalid="false" aria-keyshortcuts="Control+Enter Meta+Enter"></textarea>
+            </div>
+            <div class="raw-pv">
+              <span class="k" id="rawPduLab">전송될 PDU (정규화)</span>
+              <div class="raw-prev" id="rawPdu" role="region" aria-labelledby="rawPduLab" tabindex="0"></div>
+            </div>
+            <p class="raw-hint" id="rawHint"><b>형식</b> 공백·탭·줄바꿈 구분 또는 연속 hex (<code>22 F1 90</code> = <code>22F190</code>), <code>0x</code>는 바이트마다 2자리 (<code>0x22 0xF1 0x90</code>). 홀수 자릿수·비hex·쉼표는 전체 거부 (부분 전송 없음). 최대 4095 B (프로토타입 상한). SID 0x22 자동 추가·패딩 없음. <b>Ctrl/⌘+Enter</b> 또는 [전송]으로만 전송, Enter는 줄바꿈.</p>
+          </div>
+          <div class="req-msg" id="didMsg" aria-live="polite"></div>
+        </form>
+
+        <div class="hist pane" id="hist">
+          <div class="pane-h">
+            <span>트랜잭션</span><span class="hcount" id="histCount"></span>
+            <span class="grow"></span>
+            <span class="seg sm" id="segFilter" role="radiogroup" aria-label="기록 범위">
+              <button type="button" role="radio" data-filter="all" aria-checked="true">전체</button>
+              <button type="button" role="radio" data-filter="ecu" aria-checked="false">현재 ECU</button>
+            </span>
+            <button type="button" class="ibtn" data-cmd="export-json" title="기록 JSON 내보내기"><svg class="i"><use href="#i-down"/></svg><small>JSON</small></button>
+            <button type="button" class="ibtn" data-cmd="export-csv" title="기록 CSV 내보내기"><svg class="i"><use href="#i-down"/></svg><small>CSV</small></button>
+            <button type="button" class="ibtn danger" data-cmd="clear-history" title="완료된 기록 지우기 (진행 중 요청은 유지)"><svg class="i"><use href="#i-trash"/></svg></button>
+          </div>
+          <div class="mount mount-strip" id="traceToolsMount" data-owner="trace"></div>
+          <div class="tx-scroll" id="txScroll">
+            <div class="tx-head" role="row">
+              <span class="c-no">#</span><span class="c-t">시각</span><span class="c-ecu">ECU</span><span class="c-rt">경로</span><span class="c-did" title="DID 요청: DID · Raw 요청: RAW + DID(단일 DID 형식) 또는 SID">DID · SID</span><span class="c-req">요청</span><span class="c-rsp">최종 응답</span><span class="c-st">상태</span><span class="c-p">78</span><span class="c-el">경과</span>
+            </div>
+            <div class="tx-body" id="txBody" role="grid" tabindex="0" aria-label="트랜잭션 기록 (↑↓ 선택)" aria-rowcount="0"></div>
+            <div class="tx-empty" id="txEmpty" hidden></div>
+          </div>
+        </div>
+
+        <div class="divider h" id="divHist" role="separator" aria-orientation="horizontal" aria-label="기록/상세 경계 크기 조절 (↑↓)" tabindex="0"></div>
+
+        <div class="detail" id="detail">
+          <div class="dt-seq pane" aria-label="응답 순서">
+            <div class="pane-h"><span>응답 순서</span><span class="grow"></span><span class="bsel" id="seqHead"></span></div>
+            <ol class="seq" id="seq" role="listbox" tabindex="0" aria-label="선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)"></ol>
+          </div>
+          <div class="dt-fields pane" aria-label="해석">
+            <div class="pane-h"><span>해석</span><span class="grow"></span><span class="bsel" id="fieldsHead"></span></div>
+            <div class="fields" id="fields"></div>
+          </div>
+          <div class="dt-bytes pane" aria-label="UDS PDU 바이트">
+            <div class="pane-h"><span>바이트 · UDS PDU</span><span class="grow"></span><button type="button" class="ibtn" data-cmd="copy-hex" title="선택 PDU hex 복사"><svg class="i"><use href="#i-copy"/></svg></button></div>
+            <div class="hex" id="hex" tabindex="0"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="vals pane" id="vals" aria-label="확정 값">
+        <div class="pane-h"><span>확정 값</span><b class="vals-ecu" id="valsEcu"></b><span class="grow"></span><button type="button" class="ibtn" data-cmd="collapse-vals" title="확정 값 접기" aria-controls="vals"><svg class="i"><use href="#i-side"/></svg></button></div>
+        <div class="vals-body" id="valsBody"></div>
+        <p class="pane-note">긍정 응답(0x62)으로 검증된 값만 갱신. 각 값은 출처 트랜잭션·시각·경로를 유지합니다.</p>
+      </aside>
+      <button type="button" class="rail right" id="valsRail" data-cmd="expand-vals" title="확정 값 펼치기" hidden><svg class="i"><use href="#i-side"/></svg><span>확정 값</span></button>
+    </div>
+  </main>
+
+  <footer class="shell-status" data-shell="status" id="shellStatus">
+    <span class="st-target" id="stTarget"></span>
+    <span class="st-extra" id="stExtra"></span>
+    <span class="grow"></span>
+    <span class="proto">프로토타입 · 로컬 시뮬레이션 경로, 실제 CAN/Ethernet/진단기 없음</span>
+  </footer>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script src="tools.js"></script>
+<script src="config.js"></script>
+<script src="host.js"></script>
+<script src="catalog.js"></script>
+<script src="services.js"></script>
+<script src="project.js"></script>
+<script src="workflow.js"></script>
+<script src="trace-tools.js"></script>
+<script src="layout.js"></script>
+</body>
+</html>

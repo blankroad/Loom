@@ -1,0 +1,272 @@
+{
+ "check": "project-check",
+ "pass": 53,
+ "total": 53,
+ "results": [
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "coordinator + UI mounted in #projectMount"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "summary rendered, no TX"
+  },
+  {
+   "group": "boot",
+   "ok": true,
+   "msg": "extension sections registered: workflow/trace/layout"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "custom ECU/DID/fixture/profile/workflow/trace set up"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "export downloads JSON via real download"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "file format/version/sections"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "no history/events/confirmed/links exported"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "presets never exported"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "fresh page has no custom ECU"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "validated preview with enabled apply"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "preview alone mutates nothing"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "apply succeeded: 적용됨 — core, workflow, trace, layout 교체. 연결·전송·실행 작업은 시작하지 않음."
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "round trip: core + workflow + trace + layout identical"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "import starts nothing (no TX, no activity, no link)"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "imported watch definition not running"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "custom ECU+profile+DID fixture answer via engine after import"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "imported workflow persisted"
+  },
+  {
+   "group": "export + round trip",
+   "ok": true,
+   "msg": "reload after import: definitions persist, no TX"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "oversize: rejected (가져오기 거부: 파일 1048577 B — 최대 1048576 B (해석하지 않음) — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "bad json: rejected (가져오기 거부: JSON 구문 오류 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "wrong format: rejected (가져오기 거부: 형식 \"loom-uds-project/2\" — loom-uds-project/1만 지원 — 아무것도 바뀌지 않), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "wrong version: rejected (가져오기 거부: 버전 2 — 1만 지원 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "no core: rejected (가져오기 거부 [core]: core 섹션 없음 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "unknown section: rejected (가져오기 거부 [macros]: 알 수 없는 섹션 \"macros\" — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "bad catalog: rejected (가져오기 거부 [core.catalog]: 카탈로그 형식이 loom-uds-catalog/1 이 아님 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "profile → unknown ECU: rejected (가져오기 거부 [core.profiles]: 프로필 #1: 알 수 없는 ECU/경로 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "bad workflow: rejected (가져오기 거부 [workflow]: 명령 #1: 16진수 문자만 사용할 수 있습니다 (0-9, A-F) — 아무것도 바뀌지 않), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "bad trace: rejected (가져오기 거부 [trace]: trace: 알 수 없는 버전 9 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "bad layout: rejected (가져오기 거부 [layout]: layout: 알 수 없는 버전 9 — 아무것도 바뀌지 않음), zero mutation"
+  },
+  {
+   "group": "invalid → zero mutation",
+   "ok": true,
+   "msg": "size checked before parse"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "guard reasons shown, apply disabled"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "apply refused, zero mutation, nothing auto-stopped/disconnected"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "explicit stop button stops only that activity; link still blocks"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "explicit disconnect-all clears guard"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "running watch listed by guard"
+  },
+  {
+   "group": "guard",
+   "ok": true,
+   "msg": "apply after explicit cleanup"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "preview: workflow/trace/layout → defaults, defaults-less section → kept"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "missing workflow section → validated default (empty)"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "missing trace/layout → their validated defaults()"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "section without defaults() kept unchanged (never guessed)"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "section not registered on this page → file rejected"
+  },
+  {
+   "group": "preserve live + missing sections",
+   "ok": true,
+   "msg": "history + confirmed values preserved"
+  },
+  {
+   "group": "rollback: core commit quota",
+   "ok": true,
+   "msg": "memory of every section restored"
+  },
+  {
+   "group": "rollback: core commit quota",
+   "ok": true,
+   "msg": "persisted workflow + core keys equal pre-import"
+  },
+  {
+   "group": "rollback: core commit quota",
+   "ok": true,
+   "msg": "permanent core quota: failure + incomplete rollback (core re-commit) reported distinctly"
+  },
+  {
+   "group": "rollback: selective extension quota",
+   "ok": true,
+   "msg": "workflow storage failure → core + all sections restored in memory"
+  },
+  {
+   "group": "rollback: selective extension quota",
+   "ok": true,
+   "msg": "workflow persisted value unchanged"
+  },
+  {
+   "group": "rollback: selective extension quota",
+   "ok": true,
+   "msg": "clean rollback reported as such: workflow 실패: workflow: 저장소 기록 실패 (용량/권한) — 정의 변경 안 됨 — 이전 정의로 복원됨 (메모리·저장소)"
+  },
+  {
+   "group": "rollback: selective extension quota",
+   "ok": true,
+   "msg": "permanent extension quota → rollback-incomplete names the section"
+  },
+  {
+   "group": "rollback: selective extension quota",
+   "ok": true,
+   "msg": "memory still restored, persisted workflow untouched"
+  },
+  {
+   "group": "rollback: extension import throws",
+   "ok": true,
+   "msg": "thrown extension import → full rollback, visible error"
+  },
+  {
+   "group": "workflow section stop-first",
+   "ok": true,
+   "msg": "workflow import throws while running, never stops jobs"
+  },
+  {
+   "group": "workflow section stop-first",
+   "ok": true,
+   "msg": "workflow import throws on storage failure and keeps previous definitions"
+  }
+ ]
+}

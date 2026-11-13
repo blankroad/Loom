@@ -1,0 +1,287 @@
+{
+ "when": "2026-11-13T22:06:31.118Z",
+ "pass": 70,
+ "total": 70,
+ "results": [
+  {
+   "name": "initial: DID list populated with 3 fixture DIDs incl. raw prefix (U1)",
+   "pass": true
+  },
+  {
+   "name": "initial: link offline, Read disabled, no auto send",
+   "pass": true
+  },
+  {
+   "name": "initial: no transaction / timer after 10 s idle",
+   "pass": true
+  },
+  {
+   "name": "initial: empty history honestly labelled",
+   "pass": true
+  },
+  {
+   "name": "shell: nav UART/Ethernet/UDS with real relative links, UDS current",
+   "pass": true
+  },
+  {
+   "name": "nav target exists: ../../uart-workbench/opus/index.html",
+   "pass": true
+  },
+  {
+   "name": "nav target exists: ../../ethernet-workbench/opus/index.html",
+   "pass": true
+  },
+  {
+   "name": "connect: link online gen 1, no TX",
+   "pass": true
+  },
+  {
+   "name": "invalid DIDs (empty/odd/short/long/non-hex/with SID) never send",
+   "pass": true
+  },
+  {
+   "name": "invalid DID shows error + aria-invalid + no PDU",
+   "pass": true
+  },
+  {
+   "name": "6-digit input explains SID is automatic",
+   "pass": true
+  },
+  {
+   "name": "normalizes \"0xf190\" -> F190",
+   "pass": true
+  },
+  {
+   "name": "normalizes \"f1 90\" -> F190",
+   "pass": true
+  },
+  {
+   "name": "normalizes \"F190\" -> F190",
+   "pass": true
+  },
+  {
+   "name": "range: 0000 and FFFF valid, 10000 rejected",
+   "pass": true
+  },
+  {
+   "name": "PDU preview exact 22 F1 90 (3 B)",
+   "pass": true
+  },
+  {
+   "name": "DID list click fills editor, no TX",
+   "pass": true
+  },
+  {
+   "name": "DID list ArrowDown moves selection (0101), no TX",
+   "pass": true
+  },
+  {
+   "name": "Read: one txn, Tx 22 F1 90 recorded, status waiting",
+   "pass": true
+  },
+  {
+   "name": "Read: new txn selected, Read disabled while active, Cancel enabled",
+   "pass": true
+  },
+  {
+   "name": "positive: final = 62 F1 90 + 17 ASCII VIN",
+   "pass": true
+  },
+  {
+   "name": "positive: confirmed VIN with provenance #1 / DoIP route",
+   "pass": true
+  },
+  {
+   "name": "positive: detail auto-follows final response (RESPONSE_PDU, decoded VIN)",
+   "pass": true
+  },
+  {
+   "name": "positive: hex pane has exactly 20 byte cells",
+   "pass": true
+  },
+  {
+   "name": "field->bytes: DID highlights offsets 1,2",
+   "pass": true
+  },
+  {
+   "name": "byte->field: offset 7 selects VIN data field",
+   "pass": true
+  },
+  {
+   "name": "timeline: selecting Tx shows REQUEST_PDU 22 F1 90",
+   "pass": true
+  },
+  {
+   "name": "route switch while #2 in flight: row still DoIP, detail route frozen",
+   "pass": true
+  },
+  {
+   "name": "other context (CAN-TP) offline and independent; Cancel disabled there",
+   "pass": true
+  },
+  {
+   "name": "ECU switch: history rows keep BCM; vals panel scoped to GW",
+   "pass": true
+  },
+  {
+   "name": "pending: 7F 22 78 recorded, status pending, confirmed unchanged",
+   "pass": true
+  },
+  {
+   "name": "pending: row shows ⏳ 0x78×1 and vals shows reading #2",
+   "pass": true
+  },
+  {
+   "name": "pending: second 0x78",
+   "pass": true
+  },
+  {
+   "name": "pending→positive: final after 2×78, timeline tx,78,78,62, confirmed #2",
+   "pass": true
+  },
+  {
+   "name": "pending: elapsed = 400+2*1200 ms",
+   "pass": true
+  },
+  {
+   "name": "NRC: 7F 22 22 final, status nrc, decode conditionsNotCorrect",
+   "pass": true
+  },
+  {
+   "name": "NRC: confirmed VIN still from #2, vals warns latest #3 NRC",
+   "pass": true
+  },
+  {
+   "name": "NRC: no green applied box, explicit no-update text",
+   "pass": true
+  },
+  {
+   "name": "timeout: still waiting at 999 ms",
+   "pass": true
+  },
+  {
+   "name": "timeout at P2 1000 ms, no response bytes",
+   "pass": true
+  },
+  {
+   "name": "late positive after timeout: recorded ignored, status stays timeout, confirmed unchanged",
+   "pass": true
+  },
+  {
+   "name": "late badge on row",
+   "pass": true
+  },
+  {
+   "name": "cancel: status cancelled, Read re-enabled for context",
+   "pass": true
+  },
+  {
+   "name": "cancel: later 78/62 arrive as ignored late, no status/confirmed change",
+   "pass": true
+  },
+  {
+   "name": "disconnect: txn link-lost, ctx offline gen bumped, Read disabled",
+   "pass": true
+  },
+  {
+   "name": "disconnect: no later events, no auto reconnect/retry",
+   "pass": true
+  },
+  {
+   "name": "busy: second Read on same context rejected, no new txn",
+   "pass": true
+  },
+  {
+   "name": "parallel other route: #B (DoIP) positive while #A (CAN-TP) still in flight",
+   "pass": true
+  },
+  {
+   "name": "older #A completes later: positive but NOT applied; confirmed stays #B",
+   "pass": true
+  },
+  {
+   "name": "older #A row shows 값 미반영 badge",
+   "pass": true
+  },
+  {
+   "name": "voltage decode consistent with raw bytes (u16 x 0.01)",
+   "pass": true
+  },
+  {
+   "name": "uncatalogued DID 1234: SIM ECU answers 7F 22 31",
+   "pass": true
+  },
+  {
+   "name": "every positive: field offsets cover PDU; every confirmed value = decode(source txn bytes)",
+   "pass": true
+  },
+  {
+   "name": "filter current ECU (GW, none): selection cleared, detail empty, honest empty text",
+   "pass": true
+  },
+  {
+   "name": "keyboard ArrowDown selects next txn",
+   "pass": true
+  },
+  {
+   "name": "keyboard End selects last txn and detail follows",
+   "pass": true
+  },
+  {
+   "name": "confirmed provenance link selects source txn",
+   "pass": true
+  },
+  {
+   "name": "export JSON: all txns, exact bytes, statuses, late flagged",
+   "pass": true
+  },
+  {
+   "name": "export CSV: header + 9 rows, downloads triggered",
+   "pass": true
+  },
+  {
+   "name": "SIM panel renders scenario radios + note",
+   "pass": true
+  },
+  {
+   "name": "SIM scenario click updates summary + enables NRC select only",
+   "pass": true
+  },
+  {
+   "name": "storage: only own prefix key, unrelated key kept",
+   "pass": true
+  },
+  {
+   "name": "storage: no history / link state persisted",
+   "pass": true
+  },
+  {
+   "name": "clear: only in-flight txn remains, confirmed values kept",
+   "pass": true
+  },
+  {
+   "name": "confirmed provenance survives eviction text (#2)",
+   "pass": true
+  },
+  {
+   "name": "reload: ECU/route/DID/SIM restored",
+   "pass": true
+  },
+  {
+   "name": "reload: no txn, no link, no timers",
+   "pass": true
+  },
+  {
+   "name": "corrupt prefs fall back to defaults",
+   "pass": true
+  },
+  {
+   "name": "history bounded to limit, in-flight txn never evicted",
+   "pass": true
+  },
+  {
+   "name": "U2: <=560 uses block/flex flow (mod block, wsp+detail flex column, center block), no grid row tracks, divider hidden",
+   "pass": true
+  }
+ ]
+}
