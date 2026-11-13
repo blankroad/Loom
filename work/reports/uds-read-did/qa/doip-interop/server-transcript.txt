@@ -1,0 +1,26 @@
+2026-11-14 08:31:45,866 - doip_server.doip_server - INFO - TCP connection from ('127.0.0.1', 52400)
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Processing routing activation request
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Client Logical Address: 0x0E80
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Logical Address: 0x0000
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Response Code: 0x00
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Reserved: 0x00000000
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Routing activation accepted for client 0x0E80
+2026-11-14 08:31:45,867 - doip_server.doip_server - INFO - Routing activation response: Unknown response code: 0x10
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Processing diagnostic message
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Source Address: 0x0E80
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Target Address: 0x1001
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - UDS Payload: 22f190
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - UDS Payload: 22F190
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Processing UDS service: vin for ECU 0x1001
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Returning response 1/1 for service vin: 62F1904c4f4f4d494e5445524f5030303030303031
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Added diagnostic message acknowledgment to response list
+2026-11-14 08:31:45,884 - doip_server.doip_server - INFO - Added UDS response to response list
+2026-11-14 08:31:45,897 - doip_server.doip_server - INFO - Processing diagnostic message
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Source Address: 0x0E80
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Target Address: 0x1001
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - UDS Payload: 22ffff
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - UDS Payload: 22FFFF
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Processing UDS service: negative for ECU 0x1001
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Returning response 1/1 for service negative: 7F2231
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Added diagnostic message acknowledgment to response list
+2026-11-14 08:31:45,898 - doip_server.doip_server - INFO - Added UDS response to response list

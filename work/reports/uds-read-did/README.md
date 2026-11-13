@@ -60,3 +60,5 @@ CAN-TP 분할·흐름 제어와 EthDiag 벤더 프레이밍은 향후 해당 어
 The local SIM workbench includes saved commands/recent requests, Watch charts, sequential macros, trace filters/pause, IndexedDB recording and offline log import, resizable/named layouts, editable ECU/DID catalogues, session/TesterPresent/DTC controls, and project export/import with rollback. Final source and native browser acceptance: [qa/team/REVIEW.md](qa/team/REVIEW.md) (625 source checks; 1440/768/390px).
 
 The browser's Connect button currently operates the local JavaScript simulator. It does not open a TCP socket to a real DoIP server. Native Rust DoIP support and its loopback verification are separate; an HTTP/WebSocket bridge is still needed to use them from this workbench.
+
+An independent external `doip-server` TCP/DoIP smoke now verifies native connect/Routing Activation, VIN, NRC and server-loss handling with the existing built CLI. See [external interoperability evidence and remaining browser integration](qa/doip-interop/REVIEW.md). This is distinct from browser-to-server integration and from the newly refactored Rust source's earlier tests.

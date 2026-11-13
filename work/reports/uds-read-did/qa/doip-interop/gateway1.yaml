@@ -1,0 +1,13 @@
+gateway:
+  ecus:
+  - ecu.yaml
+  logical_address: 4096
+  name: LoomInterop
+  network:
+    host: 127.0.0.1
+    max_connections: 5
+    port: 52388
+    timeout: 30
+  protocol:
+    inverse_version: 253
+    version: 2

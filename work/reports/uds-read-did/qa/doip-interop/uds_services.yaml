@@ -1,0 +1,16 @@
+common_services:
+  extended:
+    name: Extended
+    request: '1003'
+    responses:
+    - 5003003201F4
+  negative:
+    name: UnknownDID
+    request: 22FFFF
+    responses:
+    - 7F2231
+  vin:
+    name: VIN
+    request: 22F190
+    responses:
+    - 62F1904c4f4f4d494e5445524f5030303030303031

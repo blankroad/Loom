@@ -1,0 +1,8 @@
+ecu:
+  name: BCM interop
+  target_address: 4097
+  tester_addresses:
+  - 3712
+  uds_services:
+    service_files:
+    - uds_services.yaml
