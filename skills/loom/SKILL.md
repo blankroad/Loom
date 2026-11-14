@@ -11,7 +11,8 @@ read and write live in the Loom UI and can type, STOP, or change policy. Results
 
 ## Rules
 1. **Devices only through `loom`.** Never open serial ports, sockets, vendor tools or DLLs yourself.
-2. **Arguments come from help, not memory:** `loom help --json`, `loom <domain> help --json`.
+2. **Arguments come from help, not memory:** `loom <domain> help --json` for the domain you use.
+   The all-domain `loom help --json` is ~60 KB; read it only when you don't know the domain.
 3. **Make yourself visible.** If a result warns `no_viewer_attached` (or `no_visible_viewer`), ask
    the user to run `loom ui` in *their* terminal. Never retrieve a user's login code. For explicitly
    requested UI acceptance against your own isolated local simulator daemon, use the watch-only
@@ -43,6 +44,14 @@ loom <domain> help --json           # e.g. loom echo help --json
 loom echo send hello                # sample loopback domain
 ```
 Cursors: `@last` · `now` · `seq:N` · `e<epoch>:seq:N` · `mark:<label>` · `-5s`/`-250ms`.
+
+## Waiting for something on a device
+For "tell me when X appears", "the first X after now" or "does X happen within N s", use the
+domain's blocking wait verb if it has one (UART: `loom uart expect`, see that skill); it returns
+as soon as X matches. Bound it by the user's window (none given: ≤ 120 s, and say so). A wait
+covers only the time after it armed. Quote evidence verbatim from one decoded record:
+never splice records or fill in output that was truncated; re-read that range instead. Stop any
+`--follow` you started before you answer.
 
 ## When things fail
 `references/exit-codes.md` (what to do per exit code) · `references/envelope.md` (fields) ·
