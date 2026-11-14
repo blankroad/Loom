@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loom 통합 관측 · Fable 핵심 패널안</title>
+<meta name="description" content="Fable 개정 2: 통합 보기는 서비스 전체가 아니라 핵심 관측면만 보인다 — UART 세션 터미널(세션/포트/보레이트/연결/RX·TX 헤더), UDS 트랜잭션 트레이스+응답 순서/해석/바이트/확정 값. 원본 문서를 같은 origin iframe에 한 번만 띄우고 adapter CSS로 카탈로그·네비·연결 폼·매크로·전역 툴바를 숨긴다(원본 DOM·상태 보존). 에이전트가 조작하고 compact strip이 대상/단계/근거를 보인다. 모든 데이터는 원본 로컬 SIM, 엔진 미연결.">
+<link rel="stylesheet" href="styles.css?v=20261114d-opusfix">
+</head>
+<body>
+<div class="app" id="app" data-tab="combined">
+  <header class="top">
+    <span class="brand"><span class="logo">L</span>Loom</span>
+    <nav class="tabs" role="tablist" aria-label="상위 탭">
+      <button type="button" role="tab" id="tabCombined" data-tab="combined" aria-selected="true">통합 관측</button>
+      <button type="button" role="tab" id="tabAgent" data-tab="agent" aria-selected="false">에이전트 작업</button>
+    </nav>
+    <details class="menu" id="panelMenu">
+      <summary class="btn ghost" title="표시할 관측면(서비스)과 배치. 세션 단위 표시/숨김은 아래 세션 칩에서">패널 ▾</summary>
+      <div class="menu-body">
+        <div class="side-h"><b>관측면</b></div>
+        <ul class="svc-list" id="svcList"></ul>
+        <div class="side-h"><b>배치</b></div>
+        <div class="row">
+          <button type="button" class="btn sm" data-cmd="preset" data-preset="col">세로 쌓기</button>
+          <button type="button" class="btn sm" data-cmd="preset" data-preset="row">가로 나열</button>
+          <button type="button" class="btn sm" data-cmd="preset" data-preset="uart-right">UART | UDS/ETH</button>
+        </div>
+        <p class="note">패널 최소 560×300. 축소(scale) 없음 — 부족하면 스크롤/최대화. 구분선 드래그로 크기 조절. 숨김은 상태 유지, ⏏만 unload.</p>
+      </div>
+    </details>
+    <span class="grow"></span>
+    <span class="chip warn" title="모든 패널 데이터는 각 원본 모듈의 로컬 SIM. 실제 Loom 엔진/daemon에 연결되어 있지 않음. 에이전트 작업/단계/근거는 프로토타입 고정 데이터">원본 SIM · 엔진 미연결 · 작업은 목업</span>
+    <button type="button" class="btn ghost" id="btnShell" aria-pressed="false" title="모든 adapter를 끄고 원본 outer shell(헤더/상태바/툴바)을 그대로 보인다 — 원본 파일은 변경하지 않음. 검사용">원본 shell 보기</button>
+    <button type="button" class="btn ghost" id="btnCheck" aria-expanded="false" aria-controls="checkPanel">검사</button>
+    <button type="button" class="btn stop" id="btnHwStop" title="하드웨어 STOP: 모든 장치 출력을 멈추는 엔진 명령. 이 목업은 엔진 미연결이라 동작 시뮬레이션만 함. 작업 취소와 다름">■ 하드웨어 STOP</button>
+  </header>
+
+  <!-- 에이전트 운영 strip: 대상 · 작업 · 단계 · 상태 · 근거 · 시각 + 사용자 제어(일시정지/취소/시연) -->
+  <section class="agent" id="agentStrip" aria-label="에이전트 운영 상태"></section>
+  <!-- 세션/채널 단위 식별 칩: UART·mcu, UART·aux, UDS·BCM … (원본 frame DOM에서 1초마다 읽음). 클릭=해당 세션으로 포커스, 체크=표시/숨김 -->
+  <section class="sessions" id="sessStrip" aria-label="세션·채널"></section>
+
+  <div class="body">
+    <aside class="side side-agent" id="sideAgent" aria-label="에이전트 작업 목록과 타임라인" hidden>
+      <div class="side-h"><b>작업</b><span class="grow"></span><span class="chip tiny">목업 데이터</span></div>
+      <ul class="task-list" id="taskList"></ul>
+      <div class="task-cur" id="taskCur"></div>
+      <div class="side-h"><b>타임라인</b></div>
+      <ol class="timeline" id="timeline"></ol>
+      <p class="note">작업 <b>취소</b>는 에이전트 단계만 중단한다. 장치 출력을 멈추려면 상단 <b>하드웨어 STOP</b>. 승인 요구 없음. "시연 실행"은 이 프로토타입이 원본 SIM 패널의 자체 입력을 대신 눌러 보는 것이며 실제 에이전트/엔진이 아니다.</p>
+    </aside>
+
+    <main class="main" id="main">
+      <div class="layout-scroll" id="layoutScroll">
+        <div class="layout" id="layout"></div>
+      </div>
+      <div class="frame-host" id="frameHost"></div>
+    </main>
+  </div>
+
+  <section class="check" id="checkPanel" hidden aria-label="재사용 검사">
+    <div class="side-h"><b>검사 — 핵심면 표시 / 비핵심 chrome 숨김(DOM 보존) / frame 상태 보존</b><span class="grow"></span><button type="button" class="btn sm" data-cmd="run-check">다시 검사</button><button type="button" class="ibtn" data-cmd="close-check">×</button></div>
+    <div class="check-body" id="checkBody"></div>
+  </section>
+  <footer class="status" id="status"><span id="stLeft"></span><span class="grow"></span><span>Fable 핵심 패널 목업 · 원본 파일 무변경 · 모델 claude-fable-5-1</span></footer>
+</div>
+<script src="app.js?v=20261114c"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Loom · Astra original panels</title><link rel="stylesheet" href="styles.css?v=20261114d-opusfix"></head>
+<body>
+<header class="top"><b class="brand">L <span>Loom</span></b><nav aria-label="작업 보기"><button data-view="integrated" aria-pressed="true">통합 보기</button><button data-view="task" aria-pressed="false">에이전트 작업</button></nav><span class="grow"></span><small>Bench Light</small><b class="sim">DEMO · 엔진 미연결</b></header>
+<div class="tools"><strong>패널 조합</strong><label><input type="checkbox" data-service="uart" checked>UART</label><label><input type="checkbox" data-service="uds" checked>UDS</label><label><input type="checkbox" data-service="eth">Ethernet</label><span class="divider"></span><button id="stack" aria-pressed="true">위아래</button><button id="columns" aria-pressed="false">좌우</button><button id="restore">전체 복원</button><span class="grow"></span><small>전체 조작은 서비스 열기</small><span title="제품 CAN 패널은 SDK/store/scheduler가 필요하며 독립 HTML 없음">CAN · 독립 소스 없음</span></div>
+<div class="agent-strip" role="status"><b>DEMO 관측</b><span id="agentTarget">대상 준비 중</span><span id="agentStep">시작 전</span><span id="agentEvidence">근거 대기</span><span class="grow"></span><button disabled class="stop" title="실제 엔진 STOP 바인딩 없음">STOP · 미연결</button></div>
+<div class="body">
+<aside id="tasks" hidden><b>작업 01 · 관측</b><small>수동 실행 / SIM</small><ol><li id="step1">원본 준비</li><li id="step2">UDS 응답 기다림</li><li id="step3">응답 근거 검토</li></ol><label>대기 조건<select id="waitFor"><option value="txn">UDS 트랜잭션 이벤트</option><option value="link">UDS 연결 이벤트</option></select></label><button id="observe">관측 시작</button><button id="cancel" disabled>작업 취소</button><small id="taskState" role="status">시작 전</small><hr><button disabled title="실장비에 연결되지 않은 목업입니다">하드웨어 STOP · 미연결</button><small>작업 취소는 관측만 종료합니다. 원본 세션과 캡처는 계속됩니다.</small></aside>
+<main><div id="workspace" class="stack" aria-label="원본 서비스 작업 공간"></div>
+<section id="journal" hidden><header><b>원본 UDS 이벤트 / 응답 로그</b><span class="grow"></span><label><input id="follow" type="checkbox" checked>자동 스크롤</label><button id="clear">표시 지우기</button></header><div id="events" role="log" tabindex="0"><p class="empty">LoomWorkbench.subscribe의 원본 SIM 이벤트를 기다립니다. UDS의 서비스 열기에서 연결·읽기를 실행하면 요청과 응답이 표시됩니다.</p></div></section></main>
+</div>
+<footer id="health" aria-label="모듈 관측 상태"><span>원본 구독 준비 중</span></footer>
+<script src="app.js?v=20261114d-opusfix"></script></body></html>

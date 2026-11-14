@@ -1,0 +1,41 @@
+/* Presentation adapter only. Removing the root attribute restores the same full service. */
+html[data-astra-core] .shell {height:100dvh!important;min-height:0!important;display:grid!important;grid-template: minmax(0,1fr) / minmax(0,1fr)!important;overflow:hidden}
+html[data-astra-core] .shell > .shell-hdr,
+html[data-astra-core] .shell > .shell-status {display:none!important}
+html[data-astra-core] .shell > main {grid-area:1/1!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+html[data-astra-core] #modUart {display:grid!important;grid-template: minmax(0,1fr) / minmax(0,1fr)!important}
+html[data-astra-core] #modUart > :not(#work) {display:none!important}
+html[data-astra-core] #work {grid-area:1/1!important;min-height:0!important;overflow:hidden}
+html[data-astra-core] #treeRoot {position:absolute!important;inset:0!important;display:flex!important}
+html[data-astra-core] #treeRoot .pane {min-height:0!important}
+html[data-astra-core] .tab-add,
+html[data-astra-core] .tab .x,
+html[data-astra-core] .pane-acts [data-act="close-pane"],
+html[data-astra-core] .ph-tools > :not(.seg):not([data-act="pause"]):not([data-act="ts-toggle"]):not([data-act="search"]),
+html[data-astra-core] .conn-overlay button,
+html[data-astra-core] .run-strip {display:none!important}
+html[data-astra-core] .phead {flex-wrap:wrap!important;gap:2px!important;padding:2px 6px!important}
+html[data-astra-core] .tabstrip {height:25px!important}
+html[data-astra-core] #modEth {display:grid!important;grid-template: auto minmax(0,1fr) / minmax(0,1fr)!important}
+html[data-astra-core] #modEth > .mtbar,
+html[data-astra-core] #chbar,
+html[data-astra-core] #sock {display:none!important}
+html[data-astra-core] #modEth > .fbar {grid-area:1/1!important;padding:2px 6px!important}
+html[data-astra-core] #modEth > #wsp {grid-area:2/1!important;display:flex!important;min-height:0!important}
+html[data-astra-core] #cap {grid-template-rows:minmax(0,var(--list-h,52%)) 6px minmax(0,1fr)!important;padding:0!important}
+html[data-astra-core] #lower {grid-template-columns:minmax(0,var(--dtl-w,55%)) 6px minmax(0,1fr)!important}
+html[data-astra-core] #modUds {display:grid!important;grid-template:minmax(0,1fr) / minmax(0,1fr)!important}
+html[data-astra-core] #modUds > :not(#wsp),
+html[data-astra-core] #didPane,
+html[data-astra-core] #didRail,
+html[data-astra-core] #vals,
+html[data-astra-core] #valsRail,
+html[data-astra-core] #req,
+html[data-astra-core] #traceToolsMount {display:none!important}
+/* Reset named areas AND explicit positions: hidden siblings must not leave implicit tracks. */
+html[data-astra-core] #modUds #wsp {grid-area:1/1!important;display:grid!important;grid-template:minmax(0,1fr) / minmax(0,1fr)!important;padding:0!important;gap:0!important;min-height:0!important}
+html[data-astra-core] #center {grid-area:1/1!important;display:grid!important;grid-template:minmax(0,var(--hist-h,48%)) 6px minmax(0,1fr) / minmax(0,1fr)!important;min-height:0!important;overflow:hidden!important}
+html[data-astra-core] #hist {grid-area:1/1!important;min-height:0!important}
+html[data-astra-core] #divHist {grid-area:2/1!important}
+html[data-astra-core] #detail {grid-area:3/1!important;display:grid!important;grid-template:minmax(0,1fr) / minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr)!important;min-height:0!important;overflow:hidden}
+html[data-astra-core] #detail > * {grid-area:auto!important;min-height:0!important;min-width:0!important;overflow:auto}

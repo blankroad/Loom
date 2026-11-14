@@ -1,0 +1,150 @@
+:root {
+  --bg: #f6f7f9; --sf: #ffffff; --line: #d9dde3; --line2: #e8ebef; --text: #1b1f24; --muted: #5b6470; --faint: #98a1ab;
+  --acc: #2f6fed; --acc-bg: #e8efff; --ok: #1f9d55; --warn: #c27c0e; --err: #c8323a; --radius: 6px;
+  font-family: -apple-system, "Pretendard", "Noto Sans KR", system-ui, sans-serif; font-size: 13px; color: var(--text);
+}
+/* Bench Light(밝음) 기본. 어두운 outer shell은 data-theme="dark"로만. 터미널(xterm)은 원본 모듈이 자체적으로 어둡게 유지 */
+:root[data-theme="dark"] { --bg:#15181c; --sf:#1c2026; --line:#2c323a; --line2:#242930; --text:#e6e9ee; --muted:#9aa4b0; --faint:#66707c; --acc-bg:#1d2a46; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); }
+.app { height: 100dvh; display: grid; grid-template-rows: 40px auto auto minmax(0,1fr) auto 22px; }
+.top { display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--sf); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.logo { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--acc); color: #fff; font-size: 12px; }
+.tabs { display: flex; height: 40px; margin-left: 6px; }
+.tabs button { background: none; border: 0; padding: 0 12px; color: var(--muted); font: inherit; font-weight: 500; cursor: pointer; position: relative; }
+.tabs button[aria-selected="true"] { color: var(--text); font-weight: 600; }
+.tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 0; height: 2px; background: var(--acc); border-radius: 2px; }
+.grow { flex: 1; }
+.chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.warn { border-color: var(--warn); color: var(--warn); }
+.chip.tiny { font-size: 10px; padding: 0 6px; }
+.chip.agent { border-color: #b9ccff; background: var(--acc-bg); color: var(--acc); font-weight: 600; }
+.btn { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--sf); color: var(--text); cursor: pointer; }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 2px 8px; font-size: 11.5px; }
+.btn.xs { padding: 1px 7px; font-size: 11px; line-height: 16px; }
+.btn.xs.on { background: var(--acc-bg); border-color: #b9ccff; color: var(--acc); }
+.btn.demo { border-style: dashed; color: var(--warn); border-color: var(--warn); }
+.btn.stop { border-color: var(--err); color: var(--err); font-weight: 600; }
+.btn[aria-pressed="true"] { background: var(--acc); color: #fff; border-color: var(--acc); }
+.btn:disabled { opacity: .45; cursor: default; }
+.ibtn { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 5px; font-size: 13px; text-decoration: none; }
+.ibtn:hover { color: var(--text); }
+.ibtn:disabled { opacity: .35; cursor: default; }
+.ibtn.tiny { font-size: 11px; padding: 0 3px; }
+
+/* 패널 메뉴(사이드바 카탈로그 대신 드롭다운) */
+.menu { position: relative; }
+.menu summary { list-style: none; display: inline-block; }
+.menu summary::-webkit-details-marker { display: none; }
+.menu-body { position: absolute; top: 30px; left: 0; z-index: 20; width: 300px; background: var(--sf); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 28px rgba(31,35,40,.16); padding: 6px 10px 10px; display: grid; gap: 6px; }
+.side-h { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; }
+.note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.45; }
+.row { display: flex; flex-wrap: wrap; gap: 4px; }
+.svc-list, .task-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.svc { border: 1px solid var(--line); border-radius: var(--radius); padding: 5px 8px; display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 1px 8px; align-items: center; }
+.svc .nm { font-weight: 600; }
+.svc .st { font-size: 11px; color: var(--muted); grid-column: 2 / 4; }
+.svc.na { border-style: dashed; } .svc.na .nm { color: var(--muted); }
+
+/* 에이전트 운영 strip: 한 줄, 대상 · 작업 · 단계 · 상태 · 근거 · 최근 */
+.agent { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--sf); border-bottom: 1px solid var(--line2); font-size: 12px; overflow-x: auto; white-space: nowrap; min-height: 30px; }
+.agent .k { color: var(--faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: .02em; margin-left: 6px; }
+.agent .k:first-child { margin-left: 0; }
+.agent .val { font-weight: 500; }
+.agent .val.tgt { font: 600 12px ui-monospace, Menlo, monospace; color: var(--acc); background: var(--acc-bg); border: 1px solid #b9ccff; border-radius: 9px; padding: 1px 8px; cursor: pointer; }
+.agent .val.step { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; }
+.agent .val.time { color: var(--muted); font-size: 11px; max-width: 26vw; overflow: hidden; text-overflow: ellipsis; }
+.agent .ev { color: var(--acc); text-decoration: underline; cursor: pointer; font-size: 11.5px; }
+.chip.st.run { color: var(--acc); border-color: var(--acc); } .chip.st.wait { color: var(--warn); border-color: var(--warn); } .chip.st.done { color: var(--ok); border-color: var(--ok); } .chip.st.fail, .chip.st.cancel { color: var(--err); border-color: var(--err); } .chip.st.pause { color: var(--muted); }
+
+/* 세션/채널 칩 */
+.sessions { display: flex; align-items: center; gap: 6px; padding: 3px 10px; background: var(--bg); border-bottom: 1px solid var(--line); overflow-x: auto; white-space: nowrap; min-height: 28px; }
+.sess-wrap { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; background: var(--sf); }
+.sess { font: inherit; font-size: 11px; border: 0; background: none; color: var(--muted); padding: 1px 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 9px; }
+.sess b { color: var(--text); font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+.sess .sub { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: var(--faint); }
+.sess .st { font-size: 10.5px; }
+.sess .dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+.sess.on .dot { background: var(--ok); box-shadow: none; } .sess.on .st { color: var(--ok); }
+.sess .fresh { font-size: 10px; color: var(--faint); }
+.sess.hid, .sess.off { opacity: .5; } .sess.hid b { text-decoration: line-through; }
+.sess.target { background: var(--acc-bg); }
+.sess-wrap:has(.sess.target) { border-color: #b9ccff; }
+
+.body { display: grid; grid-template-columns: auto minmax(0,1fr); min-height: 0; position: relative; }
+.side { width: 290px; border-right: 1px solid var(--line); background: var(--sf); overflow: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.side[hidden] { display: none; }
+
+.main { display: grid; grid-template-rows: minmax(0,1fr); min-width: 0; position: relative; }
+.layout-scroll { overflow: auto; min-height: 0; position: relative; }
+.layout { display: flex; min-width: 100%; height: 100%; min-height: 100%; }
+.col { display: flex; flex-direction: column; min-width: 560px; flex: 1 1 0; }
+.slot { position: relative; flex: 1 1 0; min-height: 300px; display: flex; flex-direction: column; border: 1px solid var(--line); background: var(--sf); }
+.slot.target { border-color: #b9ccff; }
+.slot-h { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 6px; background: var(--bg); border-bottom: 1px solid var(--line2); font-size: 11.5px; white-space: nowrap; }
+.slot.target .slot-h { background: var(--acc-bg); }
+.slot-h .nm { font-weight: 600; }
+.slot-h .ident { color: var(--muted); font-family: ui-monospace, Menlo, monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.slot-h .chip.agent { overflow: hidden; text-overflow: ellipsis; max-width: 46%; }
+.slot-body { flex: 1; min-height: 0; } /* iframe 좌표 동기화 대상 */
+.slot.na .slot-body { padding: 14px; color: var(--muted); font-size: 12px; line-height: 1.5; overflow: auto; }
+.slot.na code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+.layout.maxed .slot:not(.max), .layout.maxed .div { display: none; }
+.layout.maxed .col:not(:has(.max)) { display: none; }
+.layout.maxed .col { min-width: 0; }
+.div { flex: none; background: var(--line); }
+.div.v { width: 5px; cursor: col-resize; } .div.h { height: 5px; cursor: row-resize; }
+.div:hover { background: var(--acc); }
+
+.frame-host { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.frame-host iframe { position: absolute; border: 0; pointer-events: auto; background: var(--sf); }
+.frame-host iframe[data-hidden="1"] { visibility: hidden; pointer-events: none; }
+
+.task { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; cursor: pointer; display: grid; gap: 2px; }
+.task[aria-current="true"] { border-color: var(--acc); }
+.task .t { font-weight: 600; font-size: 12px; }
+.task .s { font-size: 11px; color: var(--muted); }
+.task .st { font-size: 10.5px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--line); width: max-content; }
+.task .st.run { color: var(--acc); border-color: var(--acc); } .task .st.wait { color: var(--warn); border-color: var(--warn); } .task .st.done { color: var(--ok); border-color: var(--ok); } .task .st.fail, .task .st.cancel { color: var(--err); border-color: var(--err); }
+.task-cur { border-top: 1px solid var(--line); padding-top: 6px; font-size: 11.5px; display: grid; gap: 4px; }
+.task-cur ol { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+.task-cur li.cur { font-weight: 600; } .task-cur li.done { color: var(--muted); }
+.task-cur .ev { font-size: 11px; color: var(--muted); }
+.task-cur .ev a, .agent .ev { color: var(--acc); cursor: pointer; text-decoration: underline; }
+.task-cur .err { color: var(--err); }
+.timeline { margin: 0; padding: 0; list-style: none; font-size: 11px; display: grid; gap: 3px; color: var(--muted); }
+.timeline time { font-family: ui-monospace, Menlo, monospace; color: var(--faint); }
+
+.check { border-top: 1px solid var(--line); background: var(--sf); padding: 4px 10px 8px; max-height: 38vh; overflow: auto; }
+.check-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; margin-top: 4px; }
+.ck { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; font-size: 11.5px; }
+.ck b { display: block; margin-bottom: 3px; }
+.ck ul { margin: 0; padding-left: 16px; }
+.ck .ok { color: var(--ok); } .ck .bad { color: var(--err); } .ck .na { color: var(--muted); }
+.status { display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); background: var(--sf); }
+.toast { position: fixed; right: 12px; bottom: 30px; background: var(--sf); padding: 6px 10px; z-index: 9; }
+
+/* 개정 2 보강: strip 가독성 — 항목 구분선, 고정 높이, 패널 영역이 즉시 남은 뷰포트를 채움 */
+.agent { height: 32px; min-height: 32px; gap: 8px; }
+.agent .k { padding-left: 8px; border-left: 1px solid var(--line2); line-height: 18px; }
+.agent .k:first-child { padding-left: 0; border-left: 0; }
+.agent .val.step { max-width: 30vw; }
+.agent .val.time { max-width: 22vw; }
+.agent .chip.st { max-width: 24vw; overflow: hidden; text-overflow: ellipsis; }
+.sessions { height: 30px; min-height: 30px; }
+.sessions .note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+.app { grid-template-rows: 40px 32px 30px minmax(0,1fr) auto 22px; }
+.body, .main, .layout-scroll { min-height: 0; height: 100%; }
+
+/* Opus w26 QA fix (2026-11-14, ROOT-assigned narrow fix; not original Fable output):
+   1) In the combined tab #sideAgent is [hidden] (display:none), so .main was auto-placed into the
+      content-sized `auto` column and the 1fr column stayed empty (main 787/560/427 px of 1908).
+      Pin .main to the last column; an `auto` track with no items collapses to 0.
+   2) With #checkPanel hidden, the footer fell into the `auto` row (15 px) leaving 22 px blank.
+      Pin check panel and footer to explicit rows. */
+.body > .side { grid-column: 1; }
+.body > .main { grid-column: 2; }
+.app > .check { grid-row: 5; }
+.app > .status { grid-row: 6; }
