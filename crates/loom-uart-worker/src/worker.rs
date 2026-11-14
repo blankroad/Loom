@@ -281,10 +281,12 @@ impl UartWorker {
         let channel = arg_str(op, "alias")
             .map(str::to_owned)
             .unwrap_or_else(|| default_alias(&target));
-        let sim_pty = lock(&self.inner.sim_ptys).contains(&target) || live_sim_pty(&target);
+        // Simulator provenance controls the default environment. The serial transport detects
+        // external macOS PTY descriptors independently; they must not become internal SIMs.
+        let sim_issued_pty = lock(&self.inner.sim_ptys).contains(&target) || live_sim_pty(&target);
         let env = match arg_str(op, "env") {
             Some(s) => parse_env(s).ok_or_else(|| werr(ErrorCode::Usage, format!("bad env '{s}'")))?,
-            None if target.starts_with(SIM_SCHEME) || sim_pty => Env::Sim,
+            None if target.starts_with(SIM_SCHEME) || sim_issued_pty => Env::Sim,
             None => Env::Bench,
         };
 
@@ -304,7 +306,7 @@ impl UartWorker {
         }
 
         let opts = OpenOpts {
-            sim_pty,
+            sim_pty: sim_issued_pty,
             ..OpenOpts::default()
         };
         let transport = match injected {

@@ -1,4 +1,4 @@
-//! `SerialTransport` — real serial ports and sim-issued pty slaves (UART plan §7.2, §7.3, §9.1).
+//! `SerialTransport` — real serial ports and pty slaves (UART plan §7.2, §7.3, §9.1).
 //!
 //! Unix design (no `unsafe`): `serialport` only exposes the `TTYPort` fd as a `RawFd`, and turning
 //! that into a `BorrowedFd` needs `unsafe`. So the data path uses its **own** descriptor: the path
@@ -25,8 +25,9 @@ pub struct OpenOpts {
     pub dtr: Option<bool>,
     /// RTS level to apply explicitly after open; `None` leaves the line untouched (§7.3).
     pub rts: Option<bool>,
-    /// The path is a pty slave issued by Loom's own sim harness. Only then is the baud ioctl
-    /// skipped (macOS ptys reject it with `ENOTTY`, §9.1 / DR-V18). Never set for real devices.
+    /// Provenance: the path is a pty slave issued by Loom's own sim harness. This preserves
+    /// its transport label on other platforms; macOS baud handling uses descriptor identity,
+    /// independently of this flag. Never set for external ptys or real devices.
     pub sim_pty: bool,
 }
 
@@ -114,6 +115,47 @@ mod imp {
     use serialport::SerialPort;
     use std::os::fd::{AsFd, BorrowedFd, OwnedFd};
 
+    /// Identify the macOS PTY slave driver from kernel descriptor properties, not a supplied
+    /// filename or an ENOTTY baud failure. A fresh openpty supplies the platform's slave device
+    /// major; its master has a different major. Symlinks to ptys therefore work too. Neither
+    /// this probe nor the external pty is registered as an internal simulator.
+    #[cfg(target_os = "macos")]
+    fn native_pty_slave(fd: BorrowedFd<'_>) -> io::Result<bool> {
+        use nix::libc::major;
+        use nix::sys::stat::{SFlag, fstat};
+
+        let candidate = fstat(fd)?;
+        if SFlag::from_bits_truncate(candidate.st_mode & SFlag::S_IFMT.bits()) != SFlag::S_IFCHR {
+            return Ok(false);
+        }
+        // If a reference cannot be allocated, retain ordinary serial baud/error handling.
+        let Ok(reference) = nix::pty::openpty(None, None) else {
+            return Ok(false);
+        };
+        let slave = fstat(&reference.slave)?;
+        let master = fstat(&reference.master)?;
+        let slave_major = major(slave.st_rdev);
+        Ok(slave_major != major(master.st_rdev) && major(candidate.st_rdev) == slave_major)
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn native_pty_slave(_fd: BorrowedFd<'_>) -> io::Result<bool> {
+        Ok(false)
+    }
+
+    #[cfg(all(test, target_os = "macos"))]
+    #[test]
+    fn pty_identity_excludes_master_and_other_descriptors() {
+        let pair = nix::pty::openpty(None, None).expect("reference pair");
+        assert!(native_pty_slave(pair.slave.as_fd()).expect("slave identity"));
+        assert!(!native_pty_slave(pair.master.as_fd()).expect("master identity"));
+        let null = std::fs::File::open("/dev/null").expect("non-PTY character device");
+        assert!(!native_pty_slave(null.as_fd()).expect("other character driver"));
+        let file =
+            std::fs::File::open(concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml")).expect("ordinary file");
+        assert!(!native_pty_slave(file.as_fd()).expect("regular file"));
+    }
+
     /// Real serial port or sim pty slave (Unix).
     pub struct SerialTransport {
         /// Owner of device settings, modem lines, break and the exclusive lock.
@@ -160,13 +202,10 @@ mod imp {
                     format!("{path} is not a tty"),
                 ));
             }
-            // macOS ptys reject the IOSSIOSPEED baud ioctl with ENOTTY; `serialport` skips it for
-            // baud 0. Only sim-issued ptys get this (§9.1); real devices always get their baud.
-            let sp_baud = if opts.sim_pty && cfg!(target_os = "macos") {
-                0
-            } else {
-                config.baud
-            };
+            // macOS ptys reject IOSSIOSPEED. Skip it only after proving this descriptor is a
+            // PTY slave; real serial devices still receive their requested baud and all errors.
+            let native_pty = native_pty_slave(data.as_fd())?;
+            let sp_baud = if native_pty { 0 } else { config.baud };
             let builder = serialport::new(path, sp_baud)
                 .timeout(Duration::from_millis(20))
                 .exclusive(opts.exclusive);
@@ -199,7 +238,7 @@ mod imp {
                 port,
                 data,
                 config: *config,
-                kind: if opts.sim_pty {
+                kind: if opts.sim_pty || native_pty {
                     TransportKind::Pty
                 } else {
                     TransportKind::Serial

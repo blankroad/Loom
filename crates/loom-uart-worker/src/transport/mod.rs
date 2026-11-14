@@ -1,6 +1,6 @@
 //! `transport` — byte transports for one UART port (UART plan §7.2, §7.3, §9.1).
 //!
-//! * [`SerialTransport`] — real ports and sim-issued pty slaves (`serialport` 4.10.1 for open /
+//! * [`SerialTransport`] — real ports and pty slaves (`serialport` 4.10.1 for open /
 //!   termios / modem lines; on Unix a nonblocking fd with `poll` + partial I/O + absolute
 //!   deadlines for data, §7.3).
 //! * [`SimTransport`] — in-process fake device behind fixed-size buffers (`sim://<scenario>`),
@@ -83,7 +83,8 @@ pub enum WriteOutcome {
 pub enum TransportKind {
     /// A real serial device.
     Serial,
-    /// A sim-issued pty slave opened through the real serial path.
+    /// A pty slave opened through the real serial path. This identifies the transport, not
+    /// internal SIM provenance; an external pty does not implicitly select the sim environment.
     Pty,
     /// In-process [`SimTransport`].
     Sim,
