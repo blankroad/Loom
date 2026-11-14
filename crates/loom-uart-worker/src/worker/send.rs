@@ -433,6 +433,7 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
         lane: TxLane::Agent,
         client_id: client.clone(),
         bytes: op.bytes.clone(),
+        secret: op.secret,
         deadline: Instant::now() + budget,
     };
     if let Err(e) = port.tx.submit(req) {
@@ -696,6 +697,7 @@ pub(crate) fn submit_user(
         lane,
         client_id: viewer.to_owned(),
         bytes: send.to_vec(),
+        secret: false,
         deadline: Instant::now() + Duration::from_secs(5),
     };
     if let Err(e) = port.tx.submit(req) {

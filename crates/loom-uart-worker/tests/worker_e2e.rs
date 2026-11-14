@@ -242,6 +242,24 @@ fn core_loop_open_expect_send_run_read() {
     let pass_req = rows_of(&evs, "l-pass")[0];
     assert!(pass_req.payload.get("bytes").is_none());
     assert_eq!(pass_req.payload["secret"]["len"], 7);
+    // ...and neither does its `uart.data` tx (live repro w20, 2026-11-14): length, secret marker
+    // and quality `redacted` only — no `bytes` in any shared record.
+    let pass_data: Vec<&PublishedRecord> = evs
+        .iter()
+        .filter(|e| e.kind == "uart.data" && e.request_id.as_deref() == Some("l-pass"))
+        .collect();
+    assert!(!pass_data.is_empty(), "secret tx still produces uart.data");
+    for d in &pass_data {
+        assert_eq!(d.dir, Some(Dir::Tx));
+        assert!(d.payload.get("bytes").is_none(), "{:?}", d.payload);
+        assert!(d.payload["secret"]["len"].as_u64().is_some());
+        assert!(d.quality.iter().any(|q| q == "redacted"), "{:?}", d.quality);
+    }
+    let all = serde_json::to_string(&evs).expect("json");
+    assert!(
+        !all.contains("c2VjcmV0") && !all.contains("736563726574") && !all.contains("\"secret\\r"),
+        "the password leaked into a published record"
+    );
     assert!(
         evs.iter()
             .any(|e| e.kind == "uart.expect_result" && e.request_id.as_deref() == Some("run-1"))

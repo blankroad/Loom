@@ -1,0 +1,15 @@
+    37811 B  hits=[]  work/reports/live-agent-ui/uart/native/06-events-all.json
+    17306 B  hits=[]  work/reports/live-agent-ui/uart/native/07-read-tail.json
+     4739 B  hits=[]  work/reports/live-agent-ui/uart/native/09-w3-events.json
+      804 B  hits=[]  work/reports/live-agent-ui/uart/native/05-send-secret.json
+     1962 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/manifest.json
+       56 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/uart.qa_uart_fixed/1/000001.idx
+    33185 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/uart.qa_uart_fixed/1/000001.lj.open
+    10272 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/_mapping/1794614502/000001.lj
+      104 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/_mapping/1794614502/000001.idx
+    11529 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/gateway/1794614502/000001.lj
+      104 B  hits=[]  $HOME_NEW/records/2026-11-14/s1794614502/gateway/1794614502/000001.idx
+     2458 B  hits=['hex']  $HOME_NEW/audit/audit-2026-11.jsonl
+        0 B  hits=[]  $HOME_NEW/run/loomd.lock
+      159 B  hits=[]  $HOME_NEW/run/daemon.json
+TOTAL_HITS 1

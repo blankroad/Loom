@@ -55,6 +55,7 @@ impl Session {
                 lane,
                 client_id: "test".into(),
                 bytes: bytes.to_vec(),
+                secret: false,
                 deadline: Instant::now() + WAIT,
             })
             .expect("submit");

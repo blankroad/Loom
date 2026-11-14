@@ -1,0 +1,5 @@
+test audit::tests::month_names ... ok
+test audit::tests::canonical_json_sorts_keys ... ok
+test daemon::audit_secret_tests::secret_args_lose_only_their_data ... ok
+test daemon::audit_secret_tests::audit_file_has_no_secret_bytes_and_chain_verifies ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.01s

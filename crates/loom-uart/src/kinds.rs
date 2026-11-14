@@ -98,10 +98,14 @@ pub fn specs() -> Vec<EventKindSpec> {
             DATA,
             json_schema!({
                 "type": "object",
-                "required": ["bytes", "len"],
+                "required": ["len"],
+                // Plain data must carry `bytes`; only --secret-env TX may omit them and then
+                // carries `secret{len}` instead (quality `redacted`).
+                "anyOf": [{"required": ["bytes"]}, {"required": ["secret"]}],
                 "properties": {
                     "bytes": bytes,
                     "len": {"type": "integer", "minimum": 0},
+                    "secret": {"type": "object", "description": "TX of --secret-env input: bytes omitted, quality redacted", "required": ["len"], "properties": {"len": {"type": "integer", "minimum": 0}}},
                     "rx_offset": {"type": "string", "description": "u64 decimal; RX only: offset of the first byte"}
                 }
             }),

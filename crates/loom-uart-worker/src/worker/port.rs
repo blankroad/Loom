@@ -443,7 +443,10 @@ impl Port {
                     };
                     c.source_seq = seq.0;
                     let payload = self.core().on_tx(&c);
-                    let data = tx_data_draft(payload, ts, origin, &c.client_id, rid, self.info.generation);
+                    let mut data = tx_data_draft(payload, ts, origin, &c.client_id, rid, self.info.generation);
+                    if c.secret {
+                        data.quality.push("redacted".to_owned());
+                    }
                     if self.emitter.data_with_seq(seq, data).is_err() {
                         self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
                     }

@@ -2040,7 +2040,7 @@ impl Daemon {
             return fail(ErrorCode::Denied, msg, Some(risk), detail).await;
         }
         // audit intent (R2+ synced before sending)
-        let intent = json!({"request_id": rid, "method": spec.method, "domain": domain, "channel": channel, "origin": c.origin(), "client_id": c.client_id, "risk": risk, "args": args});
+        let intent = json!({"request_id": rid, "method": spec.method, "domain": domain, "channel": channel, "origin": c.origin(), "client_id": c.client_id, "risk": risk, "args": audit_args(&args)});
         if let Err(e) = self.audit.append("write.intent", intent, risk >= Risk::R2).await {
             self.report_record_failed(&e.0);
             if gated {
@@ -2316,6 +2316,23 @@ fn call_channel(args: &Value) -> Option<String> {
         .find_map(|k| args.get(*k).and_then(Value::as_str))
         .filter(|c| !c.is_empty())
         .map(str::to_owned)
+}
+
+/// Request args as the audit log records them. A `secret: true` write (uart `send --secret-env`)
+/// keeps every field except `data`, which becomes `{"secret":{"len":N}}`; the device still gets the
+/// original `args`. No secret bytes in any shared record (live repro w3, 2026-11-14).
+fn audit_args(args: &Value) -> Value {
+    let mut out = args.clone();
+    if args.get("secret").and_then(Value::as_bool) == Some(true)
+        && let Some(data) = out.get_mut("data")
+    {
+        // `data` is hex (uart.send/run schema): two digits per byte, separators ignored.
+        let len = data
+            .as_str()
+            .map(|h| h.bytes().filter(u8::is_ascii_hexdigit).count() / 2);
+        *data = json!({"secret": {"len": len}});
+    }
+    out
 }
 
 fn err_body(code: ErrorCode, msg: &str, detail: Option<Value>) -> ErrorBody {
@@ -3004,5 +3021,60 @@ mod r1_scan_tests {
         assert_eq!(lock(&d.event_cursors).get("scan-r1"), Some(&from));
         d.shutdown_gracefully().await;
         running.server.abort();
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
+mod audit_secret_tests {
+    use super::*;
+
+    /// hex of `DummySecret1\r`, as `loom uart send --secret-env` puts it in `args.data`.
+    const SECRET_HEX: &str = "44756d6d79536563726574310d";
+
+    fn secret_send() -> Value {
+        json!({"channel": "qa_uart_fixed", "data": SECRET_HEX, "eol": "cr", "secret": true,
+               "expect": [{"kind": "prompt"}], "timeout_ms": 10000})
+    }
+
+    #[test]
+    fn secret_args_lose_only_their_data() {
+        let args = secret_send();
+        let a = audit_args(&args);
+        assert_eq!(a["data"], json!({"secret": {"len": 13}}));
+        for k in ["channel", "eol", "secret", "expect", "timeout_ms"] {
+            assert_eq!(a[k], args[k], "{k} kept");
+        }
+        // The device-bound args are untouched.
+        assert_eq!(args["data"], SECRET_HEX);
+        // Non-secret writes (and `secret: false`) are recorded verbatim.
+        let plain = json!({"channel": "dut", "data": "6c730d", "secret": false});
+        assert_eq!(audit_args(&plain), plain);
+        let plain = json!({"channel": "dut", "data": "6c730d"});
+        assert_eq!(audit_args(&plain), plain);
+    }
+
+    /// The real audit writer: the `write.intent` line carries no hex/base64 of the secret and the
+    /// hash chain still verifies.
+    #[test]
+    fn audit_file_has_no_secret_bytes_and_chain_verifies() {
+        let dir = tempfile::tempdir().unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+        let audit = Audit::start(dir.path().to_path_buf());
+        let args = secret_send();
+        rt.block_on(audit.append(
+            "write.intent",
+            json!({"request_id": "w3", "method": "uart.send", "risk": Risk::R1, "args": audit_args(&args)}),
+            true,
+        ))
+        .unwrap();
+        drop(audit);
+        let path = std::fs::read_dir(dir.path()).unwrap().next().unwrap().unwrap().path();
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.contains("write.intent") && text.contains("\"len\":13"), "{text}");
+        let lower = text.to_ascii_lowercase();
+        assert!(!lower.contains(&SECRET_HEX[..24]), "hex leaked: {text}");
+        assert!(!text.contains("DummySecret1") && !text.contains("RHVtbXlTZWNyZXQx"), "{text}");
+        crate::audit::verify_file(&path, "").expect("chain");
     }
 }

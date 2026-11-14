@@ -1,0 +1,3 @@
+# uart live agent/UI check
+
+Read ../TEAM.md first. Your module is uart, use skills/loom-uart/SKILL.md, own channel qa_uart_live. You own only this evidence directory and that module skill/reference if necessary; no shared code changes. Confirm CLI help first, then prove actual agent receives native simulated device traffic in real time. No external NIC/hardware. UI gate requires ROOT browser same backend; auth currently pending so record UI_WAIT. Prepare and run one bounded agent phase, preserve raw NDJSON receive times/correlations. Return READY_FOR_UI with exact channel, producer command and observer command; wait ROOT BEGIN_UI before new bounded cross-consumer phase. No auto renew. No daemon/otherworker stop.

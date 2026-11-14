@@ -1,0 +1,25 @@
+    Checking tempfile v3.27.0
+    Checking schemars v1.2.3
+    Checking anstyle-parse v1.0.0
+    Checking rusty-fork v0.3.1
+    Checking anstyle-query v1.1.5
+    Checking colorchoice v1.0.5
+    Checking anstyle v1.0.14
+    Checking is_terminal_polyfill v1.70.2
+    Checking proptest v1.12.0
+    Checking clap_lex v1.1.1
+    Checking strsim v0.11.1
+    Checking anstream v1.0.0
+    Checking clap_builder v4.6.7
+    Checking loom-proto v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-proto)
+    Checking regex v1.13.1
+    Checking clap v4.6.7
+    Checking loom-journal v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-journal)
+    Checking loom-domain-api v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-domain-api)
+    Checking loom-console v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-console)
+    Checking loom-cli-kit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-cli-kit)
+    Checking loom-worker-sdk v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-worker-sdk)
+    Checking loom-testkit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-testkit)
+    Checking loom-uart-worker v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uart-worker)
+    Checking loom-uart v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uart)
+    Finished `dev` profile [unoptimized] target(s) in 10.08s

@@ -187,6 +187,7 @@ fn req(id: u64, lane: TxLane, bytes: &[u8], within: Duration) -> TxRequest {
         lane,
         client_id: format!("c{id}"),
         bytes: bytes.to_vec(),
+        secret: false,
         deadline: Instant::now() + within,
     }
 }
@@ -532,5 +533,34 @@ fn agent_request_count_limit() {
         })
     ));
     drop(release);
+    actor.shutdown();
+}
+
+/// Secret input still reaches the transport byte-for-byte; every chunk carries the flag so the
+/// worker can mask the shared copy (live repro w20, 2026-11-14).
+#[test]
+fn secret_request_writes_real_bytes_and_flags_every_chunk() {
+    let rec = Record::default();
+    let writes = Arc::clone(&rec.writes);
+    let (actor, erx) = spawn(Box::new(rec));
+    let h = actor.handle();
+    let mut secret = req(1, TxLane::Agent, b"hunter2\r", WAIT);
+    secret.secret = true;
+    h.submit(secret).expect("submit secret");
+    h.submit(req(2, TxLane::Agent, b"ls\r", WAIT)).expect("submit plain");
+    let events = collect_until_done(&erx, &[1, 2]);
+    let sent: Vec<u8> = writes.lock().expect("lock").concat();
+    assert_eq!(sent, b"hunter2\rls\r");
+    let chunks: Vec<_> = events
+        .iter()
+        .filter_map(|e| match e {
+            TxEvent::Chunk(c) => Some(c),
+            TxEvent::Done(_) => None,
+        })
+        .collect();
+    assert!(chunks.iter().filter(|c| c.request_id == 1).all(|c| c.secret));
+    assert!(chunks.iter().any(|c| c.request_id == 1));
+    assert!(chunks.iter().filter(|c| c.request_id == 2).all(|c| !c.secret));
+    assert_eq!(done_of(&events, 1).state, TxState::Sent);
     actor.shutdown();
 }

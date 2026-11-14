@@ -1,0 +1,16 @@
+[
+  {
+    "epoch": "1794614926",
+    "seq": "62",
+    "dir": "tx",
+    "request_id": "w4",
+    "text": "echo QA-UART-DUAL-1794615008190535000\r"
+  },
+  {
+    "epoch": "1794614926",
+    "seq": "65",
+    "dir": "rx",
+    "request_id": null,
+    "text": "echo QA-UART-DUAL-1794615008190535000\r\nQA-UART-DUAL-1794615008190535000\r\nroot@sim:~# "
+  }
+]

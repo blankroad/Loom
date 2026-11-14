@@ -1,0 +1,8 @@
+   Compiling loom-eth v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-eth)
+   Compiling loom-worker-host v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-worker-host)
+   Compiling loom-uart v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uart)
+   Compiling loom-echo v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-echo)
+   Compiling loom-psu v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-psu)
+   Compiling loom-ui-assets v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-ui-assets)
+   Compiling loom-gateway v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-gateway)
+    Finished `dev` profile [unoptimized] target(s) in 26.61s

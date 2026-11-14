@@ -1,0 +1,6 @@
+{'port': 54139, 'pid': 23504, 'token': '<redacted>', 'version': '0.1.0', 'proto': 'loom/1.0'}
+  PID STARTED                      COMMAND
+23504 Sat Nov 14 09:08:45 2026     /tmp/loom-uart-secret-build/debug/loomd run --port 0 --env sim --rights watch --ui-dir /Users/ctmctm/workspace/Loom/ui/dist
+4ac3ee715f97462ec2b7c1726cb9689b4e312ac2d838a7669b18d1c793e418ed  /tmp/loom-uart-secret-build/debug/loomd
+22077e2af3e6bd448efc87561bffe299f384d79905f66b069f9a127a90ab824a  target/debug/loom
+epoch 1794614926 port 54139 pid 23504 viewers {'subscribed': 1, 'visible': 1} workers ['can_sim', 'echo']

@@ -180,6 +180,7 @@ fn request(id: u64, lane: TxLane, bytes: &[u8]) -> TxRequest {
         lane,
         client_id: format!("client-{id}"),
         bytes: bytes.to_vec(),
+        secret: false,
         deadline: Instant::now() + WAIT,
     }
 }

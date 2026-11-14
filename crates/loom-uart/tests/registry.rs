@@ -56,3 +56,30 @@ fn help_lists_m1_verbs_as_available() {
     assert_eq!(sig["available"], false);
     assert!(VERBS.iter().filter(|v| available(v)).count() >= 9);
 }
+
+/// `uart.data` contract: plain data needs `bytes`; only secret TX may omit them (`secret{len}`).
+/// Regression for the w20 secret leak fix — a non-secret payload without bytes stays invalid.
+#[test]
+fn uart_data_schema_requires_bytes_unless_secret() {
+    let spec = loom_uart::kinds::specs()
+        .into_iter()
+        .find(|s| s.kind == loom_uart::kinds::DATA)
+        .expect("uart.data spec");
+    let schema = serde_json::to_value(&spec.payload_schema).expect("schema");
+    let has_all = |req: &serde_json::Value, v: &serde_json::Value| {
+        req.as_array()
+            .is_none_or(|r| r.iter().all(|k| k.as_str().is_some_and(|k| v.get(k).is_some())))
+    };
+    let valid = |v: serde_json::Value| {
+        has_all(&schema["required"], &v)
+            && schema["anyOf"]
+                .as_array()
+                .expect("anyOf")
+                .iter()
+                .any(|b| has_all(&b["required"], &v))
+    };
+    assert!(valid(json!({"bytes": {"encoding": "base64", "data": "aGk="}, "len": 2})));
+    assert!(valid(json!({"len": 8, "secret": {"len": 8}})));
+    assert!(!valid(json!({"len": 8})), "non-secret payload without bytes must be invalid");
+    assert!(!valid(json!({"bytes": {"encoding": "base64", "data": ""}})), "len is required");
+}

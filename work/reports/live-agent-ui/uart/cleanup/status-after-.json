@@ -1,0 +1,1 @@
+{"schema_version":1,"ok":false,"cmd":"uart.status","meta":{"truncated":false,"record_health":"ok","latch":false,"viewers":{"subscribed":0,"visible":0},"stream_epoch":"0"},"others_since_last":{"count":"0"},"error":{"code":"E_DAEMON","message":"the Loom daemon is not running","hint":"LOOM_NO_AUTOSTART=1 is set — ask the user to run `loom daemon start`","retryable":false}}

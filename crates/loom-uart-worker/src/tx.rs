@@ -119,6 +119,9 @@ pub struct TxRequest {
     pub client_id: String,
     /// Raw bytes to send.
     pub bytes: Vec<u8>,
+    /// Secret input (`--secret-env`): the bytes go to the device, but every shared record of them
+    /// (event, ring, journal) carries only the length and a mask.
+    pub secret: bool,
     /// Absolute deadline for the whole request.
     pub deadline: Instant,
 }
@@ -184,8 +187,10 @@ pub struct TxChunk {
     pub request_id: u64,
     /// Host monotonic time after the write returned.
     pub mono_ns: u64,
-    /// The bytes written.
+    /// The bytes written (real bytes; the consumer must mask them when `secret`).
     pub bytes: Vec<u8>,
+    /// Copied from [`TxRequest::secret`].
+    pub secret: bool,
 }
 
 /// Completion of one request.
@@ -734,6 +739,7 @@ impl Worker {
                 request_id: f.req.request_id,
                 mono_ns: mono,
                 bytes: f.req.bytes[f.written..f.written + r.written].to_vec(),
+                secret: f.req.secret,
             };
             f.written += r.written;
             let _ = self.events.send(TxEvent::Chunk(chunk));

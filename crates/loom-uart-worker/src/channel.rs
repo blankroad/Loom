@@ -86,6 +86,8 @@ pub const RUN_HEAD_LINES: usize = 20;
 pub const FINISHED_WAITERS_MAX: usize = 16;
 /// Display characters of one TX row in `uart.lines`.
 pub const TX_ROW_CHARS: usize = 512;
+/// Byte the ring stores in place of each secret TX byte (`--secret-env`); the original is never retained.
+pub const SECRET_MASK: u8 = b'*';
 
 /// Result of [`ChannelCore::on_rx`].
 #[derive(Debug, Clone)]
@@ -385,8 +387,16 @@ impl ChannelCore {
 
     /// One TX chunk written to the device: into the ring (never into RX text), returns the
     /// `uart.data` payload (dir tx, no `rx_offset`).
+    ///
+    /// Secret chunks (`--secret-env`) never leave the TX path in clear: the payload carries
+    /// `{len, secret:{len}}` without `bytes`, and the ring keeps a same-length [`SECRET_MASK`] run
+    /// so `uart.read/lines` and TX accounting stay consistent without the original bytes.
     pub fn on_tx(&mut self, t: &crate::tx::TxChunk) -> Value {
-        let payload = data_payload(&t.bytes, None);
+        let payload = if t.secret {
+            json!({"len": t.bytes.len(), "secret": {"len": t.bytes.len()}})
+        } else {
+            data_payload(&t.bytes, None)
+        };
         if t.bytes.is_empty() {
             return payload;
         }
@@ -408,7 +418,11 @@ impl ChannelCore {
             mono_ns: t.mono_ns,
             wall_ns,
             rx_offset: None,
-            bytes: t.bytes.clone(),
+            bytes: if t.secret {
+                vec![SECRET_MASK; t.bytes.len()]
+            } else {
+                t.bytes.clone()
+            },
         }));
         if pushed.is_err() {
             self.ring_rejects += 1;

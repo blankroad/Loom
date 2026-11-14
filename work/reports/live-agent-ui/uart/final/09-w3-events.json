@@ -1,0 +1,224 @@
+[
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "kind": "uart.write",
+  "origin": "agent",
+  "payload": {
+   "method": "uart.send",
+   "write_state": "requested"
+  },
+  "producer_epoch": "1794614926",
+  "producer_id": "gateway",
+  "purpose": "uart.send",
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "37",
+  "session_id": "loomd",
+  "source_seq": "16",
+  "ts": {
+   "clock_id": "loomd-23504",
+   "mono_ns": "32354361500",
+   "source": "gateway",
+   "wall_ns": "1794614958999830584"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "kind": "uart.write",
+  "origin": "agent",
+  "payload": {
+   "method": "uart.send",
+   "reason": "uart text (profile generic)",
+   "write_state": "accepted"
+  },
+  "producer_epoch": "1794614926",
+  "producer_id": "gateway",
+  "purpose": "uart.send",
+  "request_id": "w3",
+  "risk": "R1",
+  "schema_version": 1,
+  "seq": "38",
+  "session_id": "loomd",
+  "source_seq": "17",
+  "ts": {
+   "clock_id": "loomd-23504",
+   "mono_ns": "32354942750",
+   "source": "gateway",
+   "wall_ns": "1794614959000411834"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "dir": "tx",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "generation": 1,
+  "kind": "uart.write",
+  "origin": "agent",
+  "payload": {
+   "len": 13,
+   "secret": {
+    "len": 13
+   },
+   "text": "[secret 13 B]",
+   "write_state": "requested"
+  },
+  "producer_epoch": "1",
+  "producer_id": "uart.qa_uart_final",
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "39",
+  "session_id": "s1794614926",
+  "source_seq": "22",
+  "ts": {
+   "clock_id": "proc-24032",
+   "mono_ns": "99443458",
+   "source": "driver",
+   "wall_ns": "1794614959000979000"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "dir": "tx",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "generation": 1,
+  "kind": "uart.write",
+  "origin": "agent",
+  "payload": {
+   "deferred_ms": 0,
+   "write_state": "accepted"
+  },
+  "producer_epoch": "1",
+  "producer_id": "uart.qa_uart_final",
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "41",
+  "session_id": "s1794614926",
+  "source_seq": "24",
+  "ts": {
+   "clock_id": "proc-24032",
+   "mono_ns": "99522167",
+   "source": "driver",
+   "wall_ns": "1794614959001057000"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "dir": "tx",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "generation": 1,
+  "kind": "uart.data",
+  "origin": "agent",
+  "payload": {
+   "len": 13,
+   "secret": {
+    "len": 13
+   }
+  },
+  "producer_epoch": "1",
+  "producer_id": "uart.qa_uart_final",
+  "quality": [
+   "redacted"
+  ],
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "42",
+  "session_id": "s1794614926",
+  "source_seq": "25",
+  "ts": {
+   "clock_id": "proc-24032",
+   "mono_ns": "100426708",
+   "source": "driver",
+   "wall_ns": "1794614959001986000"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "client_id": "uart-final-sender#24035",
+  "dir": "tx",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "generation": 1,
+  "kind": "uart.write",
+  "origin": "agent",
+  "payload": {
+   "deferred_ms": 0,
+   "final": true,
+   "remaining_bytes": 0,
+   "write_state": "sent",
+   "written_bytes": 13
+  },
+  "producer_epoch": "1",
+  "producer_id": "uart.qa_uart_final",
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "44",
+  "session_id": "s1794614926",
+  "source_seq": "27",
+  "ts": {
+   "clock_id": "proc-24032",
+   "mono_ns": "100587500",
+   "source": "driver",
+   "wall_ns": "1794614959002123000"
+  }
+ },
+ {
+  "channel": "qa_uart_final",
+  "domain": "uart",
+  "env": "sim",
+  "epoch": "1794614926",
+  "generation": 1,
+  "kind": "uart.expect_result",
+  "origin": "agent",
+  "payload": {
+   "before": "\nLast login: Thu Jan  1 00:00:00 on ttyS0\nroot@sim:~# ",
+   "before_lines": 3,
+   "channel": "qa_uart_final",
+   "generation": 1,
+   "kind": "prompt",
+   "match": "# ",
+   "matched": true,
+   "matched_index": 0,
+   "pattern": "[#$>] ?$",
+   "pattern_index": 0,
+   "range": {
+    "from_rx": "13075",
+    "to_rx": "13131"
+   },
+   "rx_offset_end": "13131",
+   "rx_offset_start": "13129",
+   "started_rx_offset": "13075",
+   "text": "# "
+  },
+  "producer_epoch": "1",
+  "producer_id": "uart.qa_uart_final",
+  "request_id": "w3",
+  "schema_version": 1,
+  "seq": "48",
+  "session_id": "s1794614926",
+  "source_seq": "31",
+  "ts": {
+   "clock_id": "proc-24032",
+   "mono_ns": "112699208",
+   "source": "host_read_complete",
+   "wall_ns": "1794614959014234000"
+  }
+ }
+]

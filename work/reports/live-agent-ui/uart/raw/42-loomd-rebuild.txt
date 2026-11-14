@@ -1,0 +1,4 @@
+   Compiling loom-ui-assets v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-ui-assets)
+   Compiling loom-gateway v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-gateway)
+    Finished `dev` profile [unoptimized] target(s) in 5.70s
+4ac3ee715f97462ec2b7c1726cb9689b4e312ac2d838a7669b18d1c793e418ed  /tmp/loom-uart-secret-build/debug/loomd

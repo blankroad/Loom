@@ -89,6 +89,15 @@ impl Rig {
 
     /// Agent TX: ring + device, then the device's answer as RX.
     fn send(&mut self, bytes: &[u8]) -> Vec<Ingest> {
+        self.send_tx(bytes, false).1
+    }
+
+    /// Agent TX of secret input (`--secret-env`); returns the `uart.data` payload too.
+    fn send_secret(&mut self, bytes: &[u8]) -> (Value, Vec<Ingest>) {
+        self.send_tx(bytes, true)
+    }
+
+    fn send_tx(&mut self, bytes: &[u8], secret: bool) -> (Value, Vec<Ingest>) {
         self.seq += 1;
         self.request += 1;
         let payload = self.core.on_tx(&TxChunk {
@@ -99,11 +108,12 @@ impl Rig {
             request_id: self.request,
             mono_ns: self.seq * 1_000,
             bytes: bytes.to_vec(),
+            secret,
         });
         assert!(payload.get("rx_offset").is_none(), "TX payload has no rx_offset");
         let mut out = Vec::new();
         self.dev.on_bytes(bytes, self.now, &mut out);
-        self.deliver(&out)
+        (payload, self.deliver(&out))
     }
 
     fn boot_to_login(split: &[usize]) -> Rig {
@@ -1100,4 +1110,50 @@ fn rpc_params_parse() {
     assert_eq!(p[0], PatternSpec::literal("login:"));
     assert_eq!(p[1].kind, PatternKind::Regex);
     assert_eq!(p[2], PatternSpec::prompt());
+}
+
+/// Regression (live repro w20, 2026-11-14): a `--secret-env` TX reaches the device, but the
+/// shared `uart.data` payload and the ring (read/lines) carry only the length and a mask.
+#[test]
+fn secret_tx_reaches_device_but_payload_and_ring_hold_no_bytes() {
+    let mut r = Rig::boot_to_login(&[256]);
+    r.send(b"root\r");
+    let (payload, ings) = r.send_secret(b"hunter2\r");
+    // The device got the real bytes: it accepted the password and printed the shell prompt.
+    let rx: Vec<u8> = ings
+        .iter()
+        .flat_map(|i| {
+            base64::engine::general_purpose::STANDARD
+                .decode(i.data_payload["bytes"]["data"].as_str().expect("rx data"))
+                .expect("b64")
+        })
+        .collect();
+    assert!(String::from_utf8_lossy(&rx).ends_with(SHELL_PROMPT), "{rx:?}");
+    // Shared payload: length + secret marker, never the bytes.
+    assert!(payload.get("bytes").is_none(), "{payload}");
+    assert_eq!(payload["len"], 8);
+    assert_eq!(payload["secret"]["len"], 8);
+    let flat = payload.to_string();
+    assert!(!flat.contains("hunter2") && !flat.contains("aHVudGVyMg"), "{flat}");
+    // Ring: the TX row shows the mask; no read/lines view yields the original.
+    let v = r
+        .core
+        .lines(&LinesQuery {
+            limit: 10,
+            ..LinesQuery::default()
+        })
+        .expect("lines");
+    let rows = v["rows"].as_array().expect("rows");
+    let tx: Vec<&Value> = rows.iter().filter(|r| r["dir"] == "tx").collect();
+    assert!(tx.iter().any(|r| r["text"] == "********"), "{rows:?}");
+    assert!(!v.to_string().contains("hunter2"), "{v}");
+    let all = r
+        .core
+        .lines(&LinesQuery {
+            from: Some(0),
+            limit: 1000,
+            ..LinesQuery::default()
+        })
+        .expect("lines");
+    assert!(!all.to_string().contains("hunter2"));
 }

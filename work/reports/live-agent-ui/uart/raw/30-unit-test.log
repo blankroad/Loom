@@ -1,0 +1,60 @@
+test blocked_transport_partial_is_outcome_unknown ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/tx_cancel.rs (/tmp/loom-uart-secret-build/debug/deps/tx_cancel-09b2bd5c13a6f612)
+
+running 12 tests
+test active_cancel_counts_partial_driver_progress_exactly ... ok
+test cancel_agent_lane_preserves_user_and_ctrl_c_lanes ... ok
+test ctrl_c_write_is_not_delayed_by_a_batch_of_cancellation_completions ... ok
+test cancelled_agent_completes_while_user_lane_remains_active ... ok
+test active_cancel_is_conservative_with_zero_or_all_bytes_accepted ... ok
+test shutdown_preserves_already_accepted_cancellation_causes ... ok
+test unknown_completed_and_invalid_cancellations_create_no_terminal_events ... ok
+test cancellation_mailbox_keeps_lane_permits_and_coalesces_duplicate_claims ... ok
+test queued_cancel_removes_request_and_preserves_other_agent_fifo ... ok
+test repeated_cancel_and_ctrl_c_races_emit_one_done_per_request ... ok
+test cancellation_racing_the_final_write_has_one_linearized_outcome ... ok
+test ctrl_c_boundary_racing_an_explicit_cancel_has_one_terminal ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/worker_cancel.rs (/tmp/loom-uart-secret-build/debug/deps/worker_cancel-03afecb71c45aea7)
+
+running 4 tests
+test close_ends_an_unfinished_agent_send_outcome_unknown ... ok
+test hold_cuts_the_running_agent_send ... ok
+test stop_cuts_the_running_send_fails_the_waiting_one_and_user_keys_still_go ... ok
+test a_4_kib_user_paste_cuts_a_large_agent_send ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.94s
+
+     Running tests/worker_e2e.rs (/tmp/loom-uart-secret-build/debug/deps/worker_e2e-5124a26d8c784ded)
+
+running 10 tests
+test open_is_idempotent_and_refuses_other_settings ... ok
+test rows_and_tx_bytes_are_published_before_the_reply ... ok
+test unsupported_line_settings_and_bad_targets_map_to_codes ... ok
+test hold_refuses_agent_writes ... ok
+test stop_latch_blocks_agent_but_not_the_viewer ... ok
+test close_joins_threads_and_reopen_bumps_generation ... ok
+test core_loop_open_expect_send_run_read ... ok
+test ctrl_c_cuts_a_large_agent_send ... ok
+test agent_send_waits_for_the_users_line_then_goes ... ok
+test unfinished_user_line_makes_the_agent_fail_user_active ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+   Doc-tests loom_uart
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_uart_worker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

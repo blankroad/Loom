@@ -1,0 +1,6 @@
+daemon_pid=17384 port=53814
+  PID STARTED                      COMMAND
+17384 Sat Nov 14 09:01:41 2026     /tmp/loom-uart-secret-build/debug/loomd run --port 0 --env sim --rights watch --ui-dir /Users/ctmctm/workspace/Loom/ui/dist
+loomd_sha256=06789da6fc4c890c9bec18e96f47993cbc593907a151b0833eb60e8a774dd4fa  /tmp/loom-uart-secret-build/debug/loomd
+cli_sha256=d54e4134f10b84fe3ce4c1e5e0e01cdf677cd317677b1c22c92143a6430a3689  target/debug/loom
+old_baseline: pid 95239 target/debug/loomd sha256 9f6ab4b8059536cd352cb9c656455d75281b563636534cba7a6bfa28539d218d (11-12 build, leak reproduced w20 seq 253)

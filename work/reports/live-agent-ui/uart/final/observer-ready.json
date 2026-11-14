@@ -1,0 +1,19 @@
+{
+ "state": "OBSERVER_READY",
+ "channel": "qa_uart_final",
+ "loom_home": "/tmp/loom-uart-audit-fixed/home",
+ "port": 54139,
+ "client": "uart-final-observer",
+ "stream_epoch": "1794614926",
+ "stream_seq_hw_at_ready": "55",
+ "first_snapshot_recv_wall_ns": "1794615008110881000",
+ "observer_start_wall_ns": "1794615007955192000",
+ "expires_wall_ns": "1794615037955192000",
+ "ready_at": "2026-11-14T09:10:08.110+09:00",
+ "expires_at": "2026-11-14T09:10:37.955+09:00",
+ "viewers": {
+  "subscribed": 1,
+  "visible": 1
+ },
+ "send_one_marker_now": "LOOM_CLIENT=<root> target/debug/loom uart send qa_uart_final \"echo QA-UART-UI-<nonce>\" --expect \"QA-UART-UI-<nonce>\" --timeout 10 --json"
+}

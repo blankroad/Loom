@@ -1,0 +1,20 @@
+test registered_positive_predicate ... ok
+test match_joins_contiguous_rx_chunks ... ok
+test only_device_rx_of_the_channel_counts ... ok
+test a_miss_is_mismatch_only_when_provably_complete ... ok
+test no_join_across_loss_or_identity_change ... ok
+test budget_and_bad_args ... ok
+test time_budget_is_checked_inside_long_chunks ... ok
+test long_repeated_needle_is_linear ... ok
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+test help_lists_m1_verbs_as_available ... ok
+test uart_data_schema_requires_bytes_unless_secret ... ok
+test registry_probe_passes ... ok
+test hooks_classify_fast ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test core_loop_open_expect_send_run_read ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.16s
+test classify::tests::plain_text_is_r1_and_rules_raise ... ok
+test classify::engine::tests::original_selectors_stay_registered ... ok
+test classify::engine::tests::all_profile_sets_compile_and_exclude_legacy_duplicates ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s

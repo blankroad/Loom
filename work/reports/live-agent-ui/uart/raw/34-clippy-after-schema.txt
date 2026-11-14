@@ -1,0 +1,2 @@
+    Checking loom-uart v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uart)
+    Finished `dev` profile [unoptimized] target(s) in 0.81s

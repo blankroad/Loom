@@ -1,0 +1,28 @@
+events 38 truncated False
+  37 uart.write None None {'write_state': 'requested'}
+  38 uart.write None None {'write_state': 'accepted'}
+  39 uart.write tx None {'len': 13, 'secret': {'len': 13}, 'text': '[secret 13 B]', 'write_state': 'requested'}
+  41 uart.write tx None {'write_state': 'accepted'}
+  42 uart.data tx ['redacted'] {'len': 13, 'secret': {'len': 13}}
+  44 uart.write tx None {'write_state': 'sent'}
+  48 uart.expect_result None None {'text': '# '}
+audit write.intent w3 seq 5 args.data = {'secret': {'len': 12}} secret = True
+     3484 B hits=[] work/reports/live-agent-ui/uart/final/01-status.json
+      520 B hits=[] work/reports/live-agent-ui/uart/final/02-open.json
+     1375 B hits=[] work/reports/live-agent-ui/uart/final/03-expect-login.json
+      776 B hits=[] work/reports/live-agent-ui/uart/final/04-send-user.json
+      804 B hits=[] work/reports/live-agent-ui/uart/final/05-send-secret.json
+    37761 B hits=[] work/reports/live-agent-ui/uart/final/06-events-all.json
+    17306 B hits=[] work/reports/live-agent-ui/uart/final/07-read-tail.json
+     4727 B hits=[] work/reports/live-agent-ui/uart/final/09-w3-events.json
+     1958 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/manifest.json
+       32 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/uart.qa_uart_final/1/000001.idx
+    33133 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/uart.qa_uart_final/1/000001.lj.open
+       80 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/_mapping/1794614926/000001.idx
+     9963 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/_mapping/1794614926/000001.lj.open
+       80 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/gateway/1794614926/000001.idx
+     9783 B hits=[] $FINAL_HOME/records/2026-11-14/s1794614926/gateway/1794614926/000001.lj.open
+     2453 B hits=[] $FINAL_HOME/audit/audit-2026-11.jsonl
+        0 B hits=[] $FINAL_HOME/run/loomd.lock
+      159 B hits=[] $FINAL_HOME/run/daemon.json
+TOTAL_HITS 0

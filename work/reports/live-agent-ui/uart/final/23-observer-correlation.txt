@@ -1,0 +1,14 @@
+line 0 recv_wall_ns 1794615008110881000 events 0 truncated False epoch 1794614926
+line 1 recv_wall_ns 1794615008394945000 events 12 truncated False epoch 1794614926
+   1794614926 56 uart.write agent None w4 uart-ui-root-final#24948 1794615008198880417 '' 
+   1794614926 57 uart.write agent None w4 uart-ui-root-final#24948 1794615008200104084 '' 
+   1794614926 58 uart.write agent tx w4 uart-ui-root-final#24948 1794615008201148000 'echo QA-UART-DUAL-1794615008190535000\r' MARK
+   1794614926 59 uart.input_owner device None None None 1794615008201237000 '' 
+   1794614926 60 uart.write agent tx w4 uart-ui-root-final#24948 1794615008201266000 '' 
+   1794614926 61 uart.input_owner device None None None 1794615008201424000 '' 
+   1794614926 62 uart.data agent tx w4 uart-ui-root-final#24948 1794615008201374000 'echo QA-UART-DUAL-1794615008190535000\r' MARK
+   1794614926 63 uart.write agent tx w4 uart-ui-root-final#24948 1794615008201484000 '' 
+   1794614926 64 uart.agent_activity agent None None None 1794615008201522000 '' 
+   1794614926 65 uart.data device rx None None 1794615008201416000 'echo QA-UART-DUAL-1794615008190535000\r\nQA-UART-DUAL-1794615008190535000\r\nroot@sim:~#  MARK
+   1794614926 66 uart.agent_activity agent None None None 1794615008216568000 '' 
+   1794614926 67 uart.expect_result agent None w4 None 1794615008216625000 '' 

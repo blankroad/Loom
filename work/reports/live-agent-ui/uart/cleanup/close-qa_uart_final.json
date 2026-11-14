@@ -1,0 +1,1 @@
+{"schema_version":1,"ok":true,"cmd":"uart.close","data":{"channel":"qa_uart_final","closed":true,"generation":1,"refs_left":0,"request_id":"w5","state":"sent","threads_left":0},"meta":{"truncated":false,"record_health":"ok","env":"sim","latch":false,"viewers":{"subscribed":1,"visible":1},"stream_epoch":"1794614926","visibility":"visible"},"others_since_last":{"count":"0"}}

@@ -145,6 +145,7 @@ fn every_method_is_bounded_on_a_full_ring() {
             request_id: i,
             mono_ns: f.seq * 1000,
             bytes: vec![b'x'; 1024],
+            secret: false,
         })
     });
 

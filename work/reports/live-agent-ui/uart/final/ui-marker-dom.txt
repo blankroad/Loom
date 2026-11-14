@@ -1,0 +1,86 @@
+L
+Loom
+Workbench
+[SIM]
+연결됨
+● LIVE idle 7.1s
+REC ok
+보는 중: 1/1
+에이전트 uart-final-observer#24901 core.events.query 0s 전
+자격: watch
+■ STOP 전체
+통합 작업 공간
+인터페이스 서비스
+UART
+1
+인터페이스
+1
++ 추가
+채널 검색
+
+채널을 선택해 보기를 엽니다.
+
+▾
+UART
+1
+qa_uart_final
+연결됨
+gen1
+터미널
+트레이스
+탐색 안내
+
+인터페이스를 선택해 작업 패널을 여세요.
+
+패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.
+WORKSPACE
+통합 작업 공간
+단축키
+?
+레이아웃
+기본 작업 공간
+UART 터미널
+저장
+패널 동작
+⌄
+UART 터미널 · qa_uart_final
+최대화
+▤
+터미널
+0x
+HEX
+⇪
+Send String
+✕
+화면 지우기
+⏸
+일시정지
+입력권: 비어 있음
+가져오기
+반환
+미완결 줄 지우기
+HOLD
+키 ▾
+UART qa_uart_final ● open 115200 gen1 [SIM]
+sim://bootshell?seed=20261114 / 8-N-1 · 흐름 none
+관측 TX 43 B / RX 13,216 B
+TX
+RX
+AGT ▶ "echo QA-UART-DUAL-1794615008190535000⏎" 6s 전 │ rx 0 B/s │ 차단 질의×0 자동응답×0 │ REC ok │ 보기 전용(watch)
+UART 터미널 · qa_uart_final opened
+▸
+Activity
+19
+9시 10분 15초.667 AGT uart-final-observer#24901 core core.events.query 4 call(s) in the last second
+9시 10분 14초.667 AGT uart-final-observer#24901 core core.events.query 5 call(s) in the last second
+Ctrl-]
+x
+STOP
+·
+m
+마커
+·
+?
+도움말
+LOOM / sim
+● 9시 10분 14초
