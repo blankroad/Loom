@@ -1,0 +1,114 @@
+L
+Loom
+Workbench
+[SIM]
+연결됨
+● LAG 399ms
+REC ok
+보는 중: 1/1
+에이전트 eth-observer-opus#20376 core.meta 3s 전
+자격: watch
+■ STOP 전체
+통합 작업 공간
+인터페이스 서비스
+UART
+1
+Ethernet
+1
+인터페이스
+2
++ 추가
+채널 검색
+
+채널을 선택해 보기를 엽니다.
+
+▾
+UART
+1
+qa_uart_fixed
+연결됨
+gen1
+터미널
+트레이스
+▾
+ETH
+1
+qa_eth_fixed
+연결됨
+gen1
+패킷 · 캡처
+탐색 안내
+
+인터페이스를 선택해 작업 패널을 여세요.
+
+패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.
+WORKSPACE
+통합 작업 공간
+단축키
+?
+레이아웃
+기본 작업 공간
+UART 터미널
+Ethernet 캡처
+저장
+패널 동작
+⌄
+UART 터미널 · qa_uart_fixed
+이더넷 패킷 · qa_eth_fixed
+최대화
+eth.packets ─ qa_eth_fixed ● LIVE [SIM tap] pps 0 bps 776 커널 드롭 0 기록 ok ts synthetic (nano)
+■ 캡처 정지
+캡처 시작…
+⇩ pcapng
+표시 필터
+★
+✓ 1 ms
+✕
+→ 적용
+▾
+— 이력
+arp
+적용 중
+완전 범위 조회 실패: eth.query: bad cursor "94": invalid cursor: bad HH:MM:SS[.mmm]: "94"
+▶ 라이브로 (Space)
+캡처 시작 기준
+절대 시각
+이전 행 대비
+기준 행 대비
+seq
+시간
+출발지
+목적지
+프로토콜
+길이
+정보
+UDS
+출처
+패킷 없음
+재전송
+편집 후 송신…
+UDP/TCP 송신…
+이 행을 시간 기준으로
+증거 REF 복사
+행을 고르면 상세 트리와 바이트가 보입니다
+패킷 선택 없음 — ↑/↓ 또는 F7/F8
+완전 범위 패킷 0 · 표시 필터 적용(서버)
+보관 63행
+송신 (2)
+이더넷 패킷 · qa_eth_fixed opened
+▸
+Activity
+50
+9시 6분 41초.661 AGT eth-observer-opus#20376 core core.meta 1 call(s) in the last second
+9시 6분 41초.661 AGT eth-observer-opus#20376 core core.events.query 4 call(s) in the last second
+Ctrl-]
+x
+STOP
+·
+m
+마커
+·
+?
+도움말
+LOOM / sim
+● 9시 6분 44초

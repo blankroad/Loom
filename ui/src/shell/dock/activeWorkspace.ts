@@ -3,11 +3,17 @@ import { EXPLORER_DOMAINS } from '../../store/channels';
 import type { Slot, WorkspaceChannel } from '../routes';
 import { isSplit, isTabs, type LayoutNode, type LoomLayout } from './layoutModel';
 
+/** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show).
+ * Their already-open or explicitly reopened views survive a normal close; presets never auto-open them. */
+const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth']);
+export const retainsHistoryAfterClose = (domain: string): boolean => HISTORY_AFTER_CLOSE.has(domain);
+
 export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, hasTestSession = false): Slot | null {
   if (slot.panel === 'shell.test') return hasTestSession ? slot : null;
   const domain = slot.panel.split('.')[0] ?? '';
   if (!(EXPLORER_DOMAINS as readonly string[]).includes(domain)) return slot;
-  const active = new Set([...channels].filter((c) => c.domain === domain && c.state === 'open').map((c) => c.channel));
+  const keep = (c: WorkspaceChannel) => c.state === 'open' || (c.state === 'closed' && HISTORY_AFTER_CLOSE.has(domain));
+  const active = new Set([...channels].filter((c) => c.domain === domain && keep(c)).map((c) => c.channel));
   if (domain === 'uds') {
     const targets = String(slot.props.targets ?? '').split(',').map((s) => s.trim()).filter((s) => active.has(s));
     return targets.length ? { ...slot, props: { ...slot.props, targets: targets.join(',') } } : null;

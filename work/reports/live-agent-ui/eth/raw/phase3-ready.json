@@ -1,0 +1,19 @@
+{
+ "state": "READY_UI",
+ "daemon": "127.0.0.1:53814",
+ "LOOM_HOME": "/tmp/loom-uart-secret-native/home",
+ "epoch": "1794614502",
+ "channel": "qa_eth_fixed",
+ "generation": 1,
+ "capture_request_id": "w4",
+ "observer_client": "eth-observer-opus",
+ "observer_cmd": "loom events --since now --channel qa_eth_fixed --follow --timeout 30 --json --max 200",
+ "observer_start_wall_ns": 1794614771250959000,
+ "observer_expires_wall_ns": 1794614801250959000,
+ "initial_batch_recv_wall_ns": 1794614771376680000,
+ "initial_batch_seqs": [],
+ "root_send_cmd": "LOOM_HOME=/tmp/loom-uart-secret-native/home LOOM_NO_AUTOSTART=1 LOOM_CLIENT=<root-id> target/debug/loom eth send raw ffffffffffff02000000000108060001080006040001020000000001c0000201000000000000c0000203000000000000000000000000000000000000 --ch qa_eth_fixed --idempotency-key eth-live-p3-arp1 --json",
+ "expected_decode": "Who has 192.0.2.3? Tell 192.0.2.1",
+ "capture_kept_live_until": "ROOT SCREENSHOT_DONE",
+ "no_auto_renew": true
+}

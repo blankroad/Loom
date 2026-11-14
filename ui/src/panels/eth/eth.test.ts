@@ -108,7 +108,7 @@ describe('eth.packets', () => {
   it('sampling badge while live; Space → complete journal query replaces the sampled rows', async () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
     h.net.responders.set('eth.query', (p) => {
-      expect((p as { range: { to: string } }).range.to).toBe('41280');
+      expect((p as { range: { to: string } }).range).toEqual({ to: 'seq:41280' }); // proto cursor grammar, never a bare number
       return { rows: fixtureQueryRows(5), range: { from: '50000', to: '50004' } };
     });
     h.batch([...fixtureEvents(), fixtureRecord('eth.batch', 41281, { covered_first_seq: '41230', covered_last_seq: '41281', total: 1000, shown: 10 })]);
@@ -561,5 +561,97 @@ describe('eth.packets fidelity layout & interaction', () => {
     expect(pktRows(h)[0]!.classList.contains('selected')).toBe(true);
     root.dispatchEvent(new KeyboardEvent('keydown', { key: '/', ctrlKey: true, bubbles: true }));
     expect(document.activeElement).toBe(q('[data-testid="eth-filter-input"]'));
+  });
+
+  it('filter, pause and export send proto seq cursors (seq:N), never bare numbers (native "bad HH:MM:SS" regression)', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.filter.check', () => ({ ok: true }));
+    h.net.responders.set('eth.query', () => ({ rows: fixtureQueryRows(3), range: { from: '50000', to: '50002' } }));
+    const queries = () => h!.net.calls.filter((c) => c.method === 'eth.query').map((c) => c.params as { range?: { from?: string; to?: string }; filter?: string });
+    const button = (text: string) => { h!.frame(); return [...h!.host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text))!; };
+    // no packet yet: pause queries an open range, never "seq:0" / "0"
+    button('일시정지').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(queries().at(-1)!.range).toBeUndefined();
+    button('라이브로').click();
+    // live packets → pause: complete query up to the live head as seq:N
+    h.batch(fixtureEvents());
+    const head = pktRows(h).map((r) => r.dataset.seq).filter(Boolean).at(-1)!;
+    button('일시정지').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(queries().at(-1)!.range).toEqual({ to: `seq:${head}` });
+    button('라이브로').click();
+    // display filter → complete filtered range, same cursor grammar, filter preserved
+    const input = h.host.querySelector<HTMLInputElement>('[data-testid="eth-filter-input"]')!;
+    input.value = 'arp';
+    input.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(160);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await vi.advanceTimersByTimeAsync(10);
+    expect(queries().at(-1)).toMatchObject({ filter: 'arp', range: { to: `seq:${head}` } });
+    // export in complete mode: both ends as seq cursors
+    await flush(h);
+    button('pcapng').click();
+    await vi.advanceTimersByTimeAsync(10);
+    const ex = h.net.calls.find((c) => c.method === 'eth.export')!.params as { range?: { from?: string; to?: string } };
+    expect(ex).toMatchObject({ ch: 'lan1', format: 'pcapng', filter: 'arp', range: { from: 'seq:50000', to: 'seq:50002' } });
+    for (const r of [...queries().map((x) => x.range), ex.range]) for (const v of [r?.from, r?.to]) expect(v === undefined || /^seq:\d+$/.test(v)).toBe(true);
+  });
+
+  it('relative time uses the real capture start (snapshot anchor), never the first visible backlog packet; new generation resets it', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const late = fixtureEvents().filter((e) => e.kind !== 'eth.capture_state'); // late join: start event aged out of the backlog
+    const first = late.find((e) => e.kind === 'eth.pkt')!;
+    const cells = (seq: string) => [...pktRows(h!).find((r) => r.dataset.seq === seq)!.querySelectorAll('.vt-td')].map((c) => c.textContent);
+    // unknown start → honest "?" (the old code showed 0.000000 relative to the first visible packet)
+    h.batch(late);
+    expect(cells(first.seq)).toContain('?');
+    expect(cells(first.seq)).not.toContain('0.000000');
+    // reducer snapshot carries the exact worker start (same clock domain, no conversion): 41230 ms after 12 s base
+    h.net.subs[0]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, items: [{ domain: 'eth', kind: 'eth.snapshot', state: { kind: 'eth.capture_state', ch: 'lan1', state: 'live', backend: 'sim', iface: 'sim', generation: 1, started_mono_ns: '12000000000' } }], events: [] } as never);
+    h.snapshotEnd(late.at(-1)!.seq);
+    expect(first.seq).toBe('41230');
+    expect(cells(first.seq)).toContain('41.230000');
+    // a partial stop without the field keeps the anchor
+    h.batch([{ ...first, kind: 'eth.capture_state', seq: String(Number(late.at(-1)!.seq) + 1), generation: 1, payload: { ch: 'lan1', state: 'stopped' } }]);
+    expect(cells(first.seq)).toContain('41.230000');
+    // a new generation without its own start never inherits the old anchor
+    h.batch([{ ...first, kind: 'eth.capture_state', seq: String(Number(late.at(-1)!.seq) + 2), generation: 2, payload: { ch: 'lan1', state: 'starting' } }]);
+    expect(cells(first.seq)).toContain('?');
+  });
+
+  it('capture state on the control path only (no data batch, no snapshot) updates the header and stop button; stale/other-channel ignored; dispose unhooks', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const ctl = (seq: number, state: string, channel = 'lan1', generation = 1) =>
+      ev({ kind: 'eth.capture_state', domain: 'eth', channel, seq: String(seq), generation, origin: 'agent', payload: { ch: channel, state, backend: 'sim', iface: 'sim', started_mono_ns: '421959' } });
+    const status = () => h!.host.querySelector('[data-testid="eth-status"]')!;
+    const stopBtn = () => [...h!.host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes('캡처 정지'))!;
+    const listeners = () => (h!.net as unknown as { controlCbs: Set<unknown> }).controlCbs.size;
+    const before = listeners();
+    h.net.emitControl(ctl(10, 'live'));
+    h.frame();
+    expect(status().textContent).toContain('● LIVE');
+    expect(stopBtn().disabled).toBe(false);
+    h.net.emitControl(ctl(20, 'stopped'));
+    h.frame();
+    expect(status().textContent).toContain('● STOPPED');
+    expect((status() as HTMLElement).dataset.state).toBe('stopped');
+    expect(stopBtn().disabled).toBe(true);
+    // an older state (e.g. a late duplicate) and another channel never override it
+    h.net.emitControl(ctl(15, 'live'));
+    h.net.emitControl(ctl(30, 'live', 'other'));
+    h.frame();
+    expect(status().textContent).toContain('● STOPPED');
+    // gen2 restart on the same channel goes live again (no extra frame needed)
+    h.net.emitControl(ctl(40, 'live', 'lan1', 2));
+    h.frame();
+    expect(status().textContent).toContain('● LIVE');
+    expect(stopBtn().disabled).toBe(false);
+    expect(h.net.subs[0]!.closed).toBe(false);
+    expect(h.net.calls.filter((c) => c.method.startsWith('eth.capture') || c.method === 'eth.send')).toEqual([]);
+    h.dispose();
+    expect(listeners()).toBe(before - 1);
+    h = null;
   });
 });

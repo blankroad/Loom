@@ -1,0 +1,119 @@
+L
+Loom
+Workbench
+[SIM]
+연결됨
+● LIVE idle 8.8s
+REC ok
+보는 중: 2/2
+에이전트 eth-producer-opus#26479 eth.capture.stop 8s 전
+자격: watch
+■ STOP 전체
+통합 작업 공간
+인터페이스 서비스
+UART
+1
+인터페이스
+1
++ 추가
+채널 검색
+
+채널을 선택해 보기를 엽니다.
+
+비활성 인터페이스 1개 보기
+▾
+UART
+1
+qa_uart_fixed
+연결됨
+gen1
+터미널
+트레이스
+탐색 안내
+
+인터페이스를 선택해 작업 패널을 여세요.
+
+패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.
+WORKSPACE
+통합 작업 공간
+단축키
+?
+레이아웃
+기본 작업 공간
+UART 터미널
+저장
+패널 동작
+⌄
+이더넷 패킷 · qa_eth_fixed
+UART 터미널 · qa_uart_fixed
+최대화
+eth.packets ─ qa_eth_fixed ● ? pps 0 bps 776 커널 드롭: 알 수 없음 기록 ok ts synthetic
+■ 캡처 정지
+캡처 시작…
+⇩ pcapng
+표시 필터
+★
+✓ 1 ms
+✕
+→ 적용
+▾
+— 이력
+arp
+적용 중
+완전(저널 기준) · 1행 seq 841–841
+▶ 라이브로 (Space)
+캡처 시작 기준
+절대 시각
+이전 행 대비
+기준 행 대비
+seq
+시간
+출발지
+목적지
+프로토콜
+길이
+정보
+UDS
+출처
+841
+241.354517
+02:00:00:00:00:01
+ff:ff:ff:ff:ff:ff
+ARP
+60
+Who has 192.0.2.4? Tell 192.0.2.1
+AGT
+재전송
+편집 후 송신…
+UDP/TCP 송신…
+이 행을 시간 기준으로
+증거 REF 복사
+eth:qa_eth_fixed@seq:841 · 상세 15 ms
+▸Frame 841: 60 bytes
+▸Ethernet II, Src: 02:00:00:00:00:01, Dst: ff:ff:ff:ff:ff:ff
+▸Address Resolution Protocol (op 1)
+0000ffffffffffff02000000000108060001................
+0010080006040001020000000001c0000201................
+0020000000000000c0000204000000000000................
+0030000000000000000000000000............
+선택 seq 841 · ARP · 60 B
+완전 범위 패킷 1 · 표시 필터 적용(서버)
+보관 277행
+송신 (2)
+UART 터미널 · qa_uart_fixed opened
+▸
+Activity
+50
+9시 11분 50초.662 AGT eth-producer-opus#26479 eth eth.capture.stop 1 call(s) in the last second
+9시 11분 50초.662 AGT eth-observer-opus#26535 eth eth.query 1 call(s) in the last second
+Ctrl-]
+x
+STOP
+·
+m
+마커
+·
+?
+도움말
+LOOM / sim
+● 9시 11분 58초

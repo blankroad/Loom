@@ -61,6 +61,10 @@ export interface PanelContext {
   /** STOP latch, read-only + change subscription (agent/script writes locked, user input allowed) */
   latch: LatchInfo;
   store(topicKey: string): StoreMirror<LoomEvent>;
+  /** Read-only feed of control-path (priority) events that match one of this panel's declared topic filters
+   * (domains/channels/kinds). Priority kinds such as `*_state` reach data subscriptions only via snapshot/backlog;
+   * this delivers the live ones. Removed on dispose. */
+  onControl(cb: (ev: LoomEvent) => void): Unsubscribe;
   /** replace the topic subscription with one carrying `filter.ext` (null = none); returns the NEW mirror */
   resubscribe(topicKey: string, ext: Record<string, unknown> | null): StoreMirror<LoomEvent>;
   /** request_id write rows of this panel's domain (shared RowStore, read-only) */
@@ -98,7 +102,7 @@ export interface LatchInfo {
 }
 
 export interface ContextDeps {
-  net: Pick<NetClient, 'call' | 'subscribe' | 'clock'>;
+  net: Pick<NetClient, 'call' | 'subscribe' | 'clock' | 'onControl'>;
   gate: ActionGate;
   scheduler: RenderScheduler;
   rows: RowStore;
@@ -309,6 +313,16 @@ export function createPanelContext(
 
     store(topicKey) {
       return mirrors.get(topicKey) ?? open(topicKey, null);
+    },
+
+    onControl(cb) {
+      const filters = m.topics.map((t) => t.filter(props));
+      const has = (list: readonly string[] | undefined, v: string | null | undefined) => !list || list.length === 0 || (v != null && list.includes(v));
+      const off = deps.net.onControl((ev) => {
+        if (filters.some((f) => has(f.domains, ev.domain) && has(f.channels, ev.channel) && has(f.kinds, ev.kind))) cb(ev);
+      });
+      unsubs.push(off);
+      return off;
     },
 
     resubscribe(topicKey, ext) {

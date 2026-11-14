@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it } from 'vitest';
 import '../../panels/uart/terminalPanel';
 import '../../panels/uart/tracePanel';
+import '../../panels/eth/ethPanel';
 import { TabSettings } from '../../store/tabSettings';
 import { ev, FakeNet, TEST_HELLO } from '../../store/testing/fakeNet';
 import { parseRoute, type Route } from '../routes';
@@ -172,5 +173,34 @@ describe('default workbench initialization', () => {
     expect(dock().api.panels).toHaveLength(3);
     expect(dock().api.activePanel).toBe(trace);
     expect(services.layouts.get('my-bench').layout).toEqual(layout);
+  });
+
+  it('keeps an ETH capture panel on normal stop and lets an explicit reopen of the stopped capture stay', () => {
+    const { net, services, dock } = mount();
+    const cap = (state: string, generation = 1) => act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'qa', generation, payload: { ch: 'qa', state } })));
+    const slot = { panel: 'eth.packets', props: { channel: 'qa' } };
+    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'port', payload: { state: 'open' } })));
+    cap('live');
+    const panel = dock().find(slot)!;
+    expect(panel).not.toBeNull();
+    cap('stopped');
+    act(() => services.shell.tick(4000));
+    expect(services.shell.channels.get('eth/qa')?.state).toBe('closed');
+    expect(dock().find(slot)).toBe(panel);
+    // live-only domains keep the tested pruning contract
+    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'port', payload: { state: 'closed' } })));
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'port' } })).toBeNull();
+    expect(dock().find(slot)).toBe(panel);
+    // user closes it, then reopens the stopped capture from the inactive explorer: it survives reconcile
+    act(() => panel.api.close());
+    expect(dock().find(slot)).toBeNull();
+    act(() => { expect(services.showSlot(slot)).toBe('added'); });
+    act(() => services.shell.tick(8000));
+    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'other', payload: { state: 'open' } })));
+    expect(dock().find(slot)).not.toBeNull();
+    // a later restart (new generation) reuses the view, never duplicates it; nothing was sent
+    cap('live', 2);
+    expect(dock().api.panels.filter((p) => JSON.stringify(p.params).includes('eth.packets'))).toHaveLength(1);
+    expect(net.calls.filter((c) => c.method === 'eth.send' || c.method === 'eth.capture.start')).toEqual([]);
   });
 });

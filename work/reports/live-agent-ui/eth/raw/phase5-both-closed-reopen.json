@@ -1,0 +1,13 @@
+{
+  "bundle": [
+    "http://localhost:53814/ui/assets/index-BzEw2Iyf.js"
+  ],
+  "welcome": false,
+  "tabs": [
+    "이더넷 패킷 · qa_eth_fixed"
+  ],
+  "selected841": true,
+  "detail841": true,
+  "queryError": false,
+  "text": "L\nLoom\nWorkbench\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n보는 중: 1/1\n에이전트 uart-cleanup#27699 uart.status 122s 전\n자격: watch\n■ STOP 전체\n통합 작업 공간\n인터페이스\n0\n+ 추가\n채널 검색\n\n채널을 선택해 보기를 엽니다.\n\n연결된 인터페이스만 보기\n▾\nUART\n1\nqa_uart_fixed\n(닫힘)\ngen1\n터미널\n트레이스\n▾\nETH\n1\nqa_eth_fixed\n(닫힘)\ngen1\n패킷 · 캡처\n탐색 안내\n\n인터페이스를 선택해 작업 패널을 여세요.\n\n패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.\nWORKSPACE\n통합 작업 공간\n단축키\n?\n레이아웃\n기본 작업 공간\n저장\n패널 동작\n⌄\n이더넷 패킷 · qa_eth_fixed\n최대화\neth.packets ─ qa_eth_fixed ● STOPPED [SIM tap] pps 0 bps 776 커널 드롭 0 기록 ok ts synthetic (nano)\n■ 캡처 정지\n캡처 시작…\n⇩ pcapng\n표시 필터\n★\n✓ 1 ms\n✕\n→ 적용\n▾\n— 이력\narp\n적용 중\n완전(저널 기준) · 1행 seq 841–841\n▶ 라이브로 (Space)\n캡처 시작 기준\n절대 시각\n이전 행 대비\n기준 행 대비\nseq\n시간\n출발지\n목적지\n프로토콜\n길이\n정보\nUDS\n출처\n841\n331.534763\n02:00:00:00:00:01\nff:ff:ff:ff:ff:ff\nARP\n60\nWho has 192.0.2.4? Tell 192.0.2.1\nAGT\n재전송\n편집 후 송신…\nUDP/TCP 송신…\n이 행을 시간 기준으로\n증거 REF 복사\neth:qa_eth_fixed@seq:841 · 상세 35 ms\n▸Frame 841: 60 bytes\n▸Ethernet II, Src: 02:00:00:00:00:01, Dst: ff:ff:ff:ff:ff:ff\n▸Address Resolution Protocol (op 1)\n0000ffffffffffff02000000000108060001................\n0010080006040001020000000001c0000201................\n0020000000000000c0000204000000000000................\n0030000000000000000000000000............\n선택 seq 841 · ARP · 60 B\n완전 범위 패킷 1 · 표시 필터 적용(서버)\n보관 203행\n송신 (2)\n이더넷 패킷 · qa_eth_fixed opened\n▸\nActivity\n50\n9시 12분 50초.663 AGT uart-cleanup#27699 uart uart.status 1 call(s) in the last second\n9시 12분 18초.663 AGT uart-cleanup#27155 uart uart.close 1 call(s) in the last second\nCtrl-]\nx\nSTOP\n·\nm\n마커\n·\n?\n도움말\nLOOM / sim\n● 9시 14분 52초"
+}

@@ -651,6 +651,50 @@ fn reducer_snapshot_and_summarizer() {
 }
 
 #[test]
+fn reducer_snapshot_retains_capture_start_anchor_per_generation() {
+    let mut reg = registry();
+    let mut reducers = reg.take_reducers();
+    let r = reducers.first_mut().expect("reducer");
+    let state = |seq: u64, generation: u32, payload: Value| {
+        let mut e = record(seq, "cap", "eth.capture_state", wall_now(), payload);
+        e.generation = Some(generation);
+        e
+    };
+    let start = |r: &mut Box<dyn loom_domain_api::Reducer>| {
+        r.snapshot(&Default::default())[0].get("started_mono_ns").cloned()
+    };
+    // starting without an anchor: unknown is omitted, never invented
+    r.apply(&state(
+        1,
+        1,
+        json!({"ch": "cap", "state": "starting", "backend": "sim", "iface": "sim"}),
+    ));
+    assert_eq!(start(r), None);
+    r.apply(&state(
+        2,
+        1,
+        json!({"ch": "cap", "state": "live", "started_mono_ns": "5229250"}),
+    ));
+    assert_eq!(start(r), Some(json!("5229250")));
+    // a later partial payload without the field keeps the exact anchor (stop/late join)
+    r.apply(&state(3, 1, json!({"ch": "cap", "state": "stopped"})));
+    let snap = r.snapshot(&Default::default());
+    assert_eq!(
+        (snap[0]["state"].as_str(), snap[0]["started_mono_ns"].as_str()),
+        (Some("stopped"), Some("5229250"))
+    );
+    // a new generation resets the anchor until its own start arrives
+    r.apply(&state(4, 2, json!({"ch": "cap", "state": "starting"})));
+    assert_eq!(start(r), None);
+    r.apply(&state(
+        5,
+        2,
+        json!({"ch": "cap", "state": "live", "started_mono_ns": 18446744073709551615u64}),
+    ));
+    assert_eq!(start(r), Some(json!("18446744073709551615")));
+}
+
+#[test]
 fn export_round_trips_loom_meta_and_comments() {
     use loom_eth_pcapng::{Block, Direction, Origin as POrigin, PcapNgReader};
     let reg = registry();

@@ -1,0 +1,42 @@
+{
+  "removed_owned_temp_roots": [
+    {
+      "path": "/tmp/loom-uds-live-build",
+      "allocated_bytes_before": 783200256
+    },
+    {
+      "path": "/tmp/loom-uart-secret-build",
+      "allocated_bytes_before": 1395335168
+    },
+    {
+      "path": "/tmp/loom-uds-live-20261114",
+      "allocated_bytes_before": 59723776
+    },
+    {
+      "path": "/tmp/loom-uart-secret-native",
+      "allocated_bytes_before": 1732608
+    },
+    {
+      "path": "/tmp/loom-uart-audit-fixed",
+      "allocated_bytes_before": 176128
+    },
+    {
+      "path": "/tmp/loom-eth-anchor-final",
+      "allocated_bytes_before": 552960
+    },
+    {
+      "path": "/tmp/loom-eth-control-final",
+      "allocated_bytes_before": 94208
+    }
+  ],
+  "new_default_target_cache": {
+    "scope": "Only generated files under target/debug/{deps,.fingerprint,build,incremental} from the worker accidental default-target test run at 09:17\u201309:18 KST. Existing earlier cache files and final binaries preserved.",
+    "removed_files": 3865,
+    "path_list_sha256": "2b5d98a06886d6267e6d91ebb1eb05630c2474cd707016c2e0cf20865bc23ac8"
+  },
+  "final_binaries_preserved": {
+    "loom": "539da6219841bcfb12e4d5a999d295a612db6628421e1313acd23b5563501ede",
+    "loomd": "c56f59ea003e6f8c0c88e274b690af8e3cd29666406cfdc45d9956b70e793772"
+  },
+  "qa_daemons_and_server": "Owned fixtures stopped normally; gateway shutdown exit 0, missing worker acknowledgements []. Ego task21 finished, owned pages closed. Native module workspaces w1K/w1M/w1N/w1P closed after normal agent exit; MAIN w8 preserved."
+}

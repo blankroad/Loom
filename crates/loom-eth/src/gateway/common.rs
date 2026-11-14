@@ -409,6 +409,9 @@ pub struct ChanInfo {
     pub state: String,
     /// Record generation of the last state event.
     pub generation: Option<u32>,
+    /// Worker `started_mono_ns` of the current generation, exactly as reported (worker clock domain; no conversion).
+    /// Reset by a new generation, kept when a later partial payload (e.g. `stopped` without it) omits it.
+    pub started_mono_ns: Option<u64>,
     /// Last update order (for eviction).
     pub touched: u64,
 }
@@ -451,8 +454,14 @@ impl ChannelBook {
         if let Some(v) = s("state") {
             e.state = v;
         }
+        if generation.is_some() && generation != e.generation {
+            e.started_mono_ns = None; // a new capture generation never inherits the previous start anchor
+        }
         if generation.is_some() {
             e.generation = generation;
+        }
+        if let Some(v) = json_u64(payload.get("started_mono_ns")) {
+            e.started_mono_ns = Some(v);
         }
         e.touched = tick;
     }

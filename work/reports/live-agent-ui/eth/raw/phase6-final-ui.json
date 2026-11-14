@@ -1,0 +1,16 @@
+{
+  "stopped": {
+    "welcome": false,
+    "selection": true,
+    "time": "25.854100",
+    "headerStaleLive": true
+  },
+  "reopened": {
+    "welcome": false,
+    "selection": true,
+    "time": "25.854100",
+    "stoppedHeader": true
+  },
+  "timePass": true,
+  "reopenPass": true
+}

@@ -1,0 +1,79 @@
+{
+ "started_mono_ns": "421959",
+ "rows": [
+  {
+   "seq": "155",
+   "ui": "43.081602",
+   "expected": "43.081602",
+   "equal": true
+  },
+  {
+   "seq": "159",
+   "ui": "44.080931",
+   "expected": "44.080931",
+   "equal": true
+  },
+  {
+   "seq": "163",
+   "ui": "45.085216",
+   "expected": "45.085216",
+   "equal": true
+  },
+  {
+   "seq": "167",
+   "ui": "46.088962",
+   "expected": "46.088962",
+   "equal": true
+  },
+  {
+   "seq": "171",
+   "ui": "47.088735",
+   "expected": "47.088735",
+   "equal": true
+  },
+  {
+   "seq": "175",
+   "ui": "48.091311",
+   "expected": "48.091311",
+   "equal": true
+  },
+  {
+   "seq": "179",
+   "ui": "49.095172",
+   "expected": "49.095172",
+   "equal": true
+  },
+  {
+   "seq": "183",
+   "ui": "50.096923",
+   "expected": "50.096923",
+   "equal": true
+  },
+  {
+   "seq": "187",
+   "ui": "51.101163",
+   "expected": "51.101163",
+   "equal": true
+  },
+  {
+   "seq": "191",
+   "ui": "52.103934",
+   "expected": "52.103934",
+   "equal": true
+  },
+  {
+   "seq": "195",
+   "ui": "53.103935",
+   "expected": "53.103935",
+   "equal": true
+  }
+ ],
+ "arp": {
+  "seq": "83",
+  "mono_ns": "25854522000",
+  "started_mono_ns": "421959",
+  "expected_rel": "25.854100",
+  "clock_id": "proc-34529",
+  "request_id": "w2"
+ }
+}

@@ -25,3 +25,9 @@ Exact verbs, flags, defaults, exit codes: `loom uart help --json`. Don't guess f
 - Every result has `others_since_last`: if the user typed, read before acting.
 - Before reset/break/baud change/bootloader/flash/erase, say in one line what you will do.
 - Garbled output → wrong baud; ask the user. Never guess-send to a garbled console.
+
+## Live agent/UI verification
+- Follow the common [UI/viewer rules](../loom/references/ui.md). Open the real terminal on the same daemon before sending a fresh marker.
+- Use a separate observer identity: `LOOM_CLIENT=uart-observer loom events --since now --channel dut --follow --timeout 30 --max 200 --json`. Wait for its first snapshot before the sender acts; do not renew automatically.
+- Match the exact marker in device `uart.data` RX and the visible terminal, recording epoch/seq and the sender request ID. An echoed command can satisfy `--expect`; also check the actual output and prompt.
+- For `--secret-env`, TX events carry `secret.len` and quality `redacted` without bytes; the audit intent also redacts the data. Verify that a later ordinary marker still arrives. A historical read alone does not prove simultaneous receipt.

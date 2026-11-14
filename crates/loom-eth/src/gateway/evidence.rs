@@ -350,8 +350,13 @@ impl Reducer for EthReducer {
             .into_iter()
             .filter(|(ch, _)| want(ch))
             .map(|(ch, i)| {
-                json!({"kind": KIND_CAPTURE_STATE, "ch": ch, "state": i.state, "backend": i.backend,
-                       "iface": i.iface, "generation": i.generation})
+                let mut v = json!({"kind": KIND_CAPTURE_STATE, "ch": ch, "state": i.state, "backend": i.backend,
+                       "iface": i.iface, "generation": i.generation});
+                // Late joiners need the real start anchor; omitted (never invented) when unknown.
+                if let Some(start) = i.started_mono_ns {
+                    v["started_mono_ns"] = json!(start.to_string());
+                }
+                v
             })
             .collect();
         let pkts: Vec<&Value> = self

@@ -1,0 +1,17 @@
+[
+  {
+    "pid": 95239,
+    "signal": "SIGINT",
+    "identity_verified": true
+  },
+  {
+    "pid": 1615,
+    "signal": "SIGINT",
+    "identity_verified": true
+  },
+  {
+    "pid": 23504,
+    "signal": "SIGINT",
+    "identity_verified": true
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "final_default_binaries": [
+    {
+      "path": "target/debug/loom",
+      "sha256": "539da6219841bcfb12e4d5a999d295a612db6628421e1313acd23b5563501ede",
+      "bytes": 9682480
+    },
+    {
+      "path": "target/debug/loomd",
+      "sha256": "c56f59ea003e6f8c0c88e274b690af8e3cd29666406cfdc45d9956b70e793772",
+      "bytes": 62422544
+    }
+  ],
+  "native_checks": {
+    "uds_external_doip_and_eth_time": "gateway 8e4cc56beffc47fec62e5168d3c06d74f954d4d7289fc902199b62901b9e6643; same native source as final, prior UI assets",
+    "eth_control_header": "final c56f59ea, bundled index-CxluPpWw",
+    "uart_secret": "gateway 4ac3ee715f97462ec2b7c1726cb9689b4e312ac2d838a7669b18d1c793e418ed; UART and audit source unchanged afterwards"
+  }
+}

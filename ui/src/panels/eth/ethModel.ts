@@ -198,6 +198,18 @@ export function fmtTime(r: PktRow, mode: TimeMode, base: { startMonoNs: bigint |
 // upper-case state shapes from the dev mock are still accepted.
 
 /** U64 decimal string (canonical) or non-negative safe integer (legacy) → exact bigint. */
+/** eth.query/eth.export range cursors use the proto cursor grammar (`seq:N`), never a bare number:
+ * a bare "94" is parsed as a clock time and rejected (`bad HH:MM:SS`). Responses keep bare decimal strings. */
+export function seqCursor(seq: bigint | null | undefined): string | undefined {
+  return seq === null || seq === undefined || seq < 0n ? undefined : `seq:${seq}`;
+}
+/** Range with only the known ends; an unknown end is omitted (open), never sent as "" or a bare number. */
+export function seqRange(from: bigint | null | undefined, to: bigint | null | undefined): { from?: string; to?: string } | undefined {
+  const f = seqCursor(from);
+  const t = seqCursor(to);
+  return f || t ? { ...(f ? { from: f } : {}), ...(t ? { to: t } : {}) } : undefined;
+}
+
 export function u64(v: unknown): bigint | null {
   if (typeof v === 'string' && /^\d{1,20}$/.test(v)) {
     const b = BigInt(v);

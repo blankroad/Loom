@@ -11,6 +11,8 @@ import { NEED_AUTH_TEXT, RETURN_KEY } from './bootstrap';
 import { ConfirmLayer } from './ConfirmLayer';
 import { FocusPrompt, TabSettingsControls } from './FocusPrompt';
 import { DockLayout, LayoutBar } from './dock/DockLayout';
+import { retainsHistoryAfterClose } from './dock/activeWorkspace';
+import { viewsForChannel } from '../store/channels';
 import { parseRoute } from './routes';
 import { installPrefixKeys } from './prefixKeys';
 import type { ShellServices } from './services';
@@ -100,7 +102,11 @@ function ShellBody() {
   const { shell, stop, uiState, net, gate, toasts } = s;
   useStoreVersion(shell);
   const route = useHashRoute();
-  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
+  // A stopped ETH capture view that is still docked (retained or explicitly reopened history) is real content:
+  // closing the last live interface must not cover it with the empty welcome. Closed UART/CAN views are pruned anyway.
+  const retainedHistory = [...shell.channels.values()].some((c) => c.state === 'closed' && retainsHistoryAfterClose(c.domain)
+    && viewsForChannel(c.domain, c.channel).some((v) => s.dock.current?.find({ panel: v.panel, props: v.props })));
+  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && !retainedHistory && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
 
   useEffect(
     () =>

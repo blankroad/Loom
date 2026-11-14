@@ -1,0 +1,172 @@
+{
+  "observer_ready_wall_ns": "1794615968376034000",
+  "observer_exit": 0,
+  "events": [
+    {
+      "seq": "335",
+      "epoch": "1794615752",
+      "kind": "uds.tx",
+      "request_id": "w4",
+      "payload": {
+        "bytes": {
+          "data": "22f190",
+          "encoding": "hex"
+        },
+        "functional": false,
+        "ok_suppressed": false,
+        "p2_ms": 50,
+        "p2_star_ms": 5000,
+        "pending_count": 0,
+        "policy_action": "auto",
+        "reason": "UDS 0x22 ReadDataByIdentifier",
+        "risk": "R0",
+        "service": "ReadDataByIdentifier",
+        "sid": 34,
+        "summary": "ReadDataByIdentifier F190 VIN",
+        "suppress_pos": false,
+        "t_send_mono_ns": "215818369750",
+        "target": "final_uds",
+        "timeout": false,
+        "write_state": "sent"
+      }
+    },
+    {
+      "seq": "336",
+      "epoch": "1794615752",
+      "kind": "uds.rx",
+      "request_id": "w4",
+      "payload": {
+        "bytes": {
+          "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+          "encoding": "hex"
+        },
+        "kind": "positive",
+        "late": false,
+        "t_rx_mono_ns": "215819839292",
+        "target": "final_uds"
+      }
+    },
+    {
+      "seq": "337",
+      "epoch": "1794615752",
+      "kind": "uds.result",
+      "request_id": "w4",
+      "payload": {
+        "bytes": {
+          "data": "22f190",
+          "encoding": "hex"
+        },
+        "final": true,
+        "first_rx_ms": 1.47,
+        "functional": false,
+        "ok_suppressed": false,
+        "p2_ms": 50,
+        "p2_star_ms": 5000,
+        "pending_count": 0,
+        "policy_action": "auto",
+        "reason": "UDS 0x22 ReadDataByIdentifier",
+        "resp_bytes": {
+          "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+          "encoding": "hex"
+        },
+        "risk": "R0",
+        "rtt_ms": 1.47,
+        "service": "ReadDataByIdentifier",
+        "sid": 34,
+        "summary": "ReadDataByIdentifier F190 VIN",
+        "suppress_pos": false,
+        "t_final_rx_mono_ns": "215819839292",
+        "t_first_rx_mono_ns": "215819839292",
+        "t_send_mono_ns": "215818369750",
+        "target": "final_uds",
+        "timeout": false,
+        "write_state": "confirmed"
+      }
+    },
+    {
+      "seq": "340",
+      "epoch": "1794615752",
+      "kind": "uds.tx",
+      "request_id": "w5",
+      "payload": {
+        "bytes": {
+          "data": "22ffff",
+          "encoding": "hex"
+        },
+        "functional": false,
+        "ok_suppressed": false,
+        "p2_ms": 50,
+        "p2_star_ms": 5000,
+        "pending_count": 0,
+        "policy_action": "auto",
+        "reason": "UDS 0x22 ReadDataByIdentifier",
+        "risk": "R0",
+        "service": "ReadDataByIdentifier",
+        "sid": 34,
+        "summary": "ReadDataByIdentifier FFFF",
+        "suppress_pos": false,
+        "t_send_mono_ns": "215837418875",
+        "target": "final_uds",
+        "timeout": false,
+        "write_state": "sent"
+      }
+    },
+    {
+      "seq": "341",
+      "epoch": "1794615752",
+      "kind": "uds.rx",
+      "request_id": "w5",
+      "payload": {
+        "bytes": {
+          "data": "7f2231",
+          "encoding": "hex"
+        },
+        "kind": "negative",
+        "late": false,
+        "nrc": 49,
+        "nrc_name": "requestOutOfRange",
+        "t_rx_mono_ns": "215837934625",
+        "target": "final_uds"
+      }
+    },
+    {
+      "seq": "342",
+      "epoch": "1794615752",
+      "kind": "uds.result",
+      "request_id": "w5",
+      "payload": {
+        "bytes": {
+          "data": "22ffff",
+          "encoding": "hex"
+        },
+        "final": true,
+        "first_rx_ms": 0.516,
+        "functional": false,
+        "nrc": 49,
+        "nrc_name": "requestOutOfRange",
+        "ok_suppressed": false,
+        "p2_ms": 50,
+        "p2_star_ms": 5000,
+        "pending_count": 0,
+        "policy_action": "auto",
+        "reason": "UDS 0x22 ReadDataByIdentifier",
+        "resp_bytes": {
+          "data": "7f2231",
+          "encoding": "hex"
+        },
+        "risk": "R0",
+        "rtt_ms": 0.516,
+        "service": "ReadDataByIdentifier",
+        "sid": 34,
+        "summary": "ReadDataByIdentifier FFFF",
+        "suppress_pos": false,
+        "t_final_rx_mono_ns": "215837934625",
+        "t_first_rx_mono_ns": "215837934625",
+        "t_send_mono_ns": "215837418875",
+        "target": "final_uds",
+        "timeout": false,
+        "write_state": "failed"
+      }
+    }
+  ]
+}

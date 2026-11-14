@@ -1,6 +1,6 @@
 # UART live agent/UI check — REPORT
 
-Owner: uart-live-check-opus (w1N:p1). Date 2026-11-14. Shared isolated daemon kept running (not stopped).
+Owner: uart-live-check-opus (w1N:p1). Date 2026-11-14. Initial baseline used the shared isolated daemon; later fixed runtimes and ROOT cleanup are recorded below.
 Backend: `LOOM_HOME=/tmp/loom-uds-live-20261114/home`, port 52575, loomd pid 95239, stream_epoch `1794612979`,
 CLI `target/debug/loom` (realpath `/Users/ctmctm/workspace/Loom/target/debug/loom`, 9776424 B, mtime Nov 14 08:41,
 SHA-256 `d54e4134f10b84fe3ce4c1e5e0e01cdf677cd317677b1c22c92143a6430a3689`, matching ROOT. The earlier `fd60a9eddd79…` was
@@ -42,7 +42,7 @@ Correlation (epoch 1794612979):
 | 340 | uart.expect_result | agent | w21 | 1794613696149999000 matched |
 
 - The sender CLI ran from 1794613696124383000 to 1794613696260326000.
-- The observer received the batch with seq 329–340 at **1794613696249187000**. That is about 112 ms after the device rx event, and before the sender CLI returned. This is a live push, not a replay.
+- The observer received the batch with seq 329–340 at **1794613696249187000**. That is about 112 ms after the device rx event, and before the sender CLI returned. This is live bounded follow (200 ms polling), not a historical-only replay.
 - Note: the `--expect` literal matched the echoed command line (rx 13136–13165), not the output line. The output line is present in the same rx chunk (seq 338).
 
 ## READY_FOR_UI

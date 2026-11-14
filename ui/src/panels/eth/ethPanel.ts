@@ -49,6 +49,7 @@ import {
   fmtCount,
   fmtRate,
   u64,
+  seqRange,
   type CaptureStats,
   readLinkEvent,
   readPkt,
@@ -123,6 +124,9 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   const pendingLinks = new Map<string, PktLink>();
   const nicObserved = new Set<string>();
   let capture: CaptureState | null = null;
+  let captureGen: number | null = null;
+  let captureSeq = -1n; // newest capture_state applied (control, backlog or snapshot high water)
+  let snapshotVersion = -1;
   let stats: CaptureStats = EMPTY_STATS;
   let statsSeen = false;
   let coverage: BatchCoverage | null = null;
@@ -314,7 +318,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       key: 'time',
       header: '시간',
       width: '9em',
-      cell: (r) => fmtTime(r, timeMode, { startMonoNs: capture?.startMonoNs ?? live.rows.find((x) => x.kind === 'pkt')?.monoNs ?? null, prevMonoNs: prevMono.get(r.key) ?? null, refMonoNs: refMono }),
+      cell: (r) => fmtTime(r, timeMode, { startMonoNs: capture?.startMonoNs ?? null, prevMonoNs: prevMono.get(r.key) ?? null, refMonoNs: refMono }),
     },
     { key: 'src', header: '출발지', width: '10em', cell: (r) => r.src },
     { key: 'dst', header: '목적지', width: '10em', cell: (r) => r.dst },
@@ -418,7 +422,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     ctx
       .query<{ rows?: unknown[]; range?: { from?: string; to?: string }; truncated?: boolean }>(
         'eth.query',
-        { ch, range: { to: String(to) }, ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false },
+        { ch, range: seqRange(null, to > 0n ? to : null), ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false },
         ac.signal,
       )
       .then((res) => {
@@ -496,7 +500,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   stopBtn.addEventListener('click', () => void act('captureStop', { ch }));
   startBtn.addEventListener('click', () => openCaptureStart(dialogHost, ctx, ch));
   exportBtn.addEventListener('click', () => {
-    const range = mode === 'complete' && complete ? { from: String(complete.from ?? ''), to: String(complete.to ?? '') } : undefined;
+    const range = mode === 'complete' && complete ? seqRange(complete.from, complete.to) : undefined;
     void act('export', { ch, format: 'pcapng', ...(filter.applied ? { filter: filter.applied } : {}), ...(range ? { range } : {}) }).then((h) => {
       if (h) ctx.ui.toast(`pcapng 내보내기 시작${h.requestId ? ` (${h.requestId})` : ''} — 진행률은 Activity`);
     });
@@ -561,6 +565,17 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   });
 
   // ---- consume live stream ----
+  /** A new capture generation never inherits the previous start anchor (worker clock, kept as reported). */
+  const applyCapture = (p: Record<string, unknown>, generation: number | null, seq: bigint | null = null) => {
+    // control path and backlog/snapshot can both carry a state: never let an older one override a newer one
+    if (seq !== null) {
+      if (seq <= captureSeq) return;
+      captureSeq = seq;
+    }
+    const prev = generation !== null && captureGen !== null && generation !== captureGen && capture ? { ...capture, startMonoNs: null } : capture;
+    if (generation !== null) captureGen = generation;
+    capture = readCaptureState(p, prev);
+  };
   const handle = (ev: LoomEvent) => {
     const p = obj(ev.payload);
     switch (ev.kind) {
@@ -595,7 +610,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         return;
       }
       case 'eth.capture_state':
-        capture = readCaptureState(p, capture);
+        applyCapture(p, typeof ev.generation === 'number' ? ev.generation : null, BigInt(ev.seq));
         return;
       case 'eth.stats':
         stats = readStats(p, stats);
@@ -642,6 +657,15 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   const offTx = txRows.onChange(() => ctx.scheduler.invalidate());
 
   const draw = (): bigint => {
+    const snap = mirror.snapshot;
+    if (snap && snap.version !== snapshotVersion) {
+      snapshotVersion = snap.version;
+      for (const item of snap.items) {
+        const st = obj(item.state);
+        if (item.domain !== 'eth' || st.kind !== 'eth.capture_state' || (st.ch ?? item.channel) !== ch) continue;
+        applyCapture(st, typeof st.generation === 'number' ? st.generation : null, snap.throughSeq);
+      }
+    }
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
       handle(ev);
@@ -747,13 +771,22 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     editBtn.disabled = !op || !detailHex;
     sockBtn.disabled = !op;
     startBtn.disabled = !op;
-    stopBtn.disabled = false; // safety direction
+    // safety direction: enabled unless the capture is known to have ended (stopping it again does nothing)
+    stopBtn.disabled = st === 'stopped' || st === 'error' || st === 'permission_denied' || st === 'replay_done';
     refBtn.disabled = selected?.kind !== 'pkt';
     copyBtn.disabled = selected?.kind !== 'pkt';
     detailInfo.textContent = selected?.kind === 'pkt' ? `${selected.ref}${detailMs !== null ? ` · 상세 ${detailMs} ms` : ''}` : '';
     return lastSeq;
   };
   const offFrame = ctx.scheduler.onFrame(draw);
+  // live capture state arrives on the control path only (priority kind); apply it for this channel
+  const offControl = ctx.onControl((ev) => {
+    if (ev.kind !== 'eth.capture_state') return;
+    const p = obj(ev.payload);
+    if ((ev.channel ?? p.ch) !== ch) return;
+    applyCapture(p, typeof ev.generation === 'number' ? ev.generation : null, BigInt(ev.seq));
+    ctx.scheduler.invalidate();
+  });
 
   return {
     mount(host) {
@@ -769,6 +802,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       offAppend();
       offTx();
       offFrame();
+      offControl();
       filter.dispose();
       table.dispose();
       txTable.dispose();

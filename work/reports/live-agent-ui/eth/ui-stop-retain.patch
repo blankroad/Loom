@@ -1,0 +1,629 @@
+diff --git a/crates/loom-eth/src/gateway/common.rs b/crates/loom-eth/src/gateway/common.rs
+index 8ec2643..487862b 100644
+--- a/crates/loom-eth/src/gateway/common.rs
++++ b/crates/loom-eth/src/gateway/common.rs
+@@ -409,6 +409,9 @@ pub struct ChanInfo {
+     pub state: String,
+     /// Record generation of the last state event.
+     pub generation: Option<u32>,
++    /// Worker `started_mono_ns` of the current generation, exactly as reported (worker clock domain; no conversion).
++    /// Reset by a new generation, kept when a later partial payload (e.g. `stopped` without it) omits it.
++    pub started_mono_ns: Option<u64>,
+     /// Last update order (for eviction).
+     pub touched: u64,
+ }
+@@ -451,9 +454,15 @@ impl ChannelBook {
+         if let Some(v) = s("state") {
+             e.state = v;
+         }
++        if generation.is_some() && generation != e.generation {
++            e.started_mono_ns = None; // a new capture generation never inherits the previous start anchor
++        }
+         if generation.is_some() {
+             e.generation = generation;
+         }
++        if let Some(v) = json_u64(payload.get("started_mono_ns")) {
++            e.started_mono_ns = Some(v);
++        }
+         e.touched = tick;
+     }
+ 
+diff --git a/crates/loom-eth/src/gateway/evidence.rs b/crates/loom-eth/src/gateway/evidence.rs
+index 91fce23..86286dd 100644
+--- a/crates/loom-eth/src/gateway/evidence.rs
++++ b/crates/loom-eth/src/gateway/evidence.rs
+@@ -350,8 +350,13 @@ impl Reducer for EthReducer {
+             .into_iter()
+             .filter(|(ch, _)| want(ch))
+             .map(|(ch, i)| {
+-                json!({"kind": KIND_CAPTURE_STATE, "ch": ch, "state": i.state, "backend": i.backend,
+-                       "iface": i.iface, "generation": i.generation})
++                let mut v = json!({"kind": KIND_CAPTURE_STATE, "ch": ch, "state": i.state, "backend": i.backend,
++                       "iface": i.iface, "generation": i.generation});
++                // Late joiners need the real start anchor; omitted (never invented) when unknown.
++                if let Some(start) = i.started_mono_ns {
++                    v["started_mono_ns"] = json!(start.to_string());
++                }
++                v
+             })
+             .collect();
+         let pkts: Vec<&Value> = self
+diff --git a/crates/loom-eth/tests/gateway.rs b/crates/loom-eth/tests/gateway.rs
+index 24abfee..45e6a6a 100644
+--- a/crates/loom-eth/tests/gateway.rs
++++ b/crates/loom-eth/tests/gateway.rs
+@@ -650,6 +650,50 @@ fn reducer_snapshot_and_summarizer() {
+     assert_eq!(s["own"], 1);
+ }
+ 
++#[test]
++fn reducer_snapshot_retains_capture_start_anchor_per_generation() {
++    let mut reg = registry();
++    let mut reducers = reg.take_reducers();
++    let r = reducers.first_mut().expect("reducer");
++    let state = |seq: u64, generation: u32, payload: Value| {
++        let mut e = record(seq, "cap", "eth.capture_state", wall_now(), payload);
++        e.generation = Some(generation);
++        e
++    };
++    let start = |r: &mut Box<dyn loom_domain_api::Reducer>| {
++        r.snapshot(&Default::default())[0].get("started_mono_ns").cloned()
++    };
++    // starting without an anchor: unknown is omitted, never invented
++    r.apply(&state(
++        1,
++        1,
++        json!({"ch": "cap", "state": "starting", "backend": "sim", "iface": "sim"}),
++    ));
++    assert_eq!(start(r), None);
++    r.apply(&state(
++        2,
++        1,
++        json!({"ch": "cap", "state": "live", "started_mono_ns": "5229250"}),
++    ));
++    assert_eq!(start(r), Some(json!("5229250")));
++    // a later partial payload without the field keeps the exact anchor (stop/late join)
++    r.apply(&state(3, 1, json!({"ch": "cap", "state": "stopped"})));
++    let snap = r.snapshot(&Default::default());
++    assert_eq!(
++        (snap[0]["state"].as_str(), snap[0]["started_mono_ns"].as_str()),
++        (Some("stopped"), Some("5229250"))
++    );
++    // a new generation resets the anchor until its own start arrives
++    r.apply(&state(4, 2, json!({"ch": "cap", "state": "starting"})));
++    assert_eq!(start(r), None);
++    r.apply(&state(
++        5,
++        2,
++        json!({"ch": "cap", "state": "live", "started_mono_ns": 18446744073709551615u64}),
++    ));
++    assert_eq!(start(r), Some(json!("18446744073709551615")));
++}
++
+ #[test]
+ fn export_round_trips_loom_meta_and_comments() {
+     use loom_eth_pcapng::{Block, Direction, Origin as POrigin, PcapNgReader};
+diff --git a/ui/src/panels/eth/eth.test.ts b/ui/src/panels/eth/eth.test.ts
+index 7c85346..683b6ea 100644
+--- a/ui/src/panels/eth/eth.test.ts
++++ b/ui/src/panels/eth/eth.test.ts
+@@ -108,7 +108,7 @@ describe('eth.packets', () => {
+   it('sampling badge while live; Space → complete journal query replaces the sampled rows', async () => {
+     h = mountPanel('eth.packets', { channel: 'lan1' });
+     h.net.responders.set('eth.query', (p) => {
+-      expect((p as { range: { to: string } }).range.to).toBe('41280');
++      expect((p as { range: { to: string } }).range).toEqual({ to: 'seq:41280' }); // proto cursor grammar, never a bare number
+       return { rows: fixtureQueryRows(5), range: { from: '50000', to: '50004' } };
+     });
+     h.batch([...fixtureEvents(), fixtureRecord('eth.batch', 41281, { covered_first_seq: '41230', covered_last_seq: '41281', total: 1000, shown: 10 })]);
+@@ -562,4 +562,96 @@ describe('eth.packets fidelity layout & interaction', () => {
+     root.dispatchEvent(new KeyboardEvent('keydown', { key: '/', ctrlKey: true, bubbles: true }));
+     expect(document.activeElement).toBe(q('[data-testid="eth-filter-input"]'));
+   });
++
++  it('filter, pause and export send proto seq cursors (seq:N), never bare numbers (native "bad HH:MM:SS" regression)', async () => {
++    vi.useFakeTimers();
++    h = mountPanel('eth.packets', { channel: 'lan1' });
++    h.net.responders.set('eth.filter.check', () => ({ ok: true }));
++    h.net.responders.set('eth.query', () => ({ rows: fixtureQueryRows(3), range: { from: '50000', to: '50002' } }));
++    const queries = () => h!.net.calls.filter((c) => c.method === 'eth.query').map((c) => c.params as { range?: { from?: string; to?: string }; filter?: string });
++    const button = (text: string) => { h!.frame(); return [...h!.host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text))!; };
++    // no packet yet: pause queries an open range, never "seq:0" / "0"
++    button('일시정지').click();
++    await vi.advanceTimersByTimeAsync(10);
++    expect(queries().at(-1)!.range).toBeUndefined();
++    button('라이브로').click();
++    // live packets → pause: complete query up to the live head as seq:N
++    h.batch(fixtureEvents());
++    const head = pktRows(h).map((r) => r.dataset.seq).filter(Boolean).at(-1)!;
++    button('일시정지').click();
++    await vi.advanceTimersByTimeAsync(10);
++    expect(queries().at(-1)!.range).toEqual({ to: `seq:${head}` });
++    button('라이브로').click();
++    // display filter → complete filtered range, same cursor grammar, filter preserved
++    const input = h.host.querySelector<HTMLInputElement>('[data-testid="eth-filter-input"]')!;
++    input.value = 'arp';
++    input.dispatchEvent(new Event('input'));
++    await vi.advanceTimersByTimeAsync(160);
++    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
++    await vi.advanceTimersByTimeAsync(10);
++    expect(queries().at(-1)).toMatchObject({ filter: 'arp', range: { to: `seq:${head}` } });
++    // export in complete mode: both ends as seq cursors
++    await flush(h);
++    button('pcapng').click();
++    await vi.advanceTimersByTimeAsync(10);
++    const ex = h.net.calls.find((c) => c.method === 'eth.export')!.params as { range?: { from?: string; to?: string } };
++    expect(ex).toMatchObject({ ch: 'lan1', format: 'pcapng', filter: 'arp', range: { from: 'seq:50000', to: 'seq:50002' } });
++    for (const r of [...queries().map((x) => x.range), ex.range]) for (const v of [r?.from, r?.to]) expect(v === undefined || /^seq:\d+$/.test(v)).toBe(true);
++  });
++
++  it('relative time uses the real capture start (snapshot anchor), never the first visible backlog packet; new generation resets it', () => {
++    h = mountPanel('eth.packets', { channel: 'lan1' });
++    const late = fixtureEvents().filter((e) => e.kind !== 'eth.capture_state'); // late join: start event aged out of the backlog
++    const first = late.find((e) => e.kind === 'eth.pkt')!;
++    const cells = (seq: string) => [...pktRows(h!).find((r) => r.dataset.seq === seq)!.querySelectorAll('.vt-td')].map((c) => c.textContent);
++    // unknown start → honest "?" (the old code showed 0.000000 relative to the first visible packet)
++    h.batch(late);
++    expect(cells(first.seq)).toContain('?');
++    expect(cells(first.seq)).not.toContain('0.000000');
++    // reducer snapshot carries the exact worker start (same clock domain, no conversion): 41230 ms after 12 s base
++    h.net.subs[0]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, items: [{ domain: 'eth', kind: 'eth.snapshot', state: { kind: 'eth.capture_state', ch: 'lan1', state: 'live', backend: 'sim', iface: 'sim', generation: 1, started_mono_ns: '12000000000' } }], events: [] } as never);
++    h.snapshotEnd(late.at(-1)!.seq);
++    expect(first.seq).toBe('41230');
++    expect(cells(first.seq)).toContain('41.230000');
++    // a partial stop without the field keeps the anchor
++    h.batch([{ ...first, kind: 'eth.capture_state', seq: String(Number(late.at(-1)!.seq) + 1), generation: 1, payload: { ch: 'lan1', state: 'stopped' } }]);
++    expect(cells(first.seq)).toContain('41.230000');
++    // a new generation without its own start never inherits the old anchor
++    h.batch([{ ...first, kind: 'eth.capture_state', seq: String(Number(late.at(-1)!.seq) + 2), generation: 2, payload: { ch: 'lan1', state: 'starting' } }]);
++    expect(cells(first.seq)).toContain('?');
++  });
++
++  it('capture state on the control path only (no data batch, no snapshot) updates the header and stop button; stale/other-channel ignored; dispose unhooks', () => {
++    h = mountPanel('eth.packets', { channel: 'lan1' });
++    const ctl = (seq: number, state: string, channel = 'lan1', generation = 1) =>
++      ev({ kind: 'eth.capture_state', domain: 'eth', channel, seq: String(seq), generation, origin: 'agent', payload: { ch: channel, state, backend: 'sim', iface: 'sim', started_mono_ns: '421959' } });
++    const status = () => h!.host.querySelector('[data-testid="eth-status"]')!;
++    const stopBtn = () => [...h!.host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes('캡처 정지'))!;
++    const listeners = () => (h!.net as unknown as { controlCbs: Set<unknown> }).controlCbs.size;
++    const before = listeners();
++    h.net.emitControl(ctl(10, 'live'));
++    h.frame();
++    expect(status().textContent).toContain('● LIVE');
++    expect(stopBtn().disabled).toBe(false);
++    h.net.emitControl(ctl(20, 'stopped'));
++    h.frame();
++    expect(status().textContent).toContain('● STOPPED');
++    expect((status() as HTMLElement).dataset.state).toBe('stopped');
++    expect(stopBtn().disabled).toBe(true);
++    // an older state (e.g. a late duplicate) and another channel never override it
++    h.net.emitControl(ctl(15, 'live'));
++    h.net.emitControl(ctl(30, 'live', 'other'));
++    h.frame();
++    expect(status().textContent).toContain('● STOPPED');
++    // gen2 restart on the same channel goes live again (no extra frame needed)
++    h.net.emitControl(ctl(40, 'live', 'lan1', 2));
++    h.frame();
++    expect(status().textContent).toContain('● LIVE');
++    expect(stopBtn().disabled).toBe(false);
++    expect(h.net.subs[0]!.closed).toBe(false);
++    expect(h.net.calls.filter((c) => c.method.startsWith('eth.capture') || c.method === 'eth.send')).toEqual([]);
++    h.dispose();
++    expect(listeners()).toBe(before - 1);
++    h = null;
++  });
+ });
+diff --git a/ui/src/panels/eth/ethModel.ts b/ui/src/panels/eth/ethModel.ts
+index bb5a930..ab6eaa7 100644
+--- a/ui/src/panels/eth/ethModel.ts
++++ b/ui/src/panels/eth/ethModel.ts
+@@ -198,6 +198,18 @@ export function fmtTime(r: PktRow, mode: TimeMode, base: { startMonoNs: bigint |
+ // upper-case state shapes from the dev mock are still accepted.
+ 
+ /** U64 decimal string (canonical) or non-negative safe integer (legacy) → exact bigint. */
++/** eth.query/eth.export range cursors use the proto cursor grammar (`seq:N`), never a bare number:
++ * a bare "94" is parsed as a clock time and rejected (`bad HH:MM:SS`). Responses keep bare decimal strings. */
++export function seqCursor(seq: bigint | null | undefined): string | undefined {
++  return seq === null || seq === undefined || seq < 0n ? undefined : `seq:${seq}`;
++}
++/** Range with only the known ends; an unknown end is omitted (open), never sent as "" or a bare number. */
++export function seqRange(from: bigint | null | undefined, to: bigint | null | undefined): { from?: string; to?: string } | undefined {
++  const f = seqCursor(from);
++  const t = seqCursor(to);
++  return f || t ? { ...(f ? { from: f } : {}), ...(t ? { to: t } : {}) } : undefined;
++}
++
+ export function u64(v: unknown): bigint | null {
+   if (typeof v === 'string' && /^\d{1,20}$/.test(v)) {
+     const b = BigInt(v);
+diff --git a/ui/src/panels/eth/ethPanel.ts b/ui/src/panels/eth/ethPanel.ts
+index fda4d93..5ff8c59 100644
+--- a/ui/src/panels/eth/ethPanel.ts
++++ b/ui/src/panels/eth/ethPanel.ts
+@@ -49,6 +49,7 @@ import {
+   fmtCount,
+   fmtRate,
+   u64,
++  seqRange,
+   type CaptureStats,
+   readLinkEvent,
+   readPkt,
+@@ -123,6 +124,9 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+   const pendingLinks = new Map<string, PktLink>();
+   const nicObserved = new Set<string>();
+   let capture: CaptureState | null = null;
++  let captureGen: number | null = null;
++  let captureSeq = -1n; // newest capture_state applied (control, backlog or snapshot high water)
++  let snapshotVersion = -1;
+   let stats: CaptureStats = EMPTY_STATS;
+   let statsSeen = false;
+   let coverage: BatchCoverage | null = null;
+@@ -314,7 +318,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+       key: 'time',
+       header: '시간',
+       width: '9em',
+-      cell: (r) => fmtTime(r, timeMode, { startMonoNs: capture?.startMonoNs ?? live.rows.find((x) => x.kind === 'pkt')?.monoNs ?? null, prevMonoNs: prevMono.get(r.key) ?? null, refMonoNs: refMono }),
++      cell: (r) => fmtTime(r, timeMode, { startMonoNs: capture?.startMonoNs ?? null, prevMonoNs: prevMono.get(r.key) ?? null, refMonoNs: refMono }),
+     },
+     { key: 'src', header: '출발지', width: '10em', cell: (r) => r.src },
+     { key: 'dst', header: '목적지', width: '10em', cell: (r) => r.dst },
+@@ -418,7 +422,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+     ctx
+       .query<{ rows?: unknown[]; range?: { from?: string; to?: string }; truncated?: boolean }>(
+         'eth.query',
+-        { ch, range: { to: String(to) }, ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false },
++        { ch, range: seqRange(null, to > 0n ? to : null), ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false },
+         ac.signal,
+       )
+       .then((res) => {
+@@ -496,7 +500,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+   stopBtn.addEventListener('click', () => void act('captureStop', { ch }));
+   startBtn.addEventListener('click', () => openCaptureStart(dialogHost, ctx, ch));
+   exportBtn.addEventListener('click', () => {
+-    const range = mode === 'complete' && complete ? { from: String(complete.from ?? ''), to: String(complete.to ?? '') } : undefined;
++    const range = mode === 'complete' && complete ? seqRange(complete.from, complete.to) : undefined;
+     void act('export', { ch, format: 'pcapng', ...(filter.applied ? { filter: filter.applied } : {}), ...(range ? { range } : {}) }).then((h) => {
+       if (h) ctx.ui.toast(`pcapng 내보내기 시작${h.requestId ? ` (${h.requestId})` : ''} — 진행률은 Activity`);
+     });
+@@ -561,6 +565,17 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+   });
+ 
+   // ---- consume live stream ----
++  /** A new capture generation never inherits the previous start anchor (worker clock, kept as reported). */
++  const applyCapture = (p: Record<string, unknown>, generation: number | null, seq: bigint | null = null) => {
++    // control path and backlog/snapshot can both carry a state: never let an older one override a newer one
++    if (seq !== null) {
++      if (seq <= captureSeq) return;
++      captureSeq = seq;
++    }
++    const prev = generation !== null && captureGen !== null && generation !== captureGen && capture ? { ...capture, startMonoNs: null } : capture;
++    if (generation !== null) captureGen = generation;
++    capture = readCaptureState(p, prev);
++  };
+   const handle = (ev: LoomEvent) => {
+     const p = obj(ev.payload);
+     switch (ev.kind) {
+@@ -595,7 +610,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+         return;
+       }
+       case 'eth.capture_state':
+-        capture = readCaptureState(p, capture);
++        applyCapture(p, typeof ev.generation === 'number' ? ev.generation : null, BigInt(ev.seq));
+         return;
+       case 'eth.stats':
+         stats = readStats(p, stats);
+@@ -642,6 +657,15 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+   const offTx = txRows.onChange(() => ctx.scheduler.invalidate());
+ 
+   const draw = (): bigint => {
++    const snap = mirror.snapshot;
++    if (snap && snap.version !== snapshotVersion) {
++      snapshotVersion = snap.version;
++      for (const item of snap.items) {
++        const st = obj(item.state);
++        if (item.domain !== 'eth' || st.kind !== 'eth.capture_state' || (st.ch ?? item.channel) !== ch) continue;
++        applyCapture(st, typeof st.generation === 'number' ? st.generation : null, snap.throughSeq);
++      }
++    }
+     for (const ev of mirror.after(lastSeq)) {
+       lastSeq = BigInt(ev.seq);
+       handle(ev);
+@@ -747,13 +771,22 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+     editBtn.disabled = !op || !detailHex;
+     sockBtn.disabled = !op;
+     startBtn.disabled = !op;
+-    stopBtn.disabled = false; // safety direction
++    // safety direction: enabled unless the capture is known to have ended (stopping it again does nothing)
++    stopBtn.disabled = st === 'stopped' || st === 'error' || st === 'permission_denied' || st === 'replay_done';
+     refBtn.disabled = selected?.kind !== 'pkt';
+     copyBtn.disabled = selected?.kind !== 'pkt';
+     detailInfo.textContent = selected?.kind === 'pkt' ? `${selected.ref}${detailMs !== null ? ` · 상세 ${detailMs} ms` : ''}` : '';
+     return lastSeq;
+   };
+   const offFrame = ctx.scheduler.onFrame(draw);
++  // live capture state arrives on the control path only (priority kind); apply it for this channel
++  const offControl = ctx.onControl((ev) => {
++    if (ev.kind !== 'eth.capture_state') return;
++    const p = obj(ev.payload);
++    if ((ev.channel ?? p.ch) !== ch) return;
++    applyCapture(p, typeof ev.generation === 'number' ? ev.generation : null, BigInt(ev.seq));
++    ctx.scheduler.invalidate();
++  });
+ 
+   return {
+     mount(host) {
+@@ -769,6 +802,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
+       offAppend();
+       offTx();
+       offFrame();
++      offControl();
+       filter.dispose();
+       table.dispose();
+       txTable.dispose();
+diff --git a/ui/src/sdk/context.ts b/ui/src/sdk/context.ts
+index 5296e8a..ac30909 100644
+--- a/ui/src/sdk/context.ts
++++ b/ui/src/sdk/context.ts
+@@ -61,6 +61,10 @@ export interface PanelContext {
+   /** STOP latch, read-only + change subscription (agent/script writes locked, user input allowed) */
+   latch: LatchInfo;
+   store(topicKey: string): StoreMirror<LoomEvent>;
++  /** Read-only feed of control-path (priority) events that match one of this panel's declared topic filters
++   * (domains/channels/kinds). Priority kinds such as `*_state` reach data subscriptions only via snapshot/backlog;
++   * this delivers the live ones. Removed on dispose. */
++  onControl(cb: (ev: LoomEvent) => void): Unsubscribe;
+   /** replace the topic subscription with one carrying `filter.ext` (null = none); returns the NEW mirror */
+   resubscribe(topicKey: string, ext: Record<string, unknown> | null): StoreMirror<LoomEvent>;
+   /** request_id write rows of this panel's domain (shared RowStore, read-only) */
+@@ -98,7 +102,7 @@ export interface LatchInfo {
+ }
+ 
+ export interface ContextDeps {
+-  net: Pick<NetClient, 'call' | 'subscribe' | 'clock'>;
++  net: Pick<NetClient, 'call' | 'subscribe' | 'clock' | 'onControl'>;
+   gate: ActionGate;
+   scheduler: RenderScheduler;
+   rows: RowStore;
+@@ -311,6 +315,16 @@ export function createPanelContext(
+       return mirrors.get(topicKey) ?? open(topicKey, null);
+     },
+ 
++    onControl(cb) {
++      const filters = m.topics.map((t) => t.filter(props));
++      const has = (list: readonly string[] | undefined, v: string | null | undefined) => !list || list.length === 0 || (v != null && list.includes(v));
++      const off = deps.net.onControl((ev) => {
++        if (filters.some((f) => has(f.domains, ev.domain) && has(f.channels, ev.channel) && has(f.kinds, ev.kind))) cb(ev);
++      });
++      unsubs.push(off);
++      return off;
++    },
++
+     resubscribe(topicKey, ext) {
+       // close the old server subscription first (contract v1: ≤ 8 per connection)
+       subByKey.get(topicKey)?.close();
+diff --git a/ui/src/shell/ShellApp.tsx b/ui/src/shell/ShellApp.tsx
+index 1eff7c5..b608a58 100644
+--- a/ui/src/shell/ShellApp.tsx
++++ b/ui/src/shell/ShellApp.tsx
+@@ -11,6 +11,8 @@ import { NEED_AUTH_TEXT, RETURN_KEY } from './bootstrap';
+ import { ConfirmLayer } from './ConfirmLayer';
+ import { FocusPrompt, TabSettingsControls } from './FocusPrompt';
+ import { DockLayout, LayoutBar } from './dock/DockLayout';
++import { retainsHistoryAfterClose } from './dock/activeWorkspace';
++import { viewsForChannel } from '../store/channels';
+ import { parseRoute } from './routes';
+ import { installPrefixKeys } from './prefixKeys';
+ import type { ShellServices } from './services';
+@@ -100,7 +102,11 @@ function ShellBody() {
+   const { shell, stop, uiState, net, gate, toasts } = s;
+   useStoreVersion(shell);
+   const route = useHashRoute();
+-  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
++  // A stopped ETH capture view that is still docked (retained or explicitly reopened history) is real content:
++  // closing the last live interface must not cover it with the empty welcome. Closed UART/CAN views are pruned anyway.
++  const retainedHistory = [...shell.channels.values()].some((c) => c.state === 'closed' && retainsHistoryAfterClose(c.domain)
++    && viewsForChannel(c.domain, c.channel).some((v) => s.dock.current?.find({ panel: v.panel, props: v.props })));
++  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && !retainedHistory && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
+ 
+   useEffect(
+     () =>
+diff --git a/ui/src/shell/dock/activeWorkspace.test.ts b/ui/src/shell/dock/activeWorkspace.test.ts
+index 94d6ab9..c4afcfe 100644
+--- a/ui/src/shell/dock/activeWorkspace.test.ts
++++ b/ui/src/shell/dock/activeWorkspace.test.ts
+@@ -1,6 +1,6 @@
+ import { describe, expect, it } from 'vitest';
+ import { activePresets, presetForChannels, type WorkspaceChannel } from '../routes';
+-import { activeLayout } from './activeWorkspace';
++import { activeLayout, availableSlot } from './activeWorkspace';
+ import { leaves, presetToLayout } from './layoutModel';
+ 
+ const domains = ['uart', 'can', 'eth', 'uds', 'psu'];
+@@ -57,3 +57,19 @@ describe('actual OPEN workspace', () => {
+     expect(leaves(source.root)[1]!.props.targets).toBe('ecu-a,ecu-b');
+   });
+ });
++
++describe('closed channels with retained history', () => {
++  const eth = { panel: 'eth.packets', props: { channel: 'cap' } };
++  it('keeps an ETH capture view after a normal stop but prunes unknown/missing ETH and closed live-only domains', () => {
++    expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'closed' }])).toEqual(eth);
++    expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'unknown' }])).toBeNull();
++    expect(availableSlot(eth, [])).toBeNull();
++    expect(availableSlot({ panel: 'uart.terminal', props: { channel: 'p' } }, [{ domain: 'uart', channel: 'p', state: 'closed' }])).toBeNull();
++    expect(availableSlot({ panel: 'can.trace', props: { channel: 'b' } }, [{ domain: 'can', channel: 'b', state: 'closed' }])).toBeNull();
++  });
++  it('never auto-opens a stopped capture through presets', () => {
++    const known: WorkspaceChannel[] = [{ domain: 'eth', channel: 'cap', state: 'closed' }];
++    expect(presetForChannels('m1-default', known).slots).toEqual([]);
++    expect(activePresets(known).some((p) => p.name === 'eth')).toBe(false);
++  });
++});
+diff --git a/ui/src/shell/dock/activeWorkspace.ts b/ui/src/shell/dock/activeWorkspace.ts
+index 0ed2f61..ed54649 100644
+--- a/ui/src/shell/dock/activeWorkspace.ts
++++ b/ui/src/shell/dock/activeWorkspace.ts
+@@ -3,11 +3,17 @@ import { EXPLORER_DOMAINS } from '../../store/channels';
+ import type { Slot, WorkspaceChannel } from '../routes';
+ import { isSplit, isTabs, type LayoutNode, type LoomLayout } from './layoutModel';
+ 
++/** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show).
++ * Their already-open or explicitly reopened views survive a normal close; presets never auto-open them. */
++const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth']);
++export const retainsHistoryAfterClose = (domain: string): boolean => HISTORY_AFTER_CLOSE.has(domain);
++
+ export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, hasTestSession = false): Slot | null {
+   if (slot.panel === 'shell.test') return hasTestSession ? slot : null;
+   const domain = slot.panel.split('.')[0] ?? '';
+   if (!(EXPLORER_DOMAINS as readonly string[]).includes(domain)) return slot;
+-  const active = new Set([...channels].filter((c) => c.domain === domain && c.state === 'open').map((c) => c.channel));
++  const keep = (c: WorkspaceChannel) => c.state === 'open' || (c.state === 'closed' && HISTORY_AFTER_CLOSE.has(domain));
++  const active = new Set([...channels].filter((c) => c.domain === domain && keep(c)).map((c) => c.channel));
+   if (domain === 'uds') {
+     const targets = String(slot.props.targets ?? '').split(',').map((s) => s.trim()).filter((s) => active.has(s));
+     return targets.length ? { ...slot, props: { ...slot.props, targets: targets.join(',') } } : null;
+diff --git a/ui/src/shell/dock/defaultLayout.test.tsx b/ui/src/shell/dock/defaultLayout.test.tsx
+index 729911f..265d219 100644
+--- a/ui/src/shell/dock/defaultLayout.test.tsx
++++ b/ui/src/shell/dock/defaultLayout.test.tsx
+@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
+ import { afterEach, describe, expect, it } from 'vitest';
+ import '../../panels/uart/terminalPanel';
+ import '../../panels/uart/tracePanel';
++import '../../panels/eth/ethPanel';
+ import { TabSettings } from '../../store/tabSettings';
+ import { ev, FakeNet, TEST_HELLO } from '../../store/testing/fakeNet';
+ import { parseRoute, type Route } from '../routes';
+@@ -173,4 +174,33 @@ describe('default workbench initialization', () => {
+     expect(dock().api.activePanel).toBe(trace);
+     expect(services.layouts.get('my-bench').layout).toEqual(layout);
+   });
++
++  it('keeps an ETH capture panel on normal stop and lets an explicit reopen of the stopped capture stay', () => {
++    const { net, services, dock } = mount();
++    const cap = (state: string, generation = 1) => act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'qa', generation, payload: { ch: 'qa', state } })));
++    const slot = { panel: 'eth.packets', props: { channel: 'qa' } };
++    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'port', payload: { state: 'open' } })));
++    cap('live');
++    const panel = dock().find(slot)!;
++    expect(panel).not.toBeNull();
++    cap('stopped');
++    act(() => services.shell.tick(4000));
++    expect(services.shell.channels.get('eth/qa')?.state).toBe('closed');
++    expect(dock().find(slot)).toBe(panel);
++    // live-only domains keep the tested pruning contract
++    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'port', payload: { state: 'closed' } })));
++    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'port' } })).toBeNull();
++    expect(dock().find(slot)).toBe(panel);
++    // user closes it, then reopens the stopped capture from the inactive explorer: it survives reconcile
++    act(() => panel.api.close());
++    expect(dock().find(slot)).toBeNull();
++    act(() => { expect(services.showSlot(slot)).toBe('added'); });
++    act(() => services.shell.tick(8000));
++    act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'other', payload: { state: 'open' } })));
++    expect(dock().find(slot)).not.toBeNull();
++    // a later restart (new generation) reuses the view, never duplicates it; nothing was sent
++    cap('live', 2);
++    expect(dock().api.panels.filter((p) => JSON.stringify(p.params).includes('eth.packets'))).toHaveLength(1);
++    expect(net.calls.filter((c) => c.method === 'eth.send' || c.method === 'eth.capture.start')).toEqual([]);
++  });
+ });
+diff --git a/ui/src/shell/historyWelcome.test.tsx b/ui/src/shell/historyWelcome.test.tsx
+new file mode 100644
+index 0000000..62306be
+--- /dev/null
++++ b/ui/src/shell/historyWelcome.test.tsx
+@@ -0,0 +1,64 @@
++// @vitest-environment jsdom
++// Real dock + ShellApp: a retained (stopped) ETH capture view must stay usable when the last live interface closes.
++import { act } from 'react';
++import { createRoot, type Root } from 'react-dom/client';
++import { afterEach, beforeEach, describe, expect, it } from 'vitest';
++import '../panels/uart/terminalPanel';
++import '../panels/eth/ethPanel';
++import { ev, FakeNet, TEST_HELLO } from '../store/testing/fakeNet';
++import { ShellApp } from './ShellApp';
++import { createShellServices } from './services';
++import type { DockHost } from './dock/dockHost';
++
++(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
++(globalThis as { ResizeObserver?: unknown }).ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
++let host: HTMLDivElement;
++let root: Root;
++beforeEach(() => {
++  localStorage.clear();
++  location.hash = '#/l/m1-default';
++  host = document.createElement('div');
++  document.body.append(host);
++  root = createRoot(host);
++});
++afterEach(() => {
++  act(() => root.unmount());
++  host.remove();
++});
++
++describe('empty welcome vs retained ETH history', () => {
++  it('last live UART close keeps a stopped (reopened) ETH capture view visible; it falls back to welcome only when nothing is docked', () => {
++    const net = new FakeNet();
++    net.open(TEST_HELLO);
++    const services = createShellServices(net, { autoTick: false });
++    act(() => root.render(<ShellApp services={services} />));
++    const welcome = () => host.querySelector('[data-testid="workbench-welcome"]');
++    const inert = () => host.querySelector('.workspace-dock')!.hasAttribute('inert');
++    const dock = () => services.dock.current as DockHost;
++    const eth = { panel: 'eth.packets', props: { channel: 'qa_eth_fixed' } };
++    const uart = { panel: 'uart.terminal', props: { channel: 'qa_uart_fixed' } };
++    act(() => net.emitControl(ev({ kind: 'uart.channel_state', domain: 'uart', channel: 'qa_uart_fixed', payload: { state: 'opened' } })));
++    act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'qa_eth_fixed', generation: 1, payload: { ch: 'qa_eth_fixed', state: 'live' } })));
++    expect(dock().find(eth)).not.toBeNull();
++    act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'qa_eth_fixed', generation: 1, payload: { ch: 'qa_eth_fixed', state: 'stopped' } })));
++    // explicit close + reopen of the stopped capture (inactive explorer path)
++    act(() => dock().find(eth)!.api.close());
++    act(() => { services.showSlot(eth); });
++    expect(dock().find(eth)).not.toBeNull();
++    // the last live interface closes (UART owner normal close): no welcome over the retained ETH history
++    act(() => net.emitControl(ev({ kind: 'uart.channel_state', domain: 'uart', channel: 'qa_uart_fixed', payload: { state: 'closed' } })));
++    act(() => net.emitControl(ev({ kind: 'core.heartbeat', payload: {} })));
++    act(() => services.shell.tick(10_000));
++    expect(dock().find(uart)).toBeNull();
++    expect(dock().find(eth)).not.toBeNull();
++    expect(welcome()).toBeNull();
++    expect(inert()).toBe(false);
++    expect(host.querySelector('[data-chan="eth/qa_eth_fixed"]')?.getAttribute('data-state') ?? 'hidden-in-active-list').not.toBe('open');
++    // user closes the history view: nothing docked, no live interface → the welcome returns
++    act(() => dock().find(eth)!.api.close());
++    act(() => net.emitControl(ev({ kind: 'core.heartbeat', payload: {} })));
++    expect(welcome()).not.toBeNull();
++    expect(inert()).toBe(true);
++    expect(net.calls.filter((c) => /eth\.(send|capture\.start)|uart\.(open|send)/.test(c.method))).toEqual([]);
++  });
++});
+diff --git a/skills/loom-eth/references/live-observer.md b/skills/loom-eth/references/live-observer.md
+new file mode 100644
+index 0000000..6a60aee
+--- /dev/null
++++ b/skills/loom-eth/references/live-observer.md
+@@ -0,0 +1,23 @@
++# Live observer proof (agent + UI see the same packets)
++
++Use this when you must show that packets arrive in real time, both for you and for the user's Loom UI.
++
++1. Check `loom eth ifaces` first and capture on a returned name. No NIC: `capture start sim --backend sim --ch <ch>`.
++   In sim, prefer `send raw` because it stays in-process. `send udp` opens a real OS socket, even on sim.
++2. Run the observer under its own identity (`LOOM_CLIENT=<you>-observer`) and the sender under another. Bound it:
++   `loom events --since now --channel <ch> --follow --timeout 25 --json --max 200`. Keep every follow at 30 s or less. Never renew
++   automatically and never poll in a loop. Record the host receive time for each output line.
++3. Before any send, run `send … --dry-run`. Then send once with `--idempotency-key`, and never retry automatically.
++4. Correlate using fields, not prose:
++   - the send's `request_id` must equal the eth.tx `request_id` (requested → accepted → sent);
++   - eth.tx `observed_src_seq` must equal eth.pkt `layers._capture.source_seq`;
++   - eth.pkt `link.request_id` must be the same request (`confidence: exact`);
++   - the bytes must match the sent hex exactly.
++   Quote REFs such as `eth:<ch>@seq:N`.
++5. Device proof means packets with origin device that Loom did not send, for example the sim's native SOME/IP-SD offers at about 1 Hz.
++   Your own echoed frame (`attributed_origin: agent`, ORG `AGT`; its event `origin` may read `device`) proves
++   correlation only, never device behaviour.
++6. A UI pass needs the user/ROOT viewer on the same daemon (`viewers N/N visible`, same `stream_epoch`). It also needs
++   that viewer's native row (`data-seq`) to match your seq, request_id and bytes. A `no_viewer_attached` warning means agent-only:
++   say so and do not claim a UI pass.
++7. Stopping a capture keeps its history queryable (`trace`/`show` by seq). Stop only when the user/ROOT is done looking.

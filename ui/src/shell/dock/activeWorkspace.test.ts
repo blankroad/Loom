@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activePresets, presetForChannels, type WorkspaceChannel } from '../routes';
-import { activeLayout } from './activeWorkspace';
+import { activeLayout, availableSlot } from './activeWorkspace';
 import { leaves, presetToLayout } from './layoutModel';
 
 const domains = ['uart', 'can', 'eth', 'uds', 'psu'];
@@ -55,5 +55,21 @@ describe('actual OPEN workspace', () => {
       { panel: 'uart.trace', props: { channel: 'serial' } },
     ], active: 1 });
     expect(leaves(source.root)[1]!.props.targets).toBe('ecu-a,ecu-b');
+  });
+});
+
+describe('closed channels with retained history', () => {
+  const eth = { panel: 'eth.packets', props: { channel: 'cap' } };
+  it('keeps an ETH capture view after a normal stop but prunes unknown/missing ETH and closed live-only domains', () => {
+    expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'closed' }])).toEqual(eth);
+    expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'unknown' }])).toBeNull();
+    expect(availableSlot(eth, [])).toBeNull();
+    expect(availableSlot({ panel: 'uart.terminal', props: { channel: 'p' } }, [{ domain: 'uart', channel: 'p', state: 'closed' }])).toBeNull();
+    expect(availableSlot({ panel: 'can.trace', props: { channel: 'b' } }, [{ domain: 'can', channel: 'b', state: 'closed' }])).toBeNull();
+  });
+  it('never auto-opens a stopped capture through presets', () => {
+    const known: WorkspaceChannel[] = [{ domain: 'eth', channel: 'cap', state: 'closed' }];
+    expect(presetForChannels('m1-default', known).slots).toEqual([]);
+    expect(activePresets(known).some((p) => p.name === 'eth')).toBe(false);
   });
 });

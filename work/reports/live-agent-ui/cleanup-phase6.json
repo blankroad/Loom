@@ -1,0 +1,16 @@
+[
+  {
+    "home": "/tmp/loom-uart-secret-native/home",
+    "pid": 17384,
+    "signal": "SIGINT"
+  },
+  {
+    "home": "/tmp/loom-eth-anchor-final/home",
+    "pid": 34236,
+    "signal": "SIGINT"
+  },
+  {
+    "server_pid": 32203,
+    "signal": "SIGINT"
+  }
+]
