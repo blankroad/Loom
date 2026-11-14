@@ -1,0 +1,3 @@
+5f5d2db810e86ea47aac7aaa59cfeff8565905eda74be34ec71f564038520d9e  crates/loom-cli/src/lib.rs
+7fbaaca6af81b4491378fb97f22414ce6e926873d749d40347b8350d48d47c08  skills/loom-uds/SKILL.md
+ce48a866ffb0a9fc0a1cd049bbd804513b2ee909f6763fd6da9887d554e4eed8  crates/loom-cli/src/skills.rs

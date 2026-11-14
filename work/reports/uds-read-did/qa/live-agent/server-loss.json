@@ -1,0 +1,137 @@
+{
+  "cli_sha256": "f3bea8c1743f2f9c1f391227c5fcbe31f30575d033b71488ca0ff89f9ea82cc8",
+  "checks": {
+    "server_loss_observed": true,
+    "stale_session": true,
+    "exit0": true
+  },
+  "frames": [
+    {
+      "received_ns": 302632284002666,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 0,
+          "events": [],
+          "next_cursor": null,
+          "range": null,
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "118",
+          "truncated": false
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0"
+        }
+      }
+    },
+    {
+      "received_ns": 302636156049583,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 1,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "live-sender#95582",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.state",
+              "origin": "agent",
+              "payload": {
+                "addr": "DoIP 0x1001",
+                "backend": "doip",
+                "generation": 1,
+                "lease": null,
+                "link": {
+                  "cause": "early eof",
+                  "state": "down"
+                },
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "security": {
+                  "confidence": "stale",
+                  "level": null
+                },
+                "session": {
+                  "confidence": "stale",
+                  "id": 1,
+                  "name": "default"
+                },
+                "target": "live",
+                "tester_present": null
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "schema_version": 1,
+              "seq": "124",
+              "session_id": "loomd",
+              "source_seq": "44",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "303087182833",
+                "source": "gateway",
+                "wall_ns": "1794613282409264333"
+              }
+            }
+          ],
+          "next_cursor": null,
+          "range": {
+            "from": "124",
+            "to": "124"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "124",
+          "truncated": false
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:118"
+        }
+      }
+    }
+  ],
+  "stderr": ""
+}

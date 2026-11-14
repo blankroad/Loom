@@ -13,3 +13,20 @@
   user's terminal panel, release STOP or approve.
 - The user's typing into a device (e.g. a UART terminal) appears in your next result as
   `others_since_last` with origin `user` and kind `<domain>.input`.
+
+## Isolated simulator UI acceptance
+
+When the user explicitly requests direct browser/UI acceptance and you created the local test
+daemon with its own `LOOM_HOME`, a temporary **watch** viewer is a test fixture. You may use the
+daemon's normal `/api/v1/bootstrap/new?rights=watch` and bootstrap exchange for that fixture.
+Keep the agent token, one-time code and cookie out of evidence/log output. Do not retrieve a
+human-issued code, use an existing user's daemon/session, change policy, or issue operate/approve
+credentials through this exception. Normal user-device sessions follow the human-terminal rule.
+
+Use the real UI against the same daemon as the skill-based observer. Wait for the observer's
+initial snapshot and the UI's connected/visible state before sending a fresh test marker. Compare
+the new request ID, epoch/seq and exact bytes in both consumers; a historical query or a static
+mock is not simultaneous receive evidence. Record viewer rights and visibility, not credentials.
+If navigating an already-loaded SPA to a bootstrap fragment leaves it unconsumed, reload that
+page so startup exchanges and removes the fragment. Never treat an unauthenticated retrying UI
+as a pass.

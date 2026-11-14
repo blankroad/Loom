@@ -1,0 +1,251 @@
+L
+Loom
+Workbench
+[SIM]
+연결됨
+● LIVE idle 19.3s
+REC ok
+보는 중: 1/1
+에이전트 independent-uds-observer#9671 core.events.query 1s 전
+자격: watch
+■ STOP 전체
+통합 작업 공간
+인터페이스 서비스
+UART
+1
+진단
+UDS 진단
+1
+인터페이스
+2
++ 추가
+채널 검색
+
+채널을 선택해 보기를 엽니다.
+
+비활성 인터페이스 2개 보기
+▾
+UART
+1
+qa_uart_live
+연결됨
+gen1
+터미널
+트레이스
+▾
+UDS
+1
+dual
+연결됨
+gen1
+진단 콘솔
+탐색 안내
+
+인터페이스를 선택해 작업 패널을 여세요.
+
+패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.
+WORKSPACE
+통합 작업 공간
+단축키
+?
+레이아웃
+기본 작업 공간
+UART 터미널
+UDS 진단
+저장
+패널 동작
+⌄
+UART 터미널 · qa_uart_live
+UDS 콘솔 · dual
+최대화
+논리 링크
+manager가 연결한 대상만 · 연결은 상단 인터페이스 연결
+링크
+대상
+전송
+주소
+세션
+보안
+TesterPresent
+P2/P2*
+환경
+제어
+● up
+dual
+doip
+DoIP 0x1001
+default?
+🔒?
+off
+50/5000ms
+SIM
+제어: 비어 있음
+제어 가져오기 T
+진단 서비스
+Diagnostic and Communication Management
+[10] DiagnosticSessionControl
+[11] ECUReset
+[27] SecurityAccess
+[28] CommunicationControl
+[85] ControlDTCSetting
+Data Transmission
+[22] ReadDataByIdentifier
+[2E] WriteDataByIdentifier
+Stored Data Transmission
+[14] ClearDiagnosticInformation
+[19] ReadDTCInformation
+Routine
+[31] RoutineControl
+ISO 14229-1 요청 형식 · 선택은 PDU만 채움 (전송 없음)
+설정
+논리 링크
+dual
+ doip DoIP 0x1001
+진단 서비스
+—
+파라미터
+값 (hex)
+의미
+서비스를 고르면 ISO 14229-1 파라미터가 나타납니다 · PDU에 hex를 직접 써도 됩니다
+PDU
+✖
+현재 선택
+보내기 ⏎
+중단 !
+폴링 정지
+서비스 선택·파라미터 편집은 보내지 않음
+트랜잭션
+에이전트 확인 위치 seq:538
+시각
+출처
+대상
+서비스
+요약
+결과
+p2/rtt
+단계
+등급
+08:39:05.885
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/0.4ms
+●확정
+R0
+08:39:05.895
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/0.3ms
+●확정
+R0
+08:39:05.904
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/0.3ms
+●확정
+R0
+08:39:05.914
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/0.4ms
+●확정
+R0
+08:39:05.925
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/0.4ms
+●확정
+R0
+08:40:13.531
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/1.2ms
+●확정
+R0
+08:40:13.553
+AGT
+live
+ReadDataByIdentifier
+ReadDataByIdentifier FFFF
+✗ 0x31 requestOutOfRange
+50/0.9ms
+✗실패
+R0
+08:45:28.344
+AGT
+dual
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/1.9ms
+●확정
+R0
+08:45:28.360
+AGT
+dual
+ReadDataByIdentifier
+ReadDataByIdentifier FFFF
+✗ 0x31 requestOutOfRange
+50/0.5ms
+✗실패
+R0
+08:54:12.494
+AGT
+dual
+ReadDataByIdentifier
+ReadDataByIdentifier F190 VIN
+✓
+50/2.5ms
+●확정
+R0
+08:54:12.514
+AGT
+dual
+ReadDataByIdentifier
+ReadDataByIdentifier FFFF
+✗ 0x31 requestOutOfRange
+50/0.7ms
+✗실패
+R0
+DTC
+DID 값
+읽기 템플릿 19 02 FF
+지우기 템플릿 14 FF FF FF
+DTC (hex)
+상태 바이트
+dual: 확정된 0x19 응답 없음
+payload.dtcs 원시값만 표시
+UDS 콘솔 · dual opened
+▸
+Activity
+50
+8시 54분 31초.359 AGT independent-uds-observer#9671 core core.events.query 1 call(s) in the last second
+8시 54분 30초.360 AGT independent-uds-observer#9671 core core.events.query 5 call(s) in the last second
+Ctrl-]
+x
+STOP
+·
+m
+마커
+·
+?
+도움말
+LOOM / sim
+● 8시 54분 32초

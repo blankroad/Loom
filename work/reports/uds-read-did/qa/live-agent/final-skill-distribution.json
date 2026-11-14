@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "binary_sha256": "2b99f0972135854613081a0bb1392a254bcfbd4d407d7af58de6bc6a22d6e791",
+  "embedded_files_checked": [
+    ".agents/skills/loom/SKILL.md",
+    ".agents/skills/loom/references/ui.md",
+    ".agents/skills/loom-uds/SKILL.md",
+    ".agents/skills/loom-uds/references/live-logs.md",
+    ".agents/skills/loom-eth/SKILL.md",
+    ".agents/skills/loom-eth/references/live-observer.md",
+    ".claude/skills/loom/SKILL.md",
+    ".claude/skills/loom/references/ui.md",
+    ".claude/skills/loom-uds/SKILL.md",
+    ".claude/skills/loom-uds/references/live-logs.md",
+    ".claude/skills/loom-eth/SKILL.md",
+    ".claude/skills/loom-eth/references/live-observer.md"
+  ]
+}

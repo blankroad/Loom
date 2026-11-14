@@ -323,6 +323,30 @@ fn events_params(m: &ArgMatches, since: Option<String>) -> Value {
     })
 }
 
+fn seq_field(v: &Value) -> Option<u64> {
+    v.as_str()
+        .and_then(|s| s.parse().ok())
+        .or_else(|| v.as_u64())
+}
+
+/// Inclusive start (`seq:N` reads seq ≥ N) of the next `--follow` poll, or `None` to repeat the
+/// same cursor. A capped page continues at the daemon's `next_cursor`. Otherwise the daemon
+/// scanned through `stream_seq_hw`, so continue after it even when nothing matched: re-sending a
+/// moving cursor such as `now` would skip everything published between two polls.
+fn follow_resume(data: &Value) -> Option<String> {
+    let to = seq_field(&data["range"]["to"]);
+    let through = if data["truncated"].as_bool() == Some(true) {
+        if let Some(next) = data["next_cursor"].as_str() {
+            return Some(next.to_owned());
+        }
+        to? // capped without a cursor: never jump to the high-water past unread rows
+    } else {
+        to.max(seq_field(&data["stream_seq_hw"]))?
+    };
+    let epoch = seq_field(&data["stream_epoch"]).unwrap_or(0);
+    Some(format!("e{epoch}:seq:{}", through + 1))
+}
+
 /// `events --follow`: poll the ring until the timeout (≤ 600 s), printing as events arrive.
 fn follow(ctx: &Ctx, m: &ArgMatches, out: &mut dyn Write) -> u8 {
     let limit = ctx.timeout.min(MAX_FOLLOW);
@@ -361,12 +385,9 @@ fn follow(ctx: &Ctx, m: &ArgMatches, out: &mut dyn Write) -> u8 {
             }
         };
         let n = data["count"].as_u64().unwrap_or(0);
-        if let Some(last) = data["range"]["to"].as_str().and_then(|s| s.parse::<u64>().ok()) {
-            since = Some(format!(
-                "e{}:seq:{}",
-                data["stream_epoch"].as_str().unwrap_or("0"),
-                last + 1
-            ));
+        let more = data["truncated"].as_bool() == Some(true);
+        if let Some(next) = follow_resume(&data) {
+            since = Some(next);
         }
         if n > 0 || first {
             let mut env = core_envelope(&mut c.conn, "events", Ok(data), DEFAULT_TIMEOUT);
@@ -385,7 +406,10 @@ fn follow(ctx: &Ctx, m: &ArgMatches, out: &mut dyn Write) -> u8 {
         if Instant::now() >= end {
             break;
         }
-        std::thread::sleep(Duration::from_millis(200).min(end.saturating_duration_since(Instant::now())));
+        if !more {
+            // A capped page continues at once; otherwise wait for new events.
+            std::thread::sleep(Duration::from_millis(200).min(end.saturating_duration_since(Instant::now())));
+        }
     }
     c.conn.close();
     0
@@ -958,5 +982,106 @@ mod argument_tests {
                 "{args:?}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod follow_tests {
+    use super::follow_resume;
+    use serde_json::{Value, json};
+
+    /// Model of `core.events.query` cursor semantics (gateway core_rpc.rs): `now` = after the
+    /// current high-water, `seq:N` inclusive (after N-1), oldest `max` first, `truncated` +
+    /// `next_cursor` when capped, `stream_seq_hw` is the high-water the query scanned.
+    struct Ring {
+        hw: u64,
+        events: Vec<(u64, &'static str)>,
+    }
+    impl Ring {
+        fn publish(&mut self, kind: &'static str) {
+            self.hw += 1;
+            self.events.push((self.hw, kind));
+        }
+        fn query(&self, since: &str, kind: &str, max: usize) -> Value {
+            let after = if since == "now" {
+                self.hw
+            } else {
+                since.rsplit(':').next().unwrap().parse::<u64>().unwrap() - 1
+            };
+            let all: Vec<u64> = self
+                .events
+                .iter()
+                .filter(|(s, k)| *s > after && *k == kind)
+                .map(|(s, _)| *s)
+                .collect();
+            let page = &all[..all.len().min(max)];
+            let truncated = all.len() > max;
+            let s = |n: u64| n.to_string();
+            json!({
+                "events": page.iter().map(|n| json!({"seq": s(*n)})).collect::<Vec<_>>(),
+                "count": page.len(),
+                "truncated": truncated,
+                "next_cursor": truncated.then(|| format!("e7:seq:{}", page.last().unwrap() + 1)),
+                "range": page.first().zip(page.last()).map(|(a, b)| json!({"from": s(*a), "to": s(*b)})),
+                "stream_seq_hw": s(self.hw),
+                "stream_epoch": "7",
+            })
+        }
+    }
+    fn seqs(v: &Value) -> Vec<u64> {
+        v["events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["seq"].as_str().unwrap().parse().unwrap())
+            .collect()
+    }
+
+    /// Before the fix an empty first page kept `now`, so every later event was skipped.
+    #[test]
+    fn empty_now_follow_sees_later_events_once_across_capped_pages() {
+        let mut ring = Ring { hw: 6, events: (1..=6).map(|s| (s, "uds.tx")).collect() };
+        let mut since = "now".to_owned();
+        let mut seen = Vec::new();
+        let poll = |ring: &Ring, since: &mut String, seen: &mut Vec<u64>| {
+            let page = ring.query(since, "uds.tx", 2);
+            seen.extend(seqs(&page));
+            if let Some(n) = follow_resume(&page) {
+                *since = n;
+            }
+        };
+        poll(&ring, &mut since, &mut seen);
+        assert!(seen.is_empty());
+        assert_eq!(since, "e7:seq:7", "empty page resumes after the scanned high-water");
+        // Filtered-out traffic moves the high-water but must not hide matching events.
+        ring.publish("uds.state");
+        poll(&ring, &mut since, &mut seen);
+        assert_eq!(since, "e7:seq:8");
+        for _ in 0..5 {
+            ring.publish("uds.tx");
+            ring.publish("uds.rx");
+        }
+        for _ in 0..6 {
+            poll(&ring, &mut since, &mut seen);
+        }
+        assert_eq!(seen, vec![8, 10, 12, 14, 16], "all, in order, no duplicates");
+        assert_eq!(since, "e7:seq:18");
+    }
+
+    #[test]
+    fn capped_page_continues_at_next_cursor_not_high_water() {
+        let r = json!({"count": 2, "truncated": true, "next_cursor": "e7:seq:4",
+            "range": {"from": "2", "to": "3"}, "stream_seq_hw": "50", "stream_epoch": "7"});
+        assert_eq!(follow_resume(&r).unwrap(), "e7:seq:4");
+        let r = json!({"truncated": true, "next_cursor": null, "range": {"from": "2", "to": "3"},
+            "stream_seq_hw": "50", "stream_epoch": "7"});
+        assert_eq!(follow_resume(&r).unwrap(), "e7:seq:4");
+        // Earlier-epoch journal read: no high-water, continue after the last row; empty → keep.
+        let r = json!({"truncated": false, "range": {"from": "1", "to": "9"},
+            "stream_seq_hw": null, "stream_epoch": "3"});
+        assert_eq!(follow_resume(&r).unwrap(), "e3:seq:10");
+        let r = json!({"truncated": false, "range": null, "stream_seq_hw": null, "stream_epoch": "3"});
+        assert_eq!(follow_resume(&r), None);
     }
 }

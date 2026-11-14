@@ -12,7 +12,7 @@ Exact verbs, flags, defaults, exit codes: `loom eth help --json`. Don't guess fl
 | tshark | loom eth |
 |---|---|
 | `-D` | `ifaces` |
-| `-i en5 -f 'tcp port 13400'` | `capture start en5 --ch dut --bpf 'tcp port 13400'` (no NIC: `capture start sim0 --backend sim`; file: `--replay f.pcapng`) |
+| `-i en5 -f 'tcp port 13400'` | `capture start en5 --ch dut --bpf 'tcp port 13400'` (no NIC: `capture start sim --backend sim --ch <ch>`, using the iface name `ifaces` returns; file: `--replay f.pcapng`) |
 | `-Y 'doip'` (list) | `trace dut -Y 'doip' --since -10s` · latest: `last -n 20` |
 | `-V -x` for one frame | `show eth:dut@seq:1234 --hex` |
 | `-z conv,tcp` / `io,phs` | `stats --by conv` · `--by proto` · `--by io` |
@@ -36,6 +36,7 @@ Exact verbs, flags, defaults, exit codes: `loom eth help --json`. Don't guess fl
 - Exit 0 matched · 3 timeout/count out of range · 8 losses in the window (inconclusive — don't claim absence).
 - Copy REFs (`eth:dut@seq:1234`) from results into your answer as evidence; don't paraphrase packet contents.
 - Packets Loom sent itself (ORG `AGT`/`USR`/`SCR`) are never evidence of device behaviour; they are excluded from `wait-for` unless `--include-own`.
+- Live proof that you and the user see the same packets: [references/live-observer.md](references/live-observer.md).
 
 ## Sending
 - `send udp <HEX> --to 192.168.0.10:13400` · `send tcp …` · `send raw <frame HEX>`. Always `--dry-run` first: shows decode + risk, sends nothing.

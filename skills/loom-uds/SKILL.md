@@ -1,8 +1,6 @@
 ---
 name: loom-uds
-description: ECU diagnostics over UDS through Loom (M1: DoIP and simulated ECUs) — read/write DIDs, DTCs, sessions,
-  raw UDS requests, and UDS steps in integration tests. Use when the task mentions an ECU, UDS,
-  DoIP, diagnostics, DID, DTC, NRC, 0x22/0x2E, seed/key, or "loom uds".
+description: "ECU diagnostics over UDS through Loom (M1: DoIP and simulated ECUs) — read/write DIDs, DTCs, sessions, raw UDS requests, live UDS request/response logs, and UDS steps in integration tests. Use when the task mentions an ECU, UDS, DoIP, diagnostics, DID, DTC, NRC, 0x22/0x2E, seed/key, or \"loom uds\"."
 ---
 # loom-uds
 
@@ -11,8 +9,11 @@ the `loom` skill. The full command list, risk rules and NRC names come from
 `loom uds help --json` — that output is authoritative; read it when unsure.
 
 **All ECU traffic goes through `loom uds …`.** Never open UDS/DoIP/CAN libraries or sockets
-yourself: the user watches the same rows live in the Loom UI UDS console, and only `loomd`
-requests appear there.
+yourself: only `loomd` requests reach the shared event stream, the recording and attached viewers.
+
+**Watching live traffic** (another sender, a test, request/response correlation, resume after a
+gap or server loss): read [references/live-logs.md](references/live-logs.md). In short:
+`LOOM_CLIENT=<observer> loom --json events --follow --timeout S --since now --domain uds --channel T`.
 
 ## Commands (CLI → RPC)
 | CLI | RPC | Class |

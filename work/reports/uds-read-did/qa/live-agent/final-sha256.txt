@@ -1,0 +1,5 @@
+6769ed162f02c580c29f348b2baf80904bda24559bc941a207df912cc5c6e69e  crates/loom-cli/src/lib.rs
+469e083eeb63f11b7ea328afc067d2782c05045053d51e1788c8b87c8df89e6c  crates/loom-cli/src/skills.rs
+5d59327ac675a2bc709fb5a5061e788af347755d32857b00bad352a5c7eb8f58  skills/loom-uds/SKILL.md
+0d8b86b5979fa8a5a239b2d184cd187f598613020fc66eceb2c4ff8896f13049  skills/loom-uds/references/live-logs.md
+d54e4134f10b84fe3ce4c1e5e0e01cdf677cd317677b1c22c92143a6430a3689  target/debug/loom

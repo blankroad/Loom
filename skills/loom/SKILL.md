@@ -13,7 +13,9 @@ read and write live in the Loom UI and can type, STOP, or change policy. Results
 1. **Devices only through `loom`.** Never open serial ports, sockets, vendor tools or DLLs yourself.
 2. **Arguments come from help, not memory:** `loom help --json`, `loom <domain> help --json`.
 3. **Make yourself visible.** If a result warns `no_viewer_attached` (or `no_visible_viewer`), ask
-   the user to run `loom ui` in *their* terminal. You never get the login code — do not look for it.
+   the user to run `loom ui` in *their* terminal. Never retrieve a user's login code. For explicitly
+   requested UI acceptance against your own isolated local simulator daemon, use the watch-only
+   test-viewer procedure in `references/ui.md`; it does not require a human login code.
 4. **Notice the user.** If a result has `others_since_last.count > 0` (human: `NOTE:` line), run
    `loom events --since @last` before your next write, and ask the user if what they did changes
    your plan.

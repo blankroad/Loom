@@ -1,0 +1,66 @@
+{
+  "scope": "same external DoIP requests, independent skill agent in w1M and native browser UI Ego21 with watch rights; no injected/replayed UI data",
+  "rows": [
+    {
+      "request_id": "w24",
+      "agent_kinds": [
+        "uds.tx",
+        "uds.rx",
+        "uds.result"
+      ],
+      "epoch_seq": [
+        [
+          "1794612979",
+          "531"
+        ],
+        [
+          "1794612979",
+          "532"
+        ],
+        [
+          "1794612979",
+          "533"
+        ]
+      ],
+      "native_response_hex": "62f1904c4f4f4d494e5445524f5030303030303031",
+      "ui_exact_response_present": true,
+      "ui_request_id_present": true,
+      "viewer_meta_at_send": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "native_ok": true
+    },
+    {
+      "request_id": "w25",
+      "agent_kinds": [
+        "uds.tx",
+        "uds.rx",
+        "uds.result"
+      ],
+      "epoch_seq": [
+        [
+          "1794612979",
+          "536"
+        ],
+        [
+          "1794612979",
+          "537"
+        ],
+        [
+          "1794612979",
+          "538"
+        ]
+      ],
+      "native_response_hex": "7f2231",
+      "ui_exact_response_present": true,
+      "ui_request_id_present": true,
+      "viewer_meta_at_send": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "native_ok": false
+    }
+  ],
+  "pass": true
+}

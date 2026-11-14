@@ -1,0 +1,285 @@
+{
+  "scope": "existing built CLI; before fix; live follow after first empty query",
+  "observer_first_count": 0,
+  "observer_exit": 0,
+  "observer_stderr": "",
+  "frames": [
+    {
+      "schema_version": 1,
+      "ok": true,
+      "cmd": "events",
+      "data": {
+        "count": 0,
+        "events": [],
+        "next_cursor": null,
+        "range": null,
+        "source": "ring",
+        "stream_epoch": "1794612979",
+        "stream_seq_hw": "6",
+        "truncated": false
+      },
+      "meta": {
+        "truncated": false,
+        "record_health": "ok",
+        "env": "sim",
+        "latch": false,
+        "viewers": {
+          "subscribed": 0,
+          "visible": 0
+        },
+        "stream_epoch": "1794612979",
+        "visibility": "no_viewer"
+      },
+      "warnings": [
+        {
+          "code": "no_viewer_attached"
+        }
+      ],
+      "others_since_last": {
+        "count": "0"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "args": [
+        "uds",
+        "connect",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "52570",
+        "--la",
+        "0x1001",
+        "--tester-la",
+        "0x0E80",
+        "--name",
+        "live",
+        "--no-reconnect"
+      ],
+      "exit": 0,
+      "completed_ns": 302349412112000,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.connect",
+        "data": {
+          "entity": "127.0.0.1:52570",
+          "existing": false,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "state": {
+            "addr": "DoIP 0x1001",
+            "backend": "doip",
+            "generation": 1,
+            "lease": null,
+            "link": {
+              "cause": "connected",
+              "state": "up"
+            },
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "security": {
+              "confidence": "assumed",
+              "level": null
+            },
+            "session": {
+              "confidence": "assumed",
+              "id": 1,
+              "name": "default"
+            },
+            "target": "live",
+            "tester_present": null
+          },
+          "target": "live"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "exit": 0,
+      "completed_ns": 302349428165708,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w1",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.531,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.531,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "16556740000",
+            "t_first_rx_mono_ns": "16556740000",
+            "t_send_mono_ns": "16556209292",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:6"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "raw",
+        "22FFFF",
+        "-t",
+        "live"
+      ],
+      "exit": 10,
+      "completed_ns": 302349441053041,
+      "envelope": {
+        "schema_version": 1,
+        "ok": false,
+        "cmd": "uds.request",
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:12"
+        },
+        "error": {
+          "code": "E_NRC",
+          "message": "NRC 0x31 requestOutOfRange",
+          "retryable": false,
+          "request_id": "w2",
+          "detail": {
+            "dropped_events": 0,
+            "others_since_last": {
+              "count": 0,
+              "from_cursor": "w:0",
+              "origins": []
+            },
+            "request_id": "w2",
+            "row": {
+              "bytes": {
+                "data": "22ffff",
+                "encoding": "hex"
+              },
+              "first_rx_ms": 0.328,
+              "functional": false,
+              "nrc": 49,
+              "nrc_name": "requestOutOfRange",
+              "ok_suppressed": false,
+              "p2_ms": 50,
+              "p2_star_ms": 5000,
+              "pending_count": 0,
+              "policy_action": "auto",
+              "reason": "UDS 0x22 ReadDataByIdentifier",
+              "resp_bytes": {
+                "data": "7f2231",
+                "encoding": "hex"
+              },
+              "risk": "R0",
+              "rtt_ms": 0.328,
+              "service": "ReadDataByIdentifier",
+              "sid": 34,
+              "summary": "ReadDataByIdentifier FFFF",
+              "suppress_pos": false,
+              "t_final_rx_mono_ns": "16569815417",
+              "t_first_rx_mono_ns": "16569815417",
+              "t_send_mono_ns": "16569487250",
+              "target": "live",
+              "timeout": false,
+              "write_state": "failed"
+            },
+            "write_state": "failed"
+          }
+        }
+      }
+    }
+  ],
+  "observed_events": 0
+}

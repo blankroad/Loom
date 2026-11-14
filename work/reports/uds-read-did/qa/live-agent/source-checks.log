@@ -1,0 +1,50 @@
+## binary
+d54e4134f10b84fe3ce4c1e5e0e01cdf677cd317677b1c22c92143a6430a3689  /tmp/loom-uds-live-build/debug/loom
+Commands:
+  daemon     Daemon lifecycle
+  status     Daemon, workers, STOP latch, recording, viewers
+  stop-all   STOP: latch all writes (only a user can release)
+  events     Bounded read of recent events (live ring)
+  mark       Put a marker on the shared timeline
+  ui         Open the Loom UI for the user (TTY only), or focus a panel
+  help       Commands (use --json for the canonical machine help)
+  version    Version
+  doctor     Check paths, permissions, daemon and port
+  skills     Distribute bundled Loom agent skills locally
+  confirm    Confirm a write with a token (only when the user enabled confirmations) (not in M1)
+  approvals  List / wait for approvals (only when the user enabled approvals) (not in M1)
+  run        Run a Loom script (not in M1)
+  record     Recording sessions and export (not in M1)
+  policy     Show / diff / propose policy (not in M1)
+  echo       Simulated loopback device (sample domain)
+  uart       Serial consoles — the user sees the same bytes live in the Loom UI
+  can        CAN / CAN FD through the Loom daemon (M1: sim bus); the user sees it live in the Loom UI
+  uds        ECU diagnostics over UDS (DoIP; `--sim bench` = virtual ECU behind loopback DoIP)
+  eth        Ethernet capture/decode (tshark-style): DoIP, UDS over DoIP, SOME/IP
+  psu        Bench power supply (M1: SimPsu)
+  test       TC sessions with evidence-backed verdicts
+
+Options:
+## skills sync (copy) into disposable project
+True 24 {'copy'}
+.claude/skills loom-uds SKILL+live-logs identical
+.agents/skills loom-uds SKILL+live-logs identical
+repeat {'unchanged'}
+## quick_validate
+Skill is valid!
+## lib tests default features
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+## source hashes
+6769ed162f02c580c29f348b2baf80904bda24559bc941a207df912cc5c6e69e  crates/loom-cli/src/lib.rs
+469e083eeb63f11b7ea328afc067d2782c05045053d51e1788c8b87c8df89e6c  crates/loom-cli/src/skills.rs
+5d59327ac675a2bc709fb5a5061e788af347755d32857b00bad352a5c7eb8f58  skills/loom-uds/SKILL.md
+0d8b86b5979fa8a5a239b2d184cd187f598613020fc66eceb2c4ff8896f13049  skills/loom-uds/references/live-logs.md
+## git diff stat (owned paths)
+ crates/loom-cli/src/lib.rs    | 139 +++++++++++++++++++++++++++++++++++++++---
+ crates/loom-cli/src/skills.rs |   4 ++
+ skills/loom-uds/SKILL.md      |  11 ++--
+ 3 files changed, 142 insertions(+), 12 deletions(-)
+ M crates/loom-cli/src/lib.rs
+ M crates/loom-cli/src/skills.rs
+ M skills/loom-uds/SKILL.md
+?? skills/loom-uds/references/

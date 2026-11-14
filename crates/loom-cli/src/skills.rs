@@ -34,8 +34,16 @@ const FILES: &[(&str, &str)] = &[
         include_str!("../../../skills/loom-uds/SKILL.md"),
     ),
     (
+        "loom-uds/references/live-logs.md",
+        include_str!("../../../skills/loom-uds/references/live-logs.md"),
+    ),
+    (
         "loom-eth/SKILL.md",
         include_str!("../../../skills/loom-eth/SKILL.md"),
+    ),
+    (
+        "loom-eth/references/live-observer.md",
+        include_str!("../../../skills/loom-eth/references/live-observer.md"),
     ),
     (
         "loom-psu/SKILL.md",

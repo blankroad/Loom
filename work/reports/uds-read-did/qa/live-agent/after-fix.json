@@ -1,0 +1,4383 @@
+{
+  "command": [
+    "/tmp/loom-uds-live-build/debug/loom",
+    "--json",
+    "events",
+    "--domain",
+    "uds",
+    "--channel",
+    "live",
+    "--since",
+    "now",
+    "--max",
+    "2",
+    "--follow",
+    "--timeout",
+    "8",
+    "--peek"
+  ],
+  "checks": {
+    "initial_empty": true,
+    "observer_exit0": true,
+    "no_parse_errors": true,
+    "streamed_before_exit": true,
+    "unique_epoch_seq": true,
+    "all_request_ids": true,
+    "each_request_tx_rx_result": true,
+    "nrc_truthful": true,
+    "bounded_batch_max2": true,
+    "first_event_under_1000ms": true
+  },
+  "first_event_delay_ms": 205.491083,
+  "requests": [
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499361297333,
+      "end_ns": 302499375272708,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w3",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 1.254,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 1.254,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166503907542",
+            "t_first_rx_mono_ns": "166503907542",
+            "t_send_mono_ns": "166502653250",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "raw",
+        "22FFFF",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499375338625,
+      "end_ns": 302499387200541,
+      "exit": 10,
+      "envelope": {
+        "schema_version": 1,
+        "ok": false,
+        "cmd": "uds.request",
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:33"
+        },
+        "error": {
+          "code": "E_NRC",
+          "message": "NRC 0x31 requestOutOfRange",
+          "retryable": false,
+          "request_id": "w4",
+          "detail": {
+            "dropped_events": 0,
+            "others_since_last": {
+              "count": 0,
+              "from_cursor": "w:0",
+              "origins": []
+            },
+            "request_id": "w4",
+            "row": {
+              "bytes": {
+                "data": "22ffff",
+                "encoding": "hex"
+              },
+              "first_rx_ms": 0.492,
+              "functional": false,
+              "nrc": 49,
+              "nrc_name": "requestOutOfRange",
+              "ok_suppressed": false,
+              "p2_ms": 50,
+              "p2_star_ms": 5000,
+              "pending_count": 0,
+              "policy_action": "auto",
+              "reason": "UDS 0x22 ReadDataByIdentifier",
+              "resp_bytes": {
+                "data": "7f2231",
+                "encoding": "hex"
+              },
+              "risk": "R0",
+              "rtt_ms": 0.492,
+              "service": "ReadDataByIdentifier",
+              "sid": 34,
+              "summary": "ReadDataByIdentifier FFFF",
+              "suppress_pos": false,
+              "t_final_rx_mono_ns": "166515714125",
+              "t_first_rx_mono_ns": "166515714125",
+              "t_send_mono_ns": "166515221708",
+              "target": "live",
+              "timeout": false,
+              "write_state": "failed"
+            },
+            "write_state": "failed"
+          }
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499387259791,
+      "end_ns": 302499404594916,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w5",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.449,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.449,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166533147125",
+            "t_first_rx_mono_ns": "166533147125",
+            "t_send_mono_ns": "166532697792",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:38"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499404655791,
+      "end_ns": 302499414920416,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w6",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.361,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.361,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166543601750",
+            "t_first_rx_mono_ns": "166543601750",
+            "t_send_mono_ns": "166543240583",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:43"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499414978125,
+      "end_ns": 302499424846000,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w7",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.384,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.384,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166553538333",
+            "t_first_rx_mono_ns": "166553538333",
+            "t_send_mono_ns": "166553154208",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:48"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499424905875,
+      "end_ns": 302499434987750,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w8",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.357,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.357,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166563745375",
+            "t_first_rx_mono_ns": "166563745375",
+            "t_send_mono_ns": "166563388458",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:53"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499435041875,
+      "end_ns": 302499444872666,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w9",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.341,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.341,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166573746375",
+            "t_first_rx_mono_ns": "166573746375",
+            "t_send_mono_ns": "166573404958",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:58"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499444919916,
+      "end_ns": 302499454498625,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w10",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.341,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.341,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166583376917",
+            "t_first_rx_mono_ns": "166583376917",
+            "t_send_mono_ns": "166583036417",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:63"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499454557041,
+      "end_ns": 302499465529541,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w11",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.366,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.366,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166594429917",
+            "t_first_rx_mono_ns": "166594429917",
+            "t_send_mono_ns": "166594064125",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:68"
+        }
+      }
+    },
+    {
+      "args": [
+        "uds",
+        "read-did",
+        "F190",
+        "-t",
+        "live"
+      ],
+      "start_ns": 302499465574083,
+      "end_ns": 302499475268041,
+      "exit": 0,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "uds.read_did",
+        "data": {
+          "dropped_events": 0,
+          "others_since_last": {
+            "count": 0,
+            "from_cursor": "w:0",
+            "origins": []
+          },
+          "request_id": "w12",
+          "row": {
+            "bytes": {
+              "data": "22f190",
+              "encoding": "hex"
+            },
+            "first_rx_ms": 0.362,
+            "functional": false,
+            "ok_suppressed": false,
+            "p2_ms": 50,
+            "p2_star_ms": 5000,
+            "pending_count": 0,
+            "policy_action": "auto",
+            "reason": "UDS 0x22 ReadDataByIdentifier",
+            "resp_bytes": {
+              "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+              "encoding": "hex"
+            },
+            "risk": "R0",
+            "rtt_ms": 0.362,
+            "service": "ReadDataByIdentifier",
+            "sid": 34,
+            "summary": "ReadDataByIdentifier F190 VIN",
+            "suppress_pos": false,
+            "t_final_rx_mono_ns": "166604181708",
+            "t_first_rx_mono_ns": "166604181708",
+            "t_send_mono_ns": "166603819958",
+            "target": "live",
+            "timeout": false,
+            "write_state": "confirmed"
+          },
+          "state": "confirmed"
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:73"
+        }
+      }
+    }
+  ],
+  "frames": [
+    {
+      "received_ns": 302499361162583,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 0,
+          "events": [],
+          "next_cursor": null,
+          "range": null,
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "28",
+          "truncated": false
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0"
+        }
+      }
+    },
+    {
+      "received_ns": 302499566788416,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97819",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166502653250",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w3",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "31",
+              "session_id": "loomd",
+              "source_seq": "8",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166502709166",
+                "source": "gateway",
+                "wall_ns": "1794613145824790250"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97819",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166503907542",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w3",
+              "schema_version": 1,
+              "seq": "32",
+              "session_id": "loomd",
+              "source_seq": "9",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166503982291",
+                "source": "gateway",
+                "wall_ns": "1794613145826063416"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:33",
+          "range": {
+            "from": "31",
+            "to": "32"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "78",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "10",
+          "origins": [
+            "agent"
+          ],
+          "from_cursor": "e1794612979:seq:28",
+          "kinds": {
+            "uds.tx": "10"
+          },
+          "by_channel": {
+            "uds": "10"
+          }
+        }
+      }
+    },
+    {
+      "received_ns": 302499567903375,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97819",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 1.254,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 1.254,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166503907542",
+                "t_first_rx_mono_ns": "166503907542",
+                "t_send_mono_ns": "166502653250",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w3",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "33",
+              "session_id": "loomd",
+              "source_seq": "10",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166504026875",
+                "source": "gateway",
+                "wall_ns": "1794613145826107958"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97820",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22ffff",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier FFFF",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166515221708",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w4",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "36",
+              "session_id": "loomd",
+              "source_seq": "11",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166515274791",
+                "source": "gateway",
+                "wall_ns": "1794613145837355875"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:37",
+          "range": {
+            "from": "33",
+            "to": "36"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:78"
+        }
+      }
+    },
+    {
+      "received_ns": 302499568849458,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97820",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "7f2231",
+                  "encoding": "hex"
+                },
+                "kind": "negative",
+                "late": false,
+                "nrc": 49,
+                "nrc_name": "requestOutOfRange",
+                "t_rx_mono_ns": "166515714125",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w4",
+              "schema_version": 1,
+              "seq": "37",
+              "session_id": "loomd",
+              "source_seq": "12",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166515777000",
+                "source": "gateway",
+                "wall_ns": "1794613145837858083"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97820",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22ffff",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.492,
+                "functional": false,
+                "nrc": 49,
+                "nrc_name": "requestOutOfRange",
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "7f2231",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.492,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier FFFF",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166515714125",
+                "t_first_rx_mono_ns": "166515714125",
+                "t_send_mono_ns": "166515221708",
+                "target": "live",
+                "timeout": false,
+                "write_state": "failed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w4",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "38",
+              "session_id": "loomd",
+              "source_seq": "13",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166515830250",
+                "source": "gateway",
+                "wall_ns": "1794613145837911333"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:39",
+          "range": {
+            "from": "37",
+            "to": "38"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499569722666,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97821",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166532697792",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w5",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "41",
+              "session_id": "loomd",
+              "source_seq": "14",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166532757041",
+                "source": "gateway",
+                "wall_ns": "1794613145854838125"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97821",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166533147125",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w5",
+              "schema_version": 1,
+              "seq": "42",
+              "session_id": "loomd",
+              "source_seq": "15",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166533203875",
+                "source": "gateway",
+                "wall_ns": "1794613145855285041"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:43",
+          "range": {
+            "from": "41",
+            "to": "42"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499570710125,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97821",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.449,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.449,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166533147125",
+                "t_first_rx_mono_ns": "166533147125",
+                "t_send_mono_ns": "166532697792",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w5",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "43",
+              "session_id": "loomd",
+              "source_seq": "16",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166533254916",
+                "source": "gateway",
+                "wall_ns": "1794613145855336000"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97822",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166543240583",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w6",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "46",
+              "session_id": "loomd",
+              "source_seq": "17",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166543295125",
+                "source": "gateway",
+                "wall_ns": "1794613145865376250"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:47",
+          "range": {
+            "from": "43",
+            "to": "46"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499571569250,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97822",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166543601750",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w6",
+              "schema_version": 1,
+              "seq": "47",
+              "session_id": "loomd",
+              "source_seq": "18",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166543651458",
+                "source": "gateway",
+                "wall_ns": "1794613145865732583"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97822",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.361,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.361,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166543601750",
+                "t_first_rx_mono_ns": "166543601750",
+                "t_send_mono_ns": "166543240583",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w6",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "48",
+              "session_id": "loomd",
+              "source_seq": "19",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166543697750",
+                "source": "gateway",
+                "wall_ns": "1794613145865778833"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:49",
+          "range": {
+            "from": "47",
+            "to": "48"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499572399458,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97823",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166553154208",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w7",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "51",
+              "session_id": "loomd",
+              "source_seq": "20",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166553218625",
+                "source": "gateway",
+                "wall_ns": "1794613145875299666"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97823",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166553538333",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w7",
+              "schema_version": 1,
+              "seq": "52",
+              "session_id": "loomd",
+              "source_seq": "21",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166553592750",
+                "source": "gateway",
+                "wall_ns": "1794613145875673875"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:53",
+          "range": {
+            "from": "51",
+            "to": "52"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499573381625,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97823",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.384,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.384,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166553538333",
+                "t_first_rx_mono_ns": "166553538333",
+                "t_send_mono_ns": "166553154208",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w7",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "53",
+              "session_id": "loomd",
+              "source_seq": "22",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166553636916",
+                "source": "gateway",
+                "wall_ns": "1794613145875717958"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97824",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166563388458",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w8",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "56",
+              "session_id": "loomd",
+              "source_seq": "23",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166563435416",
+                "source": "gateway",
+                "wall_ns": "1794613145885516500"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:57",
+          "range": {
+            "from": "53",
+            "to": "56"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499574312541,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97824",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166563745375",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w8",
+              "schema_version": 1,
+              "seq": "57",
+              "session_id": "loomd",
+              "source_seq": "24",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166563792041",
+                "source": "gateway",
+                "wall_ns": "1794613145885873166"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97824",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.357,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.357,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166563745375",
+                "t_first_rx_mono_ns": "166563745375",
+                "t_send_mono_ns": "166563388458",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w8",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "58",
+              "session_id": "loomd",
+              "source_seq": "25",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166563834125",
+                "source": "gateway",
+                "wall_ns": "1794613145885915208"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:59",
+          "range": {
+            "from": "57",
+            "to": "58"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499575157291,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97825",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166573404958",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w9",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "61",
+              "session_id": "loomd",
+              "source_seq": "26",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166573448458",
+                "source": "gateway",
+                "wall_ns": "1794613145895529541"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97825",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166573746375",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w9",
+              "schema_version": 1,
+              "seq": "62",
+              "session_id": "loomd",
+              "source_seq": "27",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166573792541",
+                "source": "gateway",
+                "wall_ns": "1794613145895873666"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:63",
+          "range": {
+            "from": "61",
+            "to": "62"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576030791,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97825",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.341,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.341,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166573746375",
+                "t_first_rx_mono_ns": "166573746375",
+                "t_send_mono_ns": "166573404958",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w9",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "63",
+              "session_id": "loomd",
+              "source_seq": "28",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166573833916",
+                "source": "gateway",
+                "wall_ns": "1794613145895914958"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97826",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166583036417",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w10",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "66",
+              "session_id": "loomd",
+              "source_seq": "29",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166583074458",
+                "source": "gateway",
+                "wall_ns": "1794613145905155500"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:67",
+          "range": {
+            "from": "63",
+            "to": "66"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576828750,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97826",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166583376917",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w10",
+              "schema_version": 1,
+              "seq": "67",
+              "session_id": "loomd",
+              "source_seq": "30",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166583419583",
+                "source": "gateway",
+                "wall_ns": "1794613145905500708"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97826",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.341,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.341,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166583376917",
+                "t_first_rx_mono_ns": "166583376917",
+                "t_send_mono_ns": "166583036417",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w10",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "68",
+              "session_id": "loomd",
+              "source_seq": "31",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166583458458",
+                "source": "gateway",
+                "wall_ns": "1794613145905539500"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:69",
+          "range": {
+            "from": "67",
+            "to": "68"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499577607000,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97827",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166594064125",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w11",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "71",
+              "session_id": "loomd",
+              "source_seq": "32",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166594104916",
+                "source": "gateway",
+                "wall_ns": "1794613145916186000"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97827",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166594429917",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w11",
+              "schema_version": 1,
+              "seq": "72",
+              "session_id": "loomd",
+              "source_seq": "33",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166594466250",
+                "source": "gateway",
+                "wall_ns": "1794613145916547375"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:73",
+          "range": {
+            "from": "71",
+            "to": "72"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499578462000,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97827",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.366,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.366,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166594429917",
+                "t_first_rx_mono_ns": "166594429917",
+                "t_send_mono_ns": "166594064125",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w11",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "73",
+              "session_id": "loomd",
+              "source_seq": "34",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166594504250",
+                "source": "gateway",
+                "wall_ns": "1794613145916585291"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97828",
+              "dir": "tx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.tx",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "risk": "R0",
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_send_mono_ns": "166603819958",
+                "target": "live",
+                "timeout": false,
+                "write_state": "sent"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w12",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "76",
+              "session_id": "loomd",
+              "source_seq": "35",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166603861000",
+                "source": "gateway",
+                "wall_ns": "1794613145925942083"
+              }
+            }
+          ],
+          "next_cursor": "e1794612979:seq:77",
+          "range": {
+            "from": "73",
+            "to": "76"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": true
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    },
+    {
+      "received_ns": 302499579263500,
+      "while_follow_running": true,
+      "envelope": {
+        "schema_version": 1,
+        "ok": true,
+        "cmd": "events",
+        "data": {
+          "count": 2,
+          "events": [
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97828",
+              "dir": "rx",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.rx",
+              "origin": "device",
+              "payload": {
+                "bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "kind": "positive",
+                "late": false,
+                "t_rx_mono_ns": "166604181708",
+                "target": "live"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w12",
+              "schema_version": 1,
+              "seq": "77",
+              "session_id": "loomd",
+              "source_seq": "36",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166604216791",
+                "source": "gateway",
+                "wall_ns": "1794613145926297916"
+              }
+            },
+            {
+              "channel": "live",
+              "client_id": "uds-live-sender-after#97828",
+              "domain": "uds",
+              "env": "bench",
+              "epoch": "1794612979",
+              "generation": 1,
+              "kind": "uds.result",
+              "origin": "agent",
+              "payload": {
+                "bytes": {
+                  "data": "22f190",
+                  "encoding": "hex"
+                },
+                "final": true,
+                "first_rx_ms": 0.362,
+                "functional": false,
+                "ok_suppressed": false,
+                "p2_ms": 50,
+                "p2_star_ms": 5000,
+                "pending_count": 0,
+                "policy_action": "auto",
+                "reason": "UDS 0x22 ReadDataByIdentifier",
+                "resp_bytes": {
+                  "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+                  "encoding": "hex"
+                },
+                "risk": "R0",
+                "rtt_ms": 0.362,
+                "service": "ReadDataByIdentifier",
+                "sid": 34,
+                "summary": "ReadDataByIdentifier F190 VIN",
+                "suppress_pos": false,
+                "t_final_rx_mono_ns": "166604181708",
+                "t_first_rx_mono_ns": "166604181708",
+                "t_send_mono_ns": "166603819958",
+                "target": "live",
+                "timeout": false,
+                "write_state": "confirmed"
+              },
+              "producer_epoch": "1794612979",
+              "producer_id": "gateway.uds",
+              "request_id": "w12",
+              "risk": "R0",
+              "schema_version": 1,
+              "seq": "78",
+              "session_id": "loomd",
+              "source_seq": "37",
+              "ts": {
+                "clock_id": "loomd-95239",
+                "mono_ns": "166604256000",
+                "source": "gateway",
+                "wall_ns": "1794613145926337041"
+              }
+            }
+          ],
+          "next_cursor": null,
+          "range": {
+            "from": "77",
+            "to": "78"
+          },
+          "source": "ring",
+          "stream_epoch": "1794612979",
+          "stream_seq_hw": "79",
+          "truncated": false
+        },
+        "meta": {
+          "truncated": false,
+          "record_health": "ok",
+          "env": "sim",
+          "latch": false,
+          "viewers": {
+            "subscribed": 0,
+            "visible": 0
+          },
+          "stream_epoch": "1794612979",
+          "visibility": "no_viewer"
+        },
+        "warnings": [
+          {
+            "code": "no_viewer_attached"
+          }
+        ],
+        "others_since_last": {
+          "count": "0",
+          "from_cursor": "e1794612979:seq:79"
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "received_ns": 302499566788416,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97819",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166502653250",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w3",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "31",
+        "session_id": "loomd",
+        "source_seq": "8",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166502709166",
+          "source": "gateway",
+          "wall_ns": "1794613145824790250"
+        }
+      }
+    },
+    {
+      "received_ns": 302499566788416,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97819",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166503907542",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w3",
+        "schema_version": 1,
+        "seq": "32",
+        "session_id": "loomd",
+        "source_seq": "9",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166503982291",
+          "source": "gateway",
+          "wall_ns": "1794613145826063416"
+        }
+      }
+    },
+    {
+      "received_ns": 302499567903375,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97819",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 1.254,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 1.254,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166503907542",
+          "t_first_rx_mono_ns": "166503907542",
+          "t_send_mono_ns": "166502653250",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w3",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "33",
+        "session_id": "loomd",
+        "source_seq": "10",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166504026875",
+          "source": "gateway",
+          "wall_ns": "1794613145826107958"
+        }
+      }
+    },
+    {
+      "received_ns": 302499567903375,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97820",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22ffff",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier FFFF",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166515221708",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w4",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "36",
+        "session_id": "loomd",
+        "source_seq": "11",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166515274791",
+          "source": "gateway",
+          "wall_ns": "1794613145837355875"
+        }
+      }
+    },
+    {
+      "received_ns": 302499568849458,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97820",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "7f2231",
+            "encoding": "hex"
+          },
+          "kind": "negative",
+          "late": false,
+          "nrc": 49,
+          "nrc_name": "requestOutOfRange",
+          "t_rx_mono_ns": "166515714125",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w4",
+        "schema_version": 1,
+        "seq": "37",
+        "session_id": "loomd",
+        "source_seq": "12",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166515777000",
+          "source": "gateway",
+          "wall_ns": "1794613145837858083"
+        }
+      }
+    },
+    {
+      "received_ns": 302499568849458,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97820",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22ffff",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.492,
+          "functional": false,
+          "nrc": 49,
+          "nrc_name": "requestOutOfRange",
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "7f2231",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.492,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier FFFF",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166515714125",
+          "t_first_rx_mono_ns": "166515714125",
+          "t_send_mono_ns": "166515221708",
+          "target": "live",
+          "timeout": false,
+          "write_state": "failed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w4",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "38",
+        "session_id": "loomd",
+        "source_seq": "13",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166515830250",
+          "source": "gateway",
+          "wall_ns": "1794613145837911333"
+        }
+      }
+    },
+    {
+      "received_ns": 302499569722666,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97821",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166532697792",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w5",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "41",
+        "session_id": "loomd",
+        "source_seq": "14",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166532757041",
+          "source": "gateway",
+          "wall_ns": "1794613145854838125"
+        }
+      }
+    },
+    {
+      "received_ns": 302499569722666,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97821",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166533147125",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w5",
+        "schema_version": 1,
+        "seq": "42",
+        "session_id": "loomd",
+        "source_seq": "15",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166533203875",
+          "source": "gateway",
+          "wall_ns": "1794613145855285041"
+        }
+      }
+    },
+    {
+      "received_ns": 302499570710125,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97821",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.449,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.449,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166533147125",
+          "t_first_rx_mono_ns": "166533147125",
+          "t_send_mono_ns": "166532697792",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w5",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "43",
+        "session_id": "loomd",
+        "source_seq": "16",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166533254916",
+          "source": "gateway",
+          "wall_ns": "1794613145855336000"
+        }
+      }
+    },
+    {
+      "received_ns": 302499570710125,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97822",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166543240583",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w6",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "46",
+        "session_id": "loomd",
+        "source_seq": "17",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166543295125",
+          "source": "gateway",
+          "wall_ns": "1794613145865376250"
+        }
+      }
+    },
+    {
+      "received_ns": 302499571569250,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97822",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166543601750",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w6",
+        "schema_version": 1,
+        "seq": "47",
+        "session_id": "loomd",
+        "source_seq": "18",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166543651458",
+          "source": "gateway",
+          "wall_ns": "1794613145865732583"
+        }
+      }
+    },
+    {
+      "received_ns": 302499571569250,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97822",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.361,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.361,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166543601750",
+          "t_first_rx_mono_ns": "166543601750",
+          "t_send_mono_ns": "166543240583",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w6",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "48",
+        "session_id": "loomd",
+        "source_seq": "19",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166543697750",
+          "source": "gateway",
+          "wall_ns": "1794613145865778833"
+        }
+      }
+    },
+    {
+      "received_ns": 302499572399458,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97823",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166553154208",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w7",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "51",
+        "session_id": "loomd",
+        "source_seq": "20",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166553218625",
+          "source": "gateway",
+          "wall_ns": "1794613145875299666"
+        }
+      }
+    },
+    {
+      "received_ns": 302499572399458,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97823",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166553538333",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w7",
+        "schema_version": 1,
+        "seq": "52",
+        "session_id": "loomd",
+        "source_seq": "21",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166553592750",
+          "source": "gateway",
+          "wall_ns": "1794613145875673875"
+        }
+      }
+    },
+    {
+      "received_ns": 302499573381625,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97823",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.384,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.384,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166553538333",
+          "t_first_rx_mono_ns": "166553538333",
+          "t_send_mono_ns": "166553154208",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w7",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "53",
+        "session_id": "loomd",
+        "source_seq": "22",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166553636916",
+          "source": "gateway",
+          "wall_ns": "1794613145875717958"
+        }
+      }
+    },
+    {
+      "received_ns": 302499573381625,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97824",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166563388458",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w8",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "56",
+        "session_id": "loomd",
+        "source_seq": "23",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166563435416",
+          "source": "gateway",
+          "wall_ns": "1794613145885516500"
+        }
+      }
+    },
+    {
+      "received_ns": 302499574312541,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97824",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166563745375",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w8",
+        "schema_version": 1,
+        "seq": "57",
+        "session_id": "loomd",
+        "source_seq": "24",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166563792041",
+          "source": "gateway",
+          "wall_ns": "1794613145885873166"
+        }
+      }
+    },
+    {
+      "received_ns": 302499574312541,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97824",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.357,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.357,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166563745375",
+          "t_first_rx_mono_ns": "166563745375",
+          "t_send_mono_ns": "166563388458",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w8",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "58",
+        "session_id": "loomd",
+        "source_seq": "25",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166563834125",
+          "source": "gateway",
+          "wall_ns": "1794613145885915208"
+        }
+      }
+    },
+    {
+      "received_ns": 302499575157291,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97825",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166573404958",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w9",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "61",
+        "session_id": "loomd",
+        "source_seq": "26",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166573448458",
+          "source": "gateway",
+          "wall_ns": "1794613145895529541"
+        }
+      }
+    },
+    {
+      "received_ns": 302499575157291,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97825",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166573746375",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w9",
+        "schema_version": 1,
+        "seq": "62",
+        "session_id": "loomd",
+        "source_seq": "27",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166573792541",
+          "source": "gateway",
+          "wall_ns": "1794613145895873666"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576030791,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97825",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.341,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.341,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166573746375",
+          "t_first_rx_mono_ns": "166573746375",
+          "t_send_mono_ns": "166573404958",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w9",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "63",
+        "session_id": "loomd",
+        "source_seq": "28",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166573833916",
+          "source": "gateway",
+          "wall_ns": "1794613145895914958"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576030791,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97826",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166583036417",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w10",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "66",
+        "session_id": "loomd",
+        "source_seq": "29",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166583074458",
+          "source": "gateway",
+          "wall_ns": "1794613145905155500"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576828750,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97826",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166583376917",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w10",
+        "schema_version": 1,
+        "seq": "67",
+        "session_id": "loomd",
+        "source_seq": "30",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166583419583",
+          "source": "gateway",
+          "wall_ns": "1794613145905500708"
+        }
+      }
+    },
+    {
+      "received_ns": 302499576828750,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97826",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.341,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.341,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166583376917",
+          "t_first_rx_mono_ns": "166583376917",
+          "t_send_mono_ns": "166583036417",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w10",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "68",
+        "session_id": "loomd",
+        "source_seq": "31",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166583458458",
+          "source": "gateway",
+          "wall_ns": "1794613145905539500"
+        }
+      }
+    },
+    {
+      "received_ns": 302499577607000,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97827",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166594064125",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w11",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "71",
+        "session_id": "loomd",
+        "source_seq": "32",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166594104916",
+          "source": "gateway",
+          "wall_ns": "1794613145916186000"
+        }
+      }
+    },
+    {
+      "received_ns": 302499577607000,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97827",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166594429917",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w11",
+        "schema_version": 1,
+        "seq": "72",
+        "session_id": "loomd",
+        "source_seq": "33",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166594466250",
+          "source": "gateway",
+          "wall_ns": "1794613145916547375"
+        }
+      }
+    },
+    {
+      "received_ns": 302499578462000,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97827",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.366,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.366,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166594429917",
+          "t_first_rx_mono_ns": "166594429917",
+          "t_send_mono_ns": "166594064125",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w11",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "73",
+        "session_id": "loomd",
+        "source_seq": "34",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166594504250",
+          "source": "gateway",
+          "wall_ns": "1794613145916585291"
+        }
+      }
+    },
+    {
+      "received_ns": 302499578462000,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97828",
+        "dir": "tx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.tx",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "risk": "R0",
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_send_mono_ns": "166603819958",
+          "target": "live",
+          "timeout": false,
+          "write_state": "sent"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w12",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "76",
+        "session_id": "loomd",
+        "source_seq": "35",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166603861000",
+          "source": "gateway",
+          "wall_ns": "1794613145925942083"
+        }
+      }
+    },
+    {
+      "received_ns": 302499579263500,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97828",
+        "dir": "rx",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.rx",
+        "origin": "device",
+        "payload": {
+          "bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "kind": "positive",
+          "late": false,
+          "t_rx_mono_ns": "166604181708",
+          "target": "live"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w12",
+        "schema_version": 1,
+        "seq": "77",
+        "session_id": "loomd",
+        "source_seq": "36",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166604216791",
+          "source": "gateway",
+          "wall_ns": "1794613145926297916"
+        }
+      }
+    },
+    {
+      "received_ns": 302499579263500,
+      "epoch": "1794612979",
+      "event": {
+        "channel": "live",
+        "client_id": "uds-live-sender-after#97828",
+        "domain": "uds",
+        "env": "bench",
+        "epoch": "1794612979",
+        "generation": 1,
+        "kind": "uds.result",
+        "origin": "agent",
+        "payload": {
+          "bytes": {
+            "data": "22f190",
+            "encoding": "hex"
+          },
+          "final": true,
+          "first_rx_ms": 0.362,
+          "functional": false,
+          "ok_suppressed": false,
+          "p2_ms": 50,
+          "p2_star_ms": 5000,
+          "pending_count": 0,
+          "policy_action": "auto",
+          "reason": "UDS 0x22 ReadDataByIdentifier",
+          "resp_bytes": {
+            "data": "62f1904c4f4f4d494e5445524f5030303030303031",
+            "encoding": "hex"
+          },
+          "risk": "R0",
+          "rtt_ms": 0.362,
+          "service": "ReadDataByIdentifier",
+          "sid": 34,
+          "summary": "ReadDataByIdentifier F190 VIN",
+          "suppress_pos": false,
+          "t_final_rx_mono_ns": "166604181708",
+          "t_first_rx_mono_ns": "166604181708",
+          "t_send_mono_ns": "166603819958",
+          "target": "live",
+          "timeout": false,
+          "write_state": "confirmed"
+        },
+        "producer_epoch": "1794612979",
+        "producer_id": "gateway.uds",
+        "request_id": "w12",
+        "risk": "R0",
+        "schema_version": 1,
+        "seq": "78",
+        "session_id": "loomd",
+        "source_seq": "37",
+        "ts": {
+          "clock_id": "loomd-95239",
+          "mono_ns": "166604256000",
+          "source": "gateway",
+          "wall_ns": "1794613145926337041"
+        }
+      }
+    }
+  ],
+  "observer_stderr": "",
+  "elapsed_ms": 8363.0855
+}
