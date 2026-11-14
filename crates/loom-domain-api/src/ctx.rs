@@ -2,6 +2,7 @@
 //! P0 only fixes the signatures — the services behind [`CtxServices`] arrive in P1.
 
 use std::fmt;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -184,6 +185,17 @@ fn process_mono_ns() -> u64 {
     u64::try_from(START.get_or_init(Instant::now).elapsed().as_nanos()).unwrap_or(u64::MAX)
 }
 
+/// Daemon storage roots a module may hand to its worker (video artifacts, media sockets). The
+/// gateway fills these from `Config.home` and the current journal session; a module must never
+/// fall back to `~/.loom` when they are absent.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StorageRoots {
+    /// `$LOOM_HOME` root of the running daemon.
+    pub home: PathBuf,
+    /// Current journal session directory (`records/<date>/s<epoch>`).
+    pub session: PathBuf,
+}
+
 /// Services behind a [`CallCtx`] (implemented by the gateway, by `loom-testkit` fakes in P0 D5).
 pub trait CtxServices: Send + Sync {
     /// Worker of `kind` serving this call's channel.
@@ -219,6 +231,10 @@ pub trait CtxServices: Send + Sync {
     /// The domain's merged `loom.toml [<domain>]` section (`Null` when absent).
     fn config(&self) -> Value {
         Value::Null
+    }
+    /// Storage roots of the running daemon. Default: unavailable (`None`).
+    fn storage_roots(&self) -> Option<StorageRoots> {
+        None
     }
     /// Tell the user what the agent is doing (`core.activity` with `action`, the domain, the
     /// call's channel, the read range and the wait predicate). Default: ignored.
@@ -355,6 +371,10 @@ impl CallCtx {
     /// The domain's merged `loom.toml [<domain>]` section.
     pub fn config(&self) -> Value {
         self.services.config()
+    }
+    /// Storage roots of the running daemon (`None` when the host provides none).
+    pub fn storage_roots(&self) -> Option<StorageRoots> {
+        self.services.storage_roots()
     }
     /// Report an agent action (`core.activity`): what, which range was read, what is awaited.
     pub fn activity(

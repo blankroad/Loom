@@ -24,6 +24,7 @@ import {
   createRowTable,
   mergeGaps,
   registerPanel,
+  type LoomEvent,
   type PanelContext,
   type PanelInstance,
 } from '../../sdk';
@@ -110,6 +111,8 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const rows = ctx.rows({ domain: 'uds', where: (r) => !isTesterPresent(r) && r.payload.dry_run !== true });
   const tpRows = ctx.rows({ domain: 'uds', where: isTesterPresent });
   const targets = new Map<string, TargetView>();
+  /** seq of the newest uds.state applied per target (live control, backlog or snapshot high-water) */
+  const targetSeq = new Map<string, bigint>();
   let targetsOverflow = 0;
   const lastValues = new Map<string, LastValue>();
   let lastSeq = -1n;
@@ -120,7 +123,14 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const initialTarget = typeof ctx.props.targets === 'string' ? ctx.props.targets.split(',')[0] : undefined;
   let selectedTarget: string | null = initialTarget ?? null;
 
-  const writable = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
+  /** link of the selected target: a target whose link is reported and not up (down, connecting, lost…) is read-only
+   * (retained history after link loss). An unreported link ('?') is left to the action gate / daemon. */
+  const linkAllowsWrite = () => {
+    const t = selectedTarget ?? [...targets.keys()][0] ?? null;
+    const link = t ? (targets.get(t)?.link ?? '?') : '?';
+    return link === '?' || link.toLowerCase() === 'up';
+  };
+  const writable = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked && linkAllowsWrite();
   const act = (id: string, params: object) =>
     ctx.act(id, params).catch((e: unknown) => {
       ctx.ui.toast(`${id} 실패: ${e instanceof Error ? e.message : String(e)}`);
@@ -494,6 +504,25 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     if (rows.list().some((r) => r.state === 'sent' || r.state === 'accepted' || r.state === 'requested')) ctx.scheduler.invalidate();
   }, 250); // elapsed counters of in-flight rows keep moving
 
+  /** uds.state for one target with a per-target seq guard (older backlog/control rows never overwrite) */
+  function applyState(ev: LoomEvent): boolean {
+    if (ev.kind !== 'uds.state') return false;
+    const name = str((ev.payload as Record<string, unknown>).target) || ev.channel;
+    if (!name || (targetScope && !targetScope.has(name))) return false;
+    let seq: bigint;
+    try {
+      seq = BigInt(ev.seq);
+    } catch {
+      return false;
+    }
+    if (seq <= (targetSeq.get(name) ?? -1n)) return false;
+    noteTarget(name);
+    const next = reduceTarget(targets.get(name), ev);
+    if (!next || !targets.has(name)) return false;
+    targets.set(name, next);
+    targetSeq.set(name, seq);
+    return true;
+  }
   const noteTarget = (name: string) => {
     if (targets.has(name)) return;
     if (targets.size >= MAX_TARGETS) {
@@ -673,6 +702,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     const snapshot = mirror.snapshot;
     if (snapshot && snapshot.version !== snapshotVersion) {
       snapshotVersion = snapshot.version;
+      const before = new Map(targets);
       targets.clear();
       targetsOverflow = 0;
       for (const item of snapshot.items) {
@@ -682,17 +712,23 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
         const next = reduceTargetState(undefined, state.payload);
         if (!next || (targetScope && !targetScope.has(next.target))) continue;
         noteTarget(next.target);
-        if (targets.has(next.target)) targets.set(next.target, next);
+        if (!targets.has(next.target)) continue;
+        // a newer live state (e.g. link down) already applied wins over this snapshot (as of throughSeq)
+        const applied = targetSeq.get(next.target) ?? -1n;
+        if (applied > snapshot.throughSeq) targets.set(next.target, before.get(next.target) ?? next);
+        else {
+          targets.set(next.target, next);
+          targetSeq.set(next.target, snapshot.throughSeq);
+        }
+      }
+      // targets known only from newer live control events survive a snapshot that predates them
+      for (const [name, t] of before) {
+        if (!targets.has(name) && (targetSeq.get(name) ?? -1n) > snapshot.throughSeq && targets.size < MAX_TARGETS) targets.set(name, t);
       }
     }
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
-      const name = ev.kind === 'uds.state' ? (str((ev.payload as Record<string, unknown>).target) || ev.channel) : null;
-      if (name && (!targetScope || targetScope.has(name)) && (!snapshot || BigInt(ev.seq) > snapshot.throughSeq)) {
-        noteTarget(name);
-        const next = reduceTarget(targets.get(name), ev);
-        if (next && targets.has(name)) targets.set(name, next);
-      }
+      if (!snapshot || BigInt(ev.seq) > snapshot.throughSeq) applyState(ev);
     }
     const list = rows.list();
     if (rowsVersion !== rowsVersionSeen) {
@@ -722,6 +758,11 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     return mirror.headSeq;
   };
   const offFrame = ctx.scheduler.onFrame(draw);
+  // uds.state is a priority kind: live link changes arrive on the control path (data subs get them only via
+  // snapshot/backlog). Same per-target seq guard as the mirror path.
+  const offControl = ctx.onControl((ev) => {
+    if (applyState(ev)) ctx.scheduler.invalidate();
+  });
   renderParams();
   renderService();
 
@@ -742,6 +783,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       offCursor();
       offReveal();
       offFrame();
+      offControl();
       table.dispose();
       root.remove();
     },

@@ -88,7 +88,12 @@ describe('actual UART dock views', () => {
     dock.find(b)!.api.close();
     expect(net.subs[uartSubs[1]!.index]!.closed).toBe(true);
     expect(net.subs[uartSubs[0]!.index]!.closed).toBe(false);
-    dock.open(b); draw();
+    dock.open(b);
+    // the reopened view subscribes anew; the daemon delivers the port state (snapshot/backlog) before input is allowed
+    const reopened = net.subs.length - 1;
+    expect(net.subs[reopened]!.filter.channels).toEqual(['beta']);
+    net.emitBatch(reopened, [ev({ kind: 'uart.state', channel: 'beta', payload: { status: 'OPEN', baud: 115200 } })]);
+    draw();
     const body = dock.find(b)!.view.content.element;
     [...body.querySelectorAll('button')].find((button) => button.textContent === 'Ctrl-C')!.click();
     expect(net.calls.at(-1)?.params).toEqual({ channel: 'beta', data_hex: '03', input_seq: 1 });

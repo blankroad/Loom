@@ -13,3 +13,6 @@
 .interface-dialog button:disabled { opacity: .5; cursor: default; }
 .interface-dialog :focus-visible { outline: 2px solid var(--accent, #76c7c0); outline-offset: 2px; }
 .interface-error { color: var(--err); overflow-wrap: anywhere; }
+
+.interface-modules { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border, #8884); padding-top: 8px; margin-top: 4px; }
+.interface-module p { margin: 2px 0 0; }

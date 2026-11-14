@@ -78,8 +78,15 @@ export function StopPanel() {
   };
 
   const recover = items.filter((i) => i.kind === 'recover');
-  const emergency = (domain: string, channel: string) =>
-    items.find((i) => i.kind === 'emergency_off' && i.domain === domain && (i.channel ?? '') === channel);
+  /** Exact channel match first; otherwise a same-domain wildcard (`channel: '*'`, e.g. PSU targets ['*']).
+   * Never another domain's path. A wildcard switches every output of that domain — labelled as such. */
+  const emergency = (domain: string, channel: string): { item: (typeof items)[number]; all: boolean } | null => {
+    const em = items.filter((i) => i.kind === 'emergency_off' && i.domain === domain);
+    const exact = em.find((i) => (i.channel ?? '') === channel);
+    if (exact) return { item: exact, all: false };
+    const any = em.find((i) => i.channel === '*');
+    return any ? { item: any, all: true } : null;
+  };
 
   return (
     <section className="stop-panel" data-testid="stop-panel" aria-label="STOP 상태">
@@ -101,18 +108,22 @@ export function StopPanel() {
         <div className="outputs-held">
           ⚠ STOP — 출력 유지 중:
           {latch.outputsHeld.map((o) => {
-            const em = emergency(o.domain, o.channel);
+            const found = emergency(o.domain, o.channel);
+            const em = found?.item;
             return (
               <span key={`${o.domain}/${o.channel}`} className="held">
-                {o.domain} {o.channel} {o.label} {o.state}{' '}
+                {o.domain} {o.channel} {o.description}{' '}
                 <button
                   type="button"
                   className="emergency-off"
                   disabled={!em || busy}
-                  title={em ? `확인 없이 즉시 (인터록은 경고만)${em.method ? ` · ${em.method}` : ''}` : '비상 OFF 경로 없음 — 데몬 safe_state 목록에 이 장치의 비상 OFF 항목이 없습니다'}
+                  title={em
+                    ? `${found?.all ? `${o.domain.toUpperCase()} 전체 출력 OFF — 이 채널만이 아니라 이 도메인의 모든 출력을 끕니다. ` : ''}확인 없이 즉시 (인터록은 경고만)${em.method ? ` · ${em.method}` : ''}`
+                    : '비상 OFF 경로 없음 — 데몬 safe_state 목록에 이 장치의 비상 OFF 항목이 없습니다'}
+                  data-scope={found?.all ? 'domain-all' : em ? 'channel' : 'none'}
                   onClick={() => em && void run([em.id])}
                 >
-                  비상 OFF !
+                  {found?.all ? `${o.domain.toUpperCase()} 전체 비상 OFF !` : '비상 OFF !'}
                 </button>
                 {!em && <span className="muted"> (경로 없음)</span>}
               </span>

@@ -6,5 +6,6 @@ import './uds/consolePanel';
 import './eth/ethPanel';
 import './psu/gaugePanel';
 import './logic/logicPanel';
+import './video/videoPanel';
 import { registerCanPanels } from './can';
 registerCanPanels();

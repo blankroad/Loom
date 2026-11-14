@@ -1000,6 +1000,7 @@ dependencies = [
  "loom-test",
  "loom-uart",
  "loom-uds",
+ "loom-video",
  "serde",
  "serde_json",
  "tempfile",
@@ -1135,6 +1136,7 @@ dependencies = [
  "loom-uart-worker",
  "loom-uds",
  "loom-ui-assets",
+ "loom-video",
  "loom-worker-host",
  "loom-worker-sdk",
  "rand 0.9.5",
@@ -1379,6 +1381,24 @@ dependencies = [
  "rust-embed",
  "tokio",
  "tower",
+]
+
+[[package]]
+name = "loom-video"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "futures-util",
+ "hex",
+ "loom-cli-kit",
+ "loom-domain-api",
+ "loom-proto",
+ "loom-testkit",
+ "loom-worker-sdk",
+ "schemars",
+ "serde_json",
+ "sha2",
+ "tokio",
 ]
 
 [[package]]

@@ -37,6 +37,11 @@ export function connectionRequest(draft: ConnectionDraft): { rpc: string; params
   }
 }
 
+/** Workbench modules that open as a panel without opening a device; the source is chosen inside the panel. */
+export const MODULE_LAUNCHERS = [
+  { id: 'video', label: '비디오 캡처 작업대', note: '장치·카메라를 열지 않습니다. 소스는 작업대에서 명시적으로 선택합니다(열기는 operate 권한).', slot: { panel: 'video.workbench', props: {} } },
+] as const;
+
 const LABEL: Record<Domain, string> = { uart: 'UART · 시리얼', can: 'CAN · 버스', uds: 'UDS · DoIP', eth: 'Ethernet · 캡처' };
 const ADDRESS: Record<Domain, string> = { uart: '/dev/ttyUSB0 또는 COM3', can: '', uds: '192.168.0.10', eth: 'en0 또는 eth0' };
 
@@ -55,6 +60,13 @@ export function InterfaceConnect() {
   const title = useId();
   const portList = useId();
   const allowed = shell.can('operate') && !shell.status.writeLocked;
+  const launch = (slot: (typeof MODULE_LAUNCHERS)[number]['slot']) => {
+    if (pending) return;
+    // observation-only: shows the panel; no RPC, no device, no fake active channel
+    showSlot({ panel: slot.panel, props: { ...slot.props } });
+    setOpen(false);
+    trigger.current?.focus();
+  };
 
   useEffect(() => {
     if (open) dialog.current?.showModal();
@@ -119,6 +131,10 @@ export function InterfaceConnect() {
           {draft.domain === 'can' && <p className="muted">CAN은 현재 시뮬레이터 연결을 제공합니다.</p>}
           {!allowed && <p role="status">연결하려면 연결된 세션의 operate 권한이 필요합니다.</p>}
           {error && <p className="interface-error" role="alert">{error}</p>}
+          <section className="interface-modules" aria-label="작업대 모듈">
+            <span className="interface-eyebrow">MODULES</span>
+            {MODULE_LAUNCHERS.map((m) => <div key={m.id} className="interface-module"><button type="button" data-testid={`launch-${m.id}`} disabled={pending} onClick={() => launch(m.slot)}>{m.label} 열기</button><p className="muted">{m.note}</p></div>)}
+          </section>
           <footer><button type="button" disabled={pending} onClick={close}>취소</button><button type="submit" className="interface-primary" disabled={pending || !allowed}>{pending ? '연결 중…' : '연결'}</button></footer>
         </form>
       </dialog>, document.body)}

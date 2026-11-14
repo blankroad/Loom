@@ -28,6 +28,7 @@ export const PRESETS: readonly Preset[] = [
   { name: 'test', label: '테스트 실행', grid: 'stack', slots: [] },
   { name: 'eth', label: 'Ethernet 캡처', grid: 'stack', slots: [] },
   { name: 'logic', label: '로직 분석기', grid: 'stack', slots: [] },
+  { name: 'video', label: '비디오 캡처', grid: 'stack', slots: [] },
 ];
 
 export interface WorkspaceChannel {
@@ -36,17 +37,17 @@ export interface WorkspaceChannel {
   state: 'open' | 'closed' | 'unknown';
 }
 
-export const SERVICE_DOMAINS = ['uart', 'can', 'eth', 'psu', 'uds', 'logic'] as const;
+export const SERVICE_DOMAINS = ['uart', 'can', 'eth', 'psu', 'uds', 'logic', 'video'] as const;
 export type ServiceDomain = typeof SERVICE_DOMAINS[number];
-export const SERVICE_LABELS: Record<ServiceDomain, string> = { uart: 'UART', can: 'CAN', eth: 'Ethernet', uds: 'UDS', psu: 'PSU', logic: '로직 분석기' };
+export const SERVICE_LABELS: Record<ServiceDomain, string> = { uart: 'UART', can: 'CAN', eth: 'Ethernet', uds: 'UDS', psu: 'PSU', logic: '로직 분석기', video: '비디오 캡처' };
 export const DIAGNOSTIC_OBSERVATION_DOMAINS = ['uds', 'can', 'eth'] as const;
 export function serviceAllowsDomain(service: ServiceDomain, domain: string): boolean {
   return service === 'uds' ? DIAGNOSTIC_OBSERVATION_DOMAINS.some((d) => d === domain) : service === domain;
 }
-const SERVICE_PRESET: Record<ServiceDomain, string> = { uart: 'uart-only', can: 'can-only', eth: 'eth', uds: 'uds-only', psu: 'psu-only', logic: 'logic' };
+const SERVICE_PRESET: Record<ServiceDomain, string> = { uart: 'uart-only', can: 'can-only', eth: 'eth', uds: 'uds-only', psu: 'psu-only', logic: 'logic', video: 'video' };
 
 const PRESET_DOMAINS: Record<string, readonly string[]> = {
-  'uart-only': ['uart'], 'can-only': ['can'], 'uds-only': ['uds'], 'psu-only': ['psu'], 'can-uds': ['can', 'uds'], eth: ['eth'], logic: ['logic'],
+  'uart-only': ['uart'], 'can-only': ['can'], 'uds-only': ['uds'], 'psu-only': ['psu'], 'can-uds': ['can', 'uds'], eth: ['eth'], logic: ['logic'], video: ['video'],
 };
 
 /** Resolve even a legacy direct route against available aliases, with no fallback devices. */
@@ -108,7 +109,7 @@ export function parseRoute(hash: string): Route {
     for (const [k, v] of new URLSearchParams(p[3] ?? '')) props[k] = v;
     return { kind: 'panel', slot: { panel: `${p[1]}.${p[2]}`, props } };
   }
-  const s = /^\/s\/(uart|can|eth|uds|psu|logic)$/.exec(h);
+  const s = /^\/s\/(uart|can|eth|uds|psu|logic|video)$/.exec(h);
   if (s) {
     const service = s[1] as ServiceDomain;
     const name = SERVICE_PRESET[service];

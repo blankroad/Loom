@@ -73,12 +73,15 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   const now = () => performance.now();
   const mirror = ctx.store('term');
   const hasWriteRight = () => ctx.rights.has('operate') || ctx.rights.has('approve');
-  /** U-3: STALLED / disconnected → read-only like the shell's write lock */
-  const canWrite = () => hasWriteRight() && !ctx.writeLocked;
+  /** U-3: STALLED / disconnected → read-only like the shell's write lock. A port that is not OPEN (closed,
+   * disconnected, unknown — e.g. a retained history view after STOP/disconnect) is read-only too. */
+  const canWrite = () => hasWriteRight() && !ctx.writeLocked && isOpenStatus(port.status);
 
   let input: UartInputState = INITIAL_INPUT;
   let port: UartPortState = { status: '?', baud: null, generation: null };
   let lastSeq = -1n;
+  /** seq of the newest port state applied (live control, backlog or snapshot high-water): older never overwrite */
+  let portSeq = -1n;
   let lastOverwritten = 0;
   let gapsSeen = 0;
   let separatorDone = false;
@@ -108,6 +111,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   };
 
   const send = (bytes: Uint8Array) => {
+    if (!canWrite()) return; // never emit input for a port that is not open (panel-level, before the gate)
     ctx
       .act('input', { channel, data_hex: bytesToHex(bytes), input_seq: ++inputSeq })
       .catch((e: unknown) => {
@@ -332,7 +336,13 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
         if (item.domain !== 'uart' || item.kind !== 'uart.snapshot') continue;
         const state = item.state as Record<string, unknown> | null;
         if (!state || (item.channel ?? state.channel) !== channel) continue;
-        ({ port, input } = restoreUartState(state, t));
+        const restored = restoreUartState(state, t);
+        input = restored.input;
+        // the snapshot is as of throughSeq: a newer live port state (e.g. disconnected) already applied wins
+        if (snapshot.throughSeq >= portSeq) {
+          port = restored.port;
+          portSeq = snapshot.throughSeq;
+        }
       }
     }
     if (mirror.overwritten !== lastOverwritten) {
@@ -414,11 +424,31 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       }
       return;
     }
+    applyPort(ev);
+    input = reduceInput(input, ev, t);
+  };
+  /** uart.state / uart.config with a per-port seq guard (control path and data/backlog path share it) */
+  function applyPort(ev: LoomEvent): boolean {
+    if (ev.kind !== 'uart.state' && ev.kind !== 'uart.config') return false;
+    let seq: bigint;
+    try {
+      seq = BigInt(ev.seq);
+    } catch {
+      return false;
+    }
+    if (seq <= portSeq) return false;
+    portSeq = seq;
     const before = port.status;
     port = reducePort(port, ev);
     if (ev.kind === 'uart.state' && port.status !== before) openSinceWallMs = isOpenStatus(port.status) ? wallOf(ev) || null : null;
-    input = reduceInput(input, ev, t);
-  };
+    return true;
+  }
+  // Live port state is a priority kind: it reaches data subscriptions only via snapshot/backlog, so apply it from
+  // the control path too (same seq guard; an older backlog row or snapshot never overrides it).
+  const offControl = ctx.onControl((ev) => {
+    if ((ev.channel ?? (ev.payload as { channel?: unknown } | null)?.channel) !== channel) return;
+    if (applyPort(ev)) ctx.scheduler.invalidate();
+  });
 
   const draw = (): bigint => {
     consume();
@@ -517,6 +547,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       if (ledTimer !== null) clearTimeout(ledTimer);
       table.dispose();
       offAppend();
+      offControl();
       offFrame();
       term.dispose();
       root.remove();

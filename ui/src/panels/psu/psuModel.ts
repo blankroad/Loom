@@ -15,9 +15,17 @@ const MAX_POINTS = 4_096; // C2: ≥ 60 s at 50 Hz; oldest dropped
 export interface PsuState {
   setV: number | null;
   setI: number | null;
+  /** last confirmed output state (null = never reported / reported unknown) */
   out: boolean | null;
   prot: string | null;
   mode: string | null;
+  /** provenance as reported by the worker (never the daemon env badge) */
+  backend?: string | null;
+  address?: string | null;
+  idn?: string | null;
+  /** device link: false = disconnected → `out` is the last confirmed value, current output unknown */
+  connected?: boolean | null;
+  link?: string | null;
 }
 
 export interface Meas {
@@ -38,13 +46,22 @@ const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFi
 export function reduceState(prev: PsuState, ev: LoomEvent): PsuState {
   if (ev.kind !== 'psu.state') return prev;
   const p = obj(ev.payload);
-  const out = p.out === true || p.out === 'on' ? true : p.out === false || p.out === 'off' ? false : prev.out;
+  // `out_known:false` means the backend has no confirmed output state: unknown, never "OFF"
+  const out = p.out_known === false
+    ? (prev.out ?? null)
+    : p.out === true || p.out === 'on' ? true : p.out === false || p.out === 'off' ? false : prev.out;
+  const str = (v: unknown, keep: string | null | undefined) => (typeof v === 'string' && v ? v : (keep ?? null));
   return {
     setV: num(p.set_v) ?? prev.setV,
     setI: num(p.set_i) ?? prev.setI,
     out,
     prot: typeof p.prot === 'string' ? p.prot : prev.prot,
     mode: typeof p.mode === 'string' ? p.mode : prev.mode,
+    backend: str(p.backend, prev.backend),
+    address: str(p.address, prev.address),
+    idn: str(p.idn, prev.idn),
+    connected: typeof p.connected === 'boolean' ? p.connected : (prev.connected ?? null),
+    link: str(p.link, prev.link),
   };
 }
 
@@ -140,6 +157,20 @@ export class Series {
 
 export function monoS(ev: LoomEvent): number {
   return /^\d+$/.test(ev.ts.mono_ns) ? Number(BigInt(ev.ts.mono_ns) / 1_000_000n) / 1000 : 0;
+}
+
+/** Header provenance: actual backend/address/IDN from psu.state (the env badge is the daemon environment). */
+export function sourceLabel(s: PsuState): string {
+  const parts = [s.backend ?? 'backend 미보고', s.address ?? null, s.idn ? `IDN ${s.idn}` : 'IDN 미보고'].filter(Boolean);
+  return parts.join(' · ');
+}
+
+/** Output word: a disconnected supply shows its last confirmed state with an explicit qualifier. */
+export function outText(s: PsuState): { text: string; cls: string } {
+  if (s.out === null) return { text: s.connected === false ? '출력 ? (연결 끊김 · 확인값 없음)' : '출력 ?', cls: 'unknown' };
+  const base = s.out ? '● 출력 ON' : '○ 출력 OFF';
+  if (s.connected === false) return { text: `${base} (마지막 확인값 · 연결 끊김 — 현재 상태 미확인)`, cls: `${s.out ? 'on' : 'off'} stale` };
+  return { text: base, cls: s.out ? 'on' : 'off' };
 }
 
 export const fmt = (x: number | null, unit: string, d = 3) => (x === null ? `— ${unit}` : `${x.toFixed(d)} ${unit}`);

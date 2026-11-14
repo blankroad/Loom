@@ -348,6 +348,9 @@ fn is_channel_state(r: &PublishedRecord) -> bool {
     !loom_proto::rpc::is_reserved_domain(d)
         && r.channel.is_some()
         && (ev == "state" || ev.ends_with("_state"))
+        // a recording's lifecycle (`video.record_state`: recording/finalized/failed) shares the
+        // capture channel but is not its connectivity; it must not replace the channel entry
+        && !ev.ends_with("record_state")
 }
 
 impl CoreState {
@@ -1382,5 +1385,39 @@ mod eviction_coverage_tests {
             e.selected(&unrelated).map(|v| v.0),
             Some(MAX_EVICTION_KEYS as u64 + 1)
         );
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod channel_state_tests {
+    use super::*;
+    use loom_proto::event::SourceRecord;
+    use loom_proto::num::U64;
+
+    fn rec(seq: u64, kind: &str, channel: &str, payload: Value) -> PublishedRecord {
+        let src: SourceRecord = serde_json::from_value(json!({
+            "schema_version": 1, "session_id": "s", "domain": kind.split('.').next().unwrap(),
+            "channel": channel, "kind": kind, "producer_id": "p", "producer_epoch": "1",
+            "source_seq": seq.to_string(),
+            "ts": {"mono_ns": "1", "wall_ns": "1", "clock_id": "t", "source": "host_read_complete"},
+            "origin": "device", "payload": payload,
+        }))
+        .unwrap();
+        src.publish(U64(seq), U64(1))
+    }
+
+    #[test]
+    fn recording_lifecycle_never_replaces_capture_connectivity() {
+        let mut c = CoreState::default();
+        c.apply(&rec(1, "video.capture_state", "v1", json!({"capture_id": "v1", "state": "live"})));
+        c.apply(&rec(2, "video.record_state", "v1", json!({"capture_id": "v1", "state": "failed"})));
+        let list = c.channel_list();
+        assert_eq!(list.len(), 1, "{list:?}");
+        assert_eq!(list[0]["state"], "live");
+        assert_eq!(list[0]["kind"], "video.capture_state");
+        c.apply(&rec(3, "video.capture_state", "v1", json!({"capture_id": "v1", "state": "closed"})));
+        c.apply(&rec(4, "video.record_state", "v1", json!({"capture_id": "v1", "state": "finalized"})));
+        assert!(c.channel_list().is_empty(), "a closed capture is not resurrected by a late record row");
     }
 }

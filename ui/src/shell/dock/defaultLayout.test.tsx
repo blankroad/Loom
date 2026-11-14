@@ -113,14 +113,17 @@ describe('default workbench initialization', () => {
     act(() => services.shell.noteSnapshotItems([{ domain: 'uart', channel: 'delta', state: { status: 'OPEN' } }]));
     act(() => services.shell.tick(4000));
     expect(dock().api.panels).toHaveLength(3);
+    // a closed UART keeps its open (read-only) history view; reopening the port does not add a second one
+    const betaView = dock().find({ panel: 'uart.terminal', props: { channel: 'beta' } });
     signal('beta', 'closed');
-    expect(dock().api.panels).toHaveLength(2);
+    expect(dock().api.panels).toHaveLength(3);
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'beta' } })).toBe(betaView);
     signal('beta', 'open');
-    expect(dock().api.panels).toHaveLength(2);
+    expect(dock().api.panels).toHaveLength(3);
     expect(dock().api.activePanel).toBe(trace);
     expect(dock().find({ panel: 'uart.terminal', props: { channel: 'alpha' } })).toBe(terminal);
     act(() => { expect(services.showSlot({ panel: 'uart.terminal', props: { channel: 'gamma' } })).toBe('added'); });
-    expect(dock().api.panels).toHaveLength(3);
+    expect(dock().api.panels).toHaveLength(4);
     act(() => services.settings.setAutoOpen('on'));
     act(() => services.shell.tick(5000));
     expect(dock().find({ panel: 'uart.terminal', props: { channel: 'delta' } })).toBeNull();
@@ -155,7 +158,7 @@ describe('default workbench initialization', () => {
     expect(services.toasts.items.at(-1)?.text).toContain('32개 보기만 열었습니다');
   });
 
-  it('applies saved layouts only to active aliases and keeps stored unavailable panes intact', () => {
+  it('applies saved layouts to active and retained-history aliases only and keeps stored unavailable panes intact', () => {
     const { services, render, dock } = mount();
     act(() => services.shell.noteSnapshotItems(['alpha', 'beta'].map((channel) => ({ kind: 'uart.state', channel, state: { status: 'open' } }))));
     render(parseRoute('#/l/uart-only'));
@@ -165,7 +168,8 @@ describe('default workbench initialization', () => {
     expect(services.layouts.save(layout, new Set()).ok).toBe(true);
     act(() => services.shell.noteSnapshotItems([{ kind: 'uart.state', channel: 'beta', state: { status: 'closed' } }]));
     render(parseRoute('#/l/my-bench'));
-    expect(leaves(dock().snapshot().root).map((s) => s.props.channel)).toEqual(['alpha', 'alpha']);
+    // closed UART keeps a read-only history view when the user explicitly selects the saved layout
+    expect(leaves(dock().snapshot().root).map((s) => s.props.channel)).toEqual(['alpha', 'alpha', 'beta']);
     expect(services.layouts.get('my-bench').layout).toEqual(layout);
     const trace = dock().find({ panel: 'uart.trace', props: { channel: 'alpha' } })!;
     act(() => trace.api.setActive());
@@ -187,9 +191,9 @@ describe('default workbench initialization', () => {
     act(() => services.shell.tick(4000));
     expect(services.shell.channels.get('eth/qa')?.state).toBe('closed');
     expect(dock().find(slot)).toBe(panel);
-    // live-only domains keep the tested pruning contract
+    // UART now also retains its closed (read-only) history view; the ETH capture view is unaffected
     act(() => net.emitControl(ev({ kind: 'uart.state', domain: 'uart', channel: 'port', payload: { state: 'closed' } })));
-    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'port' } })).toBeNull();
+    expect(dock().find({ panel: 'uart.terminal', props: { channel: 'port' } })).not.toBeNull();
     expect(dock().find(slot)).toBe(panel);
     // user closes it, then reopens the stopped capture from the inactive explorer: it survives reconcile
     act(() => panel.api.close());

@@ -64,8 +64,45 @@ describe('closed channels with retained history', () => {
     expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'closed' }])).toEqual(eth);
     expect(availableSlot(eth, [{ domain: 'eth', channel: 'cap', state: 'unknown' }])).toBeNull();
     expect(availableSlot(eth, [])).toBeNull();
-    expect(availableSlot({ panel: 'uart.terminal', props: { channel: 'p' } }, [{ domain: 'uart', channel: 'p', state: 'closed' }])).toBeNull();
     expect(availableSlot({ panel: 'can.trace', props: { channel: 'b' } }, [{ domain: 'can', channel: 'b', state: 'closed' }])).toBeNull();
+  });
+  it('keeps closed/disconnected UART terminal+trace views (history), prunes unknown/missing UART', () => {
+    const term = { panel: 'uart.terminal', props: { channel: 'p' } };
+    const trace = { panel: 'uart.trace', props: { channel: 'p' } };
+    const closed: WorkspaceChannel[] = [{ domain: 'uart', channel: 'p', state: 'closed' }];
+    expect(availableSlot(term, closed)).toEqual(term);
+    expect(availableSlot(trace, closed)).toEqual(trace);
+    expect(availableSlot(term, [{ domain: 'uart', channel: 'p', state: 'unknown' }])).toBeNull();
+    expect(availableSlot(term, [])).toBeNull();
+    expect(availableSlot(term, [{ domain: 'uart', channel: 'other', state: 'closed' }])).toBeNull();
+    // after STOP + external disconnect the open tabs survive the live projection (explicit reopen also works)
+    const layout = presetToLayout({ name: 'x', label: 'x', grid: 'stack', slots: [term, trace] });
+    expect(leaves(activeLayout(layout, closed)!.root)).toEqual([term, trace]);
+  });
+  it('keeps a UDS console for a target after link loss (history) and prunes unknown/missing targets', () => {
+    const cons = { panel: 'uds.console', props: { targets: 'ext_doip' } };
+    expect(availableSlot(cons, [{ domain: 'uds', channel: 'ext_doip', state: 'closed' }])).toEqual(cons);
+    expect(availableSlot(cons, [{ domain: 'uds', channel: 'ext_doip', state: 'unknown' }])).toBeNull();
+    expect(availableSlot(cons, [])).toBeNull();
+    expect(availableSlot({ panel: 'uds.console', props: { targets: 'ext_doip,gone' } }, [{ domain: 'uds', channel: 'ext_doip', state: 'closed' }]))
+      .toEqual({ panel: 'uds.console', props: { targets: 'ext_doip' } });
+    const known: WorkspaceChannel[] = [{ domain: 'uds', channel: 'ext_doip', state: 'closed' }];
+    expect(presetForChannels('uds-only', known).slots).toEqual([]);
+    expect(activePresets(known).some((p) => p.name === 'uds-only')).toBe(false);
+  });
+  it('keeps a disconnected PSU gauge (last confirmed output must stay visible) without auto-opening it', () => {
+    const g = { panel: 'psu.gauge', props: { channel: 'ext-bench' } };
+    const known: WorkspaceChannel[] = [{ domain: 'psu', channel: 'ext-bench', state: 'closed' }];
+    expect(availableSlot(g, known)).toEqual(g);
+    expect(availableSlot(g, [])).toBeNull();
+    expect(presetForChannels('psu-only', known).slots).toEqual([]);
+    expect(activePresets(known).some((p) => p.name === 'psu-only')).toBe(false);
+  });
+  it('never auto-opens a closed UART through presets or the service list', () => {
+    const known: WorkspaceChannel[] = [{ domain: 'uart', channel: 'p', state: 'closed' }];
+    expect(presetForChannels('uart-only', known).slots).toEqual([]);
+    expect(presetForChannels('m1-default', known).slots).toEqual([]);
+    expect(activePresets(known).some((p) => p.name === 'uart-only')).toBe(false);
   });
   it('never auto-opens a stopped capture through presets', () => {
     const known: WorkspaceChannel[] = [{ domain: 'eth', channel: 'cap', state: 'closed' }];

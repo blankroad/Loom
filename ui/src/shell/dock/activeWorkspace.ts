@@ -4,9 +4,11 @@ import type { Slot, WorkspaceChannel } from '../routes';
 import { isSplit, isTabs, type LayoutNode, type LoomLayout } from './layoutModel';
 
 /** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show;
- * a stopped logic capture keeps its waveform + decode records). Their already-open or explicitly reopened
- * views survive a normal close; presets never auto-open them. */
-const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth', 'logic']);
+ * a stopped logic capture keeps its waveform + decode records; a closed/disconnected UART keeps its ring of
+ * received/sent bytes; a UDS target after link loss keeps its transaction history; a disconnected PSU keeps its
+ * last confirmed output state, which must stay visible for safety — all shown read-only). Their already-open or explicitly reopened views survive a normal
+ * close; presets never auto-open them. */
+const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth', 'logic', 'video', 'uart', 'uds', 'psu']);
 export const retainsHistoryAfterClose = (domain: string): boolean => HISTORY_AFTER_CLOSE.has(domain);
 
 export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, hasTestSession = false): Slot | null {
@@ -15,6 +17,8 @@ export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, 
   if (!(EXPLORER_DOMAINS as readonly string[]).includes(domain)) return slot;
   // the standalone analyzer (no capture pinned) is a workbench, not a device view: always usable
   if (slot.panel === 'logic.analyzer' && slot.props.channel === undefined) return slot;
+  // the standalone video workbench (no capture pinned) opens no device: always usable
+  if (slot.panel === 'video.workbench' && slot.props.channel === undefined) return slot;
   const keep = (c: WorkspaceChannel) => c.state === 'open' || (c.state === 'closed' && HISTORY_AFTER_CLOSE.has(domain));
   const active = new Set([...channels].filter((c) => c.domain === domain && keep(c)).map((c) => c.channel));
   if (domain === 'uds') {

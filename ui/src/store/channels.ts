@@ -23,7 +23,14 @@ export interface ChannelSignal {
   generation: number | null;
   origin: Origin;
   actor: string | null;
+  /** stream seq of the event (orders it against snapshot channel entries); null = unknown */
+  seq?: bigint | null;
 }
+
+const seqOf = (v: unknown): bigint | null => {
+  if (typeof v !== 'string' || !/^\d{1,20}$/.test(v)) return null;
+  return BigInt(v);
+};
 
 const NOT_DEVICE_DOMAINS = new Set(['core', 'display', 'record', 'source', 'test', 'run', 'ui']);
 const OPEN = new Set(['opened', 'open', 'running', 'started', 'connected', 'up', 'active', 'capturing', 'attached']);
@@ -53,12 +60,20 @@ function channelState(p: Record<string, unknown>): { state: ChanState; raw: stri
 
 /** logic.capture_state: starting/stopping are an active capture; failed is a finished one whose record stays viewable. */
 const LOGIC_STATE: Record<string, ChanState> = { starting: 'open', running: 'open', stopping: 'open', stopped: 'closed', failed: 'closed' };
+/** video.capture_state: opening/live/stalled/stopping are an active capture; closed/failed keep their last frame/history. */
+const VIDEO_STATE: Record<string, ChanState> = { opening: 'open', live: 'open', stalled: 'open', stopping: 'open', closed: 'closed', failed: 'closed' };
+/** eth.capture_state terminal failures end the capture (history kept); starting/live/stopped/replay_done unchanged. */
+const ETH_TERMINAL: ReadonlySet<string> = new Set(['error', 'permission_denied', 'failed']);
 function domainState(domain: string, raw: string, state: ChanState): ChanState {
+  if (domain === 'video') return VIDEO_STATE[raw] ?? state;
+  if (domain === 'eth' && ETH_TERMINAL.has(raw)) return 'closed';
   return domain === 'logic' ? (LOGIC_STATE[raw] ?? state) : state;
 }
 
 export function readChannelSignal(ev: LoomEvent): ChannelSignal | null {
   if (!isStateKind(ev.kind)) return null;
+  // a recording's lifecycle (recording/finalized/failed) is not the capture channel's state
+  if (ev.kind === 'video.record_state') return null;
   const domain = ev.domain || ev.kind.slice(0, ev.kind.indexOf('.'));
   if (NOT_DEVICE_DOMAINS.has(domain)) return null;
   const p = obj(ev.payload);
@@ -70,7 +85,7 @@ export function readChannelSignal(ev: LoomEvent): ChannelSignal | null {
   const state = domainState(domain, raw, cs.state);
   const explicit = state !== 'unknown' && (/^(opened|open|closed|close)$/.test(raw) || typeof p.opened === 'boolean' || typeof p.connected === 'boolean' || ev.kind.endsWith('.channel_state'));
   const gen = typeof ev.generation === 'number' ? ev.generation : typeof p.generation === 'number' ? p.generation : null;
-  return { domain, channel, state, explicit, generation: gen, origin: ev.origin, actor: ev.actor_id ?? ev.client_id ?? null };
+  return { domain, channel, state, explicit, generation: gen, origin: ev.origin, actor: ev.actor_id ?? ev.client_id ?? null, seq: seqOf(ev.seq) };
 }
 
 /** Native SnapshotItem → reducer → payload/state. CAN adds a state/payload envelope. */
@@ -106,17 +121,22 @@ export function readSnapshotChannel(item: unknown): { domain: string; channel: s
 }
 
 /** core.channels is always included by the hub, even with only core.activity subscribed. */
-export function readSnapshotChannels(item: unknown): { domain: string; channel: string; state: ChanState; generation: number | null }[] {
+export function readSnapshotChannels(item: unknown): { domain: string; channel: string; state: ChanState; generation: number | null; seq: bigint | null }[] {
   const it = obj(item);
   const entries = it.domain === 'core' && it.kind === 'core.channels'
     ? obj(it.state).channels
     : [item];
   if (!Array.isArray(entries)) return [];
   return entries.flatMap((entry) => {
+    // a recording's lifecycle (recording/finalized/failed) is not the capture channel's state
+    if (obj(entry).kind === 'video.record_state') return [];
     const channel = readSnapshotChannel(entry);
     if (!channel) return [];
-    const generation = snapshotLayers(entry).map((p) => p.generation).find((g) => typeof g === 'number');
-    return [{ ...channel, generation: typeof generation === 'number' ? generation : null }];
+    const layers = snapshotLayers(entry);
+    const generation = layers.map((p) => p.generation).find((g) => typeof g === 'number');
+    // core.channels entries carry the hub's seq of the state event they reflect
+    const seq = layers.map((p) => seqOf(p.seq)).find((s) => s !== null) ?? null;
+    return [{ ...channel, generation: typeof generation === 'number' ? generation : null, seq }];
   });
 }
 
@@ -127,7 +147,7 @@ export interface ChannelView {
   props: Record<string, string>;
 }
 
-export const EXPLORER_DOMAINS = ['uart', 'can', 'uds', 'eth', 'psu', 'logic'] as const;
+export const EXPLORER_DOMAINS = ['uart', 'can', 'uds', 'eth', 'psu', 'logic', 'video'] as const;
 
 export function viewsForChannel(domain: string, channel: string): ChannelView[] {
   switch (domain) {
@@ -146,6 +166,8 @@ export function viewsForChannel(domain: string, channel: string): ChannelView[] 
       return [{ panel: 'psu.gauge', label: '전압 · 전류', props: { channel } }];
     case 'logic': // channel = capture_id (logic.capture_state running → open, stopped → closed)
       return [{ panel: 'logic.analyzer', label: '파형 · 디코드', props: { channel } }];
+    case 'video': // channel = capture_id (video.capture_state opening..stopping → open, closed/failed → closed)
+      return [{ panel: 'video.workbench', label: '영상 · 상태', props: { channel } }];
     default:
       return [];
   }

@@ -19,6 +19,9 @@ export type RecordHealth = 'ok' | 'degraded' | 'failed' | 'disabled';
 export interface OutputHeld {
   domain: string;
   channel: string;
+  /** canonical `OutputHeld.description` (loom-proto core_events): what is held, as last reported */
+  description: string;
+  /** legacy/provisional fields (older fixtures); empty when absent */
   label: string;
   state: string;
 }
@@ -154,6 +157,8 @@ export function readLatch(ev: LoomEvent): LatchView {
       ? p.outputs_held.filter(isObj).map((o) => ({
           domain: str(o.domain) ?? '?',
           channel: str(o.channel) ?? '?',
+          // Rust emits {domain, channel, description}; older fixtures used label/state
+          description: str(o.description) ?? [str(o.label), str(o.state)].filter(Boolean).join(' '),
           label: str(o.label) ?? '',
           state: str(o.state) ?? '',
         }))

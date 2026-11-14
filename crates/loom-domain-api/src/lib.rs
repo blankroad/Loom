@@ -22,7 +22,7 @@ pub mod verify;
 
 pub use ctx::{
     ApprovalHandle, CallCtx, CtxServices, EventDraft, Handler, JournalQuery, JournalReader, ScanResult,
-    WaitResult, WaitSpec, WorkerHandle,
+    StorageRoots, WaitResult, WaitSpec, WorkerHandle,
 };
 pub use hooks::{
     Binding, Classification, Grant, PatternBinding, PresendError, TargetRef, WriteHooks, WriteRequest,

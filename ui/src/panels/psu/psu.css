@@ -78,3 +78,9 @@
   .psu-tile .psu-setpoints { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
   .psu-tile .psu-head-act { margin-left: 0; }
 }
+/* provenance (backend · address · IDN) distinct from the daemon env badge */
+.psu-tile .psu-src { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
+/* disconnected: last confirmed state stays visible, explicitly stale */
+.psu-tile .psu-out.stale { font-style: italic; }
+.psu-tile .psu-out.on.stale { color: var(--warn, #c88a12); }
+.psu-tile.psu-disconnected .psu-head { outline: 1px dashed var(--warn, #c88a12); }

@@ -22,12 +22,20 @@ describe('native interface state payloads', () => {
 
   it('reads canonical ETH capture channels and live/replay completion states', () => {
     // crates/loom-eth/src/model.rs CaptureStatePayload and gateway/evidence.rs snapshot.
-    for (const [state, expected] of [['live', 'open'], ['LIVE', 'open'], ['stopped', 'closed'], ['replay_done', 'closed'], ['starting', 'unknown'], ['error', 'unknown'], ['permission_denied', 'unknown']] as const) {
+    for (const [state, expected] of [['live', 'open'], ['LIVE', 'open'], ['stopped', 'closed'], ['replay_done', 'closed'], ['starting', 'unknown'], ['error', 'closed'], ['permission_denied', 'closed'], ['failed', 'closed'], ['ERROR', 'closed']] as const) {
       const payload = { ch: 'capture-2', state, backend: 'sim', iface: 'lo' };
       expect(readChannelSignal(ev({ kind: 'eth.capture_state', payload }))).toMatchObject({ domain: 'eth', channel: 'capture-2', state: expected });
       expect(readSnapshotChannel({ kind: 'eth.capture_state', ...payload })).toEqual({ domain: 'eth', channel: 'capture-2', state: expected });
       expect(readSnapshotChannel({ domain: 'eth', state: payload })?.state).toBe(expected);
     }
+  });
+
+  it('ETH capture error after live closes the channel (no stale 연결됨); terminal words stay ETH-only', () => {
+    const live = readChannelSignal(ev({ kind: 'eth.capture_state', payload: { ch: 'cap', state: 'live', backend: 'live', iface: 'en0' } }));
+    const error = readChannelSignal(ev({ kind: 'eth.capture_state', payload: { ch: 'cap', state: 'error', backend: 'live', iface: 'en0', error: 'permission denied' } }));
+    expect([live?.state, error?.state]).toEqual(['open', 'closed']);
+    // other domains keep their own vocabulary: an unrelated 'error' word does not close them
+    expect(readChannelSignal(ev({ kind: 'uart.state', payload: { target: 'dut', state: 'error' } }))?.state).toBe('unknown');
   });
 
   it('does not confuse PSU output off with connection closed or invent missing status', () => {
@@ -46,12 +54,12 @@ describe('gateway SnapshotItem envelopes', () => {
   it('reads UART nested state and CAN fixed state/payload without inferring connection from frames', () => {
     expect(readSnapshotChannels({ domain: 'uart', channel: 'dut', kind: 'uart.snapshot', state: {
       channel: 'dut', generation: 3, state: { state: 'open' },
-    } })).toEqual([{ domain: 'uart', channel: 'dut', state: 'open', generation: 3 }]);
+    } })).toEqual([{ domain: 'uart', channel: 'dut', state: 'open', generation: 3, seq: null }]);
     for (const [state, expected] of [['open', 'open'], ['closed', 'closed'], ['error', 'unknown']] as const) {
       expect(readSnapshotChannels({ domain: 'can', channel: 'ch0', kind: 'can.snapshot', state: {
         kind: 'can.fixed', channel: 'ch0', state: { payload: { state }, generation: 2, seq: '12' },
         ids: [], ids_replaced: 0, channels_replaced: 0,
-      } })).toEqual([{ domain: 'can', channel: 'ch0', state: expected, generation: 2 }]);
+      } })).toEqual([{ domain: 'can', channel: 'ch0', state: expected, generation: 2, seq: 12n }]);
     }
     expect(readSnapshotChannel({ domain: 'can', channel: 'ch0', kind: 'can.snapshot', state: {
       kind: 'can.fixed', channel: 'ch0', state: null, ids: [], ids_replaced: 0, channels_replaced: 0,
@@ -66,10 +74,14 @@ describe('gateway SnapshotItem envelopes', () => {
       { domain: 'core', channel: 'fake', state: 'open' },
       { domain: 'uart', channel: '../bad', state: 'open' },
     ] } })).toEqual([
-      { domain: 'uart', channel: 'aux', state: 'open', generation: 1 },
-      { domain: 'psu', channel: 'bench', state: 'unknown', generation: 1 },
-      { domain: 'uds', channel: 'ecu', state: 'closed', generation: 2 },
+      { domain: 'uart', channel: 'aux', state: 'open', generation: 1, seq: 10n },
+      { domain: 'psu', channel: 'bench', state: 'unknown', generation: 1, seq: 11n },
+      { domain: 'uds', channel: 'ecu', state: 'closed', generation: 2, seq: 12n },
     ]);
+    // a recording lifecycle row in core.channels is not the capture channel's connectivity
+    expect(readSnapshotChannels({ domain: 'core', kind: 'core.channels', state: { channels: [
+      { domain: 'video', channel: 'v0123456789ab', state: 'failed', seq: '30', kind: 'video.record_state' },
+    ] } })).toEqual([]);
     expect(readSnapshotChannels({ domain: 'core', kind: 'core.channels', state: { channels: null } })).toEqual([]);
   });
 

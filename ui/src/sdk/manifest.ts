@@ -53,6 +53,9 @@ export interface PanelManifest {
   memory: { maxBytes: number };
   render: { maxHz: number; budgetMs: number; lagTargetMs?: number };
   shellSlots?: ('channel_bar' | 'approval_body' | 'evidence_ref')[];
+  /** read-only same-origin media GETs this panel may make through `ctx.media` (e.g. binary frames that do not
+   * fit the RPC path). Each prefix is `/api/v1/<name>/`; anything else is undeclared. */
+  media?: { prefixes: string[] };
   /** props JSON Schema subset — saved layouts and deep links are validated against it (propsSchema.ts) */
   propsSchema?: PropsSchema;
 }
@@ -64,6 +67,7 @@ export const MIRROR_ROWS_MAX = 20_000;
 const PANEL_ID = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
 const RPC = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,2}$/;
 const KEY = /^[A-Za-z][A-Za-z0-9_]*$/;
+const MEDIA_PREFIX = /^\/api\/v1\/[a-z][a-z0-9_-]{0,31}\/$/;
 const RIGHTS: readonly Right[] = ['watch', 'operate', 'approve'];
 const CONFIRMS: readonly ConfirmMode[] = ['none', 'enter_twice', 'card'];
 const CLASSES = ['request', 'job', 'stream'] as const;
@@ -109,6 +113,11 @@ export function validateManifest(m: PanelManifest): void {
     if (a.safetyDirection === 'reduce' && a.confirm !== 'none') {
       p.push(`action "${a.id}" is safety-reducing and must not ask for confirmation`);
     }
+  }
+  if (m.media !== undefined) {
+    const pre = m.media.prefixes;
+    if (!Array.isArray(pre) || pre.length < 1 || pre.length > 8) p.push('media.prefixes must list 1..8 prefixes');
+    else for (const x of pre) if (!MEDIA_PREFIX.test(x)) p.push(`media prefix "${x}" must be /api/v1/<name>/`);
   }
   if (!(m.memory.maxBytes > 0 && m.memory.maxBytes <= TAB_DATA_BUDGET_BYTES)) {
     p.push(`memory.maxBytes must be 1..${TAB_DATA_BUDGET_BYTES}`);

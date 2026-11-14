@@ -193,6 +193,15 @@ pub fn builtin() -> Vec<Loaded> {
             &[(loom_logic::WORKER_KIND, logic, None)],
         );
     }
+    #[cfg(feature = "video")]
+    {
+        inproc!(video, loom_video::DOMAIN, loom_video::worker::VideoWorker::new());
+        load(
+            &mut out,
+            &loom_video::gateway::Video,
+            &[(loom_video::WORKER_KIND, video, None)],
+        );
+    }
     // TEST last: its command/risk table and verifiers come from the domains registered above.
     #[cfg(feature = "test")]
     {
@@ -228,6 +237,8 @@ pub fn worker_main(kind: &str) -> bool {
         loom_psu::WORKER_KIND => loom_worker_sdk::run_worker(loom_psu::worker::PsuWorker::default()),
         #[cfg(feature = "logic")]
         loom_logic::WORKER_KIND => loom_worker_sdk::run_worker(loom_logic::worker::LogicWorker::new()),
+        #[cfg(feature = "video")]
+        loom_video::WORKER_KIND => loom_worker_sdk::run_worker(loom_video::worker::VideoWorker::new()),
         _ => false,
     }
 }

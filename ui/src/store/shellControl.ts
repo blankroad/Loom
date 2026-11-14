@@ -132,6 +132,8 @@ export interface ChannelEntry {
   addedLiveMs: number | null;
   /** client ms of the last generation change (device reconnect) */
   genChangedMs: number | null;
+  /** stream seq of the state applied last (this connection); older control/snapshot states never overwrite it */
+  stateSeq?: bigint | null;
 }
 
 /** a channel the agent (or anyone) opened while this tab was watching */
@@ -267,6 +269,10 @@ export class ShellControlStore extends Emitter {
           channel.addedLiveMs = null;
         }
       }
+      // a fresh connection's snapshot is authoritative again (control events may have been missed meanwhile)
+      if (!wasOpen || this.hello?.conn_id !== s.hello.conn_id || this.hello?.stream_epoch !== s.hello.stream_epoch) {
+        for (const channel of this.channels.values()) channel.stateSeq = null;
+      }
       if (!wasOpen || this.hello?.conn_id !== s.hello.conn_id || this.hello?.stream_epoch !== s.hello.stream_epoch) this.automationPolicyStale = false;
       this.hello = s.hello;
       // a fresh connection counts as a heartbeat; the 1 s heartbeat follows
@@ -364,7 +370,13 @@ export class ShellControlStore extends Emitter {
     const e = this.noteChannel(sig.domain, sig.channel, sig.generation, nowMs);
     if (!e) return;
     const before = e.state;
-    if (sig.state !== 'unknown') e.state = sig.state;
+    const seq = sig.seq ?? null;
+    // an older state report (lower seq, e.g. a replayed/late delivery) never overrides a newer one
+    const stale = seq !== null && e.stateSeq != null && seq <= e.stateSeq;
+    if (sig.state !== 'unknown' && !stale) {
+      e.state = sig.state;
+      if (seq !== null) e.stateSeq = seq;
+    }
     // A report establishes identity, not connectivity (e.g. PSU output-off telemetry).
     // Keep unknown until an explicit connection state is available.
     const opened = e.state === 'open' && before !== 'open';
@@ -383,10 +395,19 @@ export class ShellControlStore extends Emitter {
     let changed = false;
     for (const it of items) {
       for (const c of readSnapshotChannels(it)) {
+        const genBefore = this.channels.get(`${c.domain}/${c.channel}`)?.generation ?? null;
         const e = this.noteChannel(c.domain, c.channel, c.generation, null);
         if (!e) continue;
-        if (c.state !== 'unknown') e.state = c.state;
         changed = true;
+        if (c.state === 'unknown') continue;
+        // Snapshots can be replayed to late-joining panels (client mux) or processed after newer control
+        // events: apply only a state that is not older than what this connection already applied.
+        const newerGeneration = c.generation !== null && genBefore !== null && c.generation > genBefore;
+        const ordered = e.stateSeq == null || newerGeneration || (c.seq !== null && c.seq > e.stateSeq);
+        if (!ordered) continue;
+        e.state = c.state;
+        if (c.seq !== null) e.stateSeq = c.seq;
+        else if (newerGeneration) e.stateSeq = null;
       }
     }
     if (changed) this.changed();

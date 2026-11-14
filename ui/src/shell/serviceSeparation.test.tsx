@@ -102,7 +102,7 @@ it('keeps multiple UART aliases in one service tab group through foreign arrival
   expect(net.calls).toEqual([]);
 });
 
-it('keeps a foreign agent focus out of the service dock and empties the view after the last close', () => {
+it('keeps a foreign agent focus out of the service dock and keeps the closed view as read-only history', () => {
   const { net, host, render, open, dock, services, navs } = mount();
   open('uart', 'a'); open('can', 'bus');
   render('#/s/uart');
@@ -112,8 +112,8 @@ it('keeps a foreign agent focus out of the service dock and empties the view aft
   expect(dock().api.panels.map((panel) => (panel.params as { panel: string }).panel)).toEqual(['uart.terminal']);
   render('#/s/uart');
   open('uart', 'a', 'closed');
-  expect(dock().api.panels).toHaveLength(0);
-  expect(host.querySelector('[data-testid="dock-empty"]')?.textContent).toContain('활성 UART 인터페이스가 없습니다');
+  // the open UART view stays as read-only history (retained-history policy); the service list stays active-only
+  expect(dock().api.panels.map((panel) => (panel.params as { panel: string }).panel)).toEqual(['uart.terminal']);
   expect(host.querySelector('a[href="#/s/uart"]')).toBeNull();
   expect(net.calls).toEqual([]);
 });

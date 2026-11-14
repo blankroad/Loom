@@ -267,3 +267,37 @@ describe('psu model', () => {
     expect(gapCauseLabel(null)).toBe('원인 미상');
   });
 });
+
+describe('psu.gauge — D-P1 provenance, D-P2 disconnect keeps last confirmed output visible', () => {
+  const ext = { ch: 'bench', backend: 'scpi-tcp', address: '127.0.0.1:54374', idn: 'LOOM,LOOM-TEST-FIXTURE,0,1', set_v: 12, set_i: 1, out: true, out_known: true, connected: true, link: 'up' };
+  it('header shows env as environment plus the real backend/address/IDN', () => {
+    h = mountPanel('psu.gauge', { channel: 'bench' });
+    h.batch([rec('psu.state', 10, 0, ext)]);
+    expect(txt('psu-env')).toBe('환경 SIM');
+    expect(txt('psu-source')).toBe('scpi-tcp · 127.0.0.1:54374 · IDN LOOM,LOOM-TEST-FIXTURE,0,1');
+    expect(txt('psu-out')).toBe('● 출력 ON');
+  });
+  it('live disconnect (control path): last confirmed ON stays with a stale qualifier, writes disabled, never shown OFF', () => {
+    h = mountPanel('psu.gauge', { channel: 'bench' });
+    const live = rec('psu.state', 10, 0, ext);
+    h.batch([live]);
+    expect(q<HTMLButtonElement>('psu-output-toggle').disabled).toBe(false);
+    h.net.emitControl(rec('psu.state', 11, 1, { ...ext, connected: false, link: 'lost' }));
+    h.frame();
+    expect(txt('psu-out')).toContain('출력 ON');
+    expect(txt('psu-out')).toContain('연결 끊김');
+    expect(txt('psu-out')).not.toContain('OFF');
+    expect(q<HTMLButtonElement>('psu-output-toggle').disabled).toBe(true);
+    expect(q<HTMLButtonElement>('psu-emergency').disabled).toBe(false); // safety direction kept
+    // an older backlog row (connected) delivered later does not hide the disconnect
+    h.batch([live]);
+    expect(txt('psu-out')).toContain('연결 끊김');
+    btn('출력 OFF').click();
+    expect(h.net.calls.filter((c) => c.method === 'psu.out')).toHaveLength(0);
+  });
+  it('out_known:false is unknown, never OFF', () => {
+    h = mountPanel('psu.gauge', { channel: 'bench' });
+    h.batch([rec('psu.state', 10, 0, { ...ext, out: false, out_known: false })]);
+    expect(txt('psu-out')).toBe('출력 ?');
+  });
+});

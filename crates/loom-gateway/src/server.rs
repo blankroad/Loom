@@ -45,8 +45,13 @@ pub async fn serve(d: Arc<Daemon>) -> std::io::Result<(SocketAddr, tokio::task::
         .route("/api/v1/bootstrap/new", get(bootstrap_new))
         .route("/api/v1/bootstrap", post(bootstrap))
         .route("/api/v1/stop", post(http_stop))
-        .route("/", get(|| async { Redirect::temporary("/ui/") }))
-        .with_state(d.clone());
+        .route("/", get(|| async { Redirect::temporary("/ui/") }));
+    #[cfg(feature = "video")]
+    let app = app
+        .route("/api/v1/video/artifact/{artifact_id}", get(video_artifact))
+        .route("/api/v1/video/{capture_id}/frame", get(video_frame))
+        .route("/api/v1/video/{capture_id}/meta", get(video_meta));
+    let app = app.with_state(d.clone());
     let assets = if d.cfg.ui_dir.is_some() {
         Router::new()
             .route("/ui", get(|| async { Redirect::permanent("/ui/") }))
@@ -205,6 +210,73 @@ async fn http_stop(State(d): State<Arc<Daemon>>, headers: HeaderMap) -> Response
         return deny(StatusCode::UNAUTHORIZED, "agent token or viewer cookie required");
     };
     axum::Json(d.stop(&caller, true, None).await).into_response()
+}
+
+// --- video media plane (CONTRACT work/reports/video-capture §4) --------------------------------
+// Read-only GETs behind `guard` (Host/Origin): agent bearer or any viewer cookie (watch included).
+// Ids are validated by `loom_video::media`; no path, URL or query token is accepted. CSP unchanged.
+
+#[cfg(feature = "video")]
+fn media_caller_ok(d: &Daemon, headers: &HeaderMap) -> bool {
+    d.auth.bearer_ok(headers) || d.auth.cookie_rights(headers).is_some()
+}
+
+#[cfg(feature = "video")]
+fn video_reply(r: loom_video::media::Reply) -> Response {
+    let mut b = Response::builder()
+        .status(r.status)
+        .header(header::CONTENT_TYPE, r.content_type);
+    for (k, v) in r.headers {
+        b = b.header(k, v);
+    }
+    let body = match r.body {
+        loom_video::media::Body::Bytes(v) => {
+            b = b.header(header::CONTENT_LENGTH, v.len());
+            Body::from(v)
+        }
+        loom_video::media::Body::File { path, len } => {
+            b = b.header(header::CONTENT_LENGTH, len);
+            Body::from_stream(loom_video::media::file_chunks(path))
+        }
+    };
+    b.body(body)
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
+#[cfg(feature = "video")]
+async fn video_frame(
+    State(d): State<Arc<Daemon>>,
+    axum::extract::Path(capture_id): axum::extract::Path<String>,
+    req: Request,
+) -> Response {
+    if !media_caller_ok(&d, req.headers()) {
+        return deny(StatusCode::UNAUTHORIZED, "agent token or viewer cookie required");
+    }
+    video_reply(loom_video::media::frame(d.cfg.home.root(), &capture_id, req.uri().query()).await)
+}
+
+#[cfg(feature = "video")]
+async fn video_meta(
+    State(d): State<Arc<Daemon>>,
+    axum::extract::Path(capture_id): axum::extract::Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    if !media_caller_ok(&d, &headers) {
+        return deny(StatusCode::UNAUTHORIZED, "agent token or viewer cookie required");
+    }
+    video_reply(loom_video::media::meta(d.cfg.home.root(), &capture_id).await)
+}
+
+#[cfg(feature = "video")]
+async fn video_artifact(
+    State(d): State<Arc<Daemon>>,
+    axum::extract::Path(artifact_id): axum::extract::Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    if !media_caller_ok(&d, &headers) {
+        return deny(StatusCode::UNAUTHORIZED, "agent token or viewer cookie required");
+    }
+    video_reply(loom_video::media::artifact(&d.journal.root, &artifact_id).await)
 }
 
 fn safe_join(root: &Path, url_path: &str) -> Option<PathBuf> {

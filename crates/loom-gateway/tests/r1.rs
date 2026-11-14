@@ -518,3 +518,31 @@ fn uart_sim_live_input_and_stop_smoke() {
     drop(reader);
     restarted.shutdown();
 }
+
+/// STOP keeps outputs on (A3) and `core.latch.outputs_held` reports what the PSU last reported
+/// (hub channel cache), instead of an empty placeholder; STOP itself switches nothing off.
+#[test]
+fn stop_reports_observed_held_outputs_without_switching_them_off() {
+    let d = D::start(Duration::from_millis(300));
+    let mut a = d.agent("agent-held");
+    let r = a.request("psu.connect", json!({"ch": "bench", "backend": "sim"}));
+    assert_eq!(r["result"]["ok"], true, "{r}");
+    let r = a.request("psu.out", json!({"ch": "bench", "state": "on"}));
+    assert_eq!(r["result"]["ok"], true, "{r}");
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    let held = loop {
+        let s = a.request("core.stop", json!({"reason": "held-output check"}));
+        let held = s["result"]["outputs_held"].clone();
+        if held.as_array().is_some_and(|h| !h.is_empty()) || std::time::Instant::now() > deadline {
+            break held;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    };
+    let h = held.as_array().unwrap_or_else(|| panic!("{held}"));
+    let bench = h.iter().find(|o| o["domain"] == "psu" && o["channel"] == "bench").unwrap_or_else(|| panic!("{held}"));
+    let text = bench["description"].as_str().unwrap();
+    assert!(text.contains("out ON") && text.contains("last reported") && text.contains("not re-measured"), "{text}");
+    // STOP did not switch the output off: the device still reports it on
+    let m = a.request("psu.meas", json!({"ch": "bench"}));
+    assert_ne!(m["result"]["data"]["out"], false, "{m}");
+}

@@ -72,6 +72,9 @@ export interface PanelContext {
   /** highest seq any agent has acknowledged (core.agent_cursor); null = none yet */
   agentCursor: { seq(): bigint | null; on(cb: () => void): Unsubscribe };
   query<R = unknown>(rpc: string, params: object, signal?: AbortSignal): Promise<R>;
+  /** Read-only same-origin GET of a declared media path (`manifest.media.prefixes`); credentials same-origin,
+   * `cache: no-store`, redirects are errors. Throws UndeclaredError / MediaPathError before any request. */
+  media(path: string, signal?: AbortSignal): Promise<Response>;
   act(actionId: string, params: object): Promise<WriteHandle>;
   scheduler: {
     invalidate(): void;
@@ -117,6 +120,46 @@ export interface ContextDeps {
   now?: () => number;
   /** absolute browser ms on the same base as the net clock (performance.timeOrigin + now) */
   absNowMs?: () => number;
+  /** `ctx.media` transport (default: window fetch) and page origin (default: location.origin) — tests */
+  mediaFetch?: (url: string, init: RequestInit) => Promise<Response>;
+  origin?: string;
+}
+
+export class MediaPathError extends Error {
+  constructor(panelId: string, why: string) {
+    super(`panel ${panelId}: media path refused (${why})`);
+    this.name = 'MediaPathError';
+  }
+}
+
+const MEDIA_QUERY_DENY = /(token|auth|key|secret|session|cookie|pass|code|sig)/i;
+
+/** Why `path` is not an allowed media GET under `prefixes` (null = allowed). Pure; no URL normalisation is
+ * trusted: the path must already be canonical (no `.`/`..`/empty segments, no percent-encoding, no fragment). */
+export function checkMediaPath(prefixes: readonly string[], path: string): string | null {
+  if (typeof path !== 'string' || path.length < 2 || path.length > 512) return 'length';
+  if (!path.startsWith('/') || path.startsWith('//')) return 'not a same-origin absolute path';
+  for (let i = 0; i < path.length; i++) {
+    const c = path.charCodeAt(i);
+    if (c <= 0x20 || c === 0x7f) return 'forbidden character';
+  }
+  if (/[\\#%]/.test(path)) return 'forbidden character';
+  const q = path.indexOf('?');
+  const pathname = q < 0 ? path : path.slice(0, q);
+  const query = q < 0 ? '' : path.slice(q + 1);
+  const segs = pathname.slice(1).split('/');
+  if (segs.some((s, i) => s === '.' || s === '..' || (s === '' && i !== segs.length - 1))) return 'non-canonical path';
+  if (!prefixes.some((p) => pathname.startsWith(p) && pathname.length > p.length)) return 'undeclared prefix';
+  if (q >= 0) {
+    const pairs = query.split('&');
+    if (pairs.length > 4) return 'too many query parameters';
+    for (const kv of pairs) {
+      const m = /^([a-z][a-z0-9_]{0,31})=([A-Za-z0-9._-]{1,64})$/.exec(kv);
+      if (!m) return 'query must be name=value';
+      if (MEDIA_QUERY_DENY.test(m[1] ?? '')) return 'credential-like query parameter';
+    }
+  }
+  return null;
 }
 
 const MARK_ACTION: ActionSpec = {
@@ -332,6 +375,24 @@ export function createPanelContext(
       mirrors.get(topicKey)?.dispose();
       mirrors.delete(topicKey);
       return open(topicKey, ext);
+    },
+
+    media(path: string, signal?: AbortSignal): Promise<Response> {
+      const prefixes = m.media?.prefixes ?? [];
+      if (!prefixes.length) throw new UndeclaredError(m.id, 'media', path);
+      const why = checkMediaPath(prefixes, path);
+      if (why) throw new MediaPathError(m.id, why);
+      const origin = deps.origin ?? globalThis.location?.origin ?? '';
+      const url = new URL(path, origin);
+      if (url.origin !== origin || `${url.pathname}${url.search}` !== path) throw new MediaPathError(m.id, 'not same-origin');
+      const doFetch = deps.mediaFetch ?? ((u: string, i: RequestInit) => fetch(u, i));
+      return doFetch(url.toString(), {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        redirect: 'error',
+        ...(signal ? { signal } : {}),
+      });
     },
 
     query<R = unknown>(rpc: string, params: object, signal?: AbortSignal): Promise<R> {

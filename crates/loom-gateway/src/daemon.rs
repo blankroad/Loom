@@ -1619,6 +1619,22 @@ impl Daemon {
                 _ => missing.push(kind),
             }
         }
+        // A3: STOP never switches outputs off. Report what output-holding domains last *reported*
+        // (read-only hub channel cache); nothing is measured or assumed here.
+        let outputs_held = if on {
+            let holding: Vec<&str> = self
+                .domains
+                .iter()
+                .filter(|(_, d)| !d.emergency_offs.is_empty())
+                .map(|(n, _)| n.as_str())
+                .collect();
+            match self.hub.status().await {
+                Ok(st) if !holding.is_empty() => outputs_held_from(&st.channels, &holding),
+                _ => Vec::new(),
+            }
+        } else {
+            Vec::new()
+        };
         let home = self.cfg.home.clone();
         let (by, origin) = (c.client_id.clone(), c.origin());
         let persisted = tokio::task::spawn_blocking(move || persist_latch(&home, on, &by, origin))
@@ -1633,7 +1649,7 @@ impl Daemon {
             jobs_stopped: Vec::new(),
             approvals_cancelled: Vec::new(),
             uncancellable: Vec::new(),
-            outputs_held: Vec::new(),
+            outputs_held,
             persisted,
         };
         let payload = serde_json::to_value(&p).unwrap_or(Value::Null);
@@ -2490,6 +2506,13 @@ impl CtxServices for Services {
         self.d.domain_config(&self.domain)
     }
 
+    fn storage_roots(&self) -> Option<loom_domain_api::StorageRoots> {
+        Some(loom_domain_api::StorageRoots {
+            home: self.d.cfg.home.root().to_path_buf(),
+            session: self.d.journal.root.clone(),
+        })
+    }
+
     fn activity(
         &self,
         action: &str,
@@ -3076,5 +3099,115 @@ mod audit_secret_tests {
         assert!(!lower.contains(&SECRET_HEX[..24]), "hex leaked: {text}");
         assert!(!text.contains("DummySecret1") && !text.contains("RHVtbXlTZWNyZXQx"), "{text}");
         crate::audit::verify_file(&path, "").expect("chain");
+    }
+}
+
+/// Most outputs listed in one `core.latch`.
+const MAX_OUTPUTS_HELD: usize = 64;
+
+/// `core.latch.outputs_held` from the hub channel cache (`core.channels`): channels of domains that
+/// declare an emergency OFF, as last *reported* by their state events. `out:false` is not held;
+/// `out:true` is held "as last reported" (never re-measured here); no `out` field = unknown; a
+/// reported `connected:false` marks the observation stale. STOP itself changes no output (A3).
+fn outputs_held_from(channels: &[Value], holding: &[&str]) -> Vec<loom_proto::core_events::OutputHeld> {
+    let mut out = Vec::new();
+    for c in channels {
+        let (Some(domain), Some(channel)) = (c["domain"].as_str(), c["channel"].as_str()) else {
+            continue;
+        };
+        if !holding.contains(&domain) {
+            continue;
+        }
+        let st = &c["state"];
+        let seq = c["seq"]
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| c["seq"].as_u64().map(|n| n.to_string()))
+            .unwrap_or_else(|| "?".into());
+        // SCPI emits `out: unwrap_or(false)` with `out_known: false` when the output was never
+        // confirmed: honor out_known before the boolean (unknown, never "off").
+        let out_state = if st["out_known"] == false {
+            None
+        } else {
+            st.get("out").and_then(Value::as_bool)
+        };
+        let stale = if st["connected"] == false {
+            "; device reported disconnected: stale"
+        } else {
+            ""
+        };
+        let description = match out_state {
+            Some(false) => continue,
+            Some(true) => {
+                let mut d = format!("{domain} out ON");
+                if let Some(v) = st["set_v"].as_f64() {
+                    d.push_str(&format!(" {v} V"));
+                }
+                if let Some(i) = st["set_i"].as_f64() {
+                    d.push_str(&format!(" {i} A"));
+                }
+                d.push_str(&format!(" (last reported, seq {seq}; not re-measured; STOP does not switch it off)"));
+                d.push_str(stale);
+                d
+            }
+            None => format!(
+                "{domain} output state not reported (unknown; last state seq {seq}); STOP does not switch outputs off{stale}"
+            ),
+        };
+        out.push(loom_proto::core_events::OutputHeld {
+            domain: domain.to_owned(),
+            channel: channel.to_owned(),
+            description,
+        });
+        if out.len() >= MAX_OUTPUTS_HELD {
+            break;
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod outputs_held_tests {
+    use super::*;
+
+    #[test]
+    fn reports_only_observed_output_state_of_holding_domains() {
+        let ch = vec![
+            json!({"domain": "psu", "channel": "bench", "seq": "41", "kind": "psu.state",
+                   "state": {"ch": "bench", "set_v": 13.5, "set_i": 1.0, "out": true}}),
+            json!({"domain": "psu", "channel": "off", "seq": "42", "state": {"out": false}}),
+            json!({"domain": "psu", "channel": "nostate", "seq": "43", "state": {"ch": "nostate"}}),
+            json!({"domain": "psu", "channel": "gone", "seq": "44", "state": {"out": true, "connected": false}}),
+            json!({"domain": "uart", "channel": "dut", "seq": "45", "state": "open"}),
+        ];
+        let held = outputs_held_from(&ch, &["psu"]);
+        let names: Vec<&str> = held.iter().map(|h| h.channel.as_str()).collect();
+        assert_eq!(names, ["bench", "nostate", "gone"]);
+        assert!(held[0].description.contains("out ON 13.5 V 1 A") && held[0].description.contains("seq 41"), "{held:?}");
+        assert!(held[0].description.contains("not re-measured"));
+        assert!(held[1].description.contains("not reported (unknown"), "{held:?}");
+        assert!(held[2].description.contains("stale"), "{held:?}");
+        assert!(outputs_held_from(&ch, &[]).is_empty());
+    }
+
+    #[test]
+    fn scpi_out_known_false_is_unknown_not_off() {
+        // exact loom-psu scpi state_payload shape: out = unwrap_or(false), out_known = is_some()
+        let scpi = |ch: &str, out: bool, known: bool, connected: bool| {
+            json!({"domain": "psu", "channel": ch, "seq": "77", "kind": "psu.state",
+                   "state": {"ch": ch, "backend": "scpi-tcp", "address": "127.0.0.1:5025", "idn": "LOOM,FIX,0,1",
+                             "set_v": 12.0, "set_i": 1.0, "out": out, "out_known": known,
+                             "connected": connected, "link": if connected { "up" } else { "lost" }, "lost_why": null}})
+        };
+        let held = outputs_held_from(
+            &[scpi("unk", false, false, true), scpi("unk-gone", false, false, false), scpi("off", false, true, true), scpi("on", true, true, true)],
+            &["psu"],
+        );
+        let names: Vec<&str> = held.iter().map(|h| h.channel.as_str()).collect();
+        assert_eq!(names, ["unk", "unk-gone", "on"], "{held:?}");
+        assert!(held[0].description.contains("not reported (unknown") && !held[0].description.contains("stale"), "{held:?}");
+        assert!(held[1].description.contains("not reported (unknown") && held[1].description.contains("stale"), "{held:?}");
+        assert!(held[2].description.contains("out ON 12 V 1 A"), "{held:?}");
     }
 }

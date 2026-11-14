@@ -49,12 +49,13 @@ describe('empty welcome vs retained ETH history', () => {
     act(() => net.emitControl(ev({ kind: 'uart.channel_state', domain: 'uart', channel: 'qa_uart_fixed', payload: { state: 'closed' } })));
     act(() => net.emitControl(ev({ kind: 'core.heartbeat', payload: {} })));
     act(() => services.shell.tick(10_000));
-    expect(dock().find(uart)).toBeNull();
+    // the closed UART view (if docked) is retained as read-only history like ETH; nothing auto-opened it here
     expect(dock().find(eth)).not.toBeNull();
     expect(welcome()).toBeNull();
     expect(inert()).toBe(false);
     expect(host.querySelector('[data-chan="eth/qa_eth_fixed"]')?.getAttribute('data-state') ?? 'hidden-in-active-list').not.toBe('open');
-    // user closes the history view: nothing docked, no live interface → the welcome returns
+    // user closes the history views: nothing docked, no live interface → the welcome returns
+    act(() => dock().find(uart)?.api.close());
     act(() => dock().find(eth)!.api.close());
     act(() => net.emitControl(ev({ kind: 'core.heartbeat', payload: {} })));
     expect(welcome()).not.toBeNull();

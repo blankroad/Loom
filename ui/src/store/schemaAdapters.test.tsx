@@ -94,6 +94,44 @@ describe('core.safe_state list / run (C-8)', () => {
     expect(readSafeStateRun({ results: [{ id: 'z', ok: false, blocked: 'lease' }] })[0]).toMatchObject({ outcome: 'skipped', blocked: 'lease' });
   });
 
+  it('StopPanel emergency path: exact channel first, else same-domain wildcard labelled 전체; never cross-domain; nothing auto-run', async () => {
+    const net = new FakeNet();
+    net.open(TEST_HELLO);
+    // actual core.safe_state.list item for PSU targets ['*'] (channel '*')
+    net.responders.set('core.safe_state.list', () => [
+      { id: 'psu.emergency_off', domain: 'psu', channel: '*', description: 'Switch every supply output OFF', method: 'psu.out', kind: 'emergency_off' },
+      { id: 'can.bench_emergency_off', domain: 'can', channel: 'bench', description: 'CAN bench OFF', method: 'can.stop', kind: 'emergency_off' },
+    ]);
+    const services = createShellServices(net, { autoTick: false });
+    const unbind = services.bind();
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() => root.render(<ShellCtx.Provider value={services}><StopPanel /></ShellCtx.Provider>));
+    act(() => net.emitControl(ev({ kind: 'core.latch', payload: { on: true, missing: [], outputs_held: [
+      { domain: 'psu', channel: 'c-psu', description: 'psu out ON 12 V 1 A (last reported, seq 9; not re-measured; STOP does not switch it off)' },
+      { domain: 'uart', channel: 'bench', description: 'uart output held' },
+    ] } })));
+    await act(async () => {});
+    const held = [...host.querySelectorAll<HTMLElement>('.outputs-held .held')];
+    const psuBtn = held[0]!.querySelector<HTMLButtonElement>('.emergency-off')!;
+    expect(psuBtn.disabled).toBe(false);
+    expect(psuBtn.textContent).toBe('PSU 전체 비상 OFF !');
+    expect(psuBtn.dataset.scope).toBe('domain-all');
+    expect(psuBtn.title).toContain('PSU 전체 출력 OFF');
+    expect(held[0]!.textContent).not.toContain('(경로 없음)');
+    // no cross-domain fallback: uart 'bench' must not use psu '*' nor can 'bench'
+    const uartBtn = held[1]!.querySelector<HTMLButtonElement>('.emergency-off')!;
+    expect(uartBtn.disabled).toBe(true);
+    expect(uartBtn.dataset.scope).toBe('none');
+    expect(held[1]!.textContent).toContain('(경로 없음)');
+    // rendering never triggers an OFF
+    expect(net.calls.filter((c) => c.method === 'core.safe_state.run')).toHaveLength(0);
+    act(() => root.unmount());
+    unbind();
+    host.remove();
+  });
+
   it('StopPanel with the replay shapes: list shown, blocked visible, run results, missing emergency path said', async () => {
     const net = new FakeNet();
     net.open(TEST_HELLO);
@@ -111,9 +149,12 @@ describe('core.safe_state list / run (C-8)', () => {
         </ShellCtx.Provider>,
       ),
     );
-    act(() => net.emitControl(ev({ kind: 'core.latch', payload: { on: true, missing: [], outputs_held: [{ domain: 'psu', channel: 'bench', label: '13.5 V', state: 'ON' }] } })));
+    // exact Rust core_events::OutputHeld shape: {domain, channel, description}
+    const held = 'psu out ON 13.5 V 1 A (last reported, seq 41; not re-measured; STOP does not switch it off)';
+    act(() => net.emitControl(ev({ kind: 'core.latch', payload: { on: true, missing: [], outputs_held: [{ domain: 'psu', channel: 'bench', description: held }] } })));
     await act(async () => {});
     const panel = host.querySelector('[data-testid="stop-panel"]')!;
+    expect(panel.querySelector('.outputs-held')!.textContent).toContain(`psu bench ${held}`);
     expect(panel.textContent).toContain('UART dut: send break');
     expect(panel.textContent).toContain('⛔ 막힘: 인터록');
     expect(panel.textContent).toContain('(경로 없음)');

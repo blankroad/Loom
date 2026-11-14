@@ -1,0 +1,36 @@
+[package]
+name = "loom-video"
+description = "Loom video domain: daemon-owned FFmpeg acquisition (loopback HTTP MJPEG, replay, explicitly selected AVFoundation), bounded JPEG frame ring, private media plane, snapshot and recording artifacts."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+loom-proto.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+loom-domain-api = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
+loom-worker-sdk = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+loom-cli-kit = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+
+# The `loom` CLI links only `cli` (invariant I1: no gateway/worker code in the CLI binary).
+# `media` is the gateway-side reader of the worker's frame socket (used by loomd's HTTP routes).
+[features]
+default = ["gateway", "worker", "media", "cli"]
+gateway = ["dep:loom-domain-api", "dep:schemars"]
+worker = ["dep:loom-worker-sdk", "dep:tokio"]
+media = ["dep:tokio", "dep:futures-util"]
+cli = ["dep:loom-cli-kit", "dep:clap"]
+
+[dev-dependencies]
+loom-testkit.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

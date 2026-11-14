@@ -112,10 +112,67 @@ describe('uart.terminal panel', () => {
 
   it('palette Ctrl-C sends uart.input immediately with data_hex and input_seq', () => {
     h = mountPanel('uart.terminal', { channel: 'dut' });
+    h.batch([ev({ kind: 'uart.state', channel: 'dut', generation: 1, payload: { status: 'OPEN', baud: 115200 } })]);
     const btn = [...h.host.querySelectorAll('button')].find((b) => b.textContent === 'Ctrl-C')!;
     btn.click();
     const calls = h.net.calls.filter((c) => c.method === 'uart.input');
     expect(calls).toEqual([{ method: 'uart.input', params: { channel: 'dut', data_hex: '03', input_seq: 1 } }]);
+  });
+
+  it('D-U2: live disconnect on the control path makes the terminal read-only; older backlog/snapshot never re-open it', () => {
+    h = mountPanel('uart.terminal', { channel: 'dut' });
+    const open = ev({ kind: 'uart.state', channel: 'dut', generation: 1, payload: { status: 'OPEN', baud: 115200 } });
+    h.batch([open]);
+    const send = () => h!.host.querySelector<HTMLButtonElement>('[data-testid="uart-ss-send"]')!;
+    const ctrlC = () => [...h!.host.querySelectorAll('button')].find((b) => b.textContent === 'Ctrl-C')!;
+    expect(h.host.querySelector('.uart-port')!.textContent).toContain('OPEN');
+    // user has Send String open with text typed (validator u7 scenario)
+    h.host.querySelector<HTMLButtonElement>('[data-testid="uart-send-string-toggle"]')!.click();
+    const area = h.host.querySelector<HTMLTextAreaElement>('[data-testid="uart-ss-input"]')!;
+    area.value = 'ls';
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    h.frame();
+    expect(send().disabled).toBe(false);
+    // the real worker's disconnect is a priority uart.state that arrives only via onControl
+    const disc = ev({ kind: 'uart.state', channel: 'dut', generation: 1, payload: { state: 'disconnected', path: '/dev/x', cause: 'BrokenPipe' } });
+    h.net.emitControl(disc);
+    h.frame();
+    expect(h.host.querySelector('.uart-port')!.textContent).toContain('disconnected');
+    // an older backlog row (lower seq) delivered later does not re-open it
+    h.batch([open]);
+    expect(h.host.querySelector('.uart-port')!.textContent).toContain('disconnected');
+    // nor does an older snapshot (throughSeq below the applied control state)
+    h.net.subs[0]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, events: [], items: [{ domain: 'uart', kind: 'uart.snapshot', channel: 'dut', state: { channel: 'dut', state: { status: 'OPEN' } } }] } as never);
+    h.snapshotEnd(String(BigInt(open.seq)));
+    expect(h.host.querySelector('.uart-port')!.textContent).toContain('disconnected');
+    ctrlC().click();
+    expect(send().disabled).toBe(true);
+    expect(h.net.calls.filter((c) => c.method === 'uart.input')).toHaveLength(0);
+    // a newer OPEN (reconnect) does re-enable input
+    h.net.emitControl(ev({ kind: 'uart.state', channel: 'dut', generation: 2, payload: { status: 'OPEN', baud: 115200 } }));
+    h.frame();
+    expect(send().disabled).toBe(false);
+    ctrlC().click();
+    expect(h.net.calls.filter((c) => c.method === 'uart.input')).toHaveLength(1);
+  });
+
+  it('retained closed/disconnected port: operate viewer still read-only, nothing is sent', () => {
+    for (const status of ['CLOSED', 'DISCONNECTED']) {
+      h = mountPanel('uart.terminal', { channel: 'dut' });
+      h.batch([
+        ev({ kind: 'uart.state', channel: 'dut', generation: 1, payload: { status: 'OPEN', baud: 115200 } }),
+        ev({ kind: 'uart.data', channel: 'dut', dir: 'rx', payload: { bytes: { encoding: 'base64', data: btoa('history line\r\n') } } }),
+        ev({ kind: 'uart.state', channel: 'dut', generation: 1, payload: { status } }),
+      ]);
+      const ctrlC = [...h.host.querySelectorAll('button')].find((b) => b.textContent === 'Ctrl-C')!;
+      ctrlC.click();
+      expect(h.net.calls.filter((c) => c.method === 'uart.input' || c.method === 'uart.send'), status).toHaveLength(0);
+      const hold = [...h.host.querySelectorAll('button')].find((b) => b.textContent === 'HOLD')!;
+      expect(hold.disabled, status).toBe(true);
+      expect(h.host.querySelector('.uart-port')!.textContent).toContain(status);
+      h.dispose();
+      h = null;
+    }
   });
 
   it('watch rights: terminal readonly and lease buttons disabled; nothing is sent', () => {

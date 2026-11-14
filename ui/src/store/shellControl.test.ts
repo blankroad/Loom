@@ -90,6 +90,12 @@ describe('ShellControlStore', () => {
     s.applyControl(ev({ kind: 'core.latch', payload: { on: true, missing: [], outputs_held: [{ domain: 'psu', channel: 'bench', label: '13.5 V', state: 'ON' }] } }), 0);
     expect(s.latch).toMatchObject({ on: true, acked: true });
     expect(s.latch.outputsHeld).toHaveLength(1);
+    expect(s.latch.outputsHeld[0]!.description).toBe('13.5 V ON');
+    // exact Rust core_events::OutputHeld shape ({domain, channel, description}) from daemon outputs_held_from
+    const rust = 'psu out ON 13.5 V 1 A (last reported, seq 41; not re-measured; STOP does not switch it off)';
+    s.applyControl(ev({ kind: 'core.latch', payload: { on: true, by: 'agent#1', origin: 'agent', acked: ['psu'], missing: [], jobs_stopped: [], approvals_cancelled: [], uncancellable: [], persisted: true,
+      outputs_held: [{ domain: 'psu', channel: 'ext-bench', description: rust }] } }), 0);
+    expect(s.latch.outputsHeld).toEqual([{ domain: 'psu', channel: 'ext-bench', description: rust, label: '', state: '' }]);
     s.applyControl(ev({ kind: 'core.approval_requested', payload: { approval_id: 'a1', risk: 'R2' } }), 0);
     expect(s.approvals.has('a1')).toBe(true);
     s.applyControl(ev({ kind: 'core.approval_resolved', payload: { approval_id: 'a1' } }), 0);
@@ -203,5 +209,59 @@ describe('native late-join discovery without open panels', () => {
     expect(store.channels.get('uds/ecu')).toMatchObject({ state: 'open', generation: 3 });
     expect(store.channels.size).toBe(5);
     expect(opened).toEqual([]);
+  });
+});
+
+describe('ETH capture terminal error in the explorer', () => {
+  it('live → error marks the channel closed instead of keeping it connected', () => {
+    const store = new ShellControlStore();
+    const cap = (state: string) => ev({ domain: 'eth', channel: 'cap', kind: 'eth.capture_state', payload: { ch: 'cap', state, backend: 'live', iface: 'en0' } });
+    store.applyControl(cap('live'), 1_000);
+    expect(store.channels.get('eth/cap')?.state).toBe('open');
+    store.applyControl(cap('error'), 2_000);
+    expect(store.channels.get('eth/cap')?.state).toBe('closed');
+  });
+});
+
+describe('channel state ordering (D-V1: replayed/late snapshots never resurrect a closed channel)', () => {
+  const cs = (ch: string, state: string) => ev({ domain: 'video', channel: ch, kind: 'video.capture_state', payload: { capture_id: ch, state } });
+  const coreChannels = (entries: Record<string, unknown>[]) => ({ domain: 'core', kind: 'core.channels', state: { channels: entries } });
+  it('control closed (newer) beats a replayed core.channels snapshot taken while it was live', () => {
+    const store = new ShellControlStore();
+    store.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+    const live = cs('v0645a3bf0417', 'live');
+    store.applyControl(live, 1_000);
+    // a panel subscription snapshot built now (hub entry carries the live state's seq) …
+    const stale = coreChannels([{ domain: 'video', channel: 'v0645a3bf0417', state: 'live', seq: live.seq, kind: 'video.capture_state' }]);
+    store.applyControl(cs('v0645a3bf0417', 'closed'), 2_000);
+    expect(store.channels.get('video/v0645a3bf0417')?.state).toBe('closed');
+    // … is replayed to a late-joining panel (client mux) after the EOF close
+    store.noteSnapshotItems([stale]);
+    expect(store.channels.get('video/v0645a3bf0417')?.state).toBe('closed');
+    // a seq-less domain item cannot override ordered state either
+    store.noteSnapshotItems([{ domain: 'video', channel: 'v0645a3bf0417', kind: 'video.snapshot', state: { state: 'live' } }]);
+    expect(store.channels.get('video/v0645a3bf0417')?.state).toBe('closed');
+    // an older control event delivered late (e.g. via a lagging data subscription) is ignored too
+    store.applyControl(live, 3_000);
+    expect(store.channels.get('video/v0645a3bf0417')?.state).toBe('closed');
+  });
+  it('newer snapshot entries and fresh connections still apply; ETH/UART use the same ordering', () => {
+    const store = new ShellControlStore();
+    store.setConn({ status: 'open', hello: TEST_HELLO }, 0);
+    const closed = ev({ domain: 'uart', channel: 'dut', kind: 'uart.state', payload: { state: 'closed' } });
+    store.applyControl(closed, 1_000);
+    const newer = String(BigInt(closed.seq) + 5n);
+    store.noteSnapshotItems([coreChannels([{ domain: 'uart', channel: 'dut', state: 'open', seq: newer, kind: 'uart.state' }])]);
+    expect(store.channels.get('uart/dut')?.state).toBe('open');
+    const ethLive = ev({ domain: 'eth', channel: 'cap', kind: 'eth.capture_state', payload: { ch: 'cap', state: 'live' } });
+    store.applyControl(ethLive, 1_100);
+    store.applyControl(ev({ domain: 'eth', channel: 'cap', kind: 'eth.capture_state', payload: { ch: 'cap', state: 'error' } }), 1_200);
+    store.noteSnapshotItems([coreChannels([{ domain: 'eth', channel: 'cap', state: 'live', seq: ethLive.seq, kind: 'eth.capture_state' }])]);
+    expect(store.channels.get('eth/cap')?.state).toBe('closed');
+    // reconnect (new conn id): the fresh snapshot is authoritative even without seq
+    store.setConn({ status: 'connecting', attempt: 1 }, 2_000);
+    store.setConn({ status: 'open', hello: { ...TEST_HELLO, conn_id: 'rejoined' } }, 3_000);
+    store.noteSnapshotItems([{ domain: 'eth', channel: 'cap', kind: 'eth.snapshot', state: { ch: 'cap', state: 'live' } }]);
+    expect(store.channels.get('eth/cap')?.state).toBe('open');
   });
 });

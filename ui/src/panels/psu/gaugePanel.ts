@@ -21,7 +21,7 @@
 
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
-import { CHANNEL_PROP, registerPanel, type PanelContext, type PanelInstance } from '../../sdk';
+import { CHANNEL_PROP, registerPanel, type LoomEvent, type PanelContext, type PanelInstance } from '../../sdk';
 import './psu.css';
 import {
   EMPTY_MEAS,
@@ -34,7 +34,9 @@ import {
   parseSetpoint,
   protLabel,
   readMetrics,
+  outText,
   reduceState,
+  sourceLabel,
   Series,
   WINDOW_S,
   type Lane,
@@ -67,6 +69,21 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   // emergency OFF stays enabled regardless (safety direction)
   const canOperate = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
   let state: PsuState = { setV: null, setI: null, out: null, prot: null, mode: null };
+  /** seq of the newest psu.state applied (control path and backlog share it: older never overwrite) */
+  let stateSeq = -1n;
+  const applyState = (ev: LoomEvent): boolean => {
+    if (ev.kind !== 'psu.state') return false;
+    let seq: bigint;
+    try {
+      seq = BigInt(ev.seq);
+    } catch {
+      return false;
+    }
+    if (seq <= stateSeq) return false;
+    stateSeq = seq;
+    state = reduceState(state, ev);
+    return true;
+  };
   let meas: Meas = { ...EMPTY_MEAS };
   let staleAfterGap = false; // a loss arrived after the last measurement
   let statusPending = false;
@@ -93,8 +110,11 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   const ident = el('span', 'psu-ident');
   const badge = tid(el('span', 'psu-badge', ch), 'psu-badge');
   badge.title = `PSU 별칭 ${ch}`;
-  const envChip = el('span', 'psu-env', `[${(ctx.env ?? '?').toUpperCase()}]`);
-  ident.append(el('span', 'psu-kind', 'PSU'), ' ', badge, ' ', envChip);
+  const envChip = tid(el('span', 'psu-env', `환경 ${(ctx.env ?? '?').toUpperCase()}`), 'psu-env');
+  envChip.title = '데몬 환경 배지 (백엔드/장치 종류가 아님)';
+  const srcChip = tid(el('span', 'psu-src'), 'psu-source');
+  srcChip.title = '장치가 보고한 백엔드 · 주소 · *IDN?';
+  ident.append(el('span', 'psu-kind', 'PSU'), ' ', badge, ' ', envChip, ' ', srcChip);
   const outWord = tid(el('span', 'psu-out'), 'psu-out');
   const modeChip = tid(el('span', 'psu-chip psu-mode'), 'psu-mode');
   modeChip.title = '장치가 보고한 동작 모드 (추정하지 않음)';
@@ -297,7 +317,7 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   const draw = (): bigint => {
     for (const ev of mirror.after(lastSeq)) {
       lastSeq = BigInt(ev.seq);
-      if (ev.kind === 'psu.state') state = reduceState(state, ev);
+      applyState(ev);
       const m = readMetrics(ev);
       if (m) {
         meas = { ...m, atMs: performance.now() };
@@ -313,8 +333,11 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
       }
     }
     // header
-    outWord.textContent = state.out === null ? '출력 ?' : state.out ? '● 출력 ON' : '○ 출력 OFF';
-    outWord.className = `psu-out ${state.out === null ? 'unknown' : state.out ? 'on' : 'off'}`;
+    const ow = outText(state);
+    outWord.textContent = ow.text;
+    outWord.className = `psu-out ${ow.cls}`;
+    srcChip.textContent = sourceLabel(state);
+    root.classList.toggle('psu-disconnected', state.connected === false);
     const mode = modeLabel(state.mode);
     modeChip.textContent = mode ?? '';
     modeChip.hidden = mode === null;
@@ -322,12 +345,15 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
     protChip.textContent = prot.text;
     protChip.classList.toggle('warn', prot.warn);
     stopBadge.hidden = !(ctx.stopLatched && state.out === true);
-    const op = canOperate();
+    // a disconnected supply is read-only here (its last state stays visible); emergency OFF stays (safety direction)
+    const op = canOperate() && state.connected !== false;
     outBtn.disabled = !op || state.out === null;
     outBtn.textContent = state.out ? '출력 OFF' : '출력 ON';
     outBtn.setAttribute('aria-pressed', state.out === null ? 'mixed' : String(state.out));
     outBtn.classList.toggle('on', state.out === true);
-    outBtn.title = state.out === null ? '출력 상태 미확인 — 토글 불가' : `출력 ${state.out ? '끄기' : '켜기'} (operate 권한, 쓰기 잠금 적용)`;
+    outBtn.title = state.connected === false
+      ? '장치 연결 끊김 — 쓰기 불가 (마지막 확인 상태만 표시)'
+      : state.out === null ? '출력 상태 미확인 — 토글 불가' : `출력 ${state.out ? '끄기' : '켜기'} (operate 권한, 쓰기 잠금 적용)`;
     emergency.disabled = false; // safety direction: always available
     root.classList.toggle('psu-is-on', state.out === true);
     // meter
@@ -361,6 +387,11 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   };
   const offFrame = ctx.scheduler.onFrame(draw);
   const offAppend = mirror.onAppend(() => ctx.scheduler.invalidate());
+  // psu.state is a priority kind: live changes (incl. disconnect) arrive on the control path
+  const offControl = ctx.onControl((ev) => {
+    if ((ev.channel ?? (ev.payload as { ch?: unknown } | null)?.ch) !== ch) return;
+    if (applyState(ev)) ctx.scheduler.invalidate();
+  });
   // The native simulator advances measurements when polled. Authoritative status also
   // reconciles setpoints/output after writes; never infer them from the user's draft.
   const refreshStatus = () => {
@@ -392,6 +423,7 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
       statusAbort.abort();
       offFrame();
       offAppend();
+      offControl();
       for (const p of plots.values()) p.destroy();
       root.remove();
     },

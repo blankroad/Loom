@@ -565,3 +565,30 @@ describe('fidelity: transaction block + DTC pane from canonical fixtures', () =>
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
 });
+
+describe('uds.console — D-D1 link loss: live control state, read-only history', () => {
+  it('live link down via the control path makes the console read-only; older rows/snapshots never re-enable it', () => {
+    h = mountPanel('uds.console', { targets: 'ext_doip' });
+    const up = ev({ kind: 'uds.state', channel: 'ext_doip', payload: { target: 'ext_doip', backend: 'DoIP', link: { state: 'up' } } });
+    h.batch([up]);
+    expect(pduInput(h.host).disabled).toBe(false);
+    // the gateway's link-loss uds.state is a priority kind: it arrives only through onControl
+    h.net.emitControl(ev({ kind: 'uds.state', channel: 'ext_doip', payload: { target: 'ext_doip', link: { state: 'down', cause: 'tcp_reset' } } }));
+    h.frame();
+    expect(pduInput(h.host).disabled).toBe(true);
+    // an older backlog row delivered later does not bring the link back
+    h.batch([up]);
+    expect(pduInput(h.host).disabled).toBe(true);
+    // nor an older snapshot (as of the 'up' seq)
+    h.net.subs[0]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, events: [], items: [{ domain: 'uds', kind: 'uds.snapshot', channel: 'ext_doip', state: { kind: 'uds.state', payload: { target: 'ext_doip', link: { state: 'up' } } } }] } as never);
+    h.snapshotEnd(String(BigInt(up.seq)));
+    expect(pduInput(h.host).disabled).toBe(true);
+    // nothing was sent while the link was down
+    pduInput(h.host).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(h.net.calls.filter((c) => c.method === 'uds.request' && !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
+    // a newer link up re-enables input
+    h.net.emitControl(ev({ kind: 'uds.state', channel: 'ext_doip', payload: { target: 'ext_doip', link: { state: 'up' } } }));
+    h.frame();
+    expect(pduInput(h.host).disabled).toBe(false);
+  });
+});
