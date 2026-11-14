@@ -1,5 +1,6 @@
-//! `loom-psu` — bench power supply domain. In M1 it drives only [`sim::SimPsu`] and exists to
-//! check the domain plugin contract end to end (explore plan §5.1, §0.4 "PSU (계약 검증)").
+//! `loom-psu` — bench power supply domain. Drives [`sim::SimPsu`] (plugin contract check, explore
+//! plan §5.1, §0.4) or an external supply speaking a narrow SCPI profile over loopback TCP
+//! ([`scpi`]; software endpoints only — no VISA/USB/GPIB/LAN instruments).
 //!
 //! Pieces as in the CORE contract (§8.1): [`gateway`] (registration, hooks, waits, evidence —
 //! runs in `loomd`), [`worker`] (owns the supply — runs in the psu worker process) and [`cli`]
@@ -10,6 +11,8 @@ pub mod cli;
 #[cfg(feature = "runtime")]
 pub mod gateway;
 pub mod model;
+#[cfg(feature = "runtime")]
+pub mod scpi;
 #[cfg(feature = "runtime")]
 pub mod sim;
 #[cfg(feature = "runtime")]

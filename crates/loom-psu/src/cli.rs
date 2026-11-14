@@ -91,17 +91,24 @@ fn get_name(m: &ArgMatches) -> Result<String, UsageError> {
 impl DomainCli for PsuCli {
     fn command() -> Command {
         Command::new(DOMAIN)
-            .about("Bench power supply (M1: SimPsu)")
+            .about("Bench power supply (SimPsu, or an external SCPI endpoint on loopback TCP)")
             .subcommand_required(true)
             .subcommand(
                 Command::new("connect")
-                    .about("Connect a supply (M1: simulated)")
+                    .about("Connect a supply (simulated by default; --scpi-tcp for an external loopback SCPI endpoint)")
                     .arg(name())
                     .arg(
                         Arg::new("visa")
                             .long("visa")
                             .value_name("RESOURCE")
-                            .help("real supply (not in M1)"),
+                            .conflicts_with("scpi-tcp")
+                            .help("VISA resource (not implemented: refused with E_NOT_IMPLEMENTED)"),
+                    )
+                    .arg(
+                        Arg::new("scpi-tcp")
+                            .long("scpi-tcp")
+                            .value_name("IP:PORT")
+                            .help("external SCPI endpoint on loopback TCP (narrow generic profile; not VISA/USB/GPIB/LAN)"),
                     )
                     .arg(num("vmax", "tighten the voltage limit (cannot raise it)"))
                     .arg(num("imax", "tighten the current limit (cannot raise it)"))
@@ -118,6 +125,11 @@ impl DomainCli for PsuCli {
                     .arg(name()),
             )
             .subcommand(Command::new("meas").about("Measure now").arg(name()))
+            .subcommand(
+                Command::new("disconnect")
+                    .about("Close the supply link; the output is held as-is (never switched)")
+                    .arg(name()),
+            )
             .subcommand(
                 Command::new("watch")
                     .about("Summary of the next DURATION (≤ 600 s)")
@@ -233,6 +245,16 @@ impl DomainCli for PsuCli {
     fn to_call(m: &ArgMatches) -> Result<RpcCall, UsageError> {
         match m.subcommand() {
             Some(("connect", s)) => {
+                if let Some(addr) = s.get_one::<String>("scpi-tcp") {
+                    if s.get_one::<u64>("seed").is_some() {
+                        return Err(UsageError::new("--seed is SIM-only"));
+                    }
+                    return Ok(RpcCall::new(
+                        "psu.connect",
+                        json!({"ch": get_name(s)?, "backend": "scpi-tcp", "address": addr,
+                               "vmax": s.get_one::<f64>("vmax"), "imax": s.get_one::<f64>("imax")}),
+                    ));
+                }
                 let backend = if s.contains_id("visa") && s.get_one::<String>("visa").is_some() {
                     "visa"
                 } else {
@@ -246,6 +268,7 @@ impl DomainCli for PsuCli {
             }
             Some(("status", s)) => Ok(RpcCall::new("psu.status", json!({"ch": get_name(s)?}))),
             Some(("meas", s)) => Ok(RpcCall::new("psu.meas", json!({"ch": get_name(s)?}))),
+            Some(("disconnect", s)) => Ok(RpcCall::new("psu.disconnect", json!({"ch": get_name(s)?}))),
             Some(("watch", s)) => {
                 let d = s.get_one::<Duration>("for").copied().unwrap_or_default();
                 if d > MAX_FOLLOW {
@@ -394,6 +417,19 @@ fn render_data(call: &RpcCall, d: &Value, out: &mut dyn io::Write) -> io::Result
                 f(&d["vmax"], 1),
                 f(&d["imax"], 1)
             )?;
+            if d.get("backend").is_some() {
+                writeln!(
+                    out,
+                    "backend {} {} · link {} · generation {}{}",
+                    s(&d["backend"]),
+                    s(&d["address"]),
+                    s(&d["link"]),
+                    s(&d["generation"]),
+                    d.get("lost_why")
+                        .filter(|w| !w.is_null())
+                        .map_or(String::new(), |w| format!(" · {}", s(w)))
+                )?;
+            }
             if d.get("poll_hz_req").is_some() {
                 writeln!(
                     out,

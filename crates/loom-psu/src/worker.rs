@@ -7,6 +7,7 @@
 //! `source.gap{cause:"scpi_no_response"}` and no sample (never interpolated).
 
 use std::collections::VecDeque;
+use std::time::{Duration, Instant};
 
 use loom_proto::error::ErrorCode;
 use loom_proto::event::{Dir, GapCount, Metric, Origin, Ts, TsSource, WriteState};
@@ -16,6 +17,7 @@ use loom_worker_sdk::{BoxFuture, Emitter, EventDraft, JobCmd, Worker, WorkerCtx,
 use serde_json::{Value, json};
 
 use crate::model::*;
+use crate::scpi::{self, Act, LinkState, ScpiDevice};
 use crate::sim::{Load, SimPsu};
 use crate::{GAP_NO_RESPONSE, KIND_MEAS, KIND_STATE, KIND_WRITE, WORKER_KIND};
 
@@ -64,11 +66,69 @@ struct Device {
     generation: u32,
 }
 
-/// The psu worker.
+/// The psu worker: at most one supply, either SimPsu (`dev`) or an external SCPI endpoint (`ext`).
 #[derive(Debug, Default)]
 pub struct PsuWorker {
     dev: Option<Device>,
+    ext: Option<ScpiDevice>,
     generation: u32,
+}
+
+/// Bound of joining the external IO thread on disconnect/reconnect.
+pub const JOIN_BUDGET: Duration = Duration::from_millis(1500);
+
+/// `Instant` of a host deadline (`deadline_mono_ns` on the worker clock), capped at `cap`.
+fn until_of(cx: &WorkerCtx, deadline_mono_ns: u64, cap: Duration) -> Instant {
+    let left = Duration::from_nanos(deadline_mono_ns.saturating_sub(cx.clock().mono_ns()));
+    Instant::now() + left.min(cap)
+}
+
+fn scpi_state_event(cx: &WorkerCtx, d: &ScpiDevice, origin: Origin) {
+    let _ = cx
+        .emitter(&d.ch)
+        .with_generation(Some(d.generation), None)
+        .priority(EventDraft {
+            kind: KIND_STATE.into(),
+            ts: cx.clock().ts(TsSource::HostReadComplete),
+            dir: None,
+            origin,
+            client_id: None,
+            request_id: None,
+            job_id: None,
+            generation: Some(d.generation),
+            purpose: None,
+            risk: None,
+            env: None,
+            payload: d.state_payload(),
+            metrics: vec![],
+            quality: vec![],
+        });
+}
+
+fn scpi_row(cx: &WorkerCtx, ch: &str, generation: u32, w: &Write, st: WriteState, extra: Value) {
+    let mut payload = json!({"ch": ch, "write_state": st, "backend": scpi::BACKEND});
+    if let (Some(p), Value::Object(e)) = (payload.as_object_mut(), extra) {
+        p.extend(e);
+    }
+    let _ = cx
+        .emitter(ch)
+        .with_generation(Some(generation), None)
+        .priority(EventDraft {
+            kind: KIND_WRITE.into(),
+            ts: cx.clock().ts(TsSource::HostReadComplete),
+            dir: Some(Dir::Tx),
+            origin: w.origin,
+            client_id: w.client_id.clone(),
+            request_id: Some(w.request_id.clone()),
+            job_id: None,
+            generation: Some(generation),
+            purpose: None,
+            risk: None,
+            env: None,
+            payload,
+            metrics: vec![],
+            quality: vec![],
+        });
 }
 
 /// Timestamp of an event that happened at `t_ns` on the worker's monotonic clock.
@@ -295,6 +355,15 @@ impl PsuWorker {
 
     fn connect(&mut self, cx: &WorkerCtx, args: &Value) -> Result<Value, WorkerError> {
         let ch = param_ch(args).unwrap_or("bench").to_owned();
+        if let Some(e) = &self.ext {
+            return Err(err(
+                ErrorCode::PortBusy,
+                format!(
+                    "this worker drives external supply {} (disconnect it first)",
+                    e.ch
+                ),
+            ));
+        }
         if let Some(d) = &self.dev {
             if d.ch == ch {
                 return Ok(d.status());
@@ -327,6 +396,215 @@ impl PsuWorker {
         let st = d.status();
         self.dev = Some(d);
         Ok(st)
+    }
+
+    /// `psu.connect{backend:"scpi-tcp"}`: queries only; a lost/closed link reconnects as a new
+    /// generation after the old IO thread is joined (bounded).
+    async fn connect_scpi(&mut self, cx: &WorkerCtx, call: &Call) -> Result<Value, WorkerError> {
+        let args = &call.args;
+        let ch = param_ch(args).unwrap_or("bench").to_owned();
+        if self.dev.is_some() {
+            return Err(err(
+                ErrorCode::PortBusy,
+                "this worker drives the simulated supply",
+            ));
+        }
+        let addr_s = args
+            .get("address")
+            .and_then(Value::as_str)
+            .ok_or_else(|| err(ErrorCode::Usage, "scpi-tcp needs address"))?;
+        let addr = scpi::parse_loopback(addr_s).map_err(|m| err(ErrorCode::Usage, m))?;
+        if let Some(k) = ["seed", "load"]
+            .into_iter()
+            .find(|k| args.get(*k).is_some_and(|v| !v.is_null()))
+        {
+            return Err(err(ErrorCode::Usage, format!("{k} is SIM-only")));
+        }
+        let now = cx.clock().mono_ns();
+        if let Some(e) = &self.ext {
+            if e.ch != ch {
+                return Err(err(
+                    ErrorCode::PortBusy,
+                    format!("this worker already drives {}", e.ch),
+                ));
+            }
+            if e.link() == LinkState::Up {
+                if e.address == addr {
+                    return Ok(e.status(now));
+                }
+                return Err(err(
+                    ErrorCode::PortBusy,
+                    format!("{ch} is connected to {} (disconnect first)", e.address),
+                ));
+            }
+            // Manual reconnect after lost/closed: the old IO thread must have ended.
+            let joined = e
+                .close_and_join(Instant::now() + JOIN_BUDGET)
+                .await
+                .unwrap_or(false);
+            if !joined {
+                return Err(WorkerError {
+                    code: ErrorCode::Busy,
+                    message: "previous IO thread still running; not reconnecting".into(),
+                    detail: json!({"io_thread_finished": false, "join_budget_ms": JOIN_BUDGET.as_millis() as u64}),
+                });
+            }
+            self.ext = None;
+        }
+        let generation = self.generation + 1;
+        let until = until_of(cx, call.deadline_mono_ns.get(), scpi::CONNECT_BUDGET);
+        let rx = scpi::connect(
+            ch.clone(),
+            addr,
+            generation,
+            Limits::from_value(args),
+            cx.emitter(&ch),
+            cx.latch().clone(),
+            until,
+        );
+        match rx.await {
+            Some(Ok(d)) => {
+                self.generation = generation;
+                let st = d.status(cx.clock().mono_ns());
+                self.ext = Some(d);
+                Ok(st)
+            }
+            Some(Err(e)) => Err(e),
+            None => Err(err(
+                ErrorCode::Timeout,
+                format!(
+                    "scpi-tcp {addr}: handshake (dial ≤ {} ms + 4 queries ≤ {} ms each) not done before the deadline",
+                    scpi::CONNECT_TIMEOUT.as_millis(),
+                    scpi::IO_TIMEOUT.as_millis()
+                ),
+            )),
+        }
+    }
+
+    /// `psu.disconnect{ch}`: nothing is sent; the output is held.
+    async fn disconnect(&mut self, cx: &WorkerCtx, call: &Call) -> Result<Value, WorkerError> {
+        let ch = param_ch(&call.args).unwrap_or("bench").to_owned();
+        if self.ext.as_ref().is_some_and(|e| e.ch == ch) {
+            let Some(d) = self.ext.take() else {
+                return Err(err(ErrorCode::NotOpen, "no supply connected"));
+            };
+            let joined = d
+                .close_and_join(Instant::now() + JOIN_BUDGET)
+                .await
+                .unwrap_or(false);
+            scpi_state_event(cx, &d, call.origin);
+            let generation = d.generation;
+            if !joined {
+                // Keep the handle: status shows it, reconnect re-checks the join.
+                self.ext = Some(d);
+                return Err(WorkerError {
+                    code: ErrorCode::Busy,
+                    message: format!("IO thread did not finish within {} ms", JOIN_BUDGET.as_millis()),
+                    detail: json!({"io_thread_finished": false}),
+                });
+            }
+            return Ok(
+                json!({"ch": ch, "closed": true, "backend": scpi::BACKEND, "generation": generation,
+                             "io_thread_finished": true, "output": "held (nothing sent)"}),
+            );
+        }
+        if self.dev.as_ref().is_some_and(|d| d.ch == ch) {
+            if let Some(mut d) = self.dev.take() {
+                let mut st = d.state_payload();
+                st["connected"] = json!(false);
+                d.last_state = Value::Null;
+                let _ = d.emitter(cx).priority(EventDraft {
+                    kind: KIND_STATE.into(),
+                    ts: ts_at(cx, cx.clock().mono_ns()),
+                    dir: None,
+                    origin: call.origin,
+                    client_id: None,
+                    request_id: None,
+                    job_id: None,
+                    generation: Some(d.generation),
+                    purpose: None,
+                    risk: None,
+                    env: None,
+                    payload: st,
+                    metrics: vec![],
+                    quality: vec!["simulated".into()],
+                });
+            }
+            return Ok(
+                json!({"ch": ch, "closed": true, "backend": "sim", "output": "held (nothing switched)"}),
+            );
+        }
+        Err(err(ErrorCode::NotOpen, format!("{ch} is not connected")))
+    }
+
+    async fn write_scpi(&mut self, cx: &WorkerCtx, w: Write) -> WriteOutcome {
+        let Some(d) = self.ext.as_ref() else {
+            return outcome(
+                WriteState::Failed,
+                Value::Null,
+                Some(err(ErrorCode::NotOpen, "no supply connected")),
+            );
+        };
+        let action =
+            w.op.get("action")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_owned();
+        let refuse = |code: ErrorCode, msg: String| {
+            scpi_row(
+                cx,
+                &d.ch,
+                d.generation,
+                &w,
+                WriteState::Failed,
+                json!({"action": action, "sent": false, "error": {"code": code, "message": msg}}),
+            );
+            outcome(WriteState::Failed, Value::Null, Some(err(code, msg)))
+        };
+        let act = match action.as_str() {
+            "set" => {
+                let (v, i) = (param_volt(&w.op), param_curr(&w.op));
+                if v.is_none() && i.is_none() {
+                    return refuse(ErrorCode::Usage, "set needs volt and/or curr".into());
+                }
+                Act::Set(v, i)
+            }
+            "out" => match w.op.get("state").and_then(Value::as_str) {
+                Some("on") => Act::Out(true),
+                Some("off") => Act::Out(false),
+                _ => return refuse(ErrorCode::Usage, "out needs state on|off".into()),
+            },
+            "cycle" => {
+                return refuse(
+                    ErrorCode::NotImplemented,
+                    "cycle is not implemented for scpi-tcp (refused, not simulated)".into(),
+                );
+            }
+            other => return refuse(ErrorCode::Usage, format!("unknown action {other:?}")),
+        };
+        let until = until_of(cx, w.deadline_mono_ns.get(), scpi::WRITE_BUDGET);
+        if until <= Instant::now() {
+            return refuse(
+                ErrorCode::Timeout,
+                "request deadline already passed; nothing sent".into(),
+            );
+        }
+        let rx = match d.write(act, w.origin, w.request_id.clone(), w.client_id.clone(), until) {
+            Ok(rx) => rx,
+            Err(e) => return refuse(e.code, e.message),
+        };
+        // The IO thread enforces `until` per unit; the grace only lets its answer arrive.
+        match rx.await {
+            Some(o) => o,
+            None => outcome(
+                WriteState::OutcomeUnknown,
+                json!({"retry": false}),
+                Some(err(
+                    ErrorCode::Timeout,
+                    "no outcome before the request deadline; the psu.write rows carry the final state",
+                )),
+            ),
+        }
     }
 
     fn inject(&mut self, args: &Value) -> Result<Value, WorkerError> {
@@ -377,6 +655,33 @@ impl Worker for PsuWorker {
     fn on_call<'a>(&'a mut self, cx: &'a WorkerCtx, call: Call) -> BoxFuture<'a, Result<Value, WorkerError>> {
         Box::pin(async move {
             let now = cx.clock().mono_ns();
+            if call.method == "psu.connect"
+                && call.args.get("backend").and_then(Value::as_str) == Some(scpi::BACKEND)
+            {
+                return self.connect_scpi(cx, &call).await;
+            }
+            if call.method == "psu.disconnect" {
+                return self.disconnect(cx, &call).await;
+            }
+            if let Some(e) = &self.ext {
+                return match call.method.as_str() {
+                    "psu.status" => Ok(e.status(now)),
+                    "psu.poll" => Ok(e.counters()),
+                    "psu.meas" => e.meas(now),
+                    "psu.connect" => Err(err(
+                        ErrorCode::PortBusy,
+                        format!(
+                            "this worker drives external supply {} (disconnect it first)",
+                            e.ch
+                        ),
+                    )),
+                    "psu.sim.inject" => Err(err(
+                        ErrorCode::NotImplemented,
+                        "fault injection is SIM-only; an external supply is never simulated",
+                    )),
+                    m => Err(err(ErrorCode::NotImplemented, format!("{m} not implemented"))),
+                };
+            }
             match call.method.as_str() {
                 "psu.connect" => self.connect(cx, &call.args),
                 "psu.status" => {
@@ -406,6 +711,9 @@ impl Worker for PsuWorker {
 
     fn on_write<'a>(&'a mut self, cx: &'a WorkerCtx, w: Write) -> BoxFuture<'a, WriteOutcome> {
         Box::pin(async move {
+            if self.ext.is_some() {
+                return self.write_scpi(cx, w).await;
+            }
             let now = cx.clock().mono_ns();
             let Some(d) = self.dev.as_mut() else {
                 return outcome(

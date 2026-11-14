@@ -52,7 +52,13 @@ impl Handler for Forward {
     }
 }
 
-/// `psu.connect{ch, backend?, vmax?, imax?, seed?, load?}` — M1 drives SimPsu only.
+fn present(p: &Value, k: &str) -> bool {
+    p.get(k).is_some_and(|v| !v.is_null())
+}
+
+/// `psu.connect{ch, backend?, vmax?, imax?, seed?, load?}` (SimPsu) or
+/// `psu.connect{ch, backend:"scpi-tcp", address, vmax?, imax?}` (external loopback endpoint).
+/// `visa` and anything else are refused (`E_NOT_IMPLEMENTED`), never mapped to another backend.
 #[derive(Debug)]
 pub struct Connect;
 
@@ -60,11 +66,28 @@ impl Handler for Connect {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
             match params.get("backend").and_then(Value::as_str) {
-                None | Some("sim") => {}
+                None | Some("sim") => {
+                    if present(&params, "address") {
+                        return Err(usage("address is for backend scpi-tcp"));
+                    }
+                }
+                Some(crate::scpi::BACKEND) => {
+                    let addr = params
+                        .get("address")
+                        .and_then(Value::as_str)
+                        .ok_or_else(|| usage("scpi-tcp needs address <loopback-ip>:<port>"))?;
+                    crate::scpi::parse_loopback(addr).map_err(usage)?;
+                    if let Some(k) = ["seed", "load", "visa"].into_iter().find(|k| present(&params, k)) {
+                        return Err(usage(format!("{k} is not valid with backend scpi-tcp")));
+                    }
+                }
                 Some(b) => {
                     return Err(DomainError::new(
                         ErrorCode::NotImplemented,
-                        format!("backend {b:?}: real supplies come when one is bought (M1 = sim)"),
+                        format!(
+                            "backend {b:?}: not implemented (no VISA/USB/GPIB/LAN instrument support); \
+                             only sim and scpi-tcp to a loopback software endpoint"
+                        ),
                     ));
                 }
             }
@@ -74,6 +97,22 @@ impl Handler for Connect {
             }
             ctx.worker(WORKER_KIND)?
                 .call("psu.connect", args, ctx.deadline())
+                .await
+        })
+    }
+}
+
+/// `psu.disconnect{ch}`: closes the link and joins the IO thread (bounded). Sends nothing to the
+/// supply; the output is held as-is.
+#[derive(Debug)]
+pub struct Disconnect(pub ChannelBook);
+
+impl Handler for Disconnect {
+    fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            let ch = resolve_channel(&params, &self.0)?;
+            ctx.worker(WORKER_KIND)?
+                .call("psu.disconnect", json!({"ch": ch}), ctx.deadline())
                 .await
         })
     }

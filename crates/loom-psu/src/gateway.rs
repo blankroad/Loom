@@ -215,11 +215,16 @@ pub fn help() -> HelpSpec {
         explain: explain.into(),
     };
     HelpSpec {
-        summary: "Bench power supply (M1: SimPsu). Set voltage/current, switch the output, measure at 5 Hz, wait \
+        summary: "Bench power supply (SimPsu, or an external SCPI endpoint on loopback TCP). Set voltage/current, switch the output, measure at 5 Hz, wait \
                   for current/voltage conditions held over time; the user watches the gauge and can hit emergency OFF."
             .into(),
         examples: vec![
             ex("loom psu connect bench", "connect the simulated supply as `bench`"),
+            ex(
+                "loom psu connect bench --scpi-tcp 127.0.0.1:5025",
+                "external SCPI endpoint on loopback (narrow generic profile; connect only queries)",
+            ),
+            ex("loom psu disconnect bench", "close the link; the output is held as-is"),
             ex("loom psu set bench --volt 13.5 --curr 2", "set (R2); over vmax/imax is refused, never clamped"),
             ex("loom psu out bench on", "output ON (R3)"),
             ex("loom psu wait-for bench --curr-lt 0.005 --hold 5s --timeout 60s", "sleep current held 5 s"),
@@ -232,6 +237,10 @@ pub fn help() -> HelpSpec {
             "Emergency OFF and STOP belong to the user: never switch the output back on after one without asking.".into(),
             format!("Interlocks {} refuse agent `out off`/`cycle` (exit 6 E_LOCKED).", RESPECTED_INTERLOCKS.join(", ")),
             "Read-back is the supply's average; inrush needs a scope. Unanswered polls are gaps, never interpolated.".into(),
+            "scpi-tcp: loopback only; VOLT/CURR/OUTP/MEAS:VOLT?/MEAS:CURR?/SYST:ERR? only. cycle, sim inject, reset, lists and \
+             protection are refused. A timeout or broken reply marks the link lost (no retry, no auto reconnect): \
+             check, then connect again (new generation). Connect/STOP/disconnect never switch the output."
+                .into(),
         ],
     }
 }
@@ -264,12 +273,24 @@ impl DomainModule for Psu {
                 true,
                 Arc::new(Connect),
                 obj(
-                    json!({"ch": ch, "backend": {"enum": ["sim", "visa"]}, "vmax": {"type": "number"},
+                    json!({"ch": ch, "backend": {"enum": ["sim", "visa", "scpi-tcp"]}, "address": {"type": "string"}, "vmax": {"type": "number"},
                            "imax": {"type": "number"}, "seed": {"type": "integer"}, "load": {"type": "object"}}),
                     &[],
                 ),
                 DEFAULT_WAIT,
             ),
+            CommandSpec {
+                // Closing the link sends nothing to the supply (output held): no write class,
+                // but only writers may close it.
+                roles: RoleSet::WRITE,
+                ..spec(
+                    "psu.disconnect",
+                    false,
+                    Arc::new(Disconnect(book.clone())),
+                    obj(json!({"ch": ch}), &[]),
+                    DEFAULT_WAIT,
+                )
+            },
             spec(
                 "psu.status",
                 false,
@@ -386,6 +407,7 @@ impl DomainModule for Psu {
             })?
             .interlock("psu.cycling", Arc::new(move || cycling.any_cycling()))?
             .capability("sim")?
+            .capability("scpi-tcp-loopback")?
             .capability("measure:voltage,current,power")?
             .panel_manifest(panel_manifest())?
             .help(help())?;

@@ -50,6 +50,7 @@ fn registration_is_complete() {
         report.commands,
         [
             "psu.connect",
+            "psu.disconnect",
             "psu.status",
             "psu.meas",
             "psu.watch",
