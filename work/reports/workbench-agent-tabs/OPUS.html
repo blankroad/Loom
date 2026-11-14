@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loom 두 탭 목업</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--line:#d9dde3;--text:#1b1f24;--mute:#68717d;--acc:#2458d6;--ok:#1a7f4b;--warn:#b26b00;--bad:#c42b2b;--stop:#c42b2b;--chip:#eef1f5;--ghost:#a5acb6;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* Bench Light: 외곽 shell은 항상 light. 장치 raw 출력(.rows)만 터미널 dark. */
+:root{color-scheme:light;--term-bg:#16191d;--term-text:#d7dce2;--term-hl:#2b4a8f;--term-hover:#23282e}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:13px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;display:flex;flex-direction:column}
+.demo{background:#fff3cd;color:#664d03;padding:3px 12px;font-size:12px;border-bottom:1px solid #e6d28a}
+header{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+header b{margin-right:8px}
+.tab{border:1px solid var(--line);background:transparent;color:var(--text);padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit}
+.tab[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--warn);color:#fff;font-size:11px;margin-left:4px;text-align:center}
+.sp{flex:1}
+.stop{background:var(--stop);color:#fff;border:0;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer}
+.stop.on{outline:3px solid #ffb3b3}
+.latch{font-size:12px;color:var(--bad);font-weight:600}
+main{flex:1;min-height:0;display:flex}
+.view{flex:1;min-height:0;display:none}.view.on{display:flex}
+aside{width:250px;flex:none;border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:8px}
+h3{font-size:11px;letter-spacing:.06em;color:var(--mute);margin:10px 4px 4px;text-transform:uppercase}
+.ch{display:flex;gap:6px;align-items:flex-start;padding:4px;border-radius:5px;cursor:pointer}
+.ch:hover{background:var(--chip)}
+.ch small{display:block;color:var(--mute);font-family:var(--mono);font-size:11px}
+.ch.ghost{color:var(--ghost)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;background:var(--ok)}
+.dot.closed{background:var(--ghost)}
+.note{font-size:11px;color:var(--mute);margin:6px 4px}
+.work{flex:1;min-width:0;display:flex;flex-direction:column}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);background:var(--panel)}
+.bar select,.bar input,.bar button{font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--text)}
+.seg button[aria-pressed=true]{background:var(--chip);font-weight:600}
+.dock{flex:1;min-height:0;padding:6px;display:flex}
+.split{display:flex;flex:1;min-width:0;min-height:0}
+.split.col{flex-direction:column}
+.gut{flex:none;background:var(--line);border-radius:2px}
+.split.row>.gut{width:5px;cursor:col-resize;margin:0 2px}
+.split.col>.gut{height:5px;cursor:row-resize;margin:2px 0}
+.gut:hover{background:var(--acc)}
+.pane{display:flex;flex-direction:column;min-width:80px;min-height:60px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.ph{display:flex;gap:6px;align-items:center;padding:4px 8px;border-bottom:1px solid var(--line);font-size:12px}
+.dom{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--chip)}
+.ph a{margin-left:auto;color:var(--acc);font-size:11px;text-decoration:none}
+.rows{flex:1;overflow:auto;font-family:var(--mono);font-size:11.5px;padding:4px 8px;background:var(--term-bg);color:var(--term-text)}
+.rows div{white-space:pre;cursor:pointer}.rows div:hover{background:var(--term-hover)}
+.rows .hl{background:var(--term-hl);color:#fff}
+.frozen{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad);font-size:11px;padding:2px 8px}
+.empty{margin:auto;color:var(--mute);text-align:center}
+/* tasks */
+.list{width:340px;flex:none;border-right:1px solid var(--line);background:var(--panel);overflow:auto}
+.trow{padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.trow[aria-current=true]{background:var(--chip);box-shadow:inset 3px 0 var(--acc)}
+.trow .t{font-weight:600}.trow .m{color:var(--mute);font-size:11px;display:flex;gap:8px;margin-top:2px}
+.st{font-size:11px;font-weight:700;padding:1px 6px;border-radius:9px;border:1px solid currentColor}
+.st.running{color:var(--acc)}.st.waiting_user{color:var(--warn)}.st.blocked{color:var(--bad)}.st.succeeded{color:var(--ok)}.st.cancelled,.st.queued{color:var(--mute)}.st.failed{color:var(--bad)}.st.cancelling{color:var(--warn)}.fr{font-size:11px;color:var(--ok)}.fr.exp{color:var(--warn);font-weight:700}
+.detail{flex:1;overflow:auto;padding:12px 16px}
+.detail h2{margin:0 0 4px;font-size:17px}
+.req{background:var(--chip);border-radius:6px;padding:6px 10px;margin:8px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}.list{width:220px}aside{width:200px}}
+table{border-collapse:collapse;width:100%;font-size:12px}
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600}
+tr.active td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.mono{font-family:var(--mono);font-size:11.5px}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:8px 0;background:var(--panel)}
+.ask{border-color:var(--warn)}
+.btn{font:inherit;padding:4px 10px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn.cancel{border-color:var(--warn);color:var(--warn)}
+.btn:disabled{opacity:.45;cursor:default}
+.filters{display:flex;gap:4px;padding:6px;border-bottom:1px solid var(--line)}
+.legend{font-size:11px;color:var(--mute)}
+a.seq{color:var(--acc);cursor:pointer;text-decoration:underline dotted}
+</style>
+</head>
+<body>
+<div class="demo">⚠ DEMO 목업 — 모든 채널·로그·작업은 가짜 데이터이며 daemon 연결 없음. 실제 native UI는 open 채널·task 이벤트에서 화면이 유도됨.</div>
+<header>
+  <b>Loom</b>
+  <button class="tab" id="tabView" aria-selected="true">통합 보기</button>
+  <button class="tab" id="tabTask" aria-selected="false">에이전트 작업 <span class="badge" id="taskBadge"></span></button>
+  <span class="sp"></span>
+  <span class="latch" id="latch"></span>
+  <button class="stop" id="stop" title="하드웨어 쓰기 잠금 (task 취소와 별개)">STOP</button>
+</header>
+<main>
+  <section class="view on" id="vView">
+    <aside>
+      <h3>관찰 대상 · 사용 중만</h3>
+      <div id="picker"></div>
+      <div class="note">PSU·로직분석기: 연결 없음 → 숨김.<br>ETH en5: 캡처 종료, 기록 조회만.</div>
+      <h3>재접속 시뮬레이션</h3>
+      <button class="btn" id="reconnect">재접속: can0만 연결됨</button>
+      <button class="btn" id="restore" style="margin-top:4px">모두 연결</button>
+    </aside>
+    <div class="work">
+      <div class="bar">
+        <label>세트 <select id="sets"></select></label>
+        <button id="save">현재 선택 저장</button>
+        <span class="seg">배치 <button data-ar="auto">자동</button><button data-ar="cols">가로</button><button data-ar="rows">세로</button></span>
+        <label><input type="checkbox" id="sync" checked> 시간 커서 동기</label>
+        <span class="legend" id="info"></span>
+      </div>
+      <div class="dock" id="dock"></div>
+    </div>
+  </section>
+  <section class="view" id="vTask">
+    <div class="list">
+      <div class="filters"><button class="btn" data-f="all">전체</button><button class="btn" data-f="live">진행</button><button class="btn" data-f="user">사용자 대기</button><button class="btn" data-f="done">종결</button></div>
+      <div id="tlist"></div>
+      <div class="note" style="padding:6px">사용자 요청으로 시작된 task만. 작업에 속하지 않은 RPC 활동은 하단 ActivityStrip(기존)에 남음.</div>
+    </div>
+    <div class="detail" id="tdetail"></div>
+  </section>
+</main>
+<script>
+"use strict";
+// ---------- DEMO data ----------
+const CH=[
+ {id:'uart/ttyUSB0',dom:'UART',ch:'ttyUSB0',alias:'ECU-A console',dev:'FTDI A10K3 · 115200',open:true},
+ {id:'uart/ttyUSB1',dom:'UART',ch:'ttyUSB1',alias:'Gateway shell',dev:'CP2102 01 · 921600',open:true},
+ {id:'can/can0',dom:'CAN',ch:'can0',alias:'P-CAN',dev:'PCAN-USB · 500k',open:true},
+ {id:'can/can1',dom:'CAN',ch:'can1',alias:'Body FD',dev:'PCAN-FD · 500k/2M',open:true},
+ {id:'uds/ecu_front',dom:'UDS',ch:'ecu_front',alias:'Front ECU',dev:'DoIP 192.168.0.10 · LA 0x0E80',open:true},
+ {id:'uds/sim_bcm',dom:'UDS',ch:'sim_bcm',alias:'BCM (sim)',dev:'simulator',open:true},
+ {id:'eth/en5',dom:'ETH',ch:'en5',alias:'Bench NIC',dev:'USB-C 2.5G',open:false,history:true},
+];
+const SAMPLE={
+ UART:i=>`${t(i)} [ECU] ${['U-Boot 2024.01 (DEMO)','DRAM: 2 GiB','Starting kernel ...','systemd[1]: Reached target','login:'][i%5]}`,
+ CAN:i=>`${t(i)} ${['0x7E0  02 10 03 00 00 00 00 00','0x7E8  06 50 03 00 32 01 F4 AA','0x1A0  11 22 33 44','0x3B5  00 FF 08 10'][i%4]}`,
+ UDS:i=>`${t(i)} ${['→ 10 03  DiagnosticSessionControl','← 50 03 00 32 01 F4','→ 22 F1 90  VIN','← 62 F1 90 57 44 44 …','→ 19 02 08  DTC','← 59 02 FF 00'][i%6]}`,
+ ETH:i=>`${t(i)} ${['DoIP 0x8001 SA 0x0E00→0x0E80','TCP 13400 ACK','SOME/IP svc 0x1234 notif'][i%3]}`,
+};
+function t(i){const s=8800+i;return `#${s} 10:${String(12+Math.floor(i/20)).padStart(2,'0')}:${String((i*3)%60).padStart(2,'0')}`}
+const rows={};CH.forEach(c=>{rows[c.id]=Array.from({length:14},(_,i)=>SAMPLE[c.dom](i))});
+let sel=['uart/ttyUSB0','can/can0','uds/ecu_front'];
+let arrange='auto', latch=false, cursor=null;
+let sets={'부팅-진단':{members:['uart/ttyUSB0','can/can0','uds/ecu_front'],arrange:'auto'},'UART 2개 비교':{members:['uart/ttyUSB0','uart/ttyUSB1'],arrange:'cols'},'CAN 전체 + UDS':{members:['can/can0','can/can1','uds/ecu_front','uds/sim_bcm'],arrange:'auto'}};
+try{const s=JSON.parse(localStorage.getItem('opusDemoSets')||'null');if(s)sets=s}catch(e){}
+const sizes={}; // key -> flex weights
+const $=id=>document.getElementById(id);
+
+// ---------- tabs ----------
+function showTab(task){$('tabView').setAttribute('aria-selected',!task);$('tabTask').setAttribute('aria-selected',task);$('vView').classList.toggle('on',!task);$('vTask').classList.toggle('on',task)}
+$('tabView').onclick=()=>showTab(false);$('tabTask').onclick=()=>showTab(true);
+
+// ---------- picker ----------
+function renderPicker(){
+  const groups={};CH.forEach(c=>(groups[c.dom]=groups[c.dom]||[]).push(c));
+  const set=sets[$('sets').value];
+  $('picker').innerHTML=Object.entries(groups).map(([d,cs])=>`<h3>${d}</h3>`+cs.map(c=>{
+    const usable=c.open||c.history, inSet=set&&set.members.includes(c.id);
+    if(!usable&&!inSet) return '';
+    const ghost=!usable;
+    return `<label class="ch ${ghost?'ghost':''}"><input type="checkbox" data-id="${c.id}" ${sel.includes(c.id)?'checked':''} ${ghost?'disabled':''}>
+      <span><span class="dot ${c.open?'':'closed'}"></span><b>${c.ch}</b> “${c.alias}”<small>${c.dev}${ghost?' · 미연결 (세트 구성원)':!c.open?' · 닫힘 · 기록만':''}</small></span></label>`}).join('')).join('');
+  $('picker').querySelectorAll('input').forEach(i=>i.onchange=()=>{const id=i.dataset.id;sel=i.checked?[...sel,id]:sel.filter(x=>x!==id);renderDock()});
+}
+function renderSets(keep){
+  $('sets').innerHTML=`<option value="">(저장 안 됨)</option>`+Object.keys(sets).map(n=>`<option ${n===keep?'selected':''}>${n}</option>`).join('');
+}
+$('sets').onchange=()=>{const s=sets[$('sets').value];if(s){sel=[...s.members];arrange=s.arrange}renderAll()};
+$('save').onclick=()=>{const n=prompt('세트 이름 (DEMO: 이 브라우저에만 저장)','내 조합');if(!n)return;let name=n,k=2;while(sets[name])name=`${n}-${k++}`;sets[name]={members:[...sel],arrange};try{localStorage.setItem('opusDemoSets',JSON.stringify(sets))}catch(e){}renderSets(name);renderAll()};
+document.querySelectorAll('[data-ar]').forEach(b=>b.onclick=()=>{arrange=b.dataset.ar;renderDock()});
+$('reconnect').onclick=()=>{CH.forEach(c=>{if(c.dom!=='ETH')c.open=c.ch==='can0'});renderAll()};
+$('restore').onclick=()=>{CH.forEach(c=>{if(c.dom!=='ETH')c.open=true});renderAll()};
+
+// ---------- dock (split + resize) ----------
+function visible(){return sel.filter(id=>{const c=CH.find(x=>x.id===id);return c&&(c.open||c.history)})}
+function tree(ids){
+  if(arrange==='cols')return{dir:'row',kids:ids};
+  if(arrange==='rows')return{dir:'col',kids:ids};
+  if(ids.length<=2)return{dir:'row',kids:ids};
+  const per=ids.length<=4?2:3,r=[];for(let i=0;i<ids.length;i+=per)r.push({dir:'row',kids:ids.slice(i,i+per)});
+  return{dir:'col',kids:r};
+}
+function renderDock(){
+  document.querySelectorAll('[data-ar]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ar===arrange));
+  const ids=visible(),dock=$('dock');dock.innerHTML='';
+  const hidden=sel.length-ids.length;
+  $('info').textContent=`${ids.length}개 표시${hidden?` · ${hidden}개 미연결(자리 보존)`:''} · 경계 드래그로 크기 조절`;
+  if(!ids.length){dock.innerHTML='<div class="empty">왼쪽에서 관찰할 채널을 고르세요.<br><small>UART+CAN, CAN+UDS, 3개 이상 자유 조합</small></div>';return}
+  dock.appendChild(build(tree(ids),'r'));
+}
+function build(node,key){
+  if(typeof node==='string')return pane(node);
+  const el=document.createElement('div');el.className='split '+node.dir;
+  const w=sizes[key]=sizes[key]&&sizes[key].length===node.kids.length?sizes[key]:node.kids.map(()=>1);
+  node.kids.forEach((k,i)=>{
+    if(i){const g=document.createElement('div');g.className='gut';g.onmousedown=e=>drag(e,el,node.dir,w,i);el.appendChild(g)}
+    const c=build(k,key+'.'+i);c.style.flex=`${w[i]} 1 0`;el.appendChild(c);
+  });
+  return el;
+}
+function drag(e,el,dir,w,i){
+  e.preventDefault();const kids=[...el.children].filter(c=>!c.classList.contains('gut'));
+  const a=kids[i-1],b=kids[i],ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+  const tot=dir==='row'?ra.width+rb.width:ra.height+rb.height,start=dir==='row'?e.clientX:e.clientY,sa=dir==='row'?ra.width:ra.height,sum=w[i-1]+w[i];
+  const mv=ev=>{const d=(dir==='row'?ev.clientX:ev.clientY)-start;const na=Math.min(tot-60,Math.max(60,sa+d));w[i-1]=sum*na/tot;w[i]=sum-w[i-1];a.style.flex=`${w[i-1]} 1 0`;b.style.flex=`${w[i]} 1 0`};
+  const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up)};
+  addEventListener('mousemove',mv);addEventListener('mouseup',up);
+}
+function pane(id){
+  const c=CH.find(x=>x.id===id),p=document.createElement('div');p.className='pane';
+  const frozen=latch||!c.open;
+  p.innerHTML=`<div class="ph"><span class="dom">${c.dom}</span><b>${c.ch}</b><span style="color:var(--mute)">${c.alias}</span><a href="#" title="기존 서비스 전용뷰(#/s/${c.dom.toLowerCase()})로 이동">전용뷰 ↗</a></div>
+   ${frozen?`<div class="frozen">${latch?'STOP 잠김':'채널 닫힘'} · 기록 ${rows[id][0].split(' ')[0]}–${rows[id].at(-1).split(' ')[0]} 조회만 (쓰기 비활성)</div>`:''}
+   <div class="rows">${rows[id].map(r=>{const s=r.split(' ')[0];return `<div data-seq="${s}" class="${cursor&&near(s)?'hl':''}">${esc(r)}</div>`}).join('')}</div>`;
+  p.querySelectorAll('.rows div').forEach(d=>d.onclick=()=>{cursor=d.dataset.seq;renderDock()});
+  const r=p.querySelector('.rows');requestAnimationFrame(()=>{const h=r.querySelector('.hl');h?h.scrollIntoView({block:'center'}):r.scrollTop=r.scrollHeight});
+  return p;
+}
+function near(s){if(!$('sync').checked)return false;return Math.abs(+s.slice(1)-+cursor.slice(1))<=1}
+function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+$('sync').onchange=renderDock;
+let tick=14;setInterval(()=>{if(latch)return;tick++;CH.forEach(c=>{if(c.open){rows[c.id].push(SAMPLE[c.dom](tick));if(rows[c.id].length>60)rows[c.id].shift()}});if($('vView').classList.contains('on')&&!cursor)renderDock()},2500);
+
+// ---------- tasks (DEMO) ----------
+const TASKS=[
+ {id:'T-0413',title:'ECU 리셋 후 부팅로그·DTC 확인',req:'front ECU 리셋하고 부팅 로그 받아서 DTC 남는지 봐줘',by:'사용자(UI 요청)',agent:'claude-code · client c7f2',state:'running',created:'10:11:02',runner:'shared',lease:{age:1,ttl:15,status:'uart.wait_for "login:" · 12 s / 60 s'},
+  res:[['uds','ecu_front','w'],['uart','ttyUSB0','r'],['can','can0','r']],
+  steps:[{t:'세션 확인: 10 03 진입',s:'done',ev:[['#8800','uds.request 10 03','ok 50 03']]},
+         {t:'ECU Reset 11 01',s:'done',ev:[['#8806','uds.request 11 01','정책에 따라 실행 · 응답 51 01 → 완료']]},
+         {t:'ttyUSB0 "login:" 매치까지 대기 (조건: ≤ 60 s)',s:'active',ev:[['#8810','uart.wait_for "login:"','대기 중 · RPC 없음 정상']]},
+         {t:'DTC 읽기 19 02 08',s:'pending',ev:[]},
+         {t:'보고서 작성',s:'pending',ev:[]}],
+  art:[['log','boot-ttyUSB0-1011.log (진행 중)']],asks:[]},
+ {id:'T-0414',title:'can1 0x3B5 주기 측정',req:'can1에서 0x3B5 주기 지터 5분간 측정',by:'사용자(CLI)',agent:'claude-code · client 91aa',state:'waiting_user',created:'10:13:20',runner:'dedicated',lease:{age:2,ttl:15,status:'명시 질문 응답 대기'},
+  res:[['can','can1','r']],
+  steps:[{t:'필터 설정 0x3B5',s:'done',ev:[['#8790','can.filter.set','ok']]},{t:'5분 캡처',s:'waiting_user',ev:[]},{t:'통계·보고',s:'pending',ev:[]}],
+  art:[],asks:[{why:'명시 질문 · 요청 모호',q:'요청에 데이터속도가 없습니다. can1은 현재 Body FD 500k/2M입니다. 이 설정으로 측정할까요?',opts:['이대로 진행','취소']}]},
+ {id:'T-0409',title:'VIN·SW 버전 수집',req:'ecu_front, sim_bcm VIN과 SW 버전 표로',by:'사용자(UI 요청)',agent:'claude-code · client c7f2',state:'succeeded',created:'09:58:11',
+  res:[['uds','ecu_front','r'],['uds','sim_bcm','r']],
+  steps:[{t:'22 F190 VIN ×2',s:'done',ev:[['#8611','uds.request 22 F1 90','ok ×2']]},{t:'22 F195 SW ×2',s:'done',ev:[['#8614','uds.request 22 F1 95','ok ×2']]},{t:'표 작성',s:'done',ev:[['#8620','task.artifact','ecu-versions.md']]}],
+  art:[['report','ecu-versions.md']],asks:[],outcome:'성공 · 2/2 ECU 응답'},
+ {id:'T-0405',title:'Gateway 쉘 로그 회전 확인',req:'ttyUSB1에서 logrotate 상태 확인',by:'사용자(CLI)',agent:'claude-code · client 91aa',state:'cancelled',created:'09:40:02',
+  res:[['uart','ttyUSB1','w']],steps:[{t:'로그인',s:'done',ev:[['#8402','uart.send "root"','ok']]},{t:'logrotate -d',s:'skipped',ev:[]}],art:[['log','ttyUSB1-0940.log']],asks:[],outcome:'사용자 취소 09:41:30 · 장치 상태 변경 없음'},
+];
+const SLABEL={queued:'대기열',running:'실행 중',waiting_user:'사용자 대기',blocked:'차단(STOP)',cancelling:'취소 중',cancelled:'취소됨',failed:'실패',succeeded:'성공'};
+const STEPL={pending:'예정',active:'진행',waiting_user:'사용자 대기',done:'완료',failed:'실패',skipped:'건너뜀'};
+let curTask='T-0413',filter='all';
+const LIVE=['queued','running','waiting_user','blocked','cancelling'];
+function fresh(t){if(!LIVE.includes(t.state)||!t.lease)return '';const ok=t.lease.age<=t.lease.ttl;return `<span class="fr ${ok?'':'exp'}" title="freshness: 상태와 별개인 부가 표시">${ok?'lease '+t.lease.age+' s 전':'lease 만료 · 상태 미확인'}</span>`}
+function fOK(t){return filter==='all'||(filter==='live'&&LIVE.includes(t.state))||(filter==='user'&&t.state==='waiting_user')||(filter==='done'&&!LIVE.includes(t.state))}
+function renderTasks(){
+  const n=TASKS.filter(t=>t.state==='waiting_user'||t.state==='blocked').length,live=TASKS.filter(t=>LIVE.includes(t.state)).length;
+  $('taskBadge').textContent=live+(n?` · ${n} 대기`:'');
+  $('tlist').innerHTML=TASKS.filter(fOK).map(t=>{const d=t.steps.filter(s=>s.s==='done').length;const last=t.steps.flatMap(s=>s.ev).at(-1);
+   return `<div class="trow" data-id="${t.id}" aria-current="${t.id===curTask}"><div class="t">${t.title}</div>
+   <div class="m"><span class="st ${t.state}">${SLABEL[t.state]}</span><span>단계 ${d}/${t.steps.length}</span><span>${t.id}</span><span>근거 ${last?last[0]:'—'}</span>${fresh(t)}</div></div>`}).join('');
+  $('tlist').querySelectorAll('.trow').forEach(r=>r.onclick=()=>{curTask=r.dataset.id;renderTasks()});
+  renderDetail();
+}
+function renderDetail(){
+  const t=TASKS.find(x=>x.id===curTask);if(!t){$('tdetail').innerHTML='';return}
+  const live=LIVE.includes(t.state);
+  $('tdetail').innerHTML=`<div style="display:flex;gap:8px;align-items:center"><h2>${t.title}</h2><span class="st ${t.state}">${SLABEL[t.state]}</span><span class="sp"></span>
+    <button class="btn cancel" id="cancelT" ${live&&t.state!=='cancelling'?'':'disabled'} title="task-scoped 취소 요청 → 에이전트 ACK. 하드웨어 STOP 잠금과 무관">작업 취소</button>${t.cancelSlow&&t.runner==='dedicated'?'<button class="btn" id="killT" title="전용 task worker일 때만">worker 중단</button>':''}</div>
+   <div class="legend">${t.id} · 요청 ${t.created} · ${t.by} · 실행 ${t.agent} · runner ${t.runner==='dedicated'?'전용 worker':'공유'}</div>
+   ${LIVE.includes(t.state)&&t.lease?`<div class="box">Freshness ${fresh(t)} <span class="legend">status: ${t.lease.status}</span> <button class="btn" id="dropLease">lease 끊김 시뮬</button><div class="legend">task 상태와 별개. 긴 wait/RPC 없음도 lease가 유효하면 정상 진행.</div></div>`:''}
+   ${t.state==='cancelling'?`<div class="box ask">task-scoped 취소 요청 전달 · 에이전트 ACK 대기${t.runner==='shared'?' · 공유 runner: 다른 작업 보호를 위해 프로세스 중단 없음':''}${t.cancelSlow?' · ACK 지연':''}</div>`:''}
+   <div class="req">요청 원문: “${t.req}”</div>
+   ${t.state==='blocked'?`<div class="box ask">하드웨어 STOP 잠김 → 쓰기 단계 차단. 작업은 취소되지 않았습니다. 잠금 해제 후 <b>재개</b> 또는 <b>작업 취소</b>를 고르세요. <button class="btn" id="resumeT" ${latch?'disabled':''}>재개</button></div>`:''}
+   ${t.asks.map((a,i)=>`<div class="box ask"><b>에이전트 질의</b> <span class="legend">(${a.why})</span> — ${a.q}<div style="margin-top:6px">${a.opts.map(o=>`<button class="btn ${o.includes('진행')?'pri':''}" data-ans="${i}|${o}">${o}</button> `).join('')}</div></div>`).join('')}
+   ${t.outcome?`<div class="box"><b>결과</b> — ${t.outcome}</div>`:''}
+   <div class="grid2"><div>
+   <h3>명시된 계획 · 단계</h3>
+   <table><tr><th>#</th><th>단계 (에이전트 선언)</th><th>상태</th><th>관측 근거 (서버 기록 seq)</th></tr>
+   ${t.steps.map((s,i)=>`<tr class="${s.s==='active'||s.s==='waiting_user'?'active':''}"><td>${i+1}</td><td>${s.t}</td><td>${STEPL[s.s]}</td>
+     <td class="mono">${s.ev.map(e=>`<a class="seq" data-seq="${e[0]}">${e[0]}</a> ${e[1]} → ${e[2]}`).join('<br>')||'—'}</td></tr>`).join('')}</table>
+   <div class="legend">seq 클릭 → 통합 보기에서 해당 시점 reveal. LLM 토큰·내부 추론은 수집/표시하지 않음.</div>
+   </div><div>
+   <h3>사용 자원</h3><table>${t.res.map(r=>`<tr><td class="mono">${r[0]}/${r[1]}</td><td>${r[2]==='w'?'쓰기':'읽기'}</td><td>${(CH.find(c=>c.id===r[0]+'/'+r[1])||{}).open?'<span class="dot"></span>open':'<span class="dot closed"></span>닫힘'}</td></tr>`).join('')}</table>
+   <h3>산출물 · 로그</h3><table>${t.art.map(a=>`<tr><td>${a[0]}</td><td class="mono">${a[1]}</td></tr>`).join('')||'<tr><td>—</td></tr>'}</table>
+   <h3>구분</h3><div class="legend"><b>STOP</b>(상단 빨강) = 모든 장치 쓰기 잠금, task는 차단 상태로 보존.<br><b>작업 취소</b> = 이 task만 cooperative 취소 + ACK, 잠금·장치 상태 변경 없음, 산출물 보존. 프로세스 중단은 전용 worker일 때만.<br><b>알림</b> = 필요한 입력이나 정책상 승인이 있으면 알려 드립니다.</div>
+   </div></div>`;
+  const done=(how)=>{t.state='cancelled';t.cancelSlow=false;t.steps.forEach(s=>{if(s.s!=='done')s.s='skipped'});t.outcome=`사용자 취소 · ${how} · 장치 상태 변경 없음 · 산출물 보존`;renderTasks()};
+  $('cancelT').onclick=()=>{t.state='cancelling';renderTasks();
+    if(t.runner==='dedicated'){setTimeout(()=>{if(t.state==='cancelling'){t.cancelSlow=true;renderTasks()}},1500)} // DEMO: 전용 worker는 ACK 지연 → 중단 옵션 노출
+    else setTimeout(()=>{if(t.state==='cancelling')done('task.cancel_ack 수신')},1200)};
+  const kt=$('killT');if(kt)kt.onclick=()=>done('전용 worker 프로세스 중단');
+  const dl=$('dropLease');if(dl)dl.onclick=()=>{t.lease.age=t.lease.ttl+1;t.leaseDropped=true;renderTasks()};
+  const rs=$('resumeT');if(rs)rs.onclick=()=>{t.state='running';renderTasks()};
+  $('tdetail').querySelectorAll('[data-ans]').forEach(b=>b.onclick=()=>{const[i,o]=b.dataset.ans.split('|');t.asks.splice(+i,1);
+    if(o==='취소'){t.state='cancelled';t.outcome='질의에서 사용자 취소'}else{t.state='running';t.steps[1].s='active';t.steps[1].ev.push(['#'+(8800+tick),'can.capture.start','진행 중 · 조건: 300 s'])}renderTasks()});
+  $('tdetail').querySelectorAll('.seq').forEach(a=>a.onclick=()=>{cursor=a.dataset.seq;showTab(false);renderDock()});
+}
+document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;renderTasks()});
+// background progress: continues regardless of active tab
+let prog=12;setInterval(()=>{TASKS.forEach(x=>{if(x.lease&&LIVE.includes(x.state)){x.lease.age=x.leaseDropped?x.lease.age+3:1}});const t=TASKS[0];if(t.state!=='running'||t.leaseDropped){renderTasks();return}const s=t.steps.find(x=>x.s==='active');if(!s)return;prog+=3;
+  if(s.t.includes('login')){t.lease.status=`uart.wait_for "login:" · ${prog} s / 60 s`;if(prog>=24){s.ev[0][2]='매치 “login:” #'+(8800+tick)+' → 조건 충족';s.s='done';t.lease.status='uds.request 19 02 08';t.steps[3].s='active';t.steps[3].ev.push(['#'+(8801+tick),'uds.request 19 02 08','ok 59 02 · DTC 0'])}}
+  else if(s.t.includes('DTC')){s.s='done';t.steps[4].s='active';}
+  else{s.s='done';t.state='succeeded';t.outcome='성공 · DTC 0건 · 부팅 18 s';t.art=[['log','boot-ttyUSB0-1011.log'],['report','reset-dtc-T0413.md']]}
+  renderTasks()},3000);
+
+// ---------- STOP ----------
+$('stop').onclick=()=>{latch=!latch;$('stop').classList.toggle('on',latch);$('stop').textContent=latch?'STOP — 잠김 (DEMO 해제)':'STOP';$('latch').textContent=latch?'하드웨어 쓰기 잠금 · 관찰/기록 유지':'';
+  TASKS.forEach(t=>{if(latch&&['running','waiting_user'].includes(t.state)&&t.res.some(r=>r[2]==='w')){t.prev=t.state;t.state='blocked'}});renderAll()};
+
+function renderAll(){renderPicker();renderDock();renderTasks()}
+renderSets('부팅-진단');renderAll();
+</script>
+</body>
+</html>
