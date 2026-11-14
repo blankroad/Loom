@@ -2,7 +2,7 @@ import { useStoreVersion } from '../store/hooks';
 import { useServices } from './ShellContext';
 import { SERVICE_LABELS, type Route } from './routes';
 
-const INTERFACE_SERVICES = ['uart', 'can', 'eth', 'psu'] as const;
+const INTERFACE_SERVICES = ['uart', 'can', 'eth', 'psu', 'logic'] as const;
 
 /** Navigation is derived from OPEN aliases only; links never operate devices. */
 export function ServiceNav({ route }: { route: Route }) {

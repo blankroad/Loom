@@ -23,6 +23,7 @@ loom-can = { path = "../loom-can", optional = true }
 loom-uds = { path = "../loom-uds", optional = true }
 loom-eth = { path = "../loom-eth", optional = true }
 loom-psu = { path = "../loom-psu", optional = true }
+loom-logic = { path = "../loom-logic", optional = true }
 loom-ui-assets = { path = "../loom-ui-assets" }
 loom-test = { path = "../loom-test", optional = true }
 loom-test-format = { path = "../loom-test-format", optional = true }
@@ -43,7 +44,7 @@ thiserror.workspace = true
 base64.workspace = true
 
 [features]
-default = ["echo", "uart", "can", "uds", "eth", "psu", "test"]
+default = ["echo", "uart", "can", "uds", "eth", "psu", "logic", "test"]
 # Sample domain (sim loopback), registered by `domains.rs`.
 echo = ["dep:loom-echo"]
 uart = ["dep:loom-uart", "dep:loom-uart-worker"]
@@ -51,6 +52,7 @@ can = ["dep:loom-can"]
 uds = ["dep:loom-uds"]
 eth = ["dep:loom-eth"]
 psu = ["dep:loom-psu"]
+logic = ["dep:loom-logic"]
 test = ["dep:loom-test", "dep:loom-test-format"]
 
 [dev-dependencies]

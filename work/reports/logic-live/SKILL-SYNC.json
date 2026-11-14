@@ -1,0 +1,12 @@
+[
+  {
+    "path": ".claude/skills/loom-logic",
+    "symlink": "../../skills/loom-logic",
+    "matches_source": true
+  },
+  {
+    "path": ".agents/skills/loom-logic",
+    "symlink": "../../skills/loom-logic",
+    "matches_source": true
+  }
+]

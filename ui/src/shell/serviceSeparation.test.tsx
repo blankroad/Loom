@@ -3,6 +3,7 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, expect, it } from 'vitest';
 import '../panels/uart/terminalPanel';
+import '../panels/logic/logicPanel';
 import { ev, FakeNet, TEST_HELLO } from '../store/testing/fakeNet';
 import { TabSettings } from '../store/tabSettings';
 import { ChannelBar } from './ChannelBar';
@@ -62,6 +63,24 @@ it('lists only OPEN service domains and counts aliases without navigation RPCs',
   expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['uart/a', 'uart/b']);
   open('uart', 'a', 'closed');
   expect(host.querySelector('a[href="#/s/uart"]')?.textContent).toBe('UART1');
+  expect(net.calls).toEqual([]);
+});
+
+it('lists the logic analyzer service only while a capture is active and routes /s/logic to its captures', () => {
+  const { host, render, net, dock } = mount();
+  const logicLink = () => host.querySelector<HTMLAnchorElement>('.service-nav a[href="#/s/logic"]');
+  const cap = (id: string, state: string) => act(() => net.emitControl(ev({ kind: 'logic.capture_state', domain: 'logic', channel: id, payload: { capture_id: id, state } })));
+  expect(logicLink()).toBeNull(); // logic unused → no service entry
+  cap('lc-old', 'stopped');
+  expect(logicLink()).toBeNull(); // only a finished capture → still hidden
+  cap('lc-1', 'running');
+  expect(logicLink()?.textContent).toBe('로직 분석기1');
+  render('#/s/logic');
+  expect(logicLink()?.getAttribute('aria-current')).toBe('page');
+  expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['logic/lc-1']);
+  expect(leaves(dock().snapshot().root)).toEqual([{ panel: 'logic.analyzer', props: { channel: 'lc-1' } }]);
+  cap('lc-1', 'stopped');
+  expect(logicLink()).toBeNull();
   expect(net.calls).toEqual([]);
 });
 

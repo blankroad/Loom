@@ -51,6 +51,12 @@ function channelState(p: Record<string, unknown>): { state: ChanState; raw: stri
   return { state, raw };
 }
 
+/** logic.capture_state: starting/stopping are an active capture; failed is a finished one whose record stays viewable. */
+const LOGIC_STATE: Record<string, ChanState> = { starting: 'open', running: 'open', stopping: 'open', stopped: 'closed', failed: 'closed' };
+function domainState(domain: string, raw: string, state: ChanState): ChanState {
+  return domain === 'logic' ? (LOGIC_STATE[raw] ?? state) : state;
+}
+
 export function readChannelSignal(ev: LoomEvent): ChannelSignal | null {
   if (!isStateKind(ev.kind)) return null;
   const domain = ev.domain || ev.kind.slice(0, ev.kind.indexOf('.'));
@@ -59,7 +65,9 @@ export function readChannelSignal(ev: LoomEvent): ChannelSignal | null {
   if (p.write_state !== undefined) return null;
   const channel = ev.channel ?? str(p.channel) ?? str(p.target) ?? str(p.interface) ?? str(p.ch);
   if (!channel || !CHANNEL_RE.test(channel)) return null;
-  const { state, raw } = channelState(p);
+  const cs = channelState(p);
+  const raw = cs.raw;
+  const state = domainState(domain, raw, cs.state);
   const explicit = state !== 'unknown' && (/^(opened|open|closed|close)$/.test(raw) || typeof p.opened === 'boolean' || typeof p.connected === 'boolean' || ev.kind.endsWith('.channel_state'));
   const gen = typeof ev.generation === 'number' ? ev.generation : typeof p.generation === 'number' ? p.generation : null;
   return { domain, channel, state, explicit, generation: gen, origin: ev.origin, actor: ev.actor_id ?? ev.client_id ?? null };
@@ -90,7 +98,8 @@ export function readSnapshotChannel(item: unknown): { domain: string; channel: s
   // Innermost state is authoritative; an envelope itself proves no connectivity.
   let state: ChanState = 'unknown';
   for (const p of layers.toReversed()) {
-    state = channelState(p).state;
+    const cs = channelState(p);
+    state = domainState(domain, cs.raw, cs.state);
     if (state !== 'unknown') break;
   }
   return { domain, channel, state };
@@ -118,7 +127,7 @@ export interface ChannelView {
   props: Record<string, string>;
 }
 
-export const EXPLORER_DOMAINS = ['uart', 'can', 'uds', 'eth', 'psu'] as const;
+export const EXPLORER_DOMAINS = ['uart', 'can', 'uds', 'eth', 'psu', 'logic'] as const;
 
 export function viewsForChannel(domain: string, channel: string): ChannelView[] {
   switch (domain) {
@@ -135,6 +144,8 @@ export function viewsForChannel(domain: string, channel: string): ChannelView[] 
       return [{ panel: 'eth.packets', label: '패킷 · 캡처', props: { channel } }];
     case 'psu':
       return [{ panel: 'psu.gauge', label: '전압 · 전류', props: { channel } }];
+    case 'logic': // channel = capture_id (logic.capture_state running → open, stopped → closed)
+      return [{ panel: 'logic.analyzer', label: '파형 · 디코드', props: { channel } }];
     default:
       return [];
   }

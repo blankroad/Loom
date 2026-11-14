@@ -5,5 +5,6 @@ import './uart/tracePanel';
 import './uds/consolePanel';
 import './eth/ethPanel';
 import './psu/gaugePanel';
+import './logic/logicPanel';
 import { registerCanPanels } from './can';
 registerCanPanels();

@@ -56,6 +56,8 @@ pub fn domains() -> Vec<Box<dyn DynDomainCli>> {
         Box::new(loom_cli_kit::CliOf::<loom_psu::cli::PsuCli>::new()),
         #[cfg(feature = "test")]
         Box::new(loom_cli_kit::CliOf::<loom_test::cli::TestCli>::new()),
+        #[cfg(feature = "logic")]
+        Box::new(loom_cli_kit::CliOf::<loom_logic::cli::LogicCli>::new()),
     ]
 }
 
@@ -974,6 +976,11 @@ mod argument_tests {
         cases.push((vec!["loom", "eth", "trace", "--timeout", "25ms"], 30000));
         #[cfg(feature = "test")]
         cases.push((vec!["loom", "test", "wait", "s", "--timeout", "3s"], 30000));
+        #[cfg(feature = "logic")]
+        cases.push((
+            vec!["loom", "logic", "wait", "--text", "4C", "--timeout", "3s"],
+            30000,
+        ));
         for (args, millis) in cases {
             let m = command(&ds).try_get_matches_from(args.clone()).unwrap();
             assert_eq!(

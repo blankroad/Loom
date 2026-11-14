@@ -994,6 +994,7 @@ dependencies = [
  "loom-cli-kit",
  "loom-echo",
  "loom-eth",
+ "loom-logic",
  "loom-proto",
  "loom-psu",
  "loom-test",
@@ -1125,6 +1126,7 @@ dependencies = [
  "loom-echo",
  "loom-eth",
  "loom-journal",
+ "loom-logic",
  "loom-proto",
  "loom-psu",
  "loom-test",
@@ -1159,6 +1161,21 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "loom-logic"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "loom-cli-kit",
+ "loom-domain-api",
+ "loom-proto",
+ "loom-testkit",
+ "loom-worker-sdk",
+ "schemars",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

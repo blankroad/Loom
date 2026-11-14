@@ -53,6 +53,10 @@ const FILES: &[(&str, &str)] = &[
         "loom-test/SKILL.md",
         include_str!("../../../skills/loom-test/SKILL.md"),
     ),
+    (
+        "loom-logic/SKILL.md",
+        include_str!("../../../skills/loom-logic/SKILL.md"),
+    ),
 ];
 const NAMES: &[&str] = &[
     "loom",
@@ -62,6 +66,7 @@ const NAMES: &[&str] = &[
     "loom-eth",
     "loom-psu",
     "loom-test",
+    "loom-logic",
 ];
 
 pub fn command() -> Command {

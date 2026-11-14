@@ -1,0 +1,12 @@
+{
+  "loomd": {
+    "sha256": "110bd61811c4279ef057c77fa16f49d545b62227b694f3bd8184424d12ef077a",
+    "path": "/Users/ctmctm/workspace/Loom/target/debug/loomd",
+    "default_features": true
+  },
+  "loom": {
+    "sha256": "5299254a4306f5082f18742729f1dfa8c7d8fe1c9d4b5e90d728dbbaf53e15b8",
+    "path": "/Users/ctmctm/workspace/Loom/target/debug/loom",
+    "default_features": true
+  }
+}

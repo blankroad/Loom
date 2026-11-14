@@ -1,0 +1,583 @@
+{
+  "capture_id": "lc-1a1d8c3de41-3",
+  "ui_wall_ms": 1794638079919,
+  "ui_state": "running",
+  "ui_visibility": "visible",
+  "raw_events": [
+    {
+      "epoch": "1794638023",
+      "seq": "186",
+      "sample_start": 0,
+      "sample_end": 21775,
+      "edges": 1024,
+      "payload_bytes": 9886,
+      "received_wall_ns": 1794638077834086000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "192",
+      "sample_start": 21775,
+      "sample_end": 42337,
+      "edges": 1024,
+      "payload_bytes": 12022,
+      "received_wall_ns": 1794638077857619000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "196",
+      "sample_start": 42337,
+      "sample_end": 63476,
+      "edges": 1024,
+      "payload_bytes": 12024,
+      "received_wall_ns": 1794638078083649000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "200",
+      "sample_start": 63476,
+      "sample_end": 85105,
+      "edges": 1024,
+      "payload_bytes": 12024,
+      "received_wall_ns": 1794638078102098000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "204",
+      "sample_start": 85105,
+      "sample_end": 106698,
+      "edges": 1024,
+      "payload_bytes": 12025,
+      "received_wall_ns": 1794638078326722000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "213",
+      "sample_start": 106698,
+      "sample_end": 128563,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638078342105000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "218",
+      "sample_start": 128563,
+      "sample_end": 149900,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638078569944000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "222",
+      "sample_start": 149900,
+      "sample_end": 171572,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638078592552000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "224",
+      "sample_start": 171572,
+      "sample_end": 200714,
+      "edges": 1024,
+      "payload_bytes": 13049,
+      "received_wall_ns": 1794638078812203000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "227",
+      "sample_start": 200714,
+      "sample_end": 214185,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638078812203000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "229",
+      "sample_start": 214185,
+      "sample_end": 235400,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079029030000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "231",
+      "sample_start": 235400,
+      "sample_end": 260746,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079035669000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "233",
+      "sample_start": 260746,
+      "sample_end": 278090,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079257221000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "235",
+      "sample_start": 278090,
+      "sample_end": 307394,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079257221000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "240",
+      "sample_start": 307394,
+      "sample_end": 342115,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638079478654000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "242",
+      "sample_start": 342115,
+      "sample_end": 350307,
+      "edges": 1024,
+      "payload_bytes": 13049,
+      "received_wall_ns": 1794638079478654000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "245",
+      "sample_start": 350307,
+      "sample_end": 367703,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638079484951000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "248",
+      "sample_start": 367703,
+      "sample_end": 393625,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079704277000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "250",
+      "sample_start": 393625,
+      "sample_end": 406955,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079714480000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "253",
+      "sample_start": 406955,
+      "sample_end": 428974,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638079933335000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "255",
+      "sample_start": 428974,
+      "sample_end": 450149,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638079941364000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "258",
+      "sample_start": 450149,
+      "sample_end": 471492,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638080165811000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "260",
+      "sample_start": 471492,
+      "sample_end": 496981,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638080165811000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "264",
+      "sample_start": 496981,
+      "sample_end": 518624,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638080383049000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "266",
+      "sample_start": 518624,
+      "sample_end": 534802,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638080388935000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "268",
+      "sample_start": 534802,
+      "sample_end": 556682,
+      "edges": 1024,
+      "payload_bytes": 13051,
+      "received_wall_ns": 1794638080601145000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "271",
+      "sample_start": 556682,
+      "sample_end": 594917,
+      "edges": 1024,
+      "payload_bytes": 13052,
+      "received_wall_ns": 1794638080607386000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "274",
+      "sample_start": 594917,
+      "sample_end": 603939,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638080826738000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "276",
+      "sample_start": 603939,
+      "sample_end": 625212,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638080826738000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "279",
+      "sample_start": 625212,
+      "sample_end": 650785,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638081048697000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "284",
+      "sample_start": 650785,
+      "sample_end": 664122,
+      "edges": 1024,
+      "payload_bytes": 13050,
+      "received_wall_ns": 1794638081048697000
+    }
+  ],
+  "matched_rows": [
+    {
+      "ui": {
+        "key": "spi-1:250180:250212:AA",
+        "cells": [
+          "250,180\u2013250,212",
+          "1.2509 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 250212,
+          "gap_before": 20,
+          "start_sample": 250180,
+          "t_end_ns": 1251060000,
+          "t_start_ns": 1250900000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:250884:250916:AA",
+        "cells": [
+          "250,884\u2013250,916",
+          "1.2544 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 250916,
+          "gap_before": 21,
+          "start_sample": 250884,
+          "t_end_ns": 1254580000,
+          "t_start_ns": 1254420000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:251556:251588:AA",
+        "cells": [
+          "251,556\u2013251,588",
+          "1.2578 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 251588,
+          "gap_before": 20,
+          "start_sample": 251556,
+          "t_end_ns": 1257940000,
+          "t_start_ns": 1257780000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:252228:252260:AA",
+        "cells": [
+          "252,228\u2013252,260",
+          "1.2611 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 252260,
+          "gap_before": 20,
+          "start_sample": 252228,
+          "t_end_ns": 1261300000,
+          "t_start_ns": 1261140000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:252868:252900:AA",
+        "cells": [
+          "252,868\u2013252,900",
+          "1.2643 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 252900,
+          "gap_before": 19,
+          "start_sample": 252868,
+          "t_end_ns": 1264500000,
+          "t_start_ns": 1264340000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:253572:253604:AA",
+        "cells": [
+          "253,572\u2013253,604",
+          "1.2679 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 253604,
+          "gap_before": 21,
+          "start_sample": 253572,
+          "t_end_ns": 1268020000,
+          "t_start_ns": 1267860000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:254244:254276:AA",
+        "cells": [
+          "254,244\u2013254,276",
+          "1.2712 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 254276,
+          "gap_before": 20,
+          "start_sample": 254244,
+          "t_end_ns": 1271380000,
+          "t_start_ns": 1271220000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:254916:254948:AA",
+        "cells": [
+          "254,916\u2013254,948",
+          "1.2746 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 254948,
+          "gap_before": 20,
+          "start_sample": 254916,
+          "t_end_ns": 1274740000,
+          "t_start_ns": 1274580000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:255588:255620:AA",
+        "cells": [
+          "255,588\u2013255,620",
+          "1.2779 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 255620,
+          "gap_before": 20,
+          "start_sample": 255588,
+          "t_end_ns": 1278100000,
+          "t_start_ns": 1277940000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:256260:256292:AA",
+        "cells": [
+          "256,260\u2013256,292",
+          "1.2813 s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "AA"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "230",
+        "source_seq": "152",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 256292,
+          "gap_before": 20,
+          "start_sample": 256260,
+          "t_end_ns": 1281460000,
+          "t_start_ns": 1281300000,
+          "text": "AA"
+        },
+        "received_wall_ns": 1794638079035669000
+      }
+    }
+  ],
+  "pass": true,
+  "stop_event_wall_ns": 1794638080953258000,
+  "matched_rows_received_by_agent_before_stop": 10,
+  "ui_captured_before_stop": true
+}

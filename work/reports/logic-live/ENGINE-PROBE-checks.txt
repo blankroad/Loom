@@ -1,0 +1,8 @@
+uart: PASS bounded/reaped and pre-EOF where applicable
+spi: PASS bounded/reaped and pre-EOF where applicable
+demo-tee: PASS bounded/reaped and pre-EOF where applicable
+demo-signal: PASS bounded/reaped and pre-EOF where applicable
+truncated: PASS bounded/reaped and pre-EOF where applicable
+UART expected values: PASS
+SPI expected values: PASS
+9-channel second-byte bit8 mapping: PASS

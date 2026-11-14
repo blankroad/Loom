@@ -3,15 +3,18 @@ import { EXPLORER_DOMAINS } from '../../store/channels';
 import type { Slot, WorkspaceChannel } from '../routes';
 import { isSplit, isTabs, type LayoutNode, type LoomLayout } from './layoutModel';
 
-/** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show).
- * Their already-open or explicitly reopened views survive a normal close; presets never auto-open them. */
-const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth']);
+/** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show;
+ * a stopped logic capture keeps its waveform + decode records). Their already-open or explicitly reopened
+ * views survive a normal close; presets never auto-open them. */
+const HISTORY_AFTER_CLOSE: ReadonlySet<string> = new Set(['eth', 'logic']);
 export const retainsHistoryAfterClose = (domain: string): boolean => HISTORY_AFTER_CLOSE.has(domain);
 
 export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, hasTestSession = false): Slot | null {
   if (slot.panel === 'shell.test') return hasTestSession ? slot : null;
   const domain = slot.panel.split('.')[0] ?? '';
   if (!(EXPLORER_DOMAINS as readonly string[]).includes(domain)) return slot;
+  // the standalone analyzer (no capture pinned) is a workbench, not a device view: always usable
+  if (slot.panel === 'logic.analyzer' && slot.props.channel === undefined) return slot;
   const keep = (c: WorkspaceChannel) => c.state === 'open' || (c.state === 'closed' && HISTORY_AFTER_CLOSE.has(domain));
   const active = new Set([...channels].filter((c) => c.domain === domain && keep(c)).map((c) => c.channel));
   if (domain === 'uds') {

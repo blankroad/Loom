@@ -1,0 +1,10 @@
+{
+  "wall_ms": 1794638082172,
+  "visibility": "visible",
+  "state": "stopped",
+  "status": "최신 캡처 따라가기 (lc-1a1d8c3de41-3)lc-1a1d8c3de41-3 · 정지됨lc-1a1d8c3a579-2 · 정지됨lc-1a1d8c374f6-1 · 정지됨● 정지됨sigrok demo 드라이버driver demo · 200 kHz · 8ch · 디코더 spi:clk=D0:mosi=D1:cpol=0:cpha=0:wordsize=8:bitorder=msb-first:cs_polarity=active-low:annotate=mosi · 상한 60 s · 시작 AGT■ 캡처 정지",
+  "range": "3.311 s – 3.321 s · 2.2 smp/px",
+  "counters": "샘플 664,122 (3.32 s)전이 31,744디코드 10,251전이 생략 632,377디코드 손실 10,502잘린 줄 0해석 못 한 줄 0형식 오류 0스트림 손실 0수신 지연 —",
+  "stopDisabled": true,
+  "rows": 10
+}

@@ -184,6 +184,15 @@ pub fn builtin() -> Vec<Loaded> {
             &[(loom_psu::WORKER_KIND, psu, None)],
         );
     }
+    #[cfg(feature = "logic")]
+    {
+        inproc!(logic, loom_logic::DOMAIN, loom_logic::worker::LogicWorker::new());
+        load(
+            &mut out,
+            &loom_logic::gateway::Logic,
+            &[(loom_logic::WORKER_KIND, logic, None)],
+        );
+    }
     // TEST last: its command/risk table and verifiers come from the domains registered above.
     #[cfg(feature = "test")]
     {
@@ -217,6 +226,8 @@ pub fn worker_main(kind: &str) -> bool {
         loom_eth::WORKER_KIND => loom_worker_sdk::run_worker(loom_eth::worker::EthWorker::new()),
         #[cfg(feature = "psu")]
         loom_psu::WORKER_KIND => loom_worker_sdk::run_worker(loom_psu::worker::PsuWorker::default()),
+        #[cfg(feature = "logic")]
+        loom_logic::WORKER_KIND => loom_worker_sdk::run_worker(loom_logic::worker::LogicWorker::new()),
         _ => false,
     }
 }

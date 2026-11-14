@@ -1,0 +1,23 @@
+{
+  "owned_daemons_stopped": true,
+  "worker_shutdown_missing": [],
+  "mockup_http_server_stopped": 64745,
+  "ego_space_23_finished": true,
+  "normal_agent_exit_and_closed_workspaces": [
+    "w1S",
+    "w1T",
+    "w1V",
+    "w1W",
+    "w1X"
+  ],
+  "main_w8_preserved": true,
+  "removed_owned_paths": [
+    "/tmp/loom-logic-build",
+    "/var/folders/ln/bc49b46j5w932sv2klk5zdjh0000gn/T/loom-logic-live-qa-97hll6mt",
+    "/private/tmp/claude-501/-Users-ctmctm-workspace-Loom/52a094b6-6928-4c11-9e54-058cbfd3d679/scratchpad/logic-dist"
+  ],
+  "final_binaries": "target/debug/loom and loomd preserved; FINAL-BINARIES.json",
+  "sigrok_runtime_dependency": "kept installed",
+  "unrelated_worktree_changes": "preserved",
+  "accidental_default_daemon_55482": "PID verified, stopped; no device opened"
+}

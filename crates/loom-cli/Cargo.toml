@@ -23,12 +23,13 @@ loom-uart = { path = "../loom-uart", default-features = false, features = ["cli"
 loom-can = { path = "../loom-can", default-features = false, features = ["cli"], optional = true }
 loom-eth = { path = "../loom-eth", default-features = false, features = ["cli"], optional = true }
 loom-psu = { path = "../loom-psu", default-features = false, features = ["cli"], optional = true }
+loom-logic = { path = "../loom-logic", default-features = false, features = ["cli"], optional = true }
 
 loom-uds = { path = "../loom-uds", default-features = false, features = ["cli"], optional = true }
 loom-test = { path = "../loom-test", default-features = false, features = ["cli"], optional = true }
 
 [features]
-default = ["echo", "uart", "can", "uds", "eth", "psu", "test"]
+default = ["echo", "uart", "can", "uds", "eth", "psu", "test", "logic"]
 echo = ["dep:loom-echo"]
 uart = ["dep:loom-uart"]
 can = ["dep:loom-can"]
@@ -36,6 +37,7 @@ eth = ["dep:loom-eth"]
 psu = ["dep:loom-psu"]
 uds = ["dep:loom-uds"]
 test = ["dep:loom-test"]
+logic = ["dep:loom-logic"]
 
 [dev-dependencies]
 tempfile.workspace = true

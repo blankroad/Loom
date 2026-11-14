@@ -1,0 +1,465 @@
+{
+  "capture_id": "lc-1a1d8c3a579-2",
+  "ui_wall_ms": 1794638064020,
+  "ui_state": "running",
+  "ui_visibility": "visible",
+  "raw_events": [
+    {
+      "epoch": "1794638023",
+      "seq": "109",
+      "sample_start": 0,
+      "sample_end": 106210,
+      "edges": 420,
+      "payload_bytes": 4265,
+      "received_wall_ns": 1794638063211503000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "117",
+      "sample_start": 106210,
+      "sample_end": 219803,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063211503000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "120",
+      "sample_start": 219803,
+      "sample_end": 326291,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063423343000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "122",
+      "sample_start": 326291,
+      "sample_end": 432845,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063423343000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "125",
+      "sample_start": 432845,
+      "sample_end": 539393,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063633071000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "127",
+      "sample_start": 539393,
+      "sample_end": 644264,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063633071000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "129",
+      "sample_start": 644264,
+      "sample_end": 750206,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063846075000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "131",
+      "sample_start": 750206,
+      "sample_end": 852435,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638063846075000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "134",
+      "sample_start": 852435,
+      "sample_end": 963699,
+      "edges": 210,
+      "payload_bytes": 2478,
+      "received_wall_ns": 1794638064061756000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "136",
+      "sample_start": 963699,
+      "sample_end": 1069359,
+      "edges": 210,
+      "payload_bytes": 2689,
+      "received_wall_ns": 1794638064061756000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "141",
+      "sample_start": 1069359,
+      "sample_end": 1183444,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064272485000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "143",
+      "sample_start": 1183444,
+      "sample_end": 1292810,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064272485000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "145",
+      "sample_start": 1292810,
+      "sample_end": 1395696,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064486228000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "147",
+      "sample_start": 1395696,
+      "sample_end": 1502802,
+      "edges": 420,
+      "payload_bytes": 5211,
+      "received_wall_ns": 1794638064486228000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "149",
+      "sample_start": 1502802,
+      "sample_end": 1605078,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064698199000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "151",
+      "sample_start": 1605078,
+      "sample_end": 1717143,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064698199000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "154",
+      "sample_start": 1717143,
+      "sample_end": 1830958,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638064915104000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "156",
+      "sample_start": 1830958,
+      "sample_end": 1941963,
+      "edges": 210,
+      "payload_bytes": 2691,
+      "received_wall_ns": 1794638065130243000
+    },
+    {
+      "epoch": "1794638023",
+      "seq": "161",
+      "sample_start": 1941963,
+      "sample_end": 1999670,
+      "edges": 0,
+      "payload_bytes": 172,
+      "received_wall_ns": 1794638065130243000
+    }
+  ],
+  "matched_rows": [
+    {
+      "ui": {
+        "key": "spi-1:550:710:54",
+        "cells": [
+          "550\u2013710",
+          "550 \u00b5s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "54"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 710,
+          "start_sample": 550,
+          "t_end_ns": 710000,
+          "t_start_ns": 550000,
+          "text": "54"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:710:870:45",
+        "cells": [
+          "710\u2013870",
+          "710 \u00b5s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "45"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 870,
+          "start_sample": 710,
+          "t_end_ns": 870000,
+          "t_start_ns": 710000,
+          "text": "45"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:870:1030:53",
+        "cells": [
+          "870\u20131,030",
+          "870 \u00b5s",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "53"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1030,
+          "start_sample": 870,
+          "t_end_ns": 1030000,
+          "t_start_ns": 870000,
+          "text": "53"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1030:1190:50",
+        "cells": [
+          "1,030\u20131,190",
+          "1.03 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "50"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1190,
+          "start_sample": 1030,
+          "t_end_ns": 1190000,
+          "t_start_ns": 1030000,
+          "text": "50"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1190:1350:49",
+        "cells": [
+          "1,190\u20131,350",
+          "1.19 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "49"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1350,
+          "start_sample": 1190,
+          "t_end_ns": 1350000,
+          "t_start_ns": 1190000,
+          "text": "49"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1350:1510:20",
+        "cells": [
+          "1,350\u20131,510",
+          "1.35 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "20"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1510,
+          "start_sample": 1350,
+          "t_end_ns": 1510000,
+          "t_start_ns": 1350000,
+          "text": "20"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1510:1670:30",
+        "cells": [
+          "1,510\u20131,670",
+          "1.51 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "30"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1670,
+          "start_sample": 1510,
+          "t_end_ns": 1670000,
+          "t_start_ns": 1510000,
+          "text": "30"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1670:1830:30",
+        "cells": [
+          "1,670\u20131,830",
+          "1.67 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "30"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1830,
+          "start_sample": 1670,
+          "t_end_ns": 1830000,
+          "t_start_ns": 1670000,
+          "text": "30"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1830:1990:30",
+        "cells": [
+          "1,830\u20131,990",
+          "1.83 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "30"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 1990,
+          "start_sample": 1830,
+          "t_end_ns": 1990000,
+          "t_start_ns": 1830000,
+          "text": "30"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    },
+    {
+      "ui": {
+        "key": "spi-1:1990:2150:30",
+        "cells": [
+          "1,990\u20132,150",
+          "1.99 ms",
+          "160 \u00b5s",
+          "spi-1",
+          "\u2014",
+          "30"
+        ]
+      },
+      "agent": {
+        "epoch": "1794638023",
+        "seq": "108",
+        "source_seq": "66",
+        "annotation": {
+          "class": null,
+          "decoder": "spi-1",
+          "end_sample": 2150,
+          "start_sample": 1990,
+          "t_end_ns": 2150000,
+          "t_start_ns": 1990000,
+          "text": "30"
+        },
+        "received_wall_ns": 1794638063211503000
+      }
+    }
+  ],
+  "pass": true,
+  "stop_event_wall_ns": 1794638064970419000,
+  "matched_rows_received_by_agent_before_stop": 10,
+  "ui_captured_before_stop": true
+}
