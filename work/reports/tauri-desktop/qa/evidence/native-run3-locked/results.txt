@@ -1,0 +1,4 @@
+PASS|start|absent daemon started from bundled loomd pid=41514 in 1s
+FAIL|start|no visible viewer within 30s
+NOTE|env|07:48 start viewer-visible FAIL = ENVIRONMENT: console session LOCKED + display asleep (loginwindow layer 2004 over QA on-top window layer 5); WebKit hidden is correct; presence fix reports visible:0 honestly
+PASS|start-resume|channel dut opened; CLI round trip 'qa-cli-074852' (visibility=not_visible)

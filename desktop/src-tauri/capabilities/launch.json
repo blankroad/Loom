@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "launch",
+  "description": "Local launch/error page only: read launch state and retry. No remote URLs.",
+  "local": true,
+  "windows": ["main"],
+  "permissions": ["allow-launch-state", "allow-retry"]
+}

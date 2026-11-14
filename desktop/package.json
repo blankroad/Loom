@@ -1,0 +1,15 @@
+{
+  "name": "loom-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tauri bundler for the Loom macOS desktop app (task-local CLI; no global install)",
+  "scripts": {
+    "tauri": "tauri",
+    "build:app": "CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-/tmp/loom-tauri-build} tauri build --bundles app",
+    "build:app:debug": "CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-/tmp/loom-tauri-build} tauri build --debug --bundles app",
+    "dist": "npm run build:app && rm -rf dist/Loom.app && mkdir -p dist && ditto \"${CARGO_TARGET_DIR:-/tmp/loom-tauri-build}/release/bundle/macos/Loom.app\" dist/Loom.app && codesign --verify --deep dist/Loom.app && echo \"desktop/dist/Loom.app ready\""
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

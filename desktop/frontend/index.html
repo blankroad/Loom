@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loom</title>
+    <link rel="stylesheet" href="launch.css" />
+  </head>
+  <body>
+    <main class="card" aria-live="polite">
+      <h1>Loom</h1>
+      <div id="connecting" class="panel">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="lead">Connecting to the Loom daemon…</p>
+        <p class="muted" id="connecting-home"></p>
+      </div>
+      <div id="failed" class="panel" hidden>
+        <p class="lead error">Could not connect to the Loom daemon</p>
+        <pre id="message" class="message"></pre>
+        <dl class="facts">
+          <dt>Loom home</dt><dd id="home"></dd>
+          <dt>Daemon binary</dt><dd id="daemon-bin"></dd>
+        </dl>
+        <button id="retry" type="button">Retry</button>
+      </div>
+      <div id="connected" class="panel" hidden>
+        <p class="lead">Opening the Loom UI…</p>
+      </div>
+    </main>
+    <script src="launch.js"></script>
+  </body>
+</html>

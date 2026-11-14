@@ -1,0 +1,3 @@
+loom-desktop: e2e WebDriver server on 127.0.0.1:47942 (test build)
+loom-desktop: connect failed: The Loom daemon is not running and the bundled daemon /var/folders/ln/bc49b46j5w932sv2klk5zdjh0000gn/T//lqe.a2iH4T/bin/loomd is missing or not executable. Reinstall Loom Desktop, or start the daemon with `loom daemon start` and retry.
+loom-desktop: started loomd pid 33878 on port 50289 (home /var/folders/ln/bc49b46j5w932sv2klk5zdjh0000gn/T//lqe.a2iH4T)

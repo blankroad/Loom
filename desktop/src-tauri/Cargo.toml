@@ -1,0 +1,33 @@
+[package]
+name = "loom-desktop"
+description = "Native macOS shell hosting the Loom UI served by loomd"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "loom-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2.6.1", features = [] }
+
+[dependencies]
+tauri = { version = "2.11.1", features = [] }
+serde = { version = "1.0.228", features = ["derive"] }
+loom-desktop-host = { path = "../host" }
+# Test-only in-app W3C WebDriver server (127.0.0.1, unauthenticated). Optional: never in default,
+# dist or release bundles; enabled only by `--features e2e` on debug builds (ROOT-approved).
+tauri-plugin-wdio-webdriver = { version = "=1.5.1", optional = true }
+
+[features]
+# `cargo build` (dev) loads frontend/ from disk; bundles enable custom-protocol (tauri-cli does this).
+custom-protocol = ["tauri/custom-protocol"]
+# Test-only native UI automation (official WebdriverIO Tauri embedded provider): links the in-app
+# WebDriver server (127.0.0.1 only). Debug builds only: `e2e` + release is a compile error, and the
+# server starts only when LOOM_DESKTOP_QA_WEBDRIVER_PORT or TAURI_WEBDRIVER_PORT is set.
+# NEVER enable for desktop/dist or any release bundle.
+e2e = ["dep:tauri-plugin-wdio-webdriver"]
+# Alias kept for QA's build-app.sh request (REQUEST-APP-QA-WEBDRIVER.md).
+qa-webdriver = ["e2e"]

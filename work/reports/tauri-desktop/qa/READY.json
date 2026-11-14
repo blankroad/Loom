@@ -1,0 +1,41 @@
+{
+  "owner": "tauri-qa-opus",
+  "state": "PENDING_NATIVE_CHECKPOINT",
+  "blocker": "console session locked + display asleep; user unlock pending",
+  "scope": [
+    "desktop/scripts/**",
+    "desktop/README.md",
+    "work/reports/tauri-desktop/qa/**"
+  ],
+  "verified": [
+    "staging+embedded UI identity",
+    "e2e QA bundle",
+    "desktop/dist strict signature + identity",
+    "absent-daemon start",
+    "quit persistence",
+    "relaunch reuse",
+    "error/Retry",
+    "presence fix native",
+    "credential hygiene",
+    "browser parity"
+  ],
+  "pending": [
+    "WK RX render",
+    "keys+Tab to device",
+    "CLI->UI live",
+    "late-join render",
+    "final native screenshots"
+  ],
+  "unverified": [
+    "native menu Reconnect",
+    "CUA/AX input"
+  ],
+  "processes_left": {},
+  "user_processes_touched": false,
+  "resume": "work/reports/tauri-desktop/qa/RESUME.md",
+  "kept": [
+    "/tmp/loom-tauri-build/qa/Loom-QA.app",
+    "work/reports/tauri-desktop/qa/evidence/**"
+  ],
+  "ego_spaces_left_by_qa": []
+}

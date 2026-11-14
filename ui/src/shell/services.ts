@@ -389,6 +389,9 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
       const vis = () => reporter.setVisible(!document.hidden);
       document.addEventListener('visibilitychange', vis);
       offs.push(() => document.removeEventListener('visibilitychange', vis));
+      // A page that loads already hidden (background tab, occluded native window) never gets a
+      // visibilitychange: sync once so presence is not reported visible while nothing renders.
+      vis();
     }
     return () => {
       offs.forEach((f) => f());

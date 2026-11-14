@@ -1,0 +1,53 @@
+{
+  "state": "IMPLEMENTED; NATIVE_VISIBLE_ACCEPTANCE_PENDING_USER_UNLOCK — not DONE",
+  "baseline": "c7112c6",
+  "task": "Native Tauri app, Opus5.5 parallel",
+  "root": "orchestration/review/index only",
+  "workers": {
+    "tauri-app-opus": {
+      "workspace": "w2H",
+      "pane": "w2H:p1",
+      "session": "24eb9fe0-ed43-4741-a8f9-0a0caf86a73b",
+      "owns": "desktop except host/scripts/README",
+      "state": "Implementation + UI presence regression fix returned; normal exit verified, w2H closed"
+    },
+    "tauri-host-opus": {
+      "workspace": "w2J",
+      "pane": "w2J:p1",
+      "session": "7b7e1ac1-e3d1-4254-91db-f0f3445347d8",
+      "owns": "desktop/host",
+      "state": "DONE host implementation + 23 tests + independent app/packaging review; normal exit verified, w2J closed"
+    },
+    "tauri-qa-opus": {
+      "workspace": "w2K",
+      "pane": "w2K:p1",
+      "session": "75228f2f-6a9a-46c8-ba97-2b52093e7c01",
+      "owns": "desktop/scripts README + isolated native QA",
+      "state": "PENDING_NATIVE checkpoint returned; all own fixtures/Ego cleaned; normal exit verified, w2K closed"
+    }
+  },
+  "preserve": "MAINw8, unrelated dirty files/user daemons/browser tabs",
+  "shared_build_target": "/tmp/loom-tauri-build",
+  "browser": "exclusive QA worker",
+  "native_validation": "CUA binding cgWindowNotFound despite CG onscreen window; QA preparing actual WKWebView test automation fallback, native RX/keys not yet PASS",
+  "checks": {
+    "root_rust_workspace": "34 tests passed including actual loomd lifecycle",
+    "ui_worker_suite": "624 tests passed, typecheck/lint clean (Opus app owner)",
+    "root_verify_dist": "PASS strict ad-hoc signature, no webdriver, daemon code identity, 6/6 embedded UI assets",
+    "source": "git diff --check clean",
+    "screen": "locked=true displayAsleep=true (actual OS state; no bypass)"
+  },
+  "artifacts": {
+    "app": "desktop/dist/Loom.app (local artifact, gitignored, 87MiB; release shell + verified debug daemon)",
+    "qa_app": "/tmp/loom-tauri-build/qa/Loom-QA.app (debug e2e only; never distribute)",
+    "resume": "work/reports/tauri-desktop/qa/RESUME.md",
+    "guide": "desktop/README.md"
+  },
+  "cleanup": "All worker fixtures cleaned; ROOT-created default-home app19191+daemon19201 also stopped after PID/path/discovery ownership checks. User home contents preserved; user-owned other daemons untouched; MAINw8/reportHTTP preserved.",
+  "remaining": [
+    "User unlocks and wakes Mac display",
+    "Fresh visible native WK suite: UART RX, renderer Enter/Tab, CLI/UI equality, late join screenshots",
+    "Native OS input/menu checks where tool binding becomes available",
+    "Only after native acceptance mark task DONE"
+  ]
+}

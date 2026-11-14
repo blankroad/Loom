@@ -1,0 +1,4 @@
+PASS|start|absent daemon started from bundled loomd pid=10221 in 1s
+PASS|start|native viewer attached+visible (viewers.visible=1) app pid=10201
+PASS|start|CLI→device→daemon round trip on /dev/ttys006 ('qa-cli-072905'; vis=visible)
+PASS|hygiene|no token/boot fragment in app stdout/stderr, loomd.log, evidence, process args

@@ -100,6 +100,28 @@ describe('visibility → presence + return line', () => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
   });
 
+  it('page loaded already hidden (no visibilitychange): presence false from bind', async () => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    try {
+      const { net, services } = mount();
+      await act(async () => {});
+      expect(net.visible).toEqual([false]);
+      expect(services.reporter.visible).toBe(false);
+      const pres = net.calls.find((c) => c.method === 'core.viewer.presence')!;
+      expect(pres.params).toMatchObject({ visible: false });
+    } finally {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+    }
+  });
+
+  it('page loaded visible: bind sends no presence change', () => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+    const { net, services } = mount();
+    expect(net.visible).toEqual([]);
+    expect(services.reporter.visible).toBe(true);
+    expect(net.calls.some((c) => c.method === 'core.viewer.presence')).toBe(false);
+  });
+
   it('10 s timer sends core.metrics.report through the net client', async () => {
     const { net, services, intervals } = mount();
     const p = services.metrics.panel('x#1', 'dut')!;

@@ -1,0 +1,28 @@
+{
+  "app": "/Users/ctmctm/workspace/Loom/desktop/dist/Loom.app",
+  "bundle_id": "local.loom.desktop",
+  "version": "0.1.0",
+  "main_executable": {
+    "name": "loom-desktop",
+    "sha256": "1ef44f94c4ce13bfaccb24bc075a299f2feef9087a3f6ba47b1ccce11b815355",
+    "lc_uuid": "132AB447-77B8-3F6B-9688-D3B08E90C702"
+  },
+  "loomd": {
+    "pre_sign_staged_sha256": "49803a53bf1115dac6f6e8f6ece9339a968e4bd8e22197f05871d528a17a3bc8",
+    "stamp_sha256": "49803a53bf1115dac6f6e8f6ece9339a968e4bd8e22197f05871d528a17a3bc8",
+    "bundled_sha256": "b96de8e812d7565c6df8773570c4b63850f951e8c285d55be45e9e5a2ed40823",
+    "lc_uuid": "62C5982E-C226-3B82-849B-E6746E588C7A",
+    "profile": "debug",
+    "source": "/Users/ctmctm/workspace/Loom/target/debug/loomd",
+    "baseline": "c7112c6",
+    "identity_text_const_uuid": "PASS"
+  },
+  "ui_dist_digest": "6fdd549db10b0fbeddcda5a69bb499ef4ed171ab2d3224db72a572c8e585b1a7",
+  "signature": [
+    "CodeDirectory v=20500 size=17779 flags=0x10002(adhoc,runtime) hashes=549+3 location=embedded",
+    "Signature=adhoc",
+    "TeamIdentifier=not set"
+  ],
+  "verify_bundle_exit": 0,
+  "verified_at": "2026-11-14T22:49:50+00:00"
+}

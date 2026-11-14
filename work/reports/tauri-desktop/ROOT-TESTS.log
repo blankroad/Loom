@@ -1,0 +1,82 @@
+   Compiling objc2-exception-helper v0.1.1
+   Compiling objc2 v0.6.5
+   Compiling loom-desktop-host v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/host)
+   Compiling objc2-foundation v0.3.2
+   Compiling wry v0.57.2
+   Compiling block2 v0.6.2
+   Compiling objc2-core-foundation v0.3.2
+   Compiling dispatch2 v0.3.1
+   Compiling objc2-quartz-core v0.3.2
+   Compiling objc2-app-kit v0.3.2
+   Compiling objc2-web-kit v0.3.2
+   Compiling tao v0.37.2
+   Compiling window-vibrancy v0.8.1
+   Compiling muda v0.20.0
+   Compiling tauri-runtime v2.12.2
+   Compiling tauri-runtime-wry v2.12.3
+   Compiling tauri v2.12.5
+   Compiling loom-desktop v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.31s
+     Running unittests src/main.rs (/tmp/loom-tauri-build/debug/deps/loom_desktop-1bde2520a03660ae)
+
+running 11 tests
+test config::tests::defaults_use_home_dot_loom_and_bundled_daemon ... ok
+test config::tests::empty_values_are_ignored ... ok
+test config::tests::missing_home_and_exe_are_errors ... ok
+test config::tests::loom_home_and_explicit_binary_win ... ok
+test config::tests::relative_paths_are_rejected ... ok
+test config::tests::timeout_is_clamped_and_validated ... ok
+test nav::tests::top_level_navigation_never_opens_the_browser ... ok
+test nav::tests::new_windows_open_child_external_or_deny ... ok
+test nav::tests::app_assets_allowed_before_and_after_connect ... ok
+test nav::tests::external_links_and_blocked_schemes ... ok
+test nav::tests::daemon_origin_only_exact_port_after_connect ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/loom-tauri-build/debug/deps/loom_desktop_host-176052c817ab01d5)
+
+running 1 test
+test http::tests::parses_content_length_and_chunked ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lifecycle.rs (/tmp/loom-tauri-build/debug/deps/lifecycle-5d95357a3d4a5306)
+
+running 21 tests
+test fake_client_entry ... ok
+test fake_loomd_entry ... ok
+test chunked_bootstrap_answer_is_accepted ... ok
+test invalid_options_fail_fast_without_spawning ... ok
+test daemon_exiting_during_startup_is_reported_with_log ... ok
+test live_daemon_with_unsupported_proto_is_mismatch ... ok
+test missing_or_non_executable_binary_is_explicit ... ok
+test errors_display_is_actionable_and_redacted ... ok
+test reuses_existing_daemon_without_spawning ... ok
+test bootstrap_url_off_canonical_origin_is_protocol_error ... ok
+test passes_ui_dir_only_when_starting ... ok
+test stale_discovery_pointing_at_foreign_daemon_is_replaced ... ok
+test stale_discovery_with_dead_port_is_replaced ... ok
+test live_daemon_rejecting_token_is_auth_error ... ok
+test stale_discovery_with_unsupported_proto_is_replaced_when_unowned ... ok
+test concurrent_connects_start_exactly_one_daemon ... ok
+test hanging_daemon_times_out_bounded_and_is_left_running ... ok
+test slow_daemon_within_timeout_succeeds ... ok
+test starts_absent_daemon_detached_with_logged_stdio_and_survives_drop ... ok
+test daemon_outlives_app_process_exit ... ok
+test daemon_outlives_app_process_group_kill ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.05s
+
+     Running tests/real_loomd.rs (/tmp/loom-tauri-build/debug/deps/real_loomd-fae7f95167204b4b)
+
+running 1 test
+test real_loomd_lifecycle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.43s
+
+   Doc-tests loom_desktop_host
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

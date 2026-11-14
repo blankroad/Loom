@@ -1,0 +1,4 @@
+loom-desktop: e2e WebDriver server on 127.0.0.1:47941 (test build)
+loom-desktop: started loomd pid 29184 on port 50035 (home /private/tmp/claude-501/-Users-ctmctm-workspace-Loom/75228f2f-6a9a-46c8-ba97-2b52093e7c01/scratchpad/lqa.fD6PeU)
+loom-desktop: e2e WebDriver server on 127.0.0.1:47941 (test build)
+loom-desktop: reusing loomd pid 29184 on port 50035 (home /private/tmp/claude-501/-Users-ctmctm-workspace-Loom/75228f2f-6a9a-46c8-ba97-2b52093e7c01/scratchpad/lqa.fD6PeU)

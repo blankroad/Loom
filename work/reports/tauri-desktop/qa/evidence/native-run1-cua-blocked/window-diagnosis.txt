@@ -1,0 +1,52 @@
+Sun Nov 15 07:32:01 KST 2026
+ALL pid 10201 win 1592 layer 0 onscreen - bounds {
+    Height = 30;
+    Width = 1920;
+    X = 0;
+    Y = 0;
+} alpha 1
+ALL pid 10201 win 1588 layer 0 onscreen - bounds {
+    Height = 500;
+    Width = 500;
+    X = 0;
+    Y = 580;
+} alpha 1
+ALL pid 10201 win 1587 layer 0 onscreen 1 bounds {
+    Height = 900;
+    Width = 1440;
+    X = 240;
+    Y = 50;
+} alpha 1
+ALL pid 10201 win 1594 layer 0 onscreen - bounds {
+    Height = 30;
+    Width = 1920;
+    X = 0;
+    Y = 0;
+} alpha 1
+ALL pid 10201 win 1593 layer 0 onscreen - bounds {
+    Height = 30;
+    Width = 1920;
+    X = 0;
+    Y = 0;
+} alpha 1
+ALL pid 10201 win 1595 layer 0 onscreen - bounds {
+    Height = 30;
+    Width = 1920;
+    X = 0;
+    Y = 0;
+} alpha 1
+ONSCREEN pid 10201 win 1587 layer 0 onscreen 1 bounds {
+    Height = 900;
+    Width = 1440;
+    X = 240;
+    Y = 50;
+} alpha 1
+app pid 10201 bundle local.loom.desktop url /private/tmp/loom-tauri-build/debug/bundle/macos/Loom.app policy 0 active false hidden false finished true
+"Loom" ASN:0x0-0x124023f:
+    bundleID="local.loom.desktop"
+    bundle path="/private/tmp/loom-tauri-build/debug/bundle/macos/Loom.app"
+    executable path="/private/tmp/loom-tauri-build/debug/bundle/macos/Loom.app/Contents/MacOS/loom-desktop"
+    pid = 10201 token=[sess=100034 pid=10201 uid:501,501,501 g:20,20 pV:4502583] type="Foreground" flavor=3 Version="0.1.0" fileType="APPL" creator="????" Arch=ARM64
+    coalition: 31257
+    launch time =  178 seconds ago, 2026/11/15 07:29:04 ( 2 minutes, 57.7422 seconds ago )
+    checkin time = 178 seconds ago, 2026/11/15 07:29:04 ( 2 minutes, 57.6896 seconds ago )

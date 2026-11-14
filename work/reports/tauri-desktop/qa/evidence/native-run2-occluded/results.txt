@@ -1,0 +1,23 @@
+PASS|start|absent daemon started from bundled loomd pid=29184 in 1s
+PASS|start|native viewer attached+visible (viewers.visible=1) app pid=29151
+PASS|start|CLI→device→daemon round trip on /dev/ttys003 ('qa-cli-074015'; vis=visible)
+FAIL|check-typed|device never received 'qa-typed-1'
+FAIL|check-typed|device never received 'qa-tab'
+NOTE|harness|previous 2 check-typed FAILs void: wk.mjs not invoked (zsh no word-split of $W); no keys were sent
+FAIL|check-typed|device never received 'qa-typed-1'
+FAIL|check-typed|device never received 'qa-tab'
+FAIL|check-typed|device never received 'qa-typed-1'
+FAIL|check-typed|device never received 'qa-tab'
+PASS|quit|requested AppKit quit of app pid 29151
+PASS|after-close|app pid 29151 exited after native close
+PASS|after-close|daemon pid 29184 alive, discovery unchanged
+PASS|after-close|channel dut still open and streaming after app close ('qa-after-close-074446')
+PASS|reopen|reopen reused daemon pid 29184 (no second daemon), viewer visible, app pid 33265
+PASS|reopen|single daemon for home
+PASS|error-start|missing explicit daemon bin: app alive (pid 33782), no daemon started, no fallback
+PASS|error-fix|placed /var/folders/ln/bc49b46j5w932sv2klk5zdjh0000gn/T//lqe.a2iH4T/bin/loomd; ROOT: click Retry in the error window now
+PASS|error-verify|Retry started exactly LOOM_DESKTOP_DAEMON_BIN (pid 33878)
+PASS|error-verify|viewer attached after Retry
+NOTE|labels|RX/typed FAILs in this run (rx, check-typed qa-typed-1, qa-tab) = INVALID VISIBILITY ENVIRONMENT: QA window fully covered by cmux → WK document.hidden=true, rAF=0 (renderer pause, expected). Not product PASS/FAIL. Separate product bug found+fixed by A: initial viewer presence falsely visible (ui services.ts).
+NOTE|labels|after-close "viewer count still 1" = QA's Ego parity tab on same daemon (closed afterwards), not the app.
+PASS|hygiene|no token/boot fragment in app stdout/stderr, loomd.log, evidence, process args

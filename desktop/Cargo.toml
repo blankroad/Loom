@@ -1,0 +1,21 @@
+# Separate Cargo workspace for the native desktop shell (keeps the main workspace lock untouched).
+# Owner: tauri-app-opus. Members: the Tauri app and the pure-Rust lifecycle crate (tauri-host-opus).
+[workspace]
+resolver = "3"
+members = ["src-tauri", "host"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+
+# rust-lang/rust#157750: on macOS 27 (ld-27037, chained fixups) cargo's implicit release
+# `strip = "debuginfo"` emits dylibs with a mis-aligned LINKEDIT string pool whenever
+# MACOSX_DEPLOYMENT_TARGET is set (tauri-cli sets it from bundle.macOS.minimumSystemVersion), so
+# proc-macros fail to dlopen (E0463). Repro + diagnosis: work/reports/tauri-desktop/app/STATUS.md.
+[profile.release]
+strip = "none"
+
+[profile.release.build-override]
+strip = "none"
