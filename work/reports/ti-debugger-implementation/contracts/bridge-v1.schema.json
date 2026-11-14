@@ -1,0 +1,714 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "loom:proposed/ccs-bridge/v1",
+ "title": "PROPOSED loom-ccs-bridge JSON-lines protocol v1 (design spec only, unexecuted)",
+ "description": "One JSON object per line, UTF-8, '\\n' terminated, ≤ 1 MiB per line. Transport: TCP on the bridge host's 127.0.0.1 only, reached from the Mac through an SSH local forward. The SUPERVISOR process owns the socket and answers hello/auth/ctl/ping immediately; the EXECUTOR child (CCS Scripting, synchronous) runs exactly one op at a time. 64-bit values are strings.",
+ "oneOf": [
+  {
+   "$ref": "#/$defs/Hello"
+  },
+  {
+   "$ref": "#/$defs/Auth"
+  },
+  {
+   "$ref": "#/$defs/Req"
+  },
+  {
+   "$ref": "#/$defs/Ack"
+  },
+  {
+   "$ref": "#/$defs/Res"
+  },
+  {
+   "$ref": "#/$defs/Evt"
+  },
+  {
+   "$ref": "#/$defs/Ctl"
+  },
+  {
+   "$ref": "#/$defs/CtlRes"
+  }
+ ],
+ "$defs": {
+  "U64Dec": {
+   "type": "string",
+   "pattern": "^(0|[1-9][0-9]{0,19})$",
+   "description": "syntax only (≤20 digits). Parsers MUST additionally reject values > 18446744073709551615 (u64::MAX) — JSON Schema cannot express the full range bound."
+  },
+  "V": {
+   "const": 1
+  },
+  "Hello": {
+   "type": "object",
+   "description": "supervisor → client, first line after accept",
+   "required": [
+    "v",
+    "t",
+    "bridge",
+    "ccs",
+    "host",
+    "probe_alias",
+    "clock",
+    "limits",
+    "caps"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "hello"
+    },
+    "bridge": {
+     "type": "object",
+     "required": [
+      "version",
+      "instance"
+     ],
+     "properties": {
+      "version": {
+       "type": "string"
+      },
+      "instance": {
+       "type": "string",
+       "description": "uuid per supervisor start"
+      }
+     }
+    },
+    "ccs": {
+     "type": "object",
+     "required": [
+      "root"
+     ],
+     "properties": {
+      "root": {
+       "type": "string"
+      },
+      "version": {
+       "type": "string",
+       "description": "as read from the CCS install, or 'unknown' — never inferred"
+      },
+      "scripting": {
+       "enum": [
+        "js",
+        "python"
+       ]
+      }
+     }
+    },
+    "host": {
+     "type": "object",
+     "properties": {
+      "os": {
+       "type": "string"
+      },
+      "arch": {
+       "type": "string"
+      }
+     }
+    },
+    "probe_alias": {
+     "type": "string"
+    },
+    "executor": {
+     "enum": [
+      "not_started",
+      "starting",
+      "idle",
+      "busy",
+      "dead"
+     ]
+    },
+    "clock": {
+     "type": "object",
+     "required": [
+      "mono_ns",
+      "wall_ms"
+     ],
+     "properties": {
+      "mono_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "wall_ms": {
+       "$ref": "#/$defs/U64Dec"
+      }
+     }
+    },
+    "limits": {
+     "type": "object",
+     "properties": {
+      "queue_max": {
+       "type": "integer"
+      },
+      "max_items": {
+       "type": "integer"
+      },
+      "max_read_au": {
+       "type": "integer"
+      },
+      "line_max_bytes": {
+       "type": "integer"
+      }
+     }
+    },
+    "caps": {
+     "type": "object",
+     "description": "bridge-declared capabilities; target capabilities come per core from session.open",
+     "additionalProperties": {
+      "type": "boolean"
+     }
+    }
+   }
+  },
+  "Auth": {
+   "type": "object",
+   "description": "client → supervisor. Token = random secret file on the bridge host (mode 0600) copied to the Mac config; SSH is the transport boundary, token is the second check because any local user on the bridge host can reach 127.0.0.1.",
+   "required": [
+    "v",
+    "t",
+    "token",
+    "client"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "auth"
+    },
+    "token": {
+     "type": "string",
+     "minLength": 32
+    },
+    "client": {
+     "type": "object",
+     "properties": {
+      "loomd_instance": {
+       "type": "string"
+      },
+      "worker_pid": {
+       "type": "integer"
+      }
+     }
+    },
+    "takeover": {
+     "type": "boolean",
+     "default": false,
+     "description": "false: a second client is refused with BRIDGE_BUSY. true only by explicit user command; the old client receives evt lost{reason:'taken_over'}"
+    }
+   }
+  },
+  "Req": {
+   "type": "object",
+   "required": [
+    "v",
+    "t",
+    "id",
+    "op",
+    "deadline_ms",
+    "prio"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "req"
+    },
+    "id": {
+     "type": "string",
+     "pattern": "^[A-Za-z0-9_-]{1,40}$",
+     "description": "client correlation id; unique per connection"
+    },
+    "op": {
+     "enum": [
+      "session.configure",
+      "session.cores",
+      "session.open",
+      "session.close",
+      "target.connect",
+      "target.disconnect",
+      "target.state",
+      "target.halt",
+      "target.run",
+      "target.step",
+      "reg.read",
+      "mem.read",
+      "read.batch",
+      "sym.lookup",
+      "expr.eval",
+      "bp.add",
+      "bp.remove",
+      "bp.list",
+      "src.addr_to_line",
+      "src.line_to_addr",
+      "disasm"
+     ]
+    },
+    "core": {
+     "type": "string",
+     "description": "core_alias bound by session.open (multicore affinity: same executor, per-core session object)"
+    },
+    "session_epoch": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "required (schema-enforced) for every non-session op; a stale value → EPOCH_MISMATCH, rejected before any SDK call"
+    },
+    "deadline_ms": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 600000,
+     "description": "relative; the executor also sets the SDK scripting timeout to ≤ this when the API exists"
+    },
+    "prio": {
+     "enum": [
+      "action",
+      "read",
+      "poll"
+     ],
+     "description": "ctl messages are a separate lane and never queue"
+    },
+    "origin": {
+     "enum": [
+      "user",
+      "agent",
+      "test",
+      "script"
+     ]
+    },
+    "request_id": {
+     "type": "string",
+     "description": "Loom request_id (RowStore row) for writes/actions"
+    },
+    "watch_id": {
+     "type": "string"
+    },
+    "args": {
+     "type": "object"
+    }
+   },
+   "allOf": [
+    {
+     "if": {
+      "properties": {
+       "op": {
+        "enum": [
+         "target.connect",
+         "target.disconnect",
+         "target.state",
+         "target.halt",
+         "target.run",
+         "target.step",
+         "reg.read",
+         "mem.read",
+         "read.batch",
+         "sym.lookup",
+         "expr.eval",
+         "bp.add",
+         "bp.remove",
+         "bp.list",
+         "src.addr_to_line",
+         "src.line_to_addr",
+         "disasm"
+        ]
+       }
+      },
+      "required": [
+       "op"
+      ]
+     },
+     "then": {
+      "required": [
+       "core",
+       "session_epoch"
+      ]
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "op": {
+        "enum": [
+         "session.open",
+         "session.close"
+        ]
+       }
+      },
+      "required": [
+       "op"
+      ]
+     },
+     "then": {
+      "required": [
+       "core"
+      ]
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "prio": {
+        "const": "action"
+       }
+      },
+      "required": [
+       "prio"
+      ]
+     },
+     "then": {
+      "required": [
+       "origin",
+       "request_id"
+      ]
+     }
+    }
+   ]
+  },
+  "Ack": {
+   "type": "object",
+   "required": [
+    "v",
+    "t",
+    "id",
+    "queued_at_ns",
+    "queue_pos"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "ack"
+    },
+    "id": {
+     "type": "string"
+    },
+    "queued_at_ns": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "queue_pos": {
+     "type": "integer"
+    }
+   }
+  },
+  "Res": {
+   "type": "object",
+   "required": [
+    "v",
+    "t",
+    "id",
+    "ok",
+    "phase",
+    "sdk_call",
+    "effect",
+    "timing"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "res"
+    },
+    "id": {
+     "type": "string"
+    },
+    "ok": {
+     "type": "boolean"
+    },
+    "phase": {
+     "enum": [
+      "done",
+      "rejected",
+      "cancelled_queued",
+      "deadline",
+      "failed",
+      "executor_died"
+     ],
+     "description": "rejected = refused before any SDK call; cancelled_queued = removed from queue (never started)"
+    },
+    "effect": {
+     "enum": [
+      "none",
+      "applied",
+      "unknown"
+     ],
+     "description": "TARGET-MUTATION effect, independent of sdk_call: none = no mutating effect intended or possible (reads, rejected/cancelled requests; a read can still have MMIO side effects — that is a region classification, not this field); applied = a mutating op completed; unknown = a mutating op started without a confirmed result. Never infer 'SDK not called' from effect=none. Writes/actions with unknown are NEVER retried (Loom write_state outcome_unknown)."
+    },
+    "timing": {
+     "type": "object",
+     "properties": {
+      "recv_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "start_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "end_ns": {
+       "$ref": "#/$defs/U64Dec"
+      }
+     }
+    },
+    "run_state_after": {
+     "type": "object",
+     "description": "for target.* actions: an observation taken after the call (state + bridge ns), or absent if not observed"
+    },
+    "data": {
+     "type": "object"
+    },
+    "error": {
+     "type": "object",
+     "required": [
+      "code",
+      "message"
+     ],
+     "properties": {
+      "code": {
+       "enum": [
+        "BRIDGE_BUSY",
+        "QUEUE_FULL",
+        "AUTH",
+        "VERSION",
+        "NOT_OPEN",
+        "NO_SUCH_CORE",
+        "EPOCH_MISMATCH",
+        "LINK_LOST",
+        "DEADLINE",
+        "CANCELLED_BY_STOP",
+        "WOULD_HALT",
+        "UNSUPPORTED_OP",
+        "PARTIAL",
+        "SDK_ERROR",
+        "BAD_ARGS",
+        "STOP_LATCHED"
+       ]
+      },
+      "message": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "sdk": {
+       "type": "object",
+       "description": "bounded SDK exception class/message, if any"
+      }
+     }
+    },
+    "sdk_call": {
+     "enum": [
+      "not_started",
+      "started_no_result",
+      "completed"
+     ],
+     "description": "whether the executor entered the SDK. phase rejected|cancelled_queued ⇒ not_started (schema-enforced). deadline|executor_died ⇒ started_no_result."
+    }
+   },
+   "allOf": [
+    {
+     "if": {
+      "properties": {
+       "phase": {
+        "enum": [
+         "rejected",
+         "cancelled_queued"
+        ]
+       }
+      },
+      "required": [
+       "phase"
+      ]
+     },
+     "then": {
+      "properties": {
+       "sdk_call": {
+        "const": "not_started"
+       },
+       "effect": {
+        "const": "none"
+       }
+      }
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "phase": {
+        "enum": [
+         "deadline",
+         "executor_died"
+        ]
+       }
+      },
+      "required": [
+       "phase"
+      ]
+     },
+     "then": {
+      "properties": {
+       "sdk_call": {
+        "const": "started_no_result"
+       }
+      }
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "phase": {
+        "const": "done"
+       }
+      },
+      "required": [
+       "phase"
+      ]
+     },
+     "then": {
+      "properties": {
+       "sdk_call": {
+        "const": "completed"
+       },
+       "effect": {
+        "enum": [
+         "none",
+         "applied"
+        ]
+       }
+      }
+     }
+    }
+   ]
+  },
+  "Evt": {
+   "type": "object",
+   "required": [
+    "v",
+    "t",
+    "seq",
+    "kind"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "evt"
+    },
+    "seq": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "per-connection; a jump means the client missed events (supervisor ring overflow) → client emits gap"
+    },
+    "kind": {
+     "enum": [
+      "run_state",
+      "executor",
+      "log",
+      "gap",
+      "lost",
+      "heartbeat"
+     ]
+    },
+    "core": {
+     "type": "string"
+    },
+    "data": {
+     "type": "object"
+    }
+   }
+  },
+  "Ctl": {
+   "type": "object",
+   "description": "control lane, answered by the supervisor even while the executor is blocked in an SDK call. 'stop' latches the supervisor: queued reqs are cancelled and every later req with origin agent|script|test is rejected (STOP_LATCHED, sdk_call not_started) until 'release', which Loom sends only when the user releases the global STOP latch. Defense in depth — the Loom worker already refuses those writes first.",
+   "required": [
+    "v",
+    "t",
+    "id",
+    "op"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "ctl"
+    },
+    "id": {
+     "type": "string"
+    },
+    "op": {
+     "enum": [
+      "ping",
+      "stop",
+      "release",
+      "cancel",
+      "status",
+      "kill_executor"
+     ]
+    },
+    "target_id": {
+     "type": "string",
+     "description": "for cancel: the req id to remove from the queue"
+    }
+   }
+  },
+  "CtlRes": {
+   "type": "object",
+   "required": [
+    "v",
+    "t",
+    "id",
+    "op"
+   ],
+   "properties": {
+    "v": {
+     "$ref": "#/$defs/V"
+    },
+    "t": {
+     "const": "ctl_res"
+    },
+    "id": {
+     "type": "string"
+    },
+    "op": {
+     "type": "string"
+    },
+    "mono_ns": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "cancelled": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "req ids removed from the queue (effect none)"
+    },
+    "in_flight": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "properties": {
+      "id": {
+       "type": "string"
+      },
+      "op": {
+       "type": "string"
+      },
+      "started_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "cancellable": {
+       "const": false
+      }
+     }
+    },
+    "executor": {
+     "enum": [
+      "not_started",
+      "starting",
+      "idle",
+      "busy",
+      "dead"
+     ]
+    }
+   }
+  }
+ }
+}

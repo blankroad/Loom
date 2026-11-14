@@ -1,0 +1,343 @@
+{
+ "_note": "PROPOSED panel manifests for crates/loom-dbg/src/gateway.rs::panel_manifests() — same JSON form as loom-psu gateway.rs:193 panel_manifest(). Only fields that exist in ui/src/sdk/manifest.ts PanelManifest/ActionSpec are used. No action is safetyDirection 'reduce': halt is not a universally safe direction for a target (it can stop a control loop), so it is a normal operate action; STOP is the shell's global latch, not a dbg action. confirm 'none' follows F1 (daemon policy decides, ActionGate is mistake prevention only). Gateway JSON form mirrors loom-psu (channelParam); the UI-side registerPanel() form uses filter: (p) => ({ domains: ['dbg'], channels: [p.channel], kinds: [...] }) and propsSchema { channel: CHANNEL_PROP } exactly like ui/src/panels/psu/gaugePanel.ts:433-456. channel = target_id ('<probe_alias>/<core_alias>'). Priority kinds dbg.link/dbg.session/dbg.run_state arrive live only via ctx.onControl (context.ts:63-67); data subscriptions see them via snapshot/backlog.",
+ "manifests": [
+  {
+   "id": "dbg.session",
+   "domain": "dbg",
+   "title": "디버그 세션",
+   "version": 1,
+   "milestone": "M4",
+   "topics": [
+    {
+     "key": "dbg",
+     "filter": {
+      "domains": [
+       "dbg"
+      ],
+      "channelParam": "channel",
+      "kinds": [
+       "dbg.link",
+       "dbg.session",
+       "dbg.run_state",
+       "dbg.action",
+       "dbg.gap"
+      ]
+     },
+     "encoding": "json",
+     "snapshot": "required",
+     "mirrorRows": 500
+    }
+   ],
+   "queries": [
+    "dbg.status",
+    "dbg.targets",
+    "dbg.cores"
+   ],
+   "actions": [
+    {
+     "id": "open",
+     "rpc": "dbg.open",
+     "class": "request",
+     "right": "operate",
+     "confirm": "none",
+     "label": "연결"
+    },
+    {
+     "id": "close",
+     "rpc": "dbg.close",
+     "class": "request",
+     "right": "operate",
+     "confirm": "none",
+     "label": "연결 해제 · 실행 상태 변경 요청 없음"
+    },
+    {
+     "id": "halt",
+     "rpc": "dbg.halt",
+     "class": "request",
+     "right": "operate",
+     "confirm": "none",
+     "label": "Halt"
+    },
+    {
+     "id": "run",
+     "rpc": "dbg.run",
+     "class": "request",
+     "right": "operate",
+     "confirm": "none",
+     "label": "Run"
+    },
+    {
+     "id": "step",
+     "rpc": "dbg.step",
+     "class": "request",
+     "right": "operate",
+     "confirm": "none",
+     "label": "Step"
+    }
+   ],
+   "memory": {
+    "maxBytes": 1048576
+   },
+   "render": {
+    "maxHz": 10,
+    "budgetMs": 3,
+    "lagTargetMs": 100
+   },
+   "shellSlots": [
+    "channel_bar",
+    "evidence_ref"
+   ],
+   "propsSchema": {
+    "type": "object",
+    "properties": {
+     "channel": {
+      "type": "string",
+      "maxLength": 65
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "dbg.watch",
+   "domain": "dbg",
+   "title": "변수 감시",
+   "version": 1,
+   "milestone": "M4",
+   "topics": [
+    {
+     "key": "samples",
+     "filter": {
+      "domains": [
+       "dbg"
+      ],
+      "channelParam": "channel",
+      "kinds": [
+       "dbg.sample",
+       "dbg.gap",
+       "dbg.run_state"
+      ]
+     },
+     "encoding": "json",
+     "snapshot": "required",
+     "coalesceBy": "id",
+     "mirrorRows": 5000
+    }
+   ],
+   "queries": [
+    "dbg.status",
+    "dbg.watch.list",
+    "dbg.samples"
+   ],
+   "actions": [
+    {
+     "id": "watchStart",
+     "rpc": "dbg.watch.start",
+     "class": "job",
+     "right": "operate",
+     "confirm": "none",
+     "label": "감시 시작"
+    },
+    {
+     "id": "watchStop",
+     "rpc": "dbg.watch.stop",
+     "class": "job",
+     "right": "operate",
+     "confirm": "none",
+     "label": "감시 중지"
+    }
+   ],
+   "memory": {
+    "maxBytes": 8388608
+   },
+   "render": {
+    "maxHz": 20,
+    "budgetMs": 4,
+    "lagTargetMs": 100
+   },
+   "shellSlots": [
+    "evidence_ref"
+   ],
+   "propsSchema": {
+    "type": "object",
+    "properties": {
+     "channel": {
+      "type": "string",
+      "maxLength": 65
+     },
+     "watch": {
+      "type": "string",
+      "maxLength": 40
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "dbg.memory",
+   "domain": "dbg",
+   "title": "메모리",
+   "version": 1,
+   "milestone": "M4",
+   "topics": [
+    {
+     "key": "blocks",
+     "filter": {
+      "domains": [
+       "dbg"
+      ],
+      "channelParam": "channel",
+      "kinds": [
+       "dbg.mem_block",
+       "dbg.run_state"
+      ]
+     },
+     "encoding": "json",
+     "snapshot": "required",
+     "mirrorRows": 200
+    }
+   ],
+   "queries": [
+    "dbg.status",
+    "dbg.mem.read"
+   ],
+   "actions": [],
+   "media": {
+    "prefixes": [
+     "/api/v1/dbg/"
+    ]
+   },
+   "memory": {
+    "maxBytes": 16777216
+   },
+   "render": {
+    "maxHz": 10,
+    "budgetMs": 4
+   },
+   "shellSlots": [
+    "evidence_ref"
+   ],
+   "propsSchema": {
+    "type": "object",
+    "properties": {
+     "channel": {
+      "type": "string",
+      "maxLength": 65
+     },
+     "addr": {
+      "type": "string",
+      "pattern": "^0x[0-9A-Fa-f]{1,16}$"
+     },
+     "count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4096
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "dbg.regs",
+   "domain": "dbg",
+   "title": "레지스터",
+   "version": 1,
+   "milestone": "M4",
+   "topics": [
+    {
+     "key": "regs",
+     "filter": {
+      "domains": [
+       "dbg"
+      ],
+      "channelParam": "channel",
+      "kinds": [
+       "dbg.sample",
+       "dbg.run_state"
+      ]
+     },
+     "encoding": "json",
+     "snapshot": "required",
+     "mirrorRows": 500
+    }
+   ],
+   "queries": [
+    "dbg.status",
+    "dbg.regs.read"
+   ],
+   "actions": [],
+   "memory": {
+    "maxBytes": 1048576
+   },
+   "render": {
+    "maxHz": 10,
+    "budgetMs": 3
+   },
+   "shellSlots": [
+    "evidence_ref"
+   ],
+   "propsSchema": {
+    "type": "object",
+    "properties": {
+     "channel": {
+      "type": "string",
+      "maxLength": 65
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "dbg.log",
+   "domain": "dbg",
+   "title": "동작·오류 기록",
+   "version": 1,
+   "milestone": "M4",
+   "topics": [
+    {
+     "key": "log",
+     "filter": {
+      "domains": [
+       "dbg"
+      ],
+      "channelParam": "channel",
+      "kinds": [
+       "dbg.action",
+       "dbg.gap",
+       "dbg.link",
+       "dbg.session",
+       "dbg.log"
+      ]
+     },
+     "encoding": "json",
+     "snapshot": "required",
+     "mirrorRows": 2000
+    }
+   ],
+   "queries": [
+    "dbg.status"
+   ],
+   "actions": [],
+   "memory": {
+    "maxBytes": 4194304
+   },
+   "render": {
+    "maxHz": 10,
+    "budgetMs": 3
+   },
+   "shellSlots": [
+    "evidence_ref"
+   ],
+   "propsSchema": {
+    "type": "object",
+    "properties": {
+     "channel": {
+      "type": "string",
+      "maxLength": 65
+     }
+    },
+    "additionalProperties": false
+   }
+  }
+ ]
+}

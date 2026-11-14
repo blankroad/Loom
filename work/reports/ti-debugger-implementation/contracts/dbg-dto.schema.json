@@ -1,0 +1,741 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "loom:proposed/dbg-dto/v0",
+ "title": "PROPOSED Loom dbg domain DTOs (design spec only — not implemented, not in schema/v1)",
+ "description": "Shared by journal payloads, RPC results, UI panels and agent (Luna) results. All 64-bit counters, addresses and values are strings (hex or canonical decimal) so JSON numbers never lose precision; TypeScript parses them with BigInt.",
+ "$defs": {
+  "U64Dec": {
+   "type": "string",
+   "pattern": "^(0|[1-9][0-9]{0,19})$",
+   "description": "u64 as canonical decimal string (syntax only; runtime parser must reject > u64::MAX = 18446744073709551615)"
+  },
+  "Hex": {
+   "type": "string",
+   "pattern": "^0x[0-9A-F]{1,32}$",
+   "description": "upper-case hex, no separators, width given elsewhere"
+  },
+  "Alias": {
+   "type": "string",
+   "pattern": "^[a-z][a-z0-9_-]{0,31}$"
+  },
+  "TargetId": {
+   "type": "string",
+   "pattern": "^[a-z][a-z0-9_-]{0,31}/[a-z][a-z0-9_-]{0,31}$",
+   "description": "<probe_alias>/<core_alias>, both user-configured in loom.toml. The CCS core name returned by listCores() is stored separately as core_name (opaque)."
+  },
+  "SampleId": {
+   "type": "string",
+   "pattern": "^[a-z][a-z0-9_-]{0,31}/[a-z][a-z0-9_-]{0,31}@(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+   "description": "<target_id>@<session_epoch>.<run_epoch>.<acq_seq>. Unique per target for the life of the journal; UI and agent compare exactly this string."
+  },
+  "Quality": {
+   "enum": [
+    "fresh",
+    "stale",
+    "unknown"
+   ],
+   "description": "fresh = observed within the target's stale_after_ms and same session/run epoch; stale = last-known, older or link lost; unknown = never observed in this session or outcome unknown"
+  },
+  "RunState": {
+   "enum": [
+    "unknown",
+    "running",
+    "halted",
+    "stepping",
+    "disconnected",
+    "lost",
+    "error"
+   ],
+   "description": "No default: a target starts as unknown until the bridge reports an observation. 'disconnected' only after an explicit close; 'lost' = link/bridge failure with last-known retained. After an explicit close the target's state is not guaranteed preserved (SDK/GEL disconnect hooks are unverified): state 'disconnected' with quality 'unknown'."
+  },
+  "Address": {
+   "type": "object",
+   "required": [
+    "addr",
+    "au_bits"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "addr": {
+     "$ref": "#/$defs/Hex"
+    },
+    "space": {
+     "type": "string",
+     "description": "memory page/space name as the target exposes it (e.g. CCS page names); omitted = target default. Exact CCS page argument: see API-EVIDENCE.md"
+    },
+    "au_bits": {
+     "enum": [
+      8,
+      16,
+      32
+     ],
+     "description": "addressable-unit width of THIS target/space; addr increments by 1 per AU, not per byte. Taken from target capability, never assumed 8."
+    }
+   }
+  },
+  "Value": {
+   "type": "object",
+   "required": [
+    "hex",
+    "bits",
+    "signed"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "hex": {
+     "$ref": "#/$defs/Hex"
+    },
+    "bits": {
+     "type": "integer",
+     "enum": [
+      1,
+      8,
+      16,
+      32,
+      40,
+      64
+     ]
+    },
+    "signed": {
+     "type": "boolean"
+    },
+    "dec": {
+     "type": "string",
+     "pattern": "^-?(0|[1-9][0-9]*)$",
+     "description": "canonical decimal of the interpreted value (two's complement if signed)"
+    },
+    "f": {
+     "type": "string",
+     "description": "float rendering only when the declared type is float; never the source of truth"
+    },
+    "endian": {
+     "enum": [
+      "little",
+      "big",
+      "n/a"
+     ],
+     "description": "byte/AU order used to assemble a multi-AU value"
+    }
+   }
+  },
+  "TargetRef": {
+   "type": "object",
+   "required": [
+    "target_id",
+    "session_epoch"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "session_epoch": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "state_rev": {
+     "$ref": "#/$defs/U64Dec"
+    }
+   }
+  },
+  "RunStatePayload": {
+   "type": "object",
+   "description": "journal kind dbg.run_state (priority/control path → ctx.onControl)",
+   "required": [
+    "target_id",
+    "state",
+    "quality",
+    "session_epoch",
+    "run_epoch",
+    "state_rev",
+    "observed_bridge_ns",
+    "observed_wall_ms",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "state": {
+     "$ref": "#/$defs/RunState"
+    },
+    "quality": {
+     "$ref": "#/$defs/Quality"
+    },
+    "session_epoch": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "run_epoch": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "+1 on every observed transition into running/halted/stepping; all register/memory samples of an older run_epoch are no longer current"
+    },
+    "state_rev": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "+1 on ANY change of {state, quality, session_epoch, link}; monotonic per target across sessions"
+    },
+    "observed_bridge_ns": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "bridge-host monotonic clock — not comparable with Mac clocks"
+    },
+    "observed_wall_ms": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "source": {
+     "enum": [
+      "poll",
+      "action_result",
+      "connect",
+      "link_loss",
+      "close"
+     ]
+    },
+    "last_known": {
+     "$ref": "#/$defs/RunState",
+     "description": "when state is lost/unknown: the last observed real state"
+    },
+    "halt_reason": {
+     "type": "string",
+     "description": "only if the SDK reports one; otherwise omitted (never guessed)"
+    }
+   }
+  },
+  "ItemSpec": {
+   "type": "object",
+   "required": [
+    "key",
+    "loc",
+    "type"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "key": {
+     "type": "string",
+     "pattern": "^[A-Za-z_][A-Za-z0-9_.\\[\\]]{0,63}$"
+    },
+    "loc": {
+     "oneOf": [
+      {
+       "type": "object",
+       "required": [
+        "symbol"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "symbol": {
+         "type": "string"
+        }
+       }
+      },
+      {
+       "type": "object",
+       "required": [
+        "address"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "address": {
+         "$ref": "#/$defs/Address"
+        }
+       }
+      },
+      {
+       "type": "object",
+       "required": [
+        "register"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "register": {
+         "type": "string"
+        }
+       }
+      }
+     ],
+     "description": "no free-form expression here: expressions may run GEL/functions and are a separate R2 command"
+    },
+    "type": {
+     "type": "object",
+     "required": [
+      "bits",
+      "signed"
+     ],
+     "properties": {
+      "bits": {
+       "type": "integer"
+      },
+      "signed": {
+       "type": "boolean"
+      },
+      "float": {
+       "type": "boolean"
+      },
+      "endian": {
+       "enum": [
+        "little",
+        "big"
+       ]
+      }
+     }
+    },
+    "region_class": {
+     "enum": [
+      "ram",
+      "flash",
+      "mmio",
+      "unknown"
+     ],
+     "description": "from the user's target memory map config; mmio/unknown reads are classified separately (may have read side effects)"
+    }
+   }
+  },
+  "SampleBatch": {
+   "type": "object",
+   "description": "journal kind dbg.sample — CANONICAL scalar values. UI panels and agent results both read these records; a value not in a dbg.sample record is never presented as observed. CONSISTENCY LIMIT: one sample_id = one batch = one shared recorded acquisition window (t.bridge_start_ns..bridge_end_ns); items are read sequentially, NOT an atomic simultaneous hardware snapshot. A halted CPU does not necessarily freeze DMA or peripherals.",
+   "required": [
+    "sample_id",
+    "target_id",
+    "session_epoch",
+    "run_epoch",
+    "state_rev",
+    "run_state_at_read",
+    "watch_id",
+    "values",
+    "t"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "sample_id": {
+     "$ref": "#/$defs/SampleId"
+    },
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "session_epoch": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "run_epoch": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "state_rev": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "run_state_at_read": {
+     "enum": [
+      "running",
+      "halted",
+      "unknown"
+     ]
+    },
+    "access": {
+     "enum": [
+      "halted",
+      "nonintrusive_declared",
+      "unknown"
+     ],
+     "description": "how the read was allowed: target halted, or the user/target capability declared non-intrusive access for this region"
+    },
+    "watch_id": {
+     "type": "string"
+    },
+    "values": {
+     "type": "array",
+     "maxItems": 32,
+     "items": {
+      "type": "object",
+      "required": [
+       "key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "key": {
+        "type": "string"
+       },
+       "v": {
+        "$ref": "#/$defs/Value"
+       },
+       "err": {
+        "type": "string",
+        "description": "per-item failure (bridge error code); v absent"
+       },
+       "changed": {
+        "type": "boolean"
+       }
+      }
+     }
+    },
+    "t": {
+     "type": "object",
+     "required": [
+      "bridge_start_ns",
+      "bridge_end_ns",
+      "mac_recv_mono_ns"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "bridge_start_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "bridge_end_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "mac_send_mono_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "mac_recv_mono_ns": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "offset_ns": {
+       "type": "string",
+       "pattern": "^-?[0-9]+$",
+       "description": "estimated bridge→mac offset"
+      },
+      "offset_err_ns": {
+       "$ref": "#/$defs/U64Dec",
+       "description": "± bound (half the handshake RTT); cross-host differences smaller than this are not meaningful"
+      }
+     }
+    },
+    "reason": {
+     "enum": [
+      "change",
+      "first",
+      "heartbeat",
+      "match",
+      "last",
+      "all"
+     ],
+     "description": "why this batch was journaled under the watch's record mode"
+    }
+   }
+  },
+  "MemBlockRef": {
+   "type": "object",
+   "description": "journal kind dbg.mem_block — large reads are immutable artifacts referenced by digest; the bytes are served by a shared read endpoint so the UI hex view and the agent read the same bytes",
+   "required": [
+    "sample_id",
+    "target_id",
+    "address",
+    "count_au",
+    "artifact",
+    "run_epoch",
+    "state_rev"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "sample_id": {
+     "$ref": "#/$defs/SampleId"
+    },
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "address": {
+     "$ref": "#/$defs/Address"
+    },
+    "count_au": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "run_epoch": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "state_rev": {
+     "$ref": "#/$defs/U64Dec"
+    },
+    "artifact": {
+     "type": "object",
+     "required": [
+      "artifact_id",
+      "sha256",
+      "bytes",
+      "path"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "artifact_id": {
+       "type": "string",
+       "pattern": "^blk_[0-9a-f]{16}$"
+      },
+      "sha256": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      },
+      "bytes": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "path": {
+       "type": "string",
+       "pattern": "^/api/v1/dbg/blocks/blk_[0-9a-f]{16}$",
+       "description": "PROPOSED same-origin media path (ctx.media, manifest media.prefixes ['/api/v1/dbg/'])"
+      },
+      "layout": {
+       "type": "string",
+       "description": "e.g. 'au16le' — how AUs are serialized into bytes"
+      }
+     }
+    },
+    "inline_preview": {
+     "type": "string",
+     "description": "first ≤ 64 AU as hex, display only"
+    }
+   }
+  },
+  "WatchRequest": {
+   "type": "object",
+   "required": [
+    "target_id",
+    "items",
+    "every_ms",
+    "timeout_ms"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "session_epoch": {
+     "$ref": "#/$defs/U64Dec",
+     "description": "if given and not current → E_CONNECTION_CHANGED"
+    },
+    "items": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 32,
+     "items": {
+      "$ref": "#/$defs/ItemSpec"
+     }
+    },
+    "predicate": {
+     "type": "object",
+     "required": [
+      "key",
+      "op",
+      "value"
+     ],
+     "properties": {
+      "key": {
+       "type": "string"
+      },
+      "op": {
+       "enum": [
+        "eq",
+        "ne",
+        "lt",
+        "le",
+        "gt",
+        "ge",
+        "changed",
+        "bit_set",
+        "bit_clear"
+       ]
+      },
+      "value": {
+       "type": "string",
+       "description": "decimal or 0x-hex string, compared in the item's declared type"
+      },
+      "hold_ms": {
+       "type": "integer",
+       "minimum": 0
+      }
+     }
+    },
+    "every_ms": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "REQUESTED interval; the result reports the MEASURED interval"
+    },
+    "timeout_ms": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 600000
+    },
+    "record": {
+     "enum": [
+      "change",
+      "all"
+     ],
+     "default": "change"
+    },
+    "heartbeat_ms": {
+     "type": "integer",
+     "minimum": 100,
+     "default": 1000,
+     "description": "record=change: journal an unchanged batch at least this often so last-known freshness is itself evidenced"
+    },
+    "from": {
+     "type": "string",
+     "description": "'now' or 'seq:N' — the dispatch cursor captured before the model started (lets the result say what was / was not observed after the request boundary)"
+    },
+    "allow_running_read": {
+     "enum": [
+      "refuse",
+      "declared_nonintrusive_only"
+     ],
+     "default": "refuse"
+    }
+   }
+  },
+  "WatchResult": {
+   "type": "object",
+   "description": "compact result handed to the agent; every value refers to a journaled sample_id",
+   "required": [
+    "watch_id",
+    "target_id",
+    "outcome",
+    "polls",
+    "gaps",
+    "interval_ms",
+    "last"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "watch_id": {
+     "type": "string"
+    },
+    "target_id": {
+     "$ref": "#/$defs/TargetId"
+    },
+    "outcome": {
+     "enum": [
+      "matched",
+      "timeout_no_match",
+      "stopped",
+      "lost",
+      "epoch_changed",
+      "refused"
+     ]
+    },
+    "match": {
+     "type": "object",
+     "properties": {
+      "sample_id": {
+       "$ref": "#/$defs/SampleId"
+      },
+      "key": {
+       "type": "string"
+      },
+      "v": {
+       "$ref": "#/$defs/Value"
+      },
+      "journal_seq": {
+       "$ref": "#/$defs/U64Dec"
+      }
+     }
+    },
+    "last": {
+     "type": "array",
+     "maxItems": 32,
+     "items": {
+      "type": "object",
+      "properties": {
+       "key": {
+        "type": "string"
+       },
+       "sample_id": {
+        "$ref": "#/$defs/SampleId"
+       },
+       "v": {
+        "$ref": "#/$defs/Value"
+       },
+       "quality": {
+        "$ref": "#/$defs/Quality"
+       }
+      }
+     }
+    },
+    "polls": {
+     "type": "integer"
+    },
+    "recorded": {
+     "type": "integer"
+    },
+    "gaps": {
+     "type": "array",
+     "maxItems": 16,
+     "items": {
+      "type": "object",
+      "properties": {
+       "reason": {
+        "enum": [
+         "busy",
+         "deadline",
+         "link",
+         "would_halt",
+         "item_error",
+         "stop"
+        ]
+       },
+       "from_ms": {
+        "type": "integer"
+       },
+       "to_ms": {
+        "type": "integer"
+       },
+       "missed_polls": {
+        "type": "integer"
+       }
+      }
+     }
+    },
+    "interval_ms": {
+     "type": "object",
+     "properties": {
+      "requested": {
+       "type": "integer"
+      },
+      "p50": {
+       "type": "number"
+      },
+      "p95": {
+       "type": "number"
+      },
+      "max": {
+       "type": "number"
+      }
+     }
+    },
+    "observed_window": {
+     "type": "object",
+     "properties": {
+      "from_seq": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "first_sample_wall_ms": {
+       "$ref": "#/$defs/U64Dec"
+      },
+      "last_sample_wall_ms": {
+       "$ref": "#/$defs/U64Dec"
+      }
+     },
+     "description": "absence claims are bounded to this window only"
+    },
+    "evidence": {
+     "type": "array",
+     "maxItems": 8,
+     "items": {
+      "type": "string"
+     },
+     "description": "evidence refs, e.g. dbg:ccs1/cpu1@seq:1042"
+    }
+   }
+  },
+  "ProposedErrorMapping": {
+   "description": "Bridge error → EXISTING Loom ErrorCode (crates/loom-proto/src/error.rs). Only E_WOULD_HALT is a PROPOSED proto addition; until added, use E_UNSUPPORTED with detail.reason='would_halt'.",
+   "const": {
+    "BRIDGE_BUSY": "E_BUSY",
+    "QUEUE_FULL": "E_WORKER_BUSY",
+    "AUTH": "E_PERMISSION",
+    "NOT_OPEN": "E_NOT_OPEN",
+    "NO_SUCH_CORE": "E_NOT_FOUND",
+    "EPOCH_MISMATCH": "E_CONNECTION_CHANGED",
+    "LINK_LOST": "E_DISCONNECTED",
+    "DEADLINE": "E_TIMEOUT",
+    "CANCELLED_BY_STOP": "E_STOPPED",
+    "WOULD_HALT": "E_UNSUPPORTED (+detail.reason=would_halt) | PROPOSED E_WOULD_HALT",
+    "UNSUPPORTED_OP": "E_UNSUPPORTED",
+    "PARTIAL": "E_PARTIAL",
+    "SDK_ERROR": "E_NO_RESPONSE (+detail.sdk_message, bounded)",
+    "VERSION": "E_PROTO_MISMATCH",
+    "STOP_LATCHED": "E_STOPPED"
+   }
+  }
+ }
+}

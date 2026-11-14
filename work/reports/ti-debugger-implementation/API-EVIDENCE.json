@@ -1,0 +1,528 @@
+{
+  "state": "READY",
+  "ready": true,
+  "kind": "ccs-scripting-api-evidence",
+  "agent": "dbg-api-opus",
+  "workspace": "w2G",
+  "model": "claude-opus-5-5",
+  "session": "dd8a5132-4435-4543-89f6-2779937a8db6",
+  "accessed": "2026-11-14",
+  "md": "work/reports/ti-debugger-implementation/API-EVIDENCE.md",
+  "scope_note": "Entries marked documented were checked against TI official CCS 21.0.1 Scripting references; not_found entries are bounded research findings. No entry was executed against a CCS install, SDK, hardware or probe. Documented API availability is not validation on XDS560v2/Blackhawk driver/target.",
+  "api_version": {
+    "product": "CCStudio IDE 21.0.1 (Theia-based) — CCS Scripting (JavaScript + Python)",
+    "reference_status": "CURRENT 21.0.1 reference pages exist and were fetched (HTTP 200). Prior survey's '21 reference URL 404' applied to the old TypeDoc path; the 21.0.1 reference lives under users_guide/scripting/{javascript,python}/.",
+    "js_api_last_modified_header": "Wed, 26 Aug 2026 15:39:19 GMT",
+    "local_copy": "<CCS INSTALL DIR>/ccs/scripting/docs (stated by handbook)",
+    "runtime_version_query": "ds.versionInfo() -> VersionResult{version,major,minor,revision,build}",
+    "python_naming": "Same camelCase method names; returns dict instead of objects; Python int instead of BigInt; return types often 'int | str'.",
+    "legacy_dss": "Still shipped; separate, incompatible with CCS Scripting (prior survey S19/S20). New bridge targets CCS Scripting only."
+  },
+  "sources": {
+    "A1": {
+      "title": "CCS 21.0.1 Scripting handbook",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_debug-scripting.html"
+    },
+    "A2": {
+      "title": "JavaScript API Reference (21.0.1)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/api.html"
+    },
+    "A3": {
+      "title": "Python API Reference (21.0.1)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/python/api.html"
+    },
+    "A4": {
+      "title": "JS DebuggerScripting",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/DebuggerObjects/DebuggerRootObject.html"
+    },
+    "A5": {
+      "title": "JS DebugSession",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/TaskRootObject.html"
+    },
+    "A6": {
+      "title": "JS Target",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Target.html"
+    },
+    "A7": {
+      "title": "JS Memory",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Memory/MemoryRootObject.html"
+    },
+    "A8": {
+      "title": "JS MemMap",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Memory/MemMap.html"
+    },
+    "A9": {
+      "title": "JS Registers",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Registers.html"
+    },
+    "A10": {
+      "title": "JS Symbols (session)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Symbols.html"
+    },
+    "A11": {
+      "title": "JS SymbolModule (offline symbols, source line, disassembly)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/SymbolModuleObjects/SymbolRootObject.html"
+    },
+    "A12": {
+      "title": "JS Breakpoints",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Breakpoints.html"
+    },
+    "A13": {
+      "title": "JS Callstack",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Callstack.html"
+    },
+    "A14": {
+      "title": "JS Expressions",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Expressions.html"
+    },
+    "A15": {
+      "title": "JS Settings",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/Settings.html"
+    },
+    "A16": {
+      "title": "JS Simultaneous",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/DebuggerObjects/Simultaneous.html"
+    },
+    "A17": {
+      "title": "JS GlobalBreakpoint",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/TaskObjects/GlobalBreakpoint.html"
+    },
+    "A18": {
+      "title": "JS Types (Address, DSLocation, Page, results)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/common.html"
+    },
+    "A19": {
+      "title": "JS Exceptions (ScriptingTimeoutError)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/scripting/javascript/exceptions.html"
+    },
+    "A20": {
+      "title": "CCS 21.0.1 Debug guide (realtime options, real-time mode, breakpoint properties, continuous refresh, Load Symbols)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_debug-main.html"
+    },
+    "A21": {
+      "title": "GEL OnTargetConnect()",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/gel/OnTargetConnect.html"
+    },
+    "A22": {
+      "title": "GEL OnPreTargetConnect()",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/gel/OnPreTargetConnect.html"
+    },
+    "A23": {
+      "title": "GEL files: startup GEL from target configuration auto-loaded",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/gel/files.html"
+    },
+    "A24": {
+      "title": "GEL in target configuration (Initialization Script)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/users_guide/gel/targetconfig.html"
+    },
+    "A25": {
+      "title": "TI: Byte Accesses with the C28x CPU (16-bit addressable)",
+      "url": "https://software-dl.ti.com/ccs/esd/documents/c2000_byte-accesses-with-the-c28x-cpu.html"
+    },
+    "A26": {
+      "title": "TI SPRU514 (rev. Sep 2015, compiler v15.9) C28x C/C++ language implementation (CHAR_BIT=16)",
+      "url": "http://downloads.ti.com/docs/esd/SPRU514I/Content/SPRU514I_HTML/tms320c28x_c_c_language_implementation.html"
+    },
+    "A27": {
+      "title": "TI SPRAC71 C28x EABI app note (search result only, not fetched)",
+      "url": "https://www.ti.com/lit/pdf/sprac71"
+    },
+    "PRIOR": {
+      "title": "Prior survey (S1–S29, reused not refetched)",
+      "path": "work/reports/ti-debugger-survey/SURVEY.md"
+    }
+  },
+  "matrix": [
+    {
+      "pane": "connection/config",
+      "capability": "configure .ccxml, list cores",
+      "api": "ds.configure(ccxmlFile: string): CoreList{cores[],nonDebugCores[]}; ds.listCores(): CoreList; ds.deconfigure(): void",
+      "status": "documented",
+      "src": [
+        "A4"
+      ],
+      "notes": "configure does NOT connect cores; throws if already configured (deconfigure first; deconfigure disconnects all cores and invalidates sessions). Core name strings are probe+core (example uses XDS110 name); exact Blackhawk 560v2 core-name strings UNKNOWN until real ccxml."
+    },
+    {
+      "pane": "connection/config",
+      "capability": "open session per core (multicore)",
+      "api": "ds.openSession(corePattern: RegExp|string = ''): DebugSession; session.getName(): string; session.getPartNum(): string; session.close(): void",
+      "status": "documented",
+      "src": [
+        "A4",
+        "A5"
+      ],
+      "notes": "First matching core wins (regex). session.close() is NOT disconnect; target stays connected."
+    },
+    {
+      "pane": "connection/config",
+      "capability": "connect/disconnect/isConnected",
+      "api": "session.target.connect(): void; disconnect(): void; isConnected(): boolean",
+      "status": "documented",
+      "src": [
+        "A6"
+      ],
+      "side_effects": "connect runs OnPreTargetConnect/OnTargetConnect GEL (synchronous) from startup GEL in ccxml; GEL that modifies state (e.g. GEL_Reset) halts target and defeats unobtrusive connect. Unobtrusive connect only described for real-time mode.",
+      "side_effect_src": [
+        "A21",
+        "A22",
+        "A23",
+        "A24"
+      ]
+    },
+    {
+      "pane": "connection/config",
+      "capability": "debugger settings (auto-run, realtime etc.)",
+      "api": "session.settings.getDetailedSettings(): DebugSetting[]; get(id): boolean|number|string; set(id, value): void",
+      "status": "documented",
+      "src": [
+        "A15",
+        "A1",
+        "A20"
+      ],
+      "notes": "Documented IDs: AutoRunToLabelOnReset, AutoRunToLabelName, AutoRunToLabelOnRestart. Realtime mode / polite / 'Halt the target before any debugger access' setting IDs NOT given in docs -> discover via getDetailedSettings on real host (SDK check)."
+    },
+    {
+      "pane": "connection/config",
+      "capability": "attach second scripting instance to same debugger",
+      "api": "initScripting({attach: handle|'auto'}); ds.getInstanceHandle(): number",
+      "status": "documented (auto = experimental)",
+      "src": [
+        "A2",
+        "A4"
+      ],
+      "notes": "Docs say both instances can interact simultaneously. Whether a 2nd instance can issue halt/isHalted while the 1st is blocked in a call is NOT documented -> SDK check before using as control plane."
+    },
+    {
+      "pane": "run control",
+      "capability": "run/halt/wait/state",
+      "api": "target.run(waitForHalt?: boolean = true): void; halt(): void; waitForHalt(): void; isHalted(): boolean",
+      "status": "documented",
+      "src": [
+        "A6"
+      ],
+      "notes": "run() blocks until halt by default -> bridge must call run(false). No run-state event/subscription API; state via isHalted() polling or GEL OnHalt callback (registerCallback)."
+    },
+    {
+      "pane": "run control",
+      "capability": "step",
+      "api": "target.stepInto(explicitlyAsm?: boolean=false); stepOver(explicitlyAsm?); stepOut()",
+      "status": "documented",
+      "src": [
+        "A6"
+      ],
+      "notes": "Blocks until halted again. Source step if symbols cover current PC, else asm step; explicitlyAsm forces asm."
+    },
+    {
+      "pane": "run control",
+      "capability": "reset/restart",
+      "api": "target.getResets(): Record<string,boolean>; reset(resetType?: string): void; restart(): void",
+      "status": "documented",
+      "src": [
+        "A6"
+      ],
+      "notes": "Reset names are target-specific (query getResets). restart sets PC to entry, calls OnRestart GEL, may auto-run to label (setting). Prior survey: reset failure not thrown -> re-check state."
+    },
+    {
+      "pane": "run control",
+      "capability": "multicore simultaneous run/halt/asm step; global breakpoint (cross-trigger)",
+      "api": "ds.simultaneous.run(targets: string[], waitForHalt?=true); halt(targets); asmStepInto(targets); session.globalBreakpoint.enable()/disable()",
+      "status": "documented",
+      "src": [
+        "A16",
+        "A17"
+      ],
+      "mvp": "later"
+    },
+    {
+      "pane": "registers",
+      "capability": "enumerate register tree",
+      "api": "registers.getRegisterGroups(groupId?: string|null): {registers: RegisterInfo[], groups: GroupInfo[]}; getBitfields(registerId): RegisterBitfield[]",
+      "status": "documented",
+      "src": [
+        "A9",
+        "A18"
+      ],
+      "notes": "RegisterInfo{id,name,location?(undefined for core regs),readable,writable}; readable/writable still require target state allowing access. Bitfield type field is 'stop' in Types page but example destructures 'end' (doc inconsistency). Register/group names are target-specific: enumerate at runtime, do not hardcode."
+    },
+    {
+      "pane": "registers",
+      "capability": "read/write register",
+      "api": "registers.read(registerName: string): bigint|number|string; write(registerName, value: bigint|number|string): void; exportAsJson(groupIds, filePath, style?); importFromJson(filePath)",
+      "status": "documented",
+      "src": [
+        "A9"
+      ],
+      "notes": "'PC' and 'R0' used in examples (Arm-like). SP/PC names for C28x/C6000/Cortex-R NOT verified by this reference -> discover from getRegisterGroups. Memory-mapped registers (RegisterInfo.location set) are MMIO: read may have side effects (read-to-clear) -> separate capability class."
+    },
+    {
+      "pane": "memory",
+      "capability": "read memory",
+      "api": "memory.read(location: DSLocation, count: number, bitSize?: number): (bigint|number|string)[]; readOne(location, bitSize?)",
+      "status": "documented",
+      "src": [
+        "A7",
+        "A18"
+      ],
+      "notes": "count = number of VALUES (not bytes). bitSize default = target word size; valid 8,16,24,32,40,48,64. Values returned as UNSIGNED integers. Endianness of returned values not stated (inference: debugger returns target-endian-interpreted integers) -> verify on HW. Page via 'addr@PAGE', '@pa', '@ipa'; memory.getPages(). Running-target access behaviour NOT stated in API -> device/mode dependent (A20)."
+    },
+    {
+      "pane": "memory",
+      "capability": "write/fill memory, save/load data",
+      "api": "memory.write(location, values[], bitSize?); fill(location, count, value, bitSize?); saveData/loadData/saveBinary/loadBinary; getSupportedFormats(page?)",
+      "status": "documented",
+      "src": [
+        "A7"
+      ],
+      "notes": "write truncates to bitSize, negatives written as signed. Action class (mutating)."
+    },
+    {
+      "pane": "memory",
+      "capability": "debugger memory map",
+      "api": "memory.memMap.get(): {entries:[{start,end,attributes[]}], enabled}; add(start,length,readable,writable); enable(bool); remove(loc); reset()",
+      "status": "documented",
+      "src": [
+        "A8"
+      ],
+      "notes": "Map reflects GEL_MapAddStr attributes; useful to pre-validate ranges before read. It is debugger permission map, not a side-effect (read-sensitive) classification."
+    },
+    {
+      "pane": "addressing/values",
+      "capability": "64-bit safe values",
+      "api": "Address = bigint|string|number; DSLocation = Address | 'num@page'",
+      "status": "documented",
+      "src": [
+        "A18",
+        "A1"
+      ],
+      "notes": "JS returns BigInt for integers; TI recommends BigInt/strings (JS number exact only to 53 bits). Python uses int. Bridge must serialize as hex/decimal strings in JSON (BigInt is not JSON-serializable)."
+    },
+    {
+      "pane": "addressing/values",
+      "capability": "C28x addressable unit",
+      "api": "n/a (target fact)",
+      "status": "documented (TI compiler/app docs)",
+      "src": [
+        "A25",
+        "A26"
+      ],
+      "notes": "C28x is 16-bit addressable: each address = 16 bits; char/byte = 16 bits; sizeof(int)==1. So 32-bit var = 2 address units; next element address += bitSize/16. memory.read(...,bitSize=8) behaviour on C28x NOT documented -> avoid/SDK check. Other TI cores (Cortex-R/M/A, C6000, C29x): address unit NOT verified in this pass -> per-target capability 'address_unit_bits' from config + HW acceptance."
+    },
+    {
+      "pane": "symbols",
+      "capability": "load symbols only (no target write)",
+      "api": "session.symbols.load(fullPath): void (replace); add(fullPath); loadWithOffset/addWithOffset(path, codeOffset, dataOffset, relative?); remove(path); unloadAllSymbols()",
+      "status": "documented",
+      "src": [
+        "A10",
+        "A20"
+      ],
+      "notes": "Explicitly 'loads only the symbol information' -> correct for already-flashed targets. Contrast memory.loadProgram (writes target + symbols; ELF/COFF/hex). Accepted file types for symbols.load not enumerated (examples use .out)."
+    },
+    {
+      "pane": "symbols",
+      "capability": "name -> address, address(range) -> names",
+      "api": "session.symbols.getAddress(symbol): bigint|number|string|null; lookupSymbols(start: DSLocation, length?=0): string[]",
+      "status": "documented",
+      "src": [
+        "A10"
+      ]
+    },
+    {
+      "pane": "symbols",
+      "capability": "enumerate all symbols / all source files",
+      "api": "NOT FOUND",
+      "status": "not_found",
+      "src": [
+        "A10",
+        "A11"
+      ],
+      "notes": "No list-all-symbols or list-source-files API. Workaround (proposal): lookupSymbols over known memory ranges, or parse ELF on the Loom side (not a CCS API)."
+    },
+    {
+      "pane": "source",
+      "capability": "address -> source file+line / function",
+      "api": "SymbolModule: symModule.lookupSourceLine(addr): {file,line}|null; lookupFunction(addr): {name,file}|null; via ds.openSymbolModule(processorId, isBigEndian=false); symModule.load/add/remove/unloadAll/close",
+      "status": "documented (offline module)",
+      "src": [
+        "A11",
+        "A4"
+      ],
+      "notes": "Works without target/session. processorId is an undocumented 'magic number' identifying the architecture -> values UNKNOWN, SDK check. Session-level Symbols has no lookupSourceLine."
+    },
+    {
+      "pane": "source",
+      "capability": "current PC/frames -> source (halted)",
+      "api": "session.callstack.fetch(maxLevels?): {frames:[{functionName?, sourceLine?{path,line,column}, pc: string, locals: string[]}], reasonUnwindHalted}",
+      "status": "documented",
+      "src": [
+        "A13",
+        "A18"
+      ],
+      "notes": "Best documented path for 'PC -> file:line' in a live session. pc is string. path is presumably compile-time path (inference) -> needs path mapping."
+    },
+    {
+      "pane": "source",
+      "capability": "source file+line -> address",
+      "api": "NOT FOUND (no direct API)",
+      "status": "not_found",
+      "src": [
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "notes": "breakpoints.add(file,line) accepts file:line, and getProperty(id,'Hardware Configuration.Location') shows source-based location string, but getProperty is documented on PROPERTY-SET ids, not breakpoint ids -> do not rely. Proposal: Loom-side DWARF line table parse, or SDK check."
+    },
+    {
+      "pane": "source",
+      "capability": "local<->bridge path mapping",
+      "api": "NOT FOUND in scripting API",
+      "status": "not_found",
+      "src": [
+        "A20",
+        "A12"
+      ],
+      "notes": "IDE has Source Lookup dialog / launch config (GUI). Breakpoint file arg = full compile-time path OR basename (first match). Mapping must be a Loom/bridge table (proposal)."
+    },
+    {
+      "pane": "disassembly",
+      "capability": "disassemble range",
+      "api": "symModule.disassemble(start: Address, end: Address): {disassembly:[{address, numOpCodes, text}]}",
+      "status": "documented (offline, from object files)",
+      "src": [
+        "A11",
+        "A18"
+      ],
+      "notes": "Uses CONTENTS OF LOADED OBJECT FILES, inclusive range; text contains address+opcodes+instruction. Not live target memory -> mismatch if flash differs. Session-level live-memory disassembly API NOT FOUND. Needs processorId (unknown)."
+    },
+    {
+      "pane": "breakpoints",
+      "capability": "add/remove",
+      "api": "breakpoints.add(locationExprOrSrcFile: Address|string, line?: number): number; remove(id); removeAll()",
+      "status": "documented",
+      "src": [
+        "A12",
+        "A1"
+      ],
+      "notes": "Location = address, symbol expression ('main + 0x8') or source file (+line)."
+    },
+    {
+      "pane": "breakpoints",
+      "capability": "HW bp / condition / skip count / action",
+      "api": "createProperties(type?: 0 sw|1 hw): number; setProperty(propsId, propertyId, value); setPropertySourceLocation(propsId, propertyId, file, line); getProperty(propsId, propertyId); getDetailedProperties(propsId): BreakpointProperty[]; addWithProperties(propsId): number",
+      "status": "documented",
+      "src": [
+        "A12",
+        "A1",
+        "A20"
+      ],
+      "notes": "Documented property ids: 'Hardware Configuration.Location', 'Debugger Response.Skip Count', 'Debugger Response.Action.Expression'. Condition exists under Debugger Response in debug guide (GEL expr) but exact id not given -> discover via getDetailedProperties. Properties only settable before add. Names vary per target/bp type."
+    },
+    {
+      "pane": "breakpoints",
+      "capability": "enable/disable without remove, list, hit state/count",
+      "api": "NOT FOUND",
+      "status": "not_found",
+      "src": [
+        "A12"
+      ],
+      "notes": "Bridge must own BP table (id->spec). Disable = remove + re-add (new id). Hit detection: after halt compare PC (registers.read / callstack) with BP address (derived, not an API), or GEL OnHalt via registerCallback (throws if device GEL already defines OnHalt)."
+    },
+    {
+      "pane": "watch/expression",
+      "capability": "evaluate expression",
+      "api": "expressions.evaluate(expression: string): void|bigint|number|string",
+      "status": "documented",
+      "src": [
+        "A14",
+        "A1"
+      ],
+      "side_effects": "Evaluates GEL; can call built-in/user GEL functions and registered JS callbacks -> NOT inherently read-only. Integral->BigInt, float->number, other (e.g. C++ object ref) -> no value.",
+      "notes": "Use symbols.getAddress + memory.read with known type for read-only watch; restrict evaluate to an allowlisted grammar or treat as action."
+    },
+    {
+      "pane": "watch/expression",
+      "capability": "GEL callbacks from debugger",
+      "api": "session.registerCallback(name, (ds, session, ...args) => boolean|float|bigint|string); registerMenuCallback(name, menu, cb)",
+      "status": "documented (advanced)",
+      "src": [
+        "A5"
+      ],
+      "notes": "Debugger invokes OnHalt etc. if defined; throws if same-name GEL function exists (many device GELs predefine)."
+    },
+    {
+      "pane": "timeouts/cancel",
+      "capability": "timeout",
+      "api": "initScripting({timeout}); ds.setScriptingTimeout(ms) (<=0 disables); ds.getScriptingTimeout(); ScriptingTimeoutError",
+      "status": "documented",
+      "src": [
+        "A2",
+        "A4",
+        "A19"
+      ],
+      "notes": "Global for ALL future calls (not per-call). Default: no timeout. Docs do not state whether the underlying operation stops or target state after timeout (example then calls halt — Loom must NOT auto-halt). No cancel API: only timeout or process kill."
+    },
+    {
+      "pane": "timeouts/cancel",
+      "capability": "sync model",
+      "api": "Synchronous API (since CCS Theia 1.3); sleep(ms) blocks event loop",
+      "status": "documented",
+      "src": [
+        "A1",
+        "A2"
+      ],
+      "notes": "JS calls block the Node event loop -> a readline/JSON-lines loop in the SAME process cannot service STOP/heartbeat during a call. Need separate control process or explicit in-flight/uncancellable semantics."
+    },
+    {
+      "pane": "program load/flash",
+      "capability": "load/verify",
+      "api": "memory.loadProgram(filepath, args?: string[]); loadBinaryProgram(filepath, startAddress); verifyProgram(filepath) (throws on mismatch); verifyBinaryProgram(filepath, startAddress)",
+      "status": "documented",
+      "src": [
+        "A7"
+      ],
+      "notes": "ELF, COFF, hex formats. Writes target. Excluded from MVP."
+    },
+    {
+      "pane": "runtime/deploy",
+      "capability": "how to run",
+      "api": "<CCS>/ccs/scripting/run.sh|run.bat <script>; JS outside: require(ccsPath + '/ccs/scripting/node_modules/scripting'); Python: <CCS>/ccs/scripting/python/run.sh or own Python>=3.10 with pip install -e <CCS>/ccs/scripting/python/site-packages/scripting; initScripting({ccsRoot}) if package relocated",
+      "status": "documented",
+      "src": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "notes": "CCS bundles Node and Python 3.14. Every path points INTO a CCS install; external import still needs CCS install (+ device support + Blackhawk drivers per prior survey). Standalone minimal bundle NOT documented/verified. interactive.mjs = no IDE dependency (headless). launchCCS() optional side-by-side IDE (not needed)."
+    }
+  ],
+  "doc_inconsistencies": [
+    "launchCCS default: API ref says 'waitUntilLaunch', handbook says 'detached' is default (A4 vs A1).",
+    "Handbook shows initScripting({inProcess:true}); 'inProcess' absent from API option table (A1 vs A2/A3).",
+    "RegisterBitfield field 'stop' (Types) vs example destructuring 'end' (Registers page)."
+  ],
+  "not_found": [
+    "list all symbols / source files",
+    "source file:line -> address (direct)",
+    "path mapping API",
+    "live (target-memory) disassembly",
+    "breakpoint enable/disable, list, hit state/count",
+    "run-state change event stream (only polling isHalted or GEL OnHalt callback)",
+    "per-call timeout or cancellation",
+    "setting IDs for realtime/polite/'halt before access' (discover via getDetailedSettings)",
+    "processorId values for openSymbolModule",
+    "memory read side-effect (read-sensitive MMIO) classification"
+  ],
+  "sdk_hw_checks": [
+    "Blackhawk 560v2 core-name strings from real .ccxml (listCores)",
+    "getDetailedSettings dump: realtime/polite/halt-before-access ids & defaults per target",
+    "memory.read on running target per device/mode (C28x realtime vs Cortex-R DAP vs C66x)",
+    "C28x read with bitSize 8; default word size; endian of multi-word values",
+    "attach-handle second instance concurrency while first call blocked",
+    "post-ScriptingTimeoutError state of debugger/target",
+    "openSymbolModule processorId for chosen core",
+    "breakpoint Condition property id via getDetailedProperties",
+    "register names for PC/SP on chosen core"
+  ],
+  "prior_reused": "Host OS/macOS unsupported, Blackhawk driver bundling, XDS560v2 targets, licensing, run(false) pitfall, reset no-throw — from SURVEY.md S1–S29 (not refetched)."
+}

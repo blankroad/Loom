@@ -1,0 +1,39 @@
+{
+  "_note": "PROPOSED journal payloads for domain 'dbg' (channel = target_id). Not emitted by any current Loom build. Seq/wall values are illustrative.",
+  "events": [
+    {"seq": "1040", "kind": "dbg.link", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"probe_alias": "bh1", "link": "up", "backend": "ccs-remote", "endpoint": "127.0.0.1:47560 (ssh -L → bridge-win11)", "bridge_instance": "7f3c2a9e-1b6d-4c1e-9a55-2d1f0b7c8e01", "ccs_version": "unknown", "rtt_ms": 4.8, "offset_err_ns": "2400000", "state_rev": "31"}},
+    {"seq": "1041", "kind": "dbg.session", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"target_id": "bh1/cpu1", "core_name": "<opaque CCS core name #0>", "session_epoch": "7", "ccxml": "C:/loom-bench/bh1/target.ccxml", "ccxml_sha256": "9b1d0c4c2e6f6a8e4c0b3a7d5f2e1c9b8a7f6e5d4c3b2a190817263544332211", "program_symbols": null, "caps": {"au_bits": 16, "nonintrusive_read": "unknown"}, "state_rev": "32", "connect_side_effects": "not_proven_none"}},
+    {"seq": "1042", "kind": "dbg.run_state", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"target_id": "bh1/cpu1", "state": "running", "quality": "fresh", "session_epoch": "7", "run_epoch": "1", "state_rev": "33", "observed_bridge_ns": "91237915000000", "observed_wall_ms": "1794662401512", "source": "connect"}},
+    {"seq": "1043", "kind": "dbg.action", "channel": "bh1/cpu1", "request_id": "req_01HZXHLT", "origin": "user", "risk": "R2",
+     "payload": {"target_id": "bh1/cpu1", "verb": "halt", "write_state": "confirmed", "session_epoch": "7", "effect": "applied", "bridge_ms": 31.0}},
+    {"seq": "1044", "kind": "dbg.run_state", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"target_id": "bh1/cpu1", "state": "halted", "quality": "fresh", "session_epoch": "7", "run_epoch": "2", "state_rev": "34", "observed_bridge_ns": "91239032000000", "observed_wall_ms": "1794662403130", "source": "action_result"}},
+    {"seq": "1045", "kind": "dbg.sample", "channel": "bh1/cpu1",
+     "payload": {"sample_id": "bh1/cpu1@7.2.1", "target_id": "bh1/cpu1", "session_epoch": "7", "run_epoch": "2", "state_rev": "34", "run_state_at_read": "halted", "access": "halted", "watch_id": "w2", "reason": "first",
+       "values": [{"key": "g_state", "v": {"hex": "0x0003", "bits": 16, "signed": false, "dec": "3", "endian": "n/a"}, "changed": true},
+                  {"key": "g_cnt", "v": {"hex": "0x0001E240", "bits": 32, "signed": false, "dec": "123456", "endian": "little"}, "changed": true}],
+       "t": {"bridge_start_ns": "91239100010000", "bridge_end_ns": "91239106000000", "mac_send_mono_ns": "5520001000000", "mac_recv_mono_ns": "5520011200000", "offset_ns": "-85718990000000", "offset_err_ns": "2400000"}}},
+    {"seq": "1046", "kind": "dbg.mem_block", "channel": "bh1/cpu1",
+     "payload": {"sample_id": "bh1/cpu1@7.2.2", "target_id": "bh1/cpu1", "address": {"addr": "0x8000", "au_bits": 16}, "count_au": "1024", "run_epoch": "2", "state_rev": "34",
+       "artifact": {"artifact_id": "blk_3f9a0c11d2e4b567", "sha256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a", "bytes": "2048", "path": "/api/v1/dbg/blocks/blk_3f9a0c11d2e4b567", "layout": "au16le"},
+       "inline_preview": "0x0003 0x0000 0xE240 0x0001"}},
+    {"seq": "1050", "kind": "dbg.run_state", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"target_id": "bh1/cpu1", "state": "running", "quality": "fresh", "session_epoch": "7", "run_epoch": "3", "state_rev": "35", "observed_bridge_ns": "91240013000000", "observed_wall_ms": "1794662404110", "source": "action_result"}},
+    {"seq": "1051", "kind": "dbg.gap", "channel": "bh1/cpu1",
+     "payload": {"target_id": "bh1/cpu1", "watch_id": "w2", "reason": "would_halt", "from_wall_ms": "1794662404110", "to_wall_ms": "1794662409110", "missed_polls": 50, "detail": "running and region not declared non-intrusive — not read, not halted"}},
+    {"seq": "1060", "kind": "dbg.run_state", "channel": "bh1/cpu1", "priority": true,
+     "payload": {"target_id": "bh1/cpu1", "state": "lost", "last_known": "running", "quality": "stale", "session_epoch": "7", "run_epoch": "3", "state_rev": "36", "observed_bridge_ns": "91240013000000", "observed_wall_ms": "1794662404110", "source": "link_loss"}}
+  ],
+  "agent_watch_result_example": {
+    "watch_id": "w2", "target_id": "bh1/cpu1", "outcome": "lost",
+    "last": [{"key": "g_state", "sample_id": "bh1/cpu1@7.2.1", "v": {"hex": "0x0003", "bits": 16, "signed": false, "dec": "3"}, "quality": "stale"}],
+    "polls": 51, "recorded": 1,
+    "gaps": [{"reason": "would_halt", "from_ms": 1000, "to_ms": 6000, "missed_polls": 50}],
+    "interval_ms": {"requested": 100, "p50": 100.4, "p95": 103.9, "max": 110.2},
+    "observed_window": {"from_seq": "1044", "first_sample_wall_ms": "1794662403136", "last_sample_wall_ms": "1794662403136"},
+    "evidence": ["dbg:bh1/cpu1@seq:1045", "dbg:bh1/cpu1@seq:1051", "dbg:bh1/cpu1@seq:1060"]
+  }
+}

@@ -1,0 +1,102 @@
+{
+ "report": "work/reports/ti-debugger-implementation/REPORT.html",
+ "url": "http://127.0.0.1:64785/ti-debugger-implementation/REPORT.html",
+ "report_sha256": "14e70e9e97f96ef9d8161807ad7e7c15ecd50cac1dc19e2818c62e53442c36b6",
+ "browser": {
+  "tool": "ego-browser 2.2.1",
+  "task_space_id": 12,
+  "page": "p1",
+  "kept": "p1 at REPORT.html top (light, emulation cleared)"
+ },
+ "theme": "default light (Bench Light tokens); dark only via explicit toggle; layout figure scoped light in both modes (dark-toggle check: body rgb(21,23,26), wireframe rgb(247,246,242))",
+ "desktop": {
+  "viewport": "1440x900 dpr1",
+  "doc_scrollW_eq_clientW": true,
+  "figures": 5,
+  "figures_inner_scroll": 0,
+  "tables_inner_scroll": 2,
+  "missing_anchors": 0
+ },
+ "mobile": {
+  "viewport": "390x844 dpr2 mobile",
+  "doc_scrollW_eq_clientW": true,
+  "page_horizontal_overflow": false,
+  "figures_inner_scroll": "5 (intentional, swipe hint shown; right edge verified in mobile-fig3-scrolled-right.png)",
+  "tables_inner_scroll": 7,
+  "missing_anchors": 0
+ },
+ "links": {
+  "checked": 18,
+  "http_200": 18,
+  "local": 10,
+  "external_ti": 8
+ },
+ "visual_fixes_after_review": [
+  "fig1 label collisions",
+  "fig3 crossing edges/labels",
+  "fig4 lane header overflow",
+  "fig5 vertical edges",
+  "wireframe forced light",
+  "mobile swipe hint"
+ ],
+ "contracts_validator": "python3 -I work/reports/ti-debugger-implementation/contracts/validate.py -> TOTAL_FAILS 0 (also rerun independently by ROOT)",
+ "screenshots": [
+  {
+   "file": "qa/desktop-darktoggle-fig2-layout.png",
+   "sha256": "ae3aad70fd69289d7f7d758e79a959eb4bb6c41b5946c4d865de147416968699"
+  },
+  {
+   "file": "qa/desktop-fig1.png",
+   "sha256": "f8b1ab275b5a475e5f5263c36f438c897ae19cbbabbe82e317e46c2e59e008d8"
+  },
+  {
+   "file": "qa/desktop-fig2.png",
+   "sha256": "513bfa37643056dc4863711eee06ea9b72c4c40bb25cd2b06c75030c1c21ec46"
+  },
+  {
+   "file": "qa/desktop-fig3.png",
+   "sha256": "310df221411d56f7b6ba1b5d70527db86794e96661b51cfb0ae0f907d34f0e60"
+  },
+  {
+   "file": "qa/desktop-fig4.png",
+   "sha256": "44b5043f4040b72d57f9745c0eec8cbc8612c82a7fc19e0de7ebc8c72273f6e3"
+  },
+  {
+   "file": "qa/desktop-fig5.png",
+   "sha256": "a816cac0cfbc0625b322e57b2fb0102bcd60c193378efc8cba581713569187bc"
+  },
+  {
+   "file": "qa/desktop-top.png",
+   "sha256": "ca51171a9722254b6fd6154ab770196b51d58caed77eb0271b6c358d004bdbd6"
+  },
+  {
+   "file": "qa/mobile-fig1.png",
+   "sha256": "0c06cc9a37fb6baf1cb8361075ad1468b34f580c017c60fa9b091ca25a3d660d"
+  },
+  {
+   "file": "qa/mobile-fig2.png",
+   "sha256": "411bf162fe13f96408b4312f1a77acb906687680cb9c4075d38ed6ecbb976319"
+  },
+  {
+   "file": "qa/mobile-fig3-scrolled-right.png",
+   "sha256": "a3ba665ca7da86475cc390efc01d6ca72b5e2c832b5b59fe578a31805191a68f"
+  },
+  {
+   "file": "qa/mobile-fig3.png",
+   "sha256": "393c1258b6ddf36d1ccf6ad20548ee683e5af57e90b7c0b79ec91e0feb352842"
+  },
+  {
+   "file": "qa/mobile-fig4.png",
+   "sha256": "a659ff2d347641911d637576ff809a2ef3d1649ac3f605ddb5710b9dce632807"
+  },
+  {
+   "file": "qa/mobile-fig5.png",
+   "sha256": "c5337952641727db948220795367d246ad7718b9270c995e36849380c0f9ee0d"
+  },
+  {
+   "file": "qa/mobile-top.png",
+   "sha256": "721174fccbf3f3b6751f2986968207fa2dfa42503f25f3a62bc6dfd15d152fbf"
+  }
+ ],
+ "note": "Screenshots show the report and a PROPOSED wireframe; none is a real probe/CCS screen."
+}

@@ -1,0 +1,7 @@
+{"_expect": "invalid", "_why": "non-session op without session_epoch", "v": 1, "t": "req", "id": "n1", "op": "mem.read", "core": "cpu1", "deadline_ms": 500, "prio": "read", "args": {}}
+{"_expect": "invalid", "_why": "non-session op without core", "v": 1, "t": "req", "id": "n2", "op": "target.halt", "session_epoch": "7", "deadline_ms": 500, "prio": "action", "origin": "user", "request_id": "req_x", "args": {}}
+{"_expect": "invalid", "_why": "action without request_id", "v": 1, "t": "req", "id": "n3", "op": "target.run", "core": "cpu1", "session_epoch": "7", "deadline_ms": 500, "prio": "action", "origin": "user", "args": {}}
+{"_expect": "invalid", "_why": "rejected phase claiming SDK started", "v": 1, "t": "res", "id": "n4", "ok": false, "phase": "rejected", "sdk_call": "started_no_result", "effect": "none", "timing": {"recv_ns": "1"}, "error": {"code": "WOULD_HALT", "message": "x"}}
+{"_expect": "invalid", "_why": "done with effect unknown", "v": 1, "t": "res", "id": "n5", "ok": true, "phase": "done", "sdk_call": "completed", "effect": "unknown", "timing": {"recv_ns": "1"}}
+{"_expect": "invalid", "_why": "res without sdk_call", "v": 1, "t": "res", "id": "n6", "ok": true, "phase": "done", "effect": "none", "timing": {"recv_ns": "1"}}
+{"_expect": "schema_valid_runtime_reject", "_why": "u64 syntax ok (20 digits) but > u64::MAX — runtime parser must reject", "v": 1, "t": "req", "id": "n7", "op": "target.state", "core": "cpu1", "session_epoch": "99999999999999999999", "deadline_ms": 500, "prio": "read", "args": {}}
