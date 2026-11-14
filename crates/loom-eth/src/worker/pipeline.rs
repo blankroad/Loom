@@ -149,6 +149,17 @@ fn map_gaps(em: &Emitter, g: GapReport, shared: &Shared) {
     if g.counts.capture_restart > 0 {
         gap(em, "source.gap", "capture_restart", None, None, None, m);
     }
+    if g.counts.producer_seq > 0 {
+        gap(
+            em,
+            "source.gap",
+            "producer_seq_gap",
+            Some(g.counts.producer_seq),
+            None,
+            None,
+            m,
+        );
+    }
 }
 fn state(shared: &Shared, em: &Emitter, next: CaptureStateKind, message: Option<String>) {
     if let Some(s) = lock(&shared.state).as_mut() {
@@ -274,13 +285,18 @@ pub(crate) fn run(
             Metrics::add(&shared.metrics.bytes, u64::from(frame.raw.origlen));
             let historical_replay =
                 frame.ts_source == TimestampSource::Replay && frame.raw.section_index != u64::MAX;
-            let mut attributed = if historical_replay {
+            // Frames from an external producer are never Loom's own: only frames Loom genuinely
+            // sent (its own echo copies, section u64::MAX) may match the recent-send table.
+            let external_stream =
+                frame.ts_source == TimestampSource::External && frame.raw.section_index != u64::MAX;
+            let foreign = historical_replay || external_stream;
+            let mut attributed = if foreign {
                 None
             } else {
                 lock(&shared.recent).find(&frame.raw.data, frame.raw.origlen, now)
             };
             let probe_bytes = &frame.raw.data[..frame.raw.data.len().min(MAX_DECODE_INPUT)];
-            if !historical_replay && attributed.is_none() && lock(&shared.recent).has_socket() {
+            if !foreign && attributed.is_none() && lock(&shared.recent).has_socket() {
                 let probe = loom_eth_decode::decode(
                     frame.raw.interface.linktype,
                     probe_bytes,
@@ -384,6 +400,7 @@ pub(crate) fn run(
                             TimestampSource::Sim => TsSrc::Sim,
                             TimestampSource::PcapHost => TsSrc::PcapHost,
                             TimestampSource::PcapAdapter => TsSrc::PcapAdapter,
+                            TimestampSource::External => TsSrc::External,
                         }
                     },
                     proto: proto.into(),
@@ -553,16 +570,34 @@ pub(crate) fn run(
                 .next_capture_seq
                 .fetch_max(summary.next_seq, Ordering::AcqRel);
             *lock(&shared.drop_stats) = summary.final_stats;
-            let replay = lock(&shared.state)
+            let (replay, stream) = lock(&shared.state)
                 .as_ref()
-                .is_some_and(|s| s.backend == "replay");
-            let next = if stop.load(Ordering::Acquire) {
+                .map_or((false, false), |s| (s.backend == "replay", s.backend == "stream"));
+            let requested = stop.load(Ordering::Acquire);
+            // The source was dropped (reader shut down, bounded) before join returned.
+            let outstanding = if stream {
+                loom_eth_capture::outstanding_stream_readers()
+            } else {
+                0
+            };
+            if outstanding > 0 {
+                let msg = format!(
+                    "stream reader thread not finished within {} ms; {outstanding} outstanding (cleanup incomplete)",
+                    loom_eth_capture::STREAM_JOIN_BOUND.as_millis()
+                );
+                state(&shared, &em, CaptureStateKind::Error, Some(msg.clone()));
+                return Err(error(ErrorCode::Internal, msg));
+            }
+            let next = if requested {
                 CaptureStateKind::Stopped
             } else if replay {
                 CaptureStateKind::ReplayDone
             } else {
                 CaptureStateKind::Stopped
             };
+            if stream && let Some(s) = lock(&shared.state).as_mut() {
+                s.reason = Some(if requested { "requested" } else { "producer_eof" }.into());
+            }
             state(&shared, &em, next, None);
             Ok(())
         }

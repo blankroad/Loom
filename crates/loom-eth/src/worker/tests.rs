@@ -550,7 +550,8 @@ fn capture_queue_loss_and_interface_probe_are_honest() {
             .as_array()
             .expect("list")
             .len(),
-        2
+        3,
+        "sim, replay and stream (external producer) entries"
     );
     replay(&mut worker, &h);
     let mut rows = Vec::new();
@@ -1147,4 +1148,276 @@ fn native_tcp_pending_syn_owned_tuple_and_expiry_are_probable() {
     assert!(probable);
     assert!(!lock(owned.observation.as_ref().expect("state")).sent);
     assert!(recent.find_tcp(&payload, CAP_TX_TTL_NS + 1).is_none());
+}
+
+// ---- stream backend: independent loopback pcapng producer ----
+fn ng_block(kind: u32, body: &[u8]) -> Vec<u8> {
+    let pad = (4 - body.len() % 4) % 4;
+    let n = (12 + body.len() + pad) as u32;
+    let mut b = kind.to_le_bytes().to_vec();
+    b.extend(n.to_le_bytes());
+    b.extend(body);
+    b.extend(vec![0; pad]);
+    b.extend(n.to_le_bytes());
+    b
+}
+fn ng_header() -> Vec<u8> {
+    let mut shb = 0x1A2B_3C4Du32.to_le_bytes().to_vec();
+    shb.extend(1u16.to_le_bytes());
+    shb.extend(0u16.to_le_bytes());
+    shb.extend((-1i64).to_le_bytes());
+    let mut idb = 1u16.to_le_bytes().to_vec();
+    idb.extend(0u16.to_le_bytes());
+    idb.extend(65535u32.to_le_bytes());
+    idb.extend(9u16.to_le_bytes());
+    idb.extend(1u16.to_le_bytes());
+    idb.extend([9, 0, 0, 0, 0, 0, 0, 0]);
+    let mut v = ng_block(0x0A0D_0D0A, &shb);
+    v.extend(ng_block(1, &idb));
+    v
+}
+fn ng_epb(id: u64, ts: u64, data: &[u8], comment: Option<&str>) -> Vec<u8> {
+    let mut body = 0u32.to_le_bytes().to_vec();
+    body.extend(((ts >> 32) as u32).to_le_bytes());
+    body.extend((ts as u32).to_le_bytes());
+    body.extend((data.len() as u32).to_le_bytes());
+    body.extend((data.len() as u32).to_le_bytes());
+    body.extend(data);
+    body.extend(vec![0; (4 - data.len() % 4) % 4]);
+    body.extend(5u16.to_le_bytes());
+    body.extend(8u16.to_le_bytes());
+    body.extend(id.to_le_bytes());
+    if let Some(c) = comment {
+        body.extend(1u16.to_le_bytes());
+        body.extend((c.len() as u16).to_le_bytes());
+        body.extend(c.as_bytes());
+        body.extend(vec![0; (4 - c.len() % 4) % 4]);
+    }
+    body.extend([0; 4]);
+    ng_block(6, &body)
+}
+/// Independent producer thread: writes `wire` after accept, then holds `hold` before closing.
+fn ng_producer(wire: Vec<u8>, hold: Duration) -> (String, std::thread::JoinHandle<()>) {
+    let l = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = l.local_addr().expect("addr").to_string();
+    let t = std::thread::spawn(move || {
+        use std::io::Write;
+        let (mut c, _) = l.accept().expect("accept");
+        c.write_all(&wire).expect("write");
+        std::thread::sleep(hold);
+    });
+    (addr, t)
+}
+fn start_stream(worker: &mut EthWorker, h: &Harness, addr: &str) -> Result<Value, WorkerError> {
+    wait(worker.on_call(
+        &h.cx,
+        call(
+            "eth.capture.start",
+            json!({"ch":"lan","iface":"ext","backend":"stream","stream":{"connect":addr,"connect_timeout_ms":1000,"idle_timeout_ms":5000}}),
+        ),
+    ))
+}
+#[test]
+fn stream_frames_are_external_device_origin_and_eof_is_producer_eof() {
+    let h = Harness::new(256);
+    let mut worker = EthWorker::new();
+    let frames = sample();
+    let claim = loom_eth_pcapng::LoomMeta {
+        seq: 1,
+        dir: loom_eth_pcapng::Direction::Tx,
+        req: Some("w1".into()),
+        org: loom_eth_pcapng::Origin::Agent,
+    }
+    .to_comment()
+    .expect("comment");
+    let mut wire = ng_header();
+    for (i, f) in frames.iter().take(3).enumerate() {
+        let c = (i == 1).then_some(claim.as_str());
+        wire.extend(ng_epb(i as u64 + 1, 1_000 + i as u64, f, c));
+    }
+    let (addr, t) = ng_producer(wire, Duration::from_millis(50));
+    start_stream(&mut worker, &h, &addr).expect("stream start");
+    let mut rows = Vec::new();
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.kind == KIND_CAPTURE_STATE && e.payload["state"] == "stopped")
+    });
+    let packets: Vec<_> = rows.iter().filter(|r| r.kind == KIND_PKT).collect();
+    assert_eq!(packets.len(), 3);
+    for (i, p) in packets.iter().enumerate() {
+        assert_eq!(p.payload["ts_src"], "external");
+        assert_eq!(p.payload["layers"]["_capture"]["ts_ns"], (1_000 + i).to_string());
+        assert!(
+            p.payload.get("attributed_origin").is_none_or(Value::is_null),
+            "{:?}",
+            p.payload
+        );
+        assert!(
+            p.payload.get("link").is_none_or(Value::is_null),
+            "{:?}",
+            p.payload
+        );
+        let b64 = p.payload["bytes"]["data"].as_str().expect("bytes");
+        let bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).expect("b64");
+        assert_eq!(bytes, frames[i]);
+    }
+    let end = rows
+        .iter()
+        .rfind(|e| e.kind == KIND_CAPTURE_STATE)
+        .expect("state");
+    assert_eq!(end.payload["state"], "stopped");
+    assert_eq!(end.payload["reason"], "producer_eof");
+    assert_eq!(end.payload["backend"], "stream");
+    assert_eq!(worker.health()["stream_readers_outstanding"], 0);
+    t.join().expect("producer");
+}
+#[test]
+fn stream_capture_stop_with_hung_producer_is_bounded_and_requested() {
+    let h = Harness::new(256);
+    let mut worker = EthWorker::new();
+    let mut wire = ng_header();
+    wire.extend(ng_epb(1, 1, &sample()[0], None));
+    wire.extend(&ng_epb(2, 2, &sample()[1], None)[..13]);
+    let (addr, t) = ng_producer(wire, Duration::from_millis(1500));
+    start_stream(&mut worker, &h, &addr).expect("stream start");
+    let mut rows = Vec::new();
+    until(&h, &mut rows, |r| r.iter().any(|e| e.kind == KIND_PKT));
+    let started = Instant::now();
+    stop(&mut worker, &h);
+    assert!(
+        started.elapsed() < Duration::from_millis(700),
+        "{:?}",
+        started.elapsed()
+    );
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.kind == KIND_CAPTURE_STATE && e.payload["state"] == "stopped")
+    });
+    let end = rows
+        .iter()
+        .rfind(|e| e.kind == KIND_CAPTURE_STATE)
+        .expect("state");
+    assert_eq!(end.payload["reason"], "requested");
+    assert_eq!(worker.health()["stream_readers_outstanding"], 0);
+    t.join().expect("producer");
+}
+#[test]
+fn stream_stop_latch_keeps_observation_and_producer_gap_is_reported() {
+    let h = Harness::new(256);
+    let mut worker = EthWorker::new();
+    let l = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = l.local_addr().expect("addr").to_string();
+    let (go_tx, go_rx) = std::sync::mpsc::channel::<()>();
+    let f = sample();
+    let t = std::thread::spawn(move || {
+        use std::io::Write;
+        let (mut c, _) = l.accept().expect("accept");
+        let mut wire = ng_header();
+        wire.extend(ng_epb(1, 1, &f[0], None));
+        c.write_all(&wire).expect("first");
+        go_rx.recv_timeout(Duration::from_secs(2)).expect("go");
+        // packetid 2 and 3 never sent: producer-side gap of 2.
+        c.write_all(&ng_epb(4, 4, &f[1], None)).expect("after latch");
+        std::thread::sleep(Duration::from_millis(50));
+    });
+    start_stream(&mut worker, &h, &addr).expect("stream start");
+    let mut rows = Vec::new();
+    until(&h, &mut rows, |r| {
+        r.iter().filter(|e| e.kind == KIND_PKT).count() == 1
+    });
+    // STOP latch blocks writes only; observation (R0) continues on every backend.
+    h.latch.set(true);
+    go_tx.send(()).expect("go");
+    until(&h, &mut rows, |r| {
+        r.iter().filter(|e| e.kind == KIND_PKT).count() == 2
+    });
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.kind == "source.gap" && e.payload["cause"] == "producer_seq_gap")
+    });
+    let g = rows
+        .iter()
+        .find(|e| e.kind == "source.gap" && e.payload["cause"] == "producer_seq_gap")
+        .expect("gap");
+    assert_eq!(g.payload["count"], "2", "{:?}", g.payload);
+    t.join().expect("producer");
+    stop(&mut worker, &h);
+}
+#[test]
+fn stream_params_validated_loopback_only_and_refused_connect_is_not_open() {
+    let h = Harness::new(64);
+    let mut worker = EthWorker::new();
+    for bad in ["192.0.2.1:9", "localhost:9", "127.0.0.1:0"] {
+        let e = start_stream(&mut worker, &h, bad).expect_err("usage");
+        assert_eq!(e.code, ErrorCode::Usage, "{bad}: {e:?}");
+    }
+    let e = wait(worker.on_call(
+        &h.cx,
+        call(
+            "eth.capture.start",
+            json!({"ch":"lan","iface":"ext","backend":"stream"}),
+        ),
+    ))
+    .expect_err("missing options");
+    assert_eq!(e.code, ErrorCode::Usage);
+    let e = wait(worker.on_call(
+        &h.cx,
+        call(
+            "eth.capture.start",
+            json!({"ch":"lan","iface":"ext","backend":"stream","bpf":"tcp","stream":{"connect":"127.0.0.1:9"}}),
+        ),
+    ))
+    .expect_err("bpf");
+    assert_eq!(e.code, ErrorCode::NotImplemented);
+    let closed = {
+        let l = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+        l.local_addr().expect("addr").to_string()
+    };
+    let e = start_stream(&mut worker, &h, &closed).expect_err("refused");
+    assert_eq!(e.code, ErrorCode::NotOpen, "{e:?}");
+}
+#[test]
+fn stream_restart_after_truncated_error_starts_new_generation_with_capture_restart_gap() {
+    let h = Harness::new(512);
+    let mut worker = EthWorker::new();
+    let mut wire = ng_header();
+    wire.extend(ng_epb(1, 1, &sample()[0], None));
+    wire.extend(&ng_epb(2, 2, &sample()[1], None)[..10]);
+    let (addr, t) = ng_producer(wire, Duration::from_millis(10));
+    start_stream(&mut worker, &h, &addr).expect("first start");
+    let mut rows = Vec::new();
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.kind == KIND_CAPTURE_STATE && e.payload["state"] == "error")
+    });
+    let err = rows
+        .iter()
+        .rfind(|e| e.kind == KIND_CAPTURE_STATE)
+        .expect("state");
+    assert!(
+        err.payload["error"]
+            .as_str()
+            .is_some_and(|s| s.contains("truncated: 10 bytes")),
+        "{:?}",
+        err.payload
+    );
+    t.join().expect("producer 1");
+    let mut wire = ng_header();
+    wire.extend(ng_epb(1, 1, &sample()[2], None));
+    let (addr, t) = ng_producer(wire, Duration::from_millis(10));
+    // The earlier, already-published error must not fail the new start.
+    start_stream(&mut worker, &h, &addr).expect("restart after error");
+    rows.clear();
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.kind == KIND_CAPTURE_STATE && e.payload["reason"] == "producer_eof")
+    });
+    assert!(
+        rows.iter()
+            .any(|e| e.kind == "source.gap" && e.payload["cause"] == "capture_restart")
+    );
+    let pkt = rows.iter().find(|e| e.kind == KIND_PKT).expect("packet");
+    assert_eq!(pkt.generation, Some(2), "{pkt:?}");
+    t.join().expect("producer 2");
+    stop(&mut worker, &h);
 }

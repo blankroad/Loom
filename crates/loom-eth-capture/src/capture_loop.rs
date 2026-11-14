@@ -194,12 +194,23 @@ fn run(
     sample(&mut tracker, summary.final_stats, queue);
     let mut sampled = Instant::now();
     let ts_source = source.timestamp_source();
+    let mut producer_missing = 0u64;
     while !stop.is_stopped() {
         let wait = CAP_STATS_INTERVAL
             .saturating_sub(sampled.elapsed())
             .min(MAX_SOURCE_POLL);
         let frame = source.next(wait)?;
         if let Some(raw) = frame {
+            // Report a producer gap before the frame that revealed it.
+            if let Some(m) = source.producer_seq_missing()
+                && m > producer_missing
+            {
+                queue.report(GapReport::source(
+                    GapCause::ProducerSeqGap,
+                    Some(m - producer_missing),
+                ));
+                producer_missing = m;
+            }
             let seq = summary.next_seq;
             summary.next_seq = seq
                 .checked_add(1)

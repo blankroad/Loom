@@ -418,7 +418,14 @@ pub struct ChanInfo {
 
 impl ChanInfo {
     /// Loopback-like targets (sim, replay or a loopback interface): sends stay on this host.
+    ///
+    /// `stream` is never local by channel: its loopback-only *receive* peer does not constrain
+    /// `eth send udp --to`, which uses a real OS socket, and its `iface` is a free-text label
+    /// (`lo0` must not lower risk). Stream sends are classified by their destination only.
     pub fn is_local(&self) -> bool {
+        if self.backend == "stream" {
+            return false;
+        }
         self.backend == "sim"
             || self.backend == "replay"
             || matches!(self.iface.as_str(), "lo" | "lo0")
@@ -506,5 +513,45 @@ mod json_u64_tests {
         assert_eq!(json_u64(Some(&json!("x"))), None);
         assert_eq!(json_u64(Some(&json!(-1))), None);
         assert_eq!(json_u64(None), None);
+    }
+}
+
+#[cfg(test)]
+mod stream_locality_tests {
+    use super::ChanInfo;
+    use crate::gateway::hooks::classify_send;
+    use loom_proto::event::Risk;
+    use serde_json::json;
+
+    fn chan(backend: &str, iface: &str) -> ChanInfo {
+        ChanInfo {
+            backend: backend.into(),
+            iface: iface.into(),
+            ..Default::default()
+        }
+    }
+    #[test]
+    fn stream_channel_is_never_local_even_with_loopback_label() {
+        assert!(!chan("stream", "ext").is_local());
+        assert!(!chan("stream", "lo0").is_local());
+        assert!(!chan("stream", "loopback-sim").is_local());
+        // Existing behaviour unchanged.
+        assert!(chan("sim", "sim").is_local());
+        assert!(chan("replay", "fixture").is_local());
+        assert!(chan("live", "lo0").is_local());
+        assert!(!chan("live", "en5").is_local());
+    }
+    #[test]
+    fn stream_send_is_classified_by_destination_without_sending() {
+        let local = chan("stream", "lo0").is_local();
+        let remote = json!({"kind":"udp","hex":"4142","to":"203.0.113.5:40001","ch":"ext-stream"});
+        let (r, why) = classify_send(&remote, local);
+        assert_eq!(r, Risk::R2, "{why}");
+        let lo = json!({"kind":"udp","hex":"4142","to":"127.0.0.1:40001","ch":"ext-stream"});
+        let (r, why) = classify_send(&lo, local);
+        assert_eq!(r, Risk::R1, "{why}");
+        assert!(why.contains("loopback"));
+        let bcast = json!({"kind":"udp","hex":"4142","to":"192.0.2.255:40001","ch":"ext-stream"});
+        assert_eq!(classify_send(&bcast, local).0, Risk::R3);
     }
 }

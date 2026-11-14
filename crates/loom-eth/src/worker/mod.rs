@@ -193,11 +193,18 @@ impl Running {
         })
     }
     fn shutdown(mut self) -> Result<(), WorkerError> {
+        // A run that already ended has published its terminal state (`error` included);
+        // joining it is cleanup, not a new failure of the next start/stop.
+        let already_ended = self.thread.as_ref().is_some_and(JoinHandle::is_finished);
         self.stop.store(true, Ordering::Release);
         self.capture_stop.stop();
         if let Some(t) = self.thread.take() {
-            t.join()
-                .map_err(|_| error(ErrorCode::Internal, "decode thread join failed"))??;
+            let result = t
+                .join()
+                .map_err(|_| error(ErrorCode::Internal, "decode thread join failed"))?;
+            if !already_ended {
+                result?;
+            }
         }
         Ok(())
     }
@@ -259,7 +266,7 @@ impl EthWorker {
         let total = Metrics::get(&self.shared.metrics.total)
             .saturating_add(Metrics::get(&self.shared.metrics.capture_dropped));
         let shown = Metrics::get(&self.shared.metrics.shown);
-        json!({"queue_frames":self.running.as_ref().map_or(0,|r|r.queue.len()),"queue_bytes":self.running.as_ref().map_or(0,|r|r.queue.byte_usage()),"tx_queue_bytes":self.running.as_ref().map_or(0,|r|r.budget.load(Ordering::Acquire)),"decode_lag_ms":Metrics::get(&self.shared.metrics.decode_lag_ms),"shown":shown,"total":total,"publication_permille":if total==0{1000}else{shown.saturating_mul(1000)/total},"emitter_failures":Metrics::get(&self.shared.metrics.emit_failed),"display_lost":Metrics::get(&self.shared.metrics.display_lost),"unrecorded":Metrics::get(&self.shared.metrics.unrecorded),"decode_resets":Metrics::get(&self.shared.metrics.decode_resets),"timestamp_fallbacks":Metrics::get(&self.shared.metrics.timestamp_fallbacks),"journal_available":false})
+        json!({"queue_frames":self.running.as_ref().map_or(0,|r|r.queue.len()),"queue_bytes":self.running.as_ref().map_or(0,|r|r.queue.byte_usage()),"tx_queue_bytes":self.running.as_ref().map_or(0,|r|r.budget.load(Ordering::Acquire)),"decode_lag_ms":Metrics::get(&self.shared.metrics.decode_lag_ms),"shown":shown,"total":total,"publication_permille":if total==0{1000}else{shown.saturating_mul(1000)/total},"emitter_failures":Metrics::get(&self.shared.metrics.emit_failed),"display_lost":Metrics::get(&self.shared.metrics.display_lost),"unrecorded":Metrics::get(&self.shared.metrics.unrecorded),"decode_resets":Metrics::get(&self.shared.metrics.decode_resets),"timestamp_fallbacks":Metrics::get(&self.shared.metrics.timestamp_fallbacks),"stream_readers_outstanding":loom_eth_capture::outstanding_stream_readers(),"journal_available":false})
     }
     fn status(&self) -> Value {
         let mut v = lock(&self.shared.state)
@@ -342,6 +349,18 @@ impl EthWorker {
         {
             return Err(error(ErrorCode::Usage, "replay path exceeds bound"));
         }
+        if (p.backend == "stream") != p.stream.is_some() {
+            return Err(error(
+                ErrorCode::Usage,
+                "backend stream needs stream options (and only stream takes them)",
+            ));
+        }
+        if p.backend == "stream" && p.replay.is_some() {
+            return Err(error(ErrorCode::Usage, "stream does not take replay options"));
+        }
+        if let Some(s) = &p.stream {
+            source::stream_options(s)?;
+        }
         Ok(())
     }
 }
@@ -365,7 +384,7 @@ impl Worker for EthWorker {
                     #[cfg(not(feature = "live"))]
                     {
                         Ok(
-                            json!({"ifaces":[{"name":"sim","desc":"permission-free synthetic tap","ips":[],"up":true,"loopback":true,"can_capture":true},{"name":"replay","desc":"pcapng/pcap replay","ips":[],"up":true,"loopback":true,"can_capture":true}]}),
+                            json!({"ifaces":[{"name":"sim","desc":"permission-free synthetic tap","ips":[],"up":true,"loopback":true,"can_capture":true},{"name":"replay","desc":"pcapng/pcap replay","ips":[],"up":true,"loopback":true,"can_capture":true},{"name":"stream","desc":"external pcapng producer over loopback TCP (not a NIC capture)","ips":[],"up":true,"loopback":true,"can_capture":true}]}),
                         )
                     }
                 }
@@ -411,6 +430,7 @@ impl Worker for EthWorker {
                         linktype: 1,
                         started_mono_ns: loom_proto::num::U64(cx.clock().mono_ns()),
                         error: None,
+                        reason: None,
                     };
                     let em = cx.emitter(&ch).with_generation(
                         Some(self.generation),

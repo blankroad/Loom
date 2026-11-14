@@ -40,6 +40,8 @@ pub enum GapCause {
     IfDrop,
     StatsUnavailable,
     CaptureRestart,
+    /// External producer sequence (`epb_packetid`) skipped numbers.
+    ProducerSeqGap,
     Coalesced,
 }
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -49,6 +51,7 @@ pub struct GapCounts {
     pub if_drop: u64,
     pub stats_unavailable: u64,
     pub capture_restart: u64,
+    pub producer_seq: u64,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GapReport {
@@ -83,6 +86,7 @@ impl GapReport {
             GapCause::IfDrop => counts.if_drop = count.unwrap_or(0),
             GapCause::StatsUnavailable => counts.stats_unavailable = 1,
             GapCause::CaptureRestart => counts.capture_restart = 1,
+            GapCause::ProducerSeqGap => counts.producer_seq = count.unwrap_or(0),
             _ => (),
         }
         Self {
@@ -116,6 +120,7 @@ impl GapReport {
             .counts
             .capture_restart
             .saturating_add(other.counts.capture_restart);
+        self.counts.producer_seq = self.counts.producer_seq.saturating_add(other.counts.producer_seq);
     }
 }
 #[derive(Debug)]

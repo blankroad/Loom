@@ -69,6 +69,8 @@ pub enum TsSrc {
     Replay,
     /// Synthesized by the sim tap.
     Sim,
+    /// Written by an external software producer (`stream` backend); not a host capture clock.
+    External,
 }
 
 /// Link from a packet to a request in some domain.
@@ -212,7 +214,7 @@ pub struct CaptureStatePayload {
     pub ch: String,
     /// State.
     pub state: CaptureStateKind,
-    /// `live|replay|sim`.
+    /// `live|replay|sim|stream`.
     pub backend: String,
     /// Interface (or replay file name).
     pub iface: String,
@@ -239,6 +241,9 @@ pub struct CaptureStatePayload {
     /// Error text.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    /// Why a capture ended (`requested`, `producer_eof`), when known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 /// `eth.stats` payload (1 s).
@@ -289,6 +294,28 @@ pub struct CaptureStartParams {
     /// Replay options (backend = replay).
     #[serde(default)]
     pub replay: Option<ReplayParams>,
+    /// External producer options (backend = stream).
+    #[serde(default)]
+    pub stream: Option<StreamParams>,
+}
+
+/// `stream` backend options: an external pcapng producer on loopback TCP.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StreamParams {
+    /// `127.x.x.x:PORT` or `[::1]:PORT`.
+    pub connect: String,
+    /// Connect + first section/interface bound (ms, 1..=10000).
+    #[serde(default = "default_stream_start_ms")]
+    pub connect_timeout_ms: u32,
+    /// Error when the producer sends nothing for this long (ms, 0 = off, ≤ 600000).
+    #[serde(default = "default_stream_idle_ms")]
+    pub idle_timeout_ms: u32,
+}
+fn default_stream_start_ms() -> u32 {
+    2000
+}
+fn default_stream_idle_ms() -> u32 {
+    30_000
 }
 
 /// Replay options.

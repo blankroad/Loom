@@ -220,6 +220,22 @@ impl Source {
                     .map_err(capture_error)?,
                 ))
             }
+            "stream" => {
+                let p = params
+                    .stream
+                    .as_ref()
+                    .ok_or_else(|| error(ErrorCode::Usage, "stream options required"))?;
+                let options = stream_options(p)?;
+                Some(Box::new(
+                    loom_eth_capture::StreamSource::connect(options).map_err(|e| match e {
+                        loom_eth_capture::CaptureError::Io(_)
+                        | loom_eth_capture::CaptureError::Backend(_) => {
+                            error(ErrorCode::NotOpen, e.to_string())
+                        }
+                        other => capture_error(other),
+                    })?,
+                ))
+            }
             "live" => {
                 #[cfg(feature = "live")]
                 {
@@ -238,7 +254,12 @@ impl Source {
                     return Err(error(ErrorCode::NotImplemented, "live feature disabled"));
                 }
             }
-            _ => return Err(error(ErrorCode::Usage, "backend must be live, replay or sim")),
+            _ => {
+                return Err(error(
+                    ErrorCode::Usage,
+                    "backend must be live, replay, sim or stream",
+                ));
+            }
         };
         let interface = inner.as_ref().map(|s| s.interface()).unwrap_or(Interface {
             linktype: 1,
@@ -447,6 +468,7 @@ impl CaptureSource for Source {
         match self.backend.as_str() {
             "sim" => TimestampSource::Sim,
             "replay" => TimestampSource::Replay,
+            "stream" => TimestampSource::External,
             _ => TimestampSource::PcapHost,
         }
     }
@@ -474,6 +496,9 @@ impl CaptureSource for Source {
     }
     fn is_exhausted(&self) -> bool {
         self.pending.is_empty() && self.inner.as_ref().is_some_and(|s| s.is_exhausted())
+    }
+    fn producer_seq_missing(&self) -> Option<u64> {
+        self.inner.as_ref().and_then(|s| s.producer_seq_missing())
     }
     fn next(&mut self, timeout: Duration) -> loom_eth_capture::Result<Option<RawFrame>> {
         if self.stop.is_stopped() {
@@ -525,4 +550,21 @@ impl CaptureSource for Source {
 }
 pub(crate) fn channel() -> (SyncSender<Command>, Receiver<Command>) {
     std::sync::mpsc::sync_channel(MAX_TX_COMMANDS)
+}
+
+/// Validates `stream` params into capture options (loopback-only, bounded timeouts).
+pub(crate) fn stream_options(
+    p: &crate::model::StreamParams,
+) -> Result<loom_eth_capture::StreamOptions, WorkerError> {
+    let addr: SocketAddr = p.connect.parse().map_err(|_| {
+        error(
+            ErrorCode::Usage,
+            "--connect must be IP:PORT (loopback, no hostnames)",
+        )
+    })?;
+    let mut o = loom_eth_capture::StreamOptions::new(addr);
+    o.start_timeout = Duration::from_millis(u64::from(p.connect_timeout_ms));
+    o.idle_timeout = (p.idle_timeout_ms > 0).then(|| Duration::from_millis(u64::from(p.idle_timeout_ms)));
+    o.validate().map_err(|e| error(ErrorCode::Usage, e.to_string()))?;
+    Ok(o)
 }

@@ -7,6 +7,7 @@ mod live;
 mod queue;
 mod replay;
 mod sim;
+mod stream;
 pub use capture_loop::{CaptureConfig, CaptureLoop, CaptureSummary, StopHandle};
 #[cfg(feature = "live")]
 pub use interfaces::{
@@ -24,6 +25,11 @@ use std::{
     sync::{Arc, Condvar, Mutex},
     time::Duration,
 };
+pub use stream::{
+    DEFAULT_STREAM_START, MAX_STREAM_IDLE, MAX_STREAM_QUEUE_BLOCKS, MAX_STREAM_QUEUE_BYTES, MAX_STREAM_START,
+    STREAM_JOIN_BOUND, STREAM_READ_DEADLINE, StreamEnd, StreamOptions, StreamSource,
+    outstanding_stream_readers,
+};
 
 /// Frames larger than this are rejected, never silently truncated.
 pub const MAX_FRAME_BYTES: usize = loom_eth_pcapng::MAX_PACKET_BYTES;
@@ -39,6 +45,8 @@ pub enum TimestampSource {
     Sim,
     PcapHost,
     PcapAdapter,
+    /// Timestamp written by an external software producer (`stream` backend), not host capture.
+    External,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RawFrame {
@@ -143,6 +151,10 @@ pub trait CaptureSource: Send + fmt::Debug {
     }
     /// Wake interruptible waits when stopped. Custom sources may rely on the timeout contract.
     fn set_stop_signal(&mut self, _signal: StopSignal) {}
+    /// Cumulative packets the producer numbered but never delivered (external sources only).
+    fn producer_seq_missing(&self) -> Option<u64> {
+        None
+    }
 }
 #[derive(Debug)]
 pub enum CaptureError {

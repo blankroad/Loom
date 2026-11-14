@@ -134,7 +134,7 @@ impl DomainCli for EthCli {
                             .arg(
                                 Arg::new("backend")
                                     .long("backend")
-                                    .value_parser(["live", "replay", "sim"]),
+                                    .value_parser(["live", "replay", "sim", "stream"]),
                             )
                             .arg(
                                 Arg::new("replay")
@@ -153,6 +153,26 @@ impl DomainCli for EthCli {
                                     .long("repeat")
                                     .action(ArgAction::SetTrue)
                                     .requires("replay"),
+                            )
+                            .arg(
+                                Arg::new("connect")
+                                    .long("connect")
+                                    .value_name("127.0.0.1:PORT")
+                                    .help("stream: external pcapng producer on loopback TCP"),
+                            )
+                            .arg(
+                                Arg::new("connect-timeout")
+                                    .long("connect-timeout")
+                                    .value_name("MS")
+                                    .value_parser(value_parser!(u32).range(1..=10_000))
+                                    .requires("connect"),
+                            )
+                            .arg(
+                                Arg::new("idle-timeout")
+                                    .long("idle-timeout")
+                                    .value_name("MS")
+                                    .value_parser(value_parser!(u32).range(0..=600_000))
+                                    .requires("connect"),
                             )
                             .arg(
                                 Arg::new("bpf")
@@ -424,10 +444,24 @@ fn capture_call(c: &ArgMatches) -> Result<RpcCall, UsageError> {
     match c.subcommand() {
         Some(("start", s)) => {
             let replay = opt_str(s, "replay");
-            let backend = opt_str(s, "backend")
-                .unwrap_or_else(|| if replay.is_some() { "replay" } else { "live" }.into());
+            let connect = opt_str(s, "connect");
+            let backend = opt_str(s, "backend").unwrap_or_else(|| {
+                if replay.is_some() {
+                    "replay"
+                } else if connect.is_some() {
+                    "stream"
+                } else {
+                    "live"
+                }
+                .into()
+            });
             if backend == "replay" && replay.is_none() {
                 return Err(UsageError::new("--backend replay needs --replay FILE"));
+            }
+            if (backend == "stream") != connect.is_some() {
+                return Err(UsageError::new(
+                    "--backend stream needs --connect 127.0.0.1:PORT (and only stream takes it)",
+                ));
             }
             let speed = match opt_str(s, "speed").as_deref() {
                 None | Some("max") => json!("max"),
@@ -441,7 +475,10 @@ fn capture_call(c: &ArgMatches) -> Result<RpcCall, UsageError> {
                 json!({"iface": need(s, "iface")?, "ch": opt_str(s, "ch"), "backend": backend, "bpf": opt_str(s, "bpf"),
                        "snaplen": s.get_one::<u32>("snaplen").copied().unwrap_or(65535), "promisc": s.get_flag("promisc"),
                        "buffer_mib": s.get_one::<u32>("buffer").copied().unwrap_or(16),
-                       "replay": replay.map(|p| json!({"path": p, "speed": speed, "repeat": s.get_flag("repeat")}))}),
+                       "replay": replay.map(|p| json!({"path": p, "speed": speed, "repeat": s.get_flag("repeat")})),
+                       "stream": connect.map(|c| json!({"connect": c,
+                           "connect_timeout_ms": s.get_one::<u32>("connect-timeout").copied().unwrap_or(2000),
+                           "idle_timeout_ms": s.get_one::<u32>("idle-timeout").copied().unwrap_or(30_000)}))}),
             ))
         }
         Some(("stop", s)) => Ok(RpcCall::new("eth.capture.stop", json!({"ch": opt_str(s, "ch")}))),

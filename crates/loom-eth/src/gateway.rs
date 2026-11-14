@@ -160,9 +160,10 @@ fn event_kinds() -> Vec<EventKindSpec> {
                     ]),
                     None,
                 ),
-                ptr("/payload/backend", en(&["live", "replay", "sim"]), None),
+                ptr("/payload/backend", en(&["live", "replay", "sim", "stream"]), None),
                 ptr("/payload/iface", ValueType::String, None),
                 ptr("/payload/error", ValueType::String, None),
+                ptr("/payload/reason", ValueType::String, None),
             ],
         ),
         kind(
@@ -194,7 +195,7 @@ fn risk_table() -> RiskTable {
                 "eth.send",
                 Some("local"),
                 Risk::R1,
-                "sim, replay or loopback: stays on this host",
+                "sim, replay, stream or loopback: stays on this host",
             ),
             row("eth.send", Some("nic"), Risk::R2, "frame on a real NIC"),
             row(
@@ -259,12 +260,16 @@ pub fn help() -> HelpSpec {
     };
     HelpSpec {
         summary: "Ethernet capture and decode (tshark for the agent, Wireshark for the user): capture on a NIC, \
-                  replay or sim, list/filter/inspect packets (DoIP, UDS over DoIP, SOME/IP), wait for packets \
+                  replay, sim or an external pcapng producer (stream), list/filter/inspect packets (DoIP, UDS over DoIP, SOME/IP), wait for packets \
                   as evidence, send frames."
             .into(),
         examples: vec![
             ex("loom eth ifaces", "capture interfaces"),
             ex("loom eth capture start en5 --ch dut --bpf 'tcp port 13400'", "start capture (BPF = capture filter)"),
+            ex(
+                "loom eth capture start ext --ch dut --backend stream --connect 127.0.0.1:47000",
+                "receive live from an external simulator streaming pcapng on loopback TCP (not a NIC capture)",
+            ),
             ex("loom eth trace -Y 'doip && uds.sid == 0x22' --since -10s", "packets of the last 10 s matching a display filter"),
             ex("loom eth show eth:dut@seq:1234 --hex", "layer tree + hex of one packet"),
             ex("loom eth wait-for -Y 'uds.sid == 0x62' --timeout 5s", "wait for a packet (exit 3 on timeout)"),
@@ -305,9 +310,10 @@ impl DomainModule for Eth {
                 true,
                 Arc::new(Forward("eth.capture.start")),
                 obj(
-                    json!({"iface": {"type": "string"}, "ch": ch, "backend": {"enum": ["live", "replay", "sim"]},
+                    json!({"iface": {"type": "string"}, "ch": ch, "backend": {"enum": ["live", "replay", "sim", "stream"]},
                            "bpf": {"type": "string"}, "snaplen": {"type": "integer"}, "promisc": {"type": "boolean"},
-                           "buffer_mib": {"type": "integer"}, "replay": {"type": "object"}}),
+                           "buffer_mib": {"type": "integer"}, "replay": {"type": "object"},
+                           "stream": {"type": "object"}}),
                     &["iface"],
                 ),
                 DEFAULT_WAIT,
