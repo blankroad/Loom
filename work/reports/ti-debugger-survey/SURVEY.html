@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XDS560v2 디버거 조사</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--muted:#5f5d57;--line:#d9d5cc;--card:#ffffff;--ok:#1f7a4d;--ok-bg:#e3f3ea;--no:#b3261e;--no-bg:#fbe7e5;--warn:#8a5a00;--warn-bg:#fdf1d8;--acc:#2f5fb3;--acc-bg:#e6edf9;--code:#f2efe8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17171a;--fg:#ecebe6;--muted:#a3a19a;--line:#3a3a3f;--card:#202024;--ok:#6fd19c;--ok-bg:#1d3a2b;--no:#ff8a80;--no-bg:#432220;--warn:#f3c56b;--warn-bg:#3d3018;--acc:#8fb2f0;--acc-bg:#1f2a40;--code:#2a2a2f}}
+:root[data-theme="dark"]{--bg:#17171a;--fg:#ecebe6;--muted:#a3a19a;--line:#3a3a3f;--card:#202024;--ok:#6fd19c;--ok-bg:#1d3a2b;--no:#ff8a80;--no-bg:#432220;--warn:#f3c56b;--warn-bg:#3d3018;--acc:#8fb2f0;--acc-bg:#1f2a40;--code:#2a2a2f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:1.6rem;margin:0 0 4px}h2{font-size:1.2rem;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.meta{color:var(--muted);font-size:.85rem}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:18px 0}
+.v{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card)}
+.v b{display:block;font-size:.95rem;margin-bottom:4px}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:99px;margin-bottom:6px}
+.ok{color:var(--ok);background:var(--ok-bg)}.no{color:var(--no);background:var(--no-bg)}.warn{color:var(--warn);background:var(--warn-bg)}.acc{color:var(--acc);background:var(--acc-bg)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--code);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;background:var(--code);border-radius:4px}
+code{padding:1px 4px}pre{padding:12px;overflow-x:auto;line-height:1.45}
+a{color:var(--acc)}
+.legend{font-size:.82rem;color:var(--muted)}
+svg{width:100%;height:auto;display:block}
+.fig{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px}
+.fig text{fill:var(--fg);font-family:inherit}
+.fig .sub{fill:var(--muted);font-size:11px}
+.box{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.zone-mac{fill:var(--acc-bg);stroke:none}.zone-br{fill:var(--ok-bg);stroke:none}.zone-hw{fill:var(--warn-bg);stroke:none}
+.ln{stroke:var(--muted);stroke-width:1.5;fill:none}
+.ln-x{stroke:var(--no);stroke-width:2;stroke-dasharray:5 4;fill:none}
+.lbl{font-size:11px;fill:var(--muted)}
+ol li,ul li{margin:3px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Blackhawk XDS560v2 × TI — Loom 디버거 타당성 조사</h1>
+<div class="meta">claude-opus-5-5 · session b69cea51-12e2-4404-b913-e21c602b935f · Loom HEAD d6fc6f3 · 출처 접근일 2026-11-14 · 조사 전용(하드웨어 검증 없음) · 범위: XDS560v2만</div>
+<p class="legend">근거 표기: <span class="tag acc">V</span> Blackhawk 벤더 문서 · <span class="tag acc">T</span> TI 일반 XDS560v2/CCS 문서(Blackhawk 드라이버 증거로 자동 간주하지 않음) · <span class="tag warn">I</span> 추론 · <span class="tag warn">F</span> 포럼 2차 출처</p>
+
+<h2>1. 결론</h2>
+<div class="verdict">
+ <div class="v"><span class="tag no">미지원</span><b>macOS(Intel/Apple silicon) 직결</b>CCS 20.4.x: macOS에서 XDS560v2 미지원 명시 <a href="#s1">[S1]</a> · Blackhawk의 OS 목록에 macOS 없음 <a href="#s13">[S13]</a></div>
+ <div class="v"><span class="tag ok">가능 (조건부)</span><b>Win10/11 x64 · Ubuntu 22.04/24.04 x64 + CCS 21.0.x</b>CCS에 BlackHawk 드라이버 번들 <a href="#s1">[S1]</a>, 어댑터 <code>bh560v2u/e</code> <a href="#s18">[S18]</a>. JTAG/cJTAG 칩이어야 함(MSP430·SWD 전용 불가)</div>
+ <div class="v"><span class="tag acc">권장 [I]</span><b>macOS Loom ↔ SSH ↔ x64 브리지(CCS Scripting)</b>헤드리스 <code>run.sh</code>와 <code>interactive.mjs</code>(IDE 불필요) <a href="#s19">[S19]</a>. 전체 조합은 벤더가 문서화한 구성이 아님</div>
+ <div class="v"><span class="tag warn">비권장</span><b>VM + USB 패스스루 / 시뮬레이터</b>VM은 공식 지원 구성이 아님 <a href="#s24">[S24]</a>. Apple silicon VM은 공식 지원 미확인(불가능하다는 증거는 아님) → 네이티브 x64 권장. CCS 20/21 시뮬레이터는 공식 지원 확인 못함 → MVP 검증 수단으로 삼지 않고 fake backend 사용</div>
+</div>
+
+<h2>2. 아키텍처 (권장 경로)</h2>
+<div class="fig">
+<svg viewBox="0 0 1000 420" role="img" aria-label="macOS Loom에서 SSH 터널, x64 브리지 호스트의 CCS Scripting, Blackhawk XDS560v2를 거쳐 TI 타깃으로 이어지는 구조">
+ <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="currentColor" style="color:var(--muted)"/></marker></defs>
+ <rect class="zone-mac" x="10" y="10" width="390" height="400" rx="12"/>
+ <text x="24" y="34" font-weight="700" font-size="14">macOS 워크스테이션 (현재)</text>
+ <rect class="zone-br" x="430" y="10" width="300" height="400" rx="12"/>
+ <text x="444" y="34" font-weight="700" font-size="14">x64 Win11 / Ubuntu 24.04 브리지</text>
+ <rect class="zone-hw" x="760" y="10" width="230" height="400" rx="12"/>
+ <text x="774" y="34" font-weight="700" font-size="14">하드웨어</text>
+
+ <rect class="box" x="30" y="52" width="160" height="50" rx="8"/><text x="44" y="74" font-size="13">Loom UI</text><text x="44" y="92" class="sub">공유 저널 view</text>
+ <rect class="box" x="220" y="52" width="160" height="50" rx="8"/><text x="234" y="74" font-size="13">Luna skill · CLI</text><text x="234" y="92" class="sub">loom dbg watch/sample</text>
+ <rect class="box" x="30" y="132" width="350" height="70" rx="8"/><text x="44" y="154" font-size="13" font-weight="600">loomd · dbg domain (gateway)</text><text x="44" y="172" class="sub">risk R0–R4 · policy · reducer(run_state) · evidence verifier</text><text x="44" y="189" class="sub">STOP = 큐·watch 취소만, halt/resume/reset 금지</text>
+ <rect class="box" x="30" y="232" width="350" height="96" rx="8"/><text x="44" y="254" font-size="13" font-weight="600">dbg worker (프로브당 1개, 로컬 IPC)</text><text x="44" y="272" class="sub">직렬 명령 큐 · deadline · watch/sample을 host에서 판정</text><text x="44" y="289" class="sub">Backend trait: FakeBackend | CcsRemoteBackend</text><text x="44" y="306" class="sub">t_host_req/t_bridge_done · poll_seq · gaps · certainty</text>
+ <rect class="box" x="30" y="350" width="350" height="44" rx="8"/><text x="44" y="377" font-size="12">macOS CCS + XDS560v2 직결: 공식 미지원 [S1]</text>
+ <path class="ln-x" d="M380 372 L770 372"/><text x="560" y="365" class="lbl" text-anchor="middle">✕ 직결 불가</text>
+
+ <path class="ln" marker-end="url(#ar)" d="M110 102 L110 132"/><path class="ln" marker-end="url(#ar)" d="M300 102 L300 132"/>
+ <path class="ln" marker-end="url(#ar)" d="M205 202 L205 232"/>
+
+ <rect class="box" x="450" y="232" width="260" height="96" rx="8"/><text x="464" y="254" font-size="13" font-weight="600">loom-ccs-bridge.mjs</text><text x="464" y="272" class="sub">run.sh (CCS 동봉 Node) · JSON-lines</text><text x="464" y="289" class="sub">setScriptingTimeout · run(false)</text><text x="464" y="306" class="sub">halt/reset-on-connect = off 검증</text>
+ <path class="ln" marker-end="url(#ar)" d="M380 280 L450 280"/><text x="415" y="270" class="lbl" text-anchor="middle">SSH -L</text><text x="415" y="298" class="lbl" text-anchor="middle">127.0.0.1</text>
+ <rect class="box" x="450" y="132" width="260" height="70" rx="8"/><text x="464" y="154" font-size="13" font-weight="600">CCS 21.0.x Debug Server</text><text x="464" y="172" class="sub">CCS Scripting API · .ccxml</text><text x="464" y="189" class="sub">BlackHawk Emulator Drivers (번들)</text>
+ <path class="ln" marker-end="url(#ar)" d="M580 232 L580 202"/>
+ <rect class="box" x="450" y="52" width="260" height="50" rx="8"/><text x="464" y="74" font-size="13">dtc_conf / Bh560v2Config</text><text x="464" y="92" class="sub">점검: 펌웨어, ipClient(점유 확인)</text>
+
+ <rect class="box" x="780" y="132" width="190" height="70" rx="8"/><text x="794" y="154" font-size="13" font-weight="600">Blackhawk XDS560v2</text><text x="794" y="172" class="sub">BH-XDS-560v2: USB+LAN</text><text x="794" y="189" class="sub">BH-USB-560v2: USB만</text>
+ <path class="ln" marker-end="url(#ar)" d="M710 167 L780 167"/><text x="745" y="158" class="lbl" text-anchor="middle">USB/LAN</text>
+ <rect class="box" x="780" y="232" width="190" height="56" rx="8"/><text x="794" y="254" font-size="12">MIPI60 → TI14/cTI20/ARM20</text><text x="794" y="272" class="sub">JTAG 1149.1 / cJTAG 1149.7</text>
+ <path class="ln" marker-end="url(#ar)" d="M875 202 L875 232"/>
+ <rect class="box" x="780" y="310" width="190" height="56" rx="8"/><text x="794" y="332" font-size="13" font-weight="600">TI 타깃 (미정)</text><text x="794" y="350" class="sub">C28x / Cortex-R / C66x …</text>
+ <path class="ln" marker-end="url(#ar)" d="M875 288 L875 310"/>
+</svg>
+</div>
+
+<h2>3. 호스트 OS 매트릭스</h2>
+<div class="tw"><table>
+<tr><th>호스트</th><th>CCS 21.0.x 실행</th><th>XDS560v2 (Blackhawk)</th><th>근거</th></tr>
+<tr><td>macOS 14/15/26 · Apple silicon</td><td>x86 dmg + Rosetta</td><td><span class="tag no">미지원</span></td><td><a href="#s5">[S5]</a><a href="#s6">[S6]</a><a href="#s1">[S1]</a><a href="#s8">[S8]</a> T · <a href="#s13">[S13]</a> V</td></tr>
+<tr><td>macOS · Intel</td><td>네이티브 x86</td><td><span class="tag no">미지원</span></td><td><a href="#s1">[S1]</a> T (OS 단위 미지원 문구)</td></tr>
+<tr><td>Windows 10/11 64-bit</td><td>지원</td><td><span class="tag ok">지원</span> (CCS 21 조합은 실기 확인 필요)</td><td><a href="#s3">[S3]</a><a href="#s18">[S18]</a> T · <a href="#s13">[S13]</a><a href="#s16">[S16]</a> V</td></tr>
+<tr><td>Ubuntu 22.04/24.04/26.04 64-bit</td><td>지원 (install_drivers.sh sudo)</td><td><span class="tag ok">지원</span> (CCS 21 조합은 실기 확인 필요)</td><td><a href="#s3">[S3]</a><a href="#s26">[S26]</a> T · <a href="#s13">[S13]</a><a href="#s14">[S14]</a> V</td></tr>
+<tr><td>VM 게스트 (Parallels/VMware/UTM)</td><td>비공식</td><td><span class="tag warn">비권장</span> · trace 불가 · Apple silicon은 공식 지원 미확인 [I] · 네이티브 x64 권장</td><td><a href="#s24">[S24]</a> T</td></tr>
+</table></div>
+
+<h2>4. 모델 구분</h2>
+<div class="tw"><table>
+<tr><th>모델</th><th>호스트 I/F</th><th>메모</th><th>근거</th></tr>
+<tr><td>BH-XDS-560v2-BP / -PoE (≈ TMDSEMU560v2STM-UE 레퍼런스)</td><td>USB 2.0 + 10/100 LAN</td><td>임베디드 Linux, 부팅 최대 60초, safe mode, DHCP 기본값</td><td><a href="#s13">[S13]</a><a href="#s15">[S15]</a> V</td></tr>
+<tr><td>BH-USB-560v2 (USB560v2)</td><td>USB만</td><td>부팅 20–30초</td><td><a href="#s14">[S14]</a><a href="#s15">[S15]</a> V</td></tr>
+<tr><td>USB560 / LAN560 / USB560m/bp (v1)</td><td>—</td><td><span class="tag no">범위 밖·CCS 20 미지원</span></td><td><a href="#s7">[S7]</a><a href="#s10">[S10]</a> T</td></tr>
+</table></div>
+
+<h2>5. 타깃 패밀리 (칩 미정)</h2>
+<div class="tw"><table>
+<tr><th>패밀리</th><th>XDS560v2 (T 일반)</th><th>실행 중 메모리 읽기</th><th>근거</th></tr>
+<tr><td>C2000 C28x</td><td><span class="tag ok">지원</span></td><td>실시간 모드(polite/rude)로 halt 없이 가능</td><td><a href="#s11">[S11]</a><a href="#s23">[S23]</a></td></tr>
+<tr><td>C29x</td><td>—</td><td><span class="tag warn">F</span> C29x에는 실시간 모드 없음(TI 엔지니어 답변)</td><td><a href="#s28">[S28]</a></td></tr>
+<tr><td>Cortex-R (Hercules 등)</td><td><span class="tag ok">지원</span></td><td>CCS 21 신기능. 일부 디바이스 이슈와 device XML 수정 필요</td><td><a href="#s3">[S3]</a><a href="#s5">[S5]</a></td></tr>
+<tr><td>Cortex-A/M, Sitara, TM4C</td><td><span class="tag ok">지원</span> (JTAG/cJTAG)</td><td>디바이스 의존</td><td><a href="#s11">[S11]</a></td></tr>
+<tr><td>C674x / C66x</td><td><span class="tag ok">지원</span></td><td>디바이스 의존 · 멀티코어 세션</td><td><a href="#s12">[S12]</a></td></tr>
+<tr><td>MSP430 · SWD 전용 · C54x/C62x/C64x 구형</td><td><span class="tag no">미지원</span></td><td>—</td><td><a href="#s11">[S11]</a></td></tr>
+</table></div>
+
+<h2>6. 기능 매트릭스 (CCS Scripting)</h2>
+<div class="tw"><table>
+<tr><th>기능</th><th>API</th><th>성격</th><th>MVP</th></tr>
+<tr><td>연결 / 코어 선택</td><td><code>configure(.ccxml)</code> <code>listCores</code> <code>openSession(regex)</code></td><td>halt/reset-on-connect 옵션은 반드시 끔</td><td>✅</td></tr>
+<tr><td>상태</td><td><code>isConnected</code> <code>isHalted</code></td><td>R0</td><td>✅</td></tr>
+<tr><td>halt / run / step</td><td><code>halt</code> <code>run(false)</code> <code>stepInto/Over/Out</code></td><td>action R2 · <code>run()</code>은 기본적으로 블록됨</td><td>✅ 명시 action</td></tr>
+<tr><td>메모리 / 식</td><td><code>memory.read/write</code> <code>expressions.evaluate</code></td><td>실행 중 비침습 여부는 디바이스 의존</td><td>✅ 불가하면 <code>E_WOULD_HALT</code> (제안)</td></tr>
+<tr><td>레지스터</td><td><code>registers.read</code></td><td>실행 중 갱신은 full real-time 디바이스만</td><td>halted 상태에서만</td></tr>
+<tr><td>브레이크포인트</td><td><code>breakpoints.add/remove</code></td><td>hit 시 정지</td><td>P3</td></tr>
+<tr><td>리셋 / 로드 / 플래시</td><td><code>reset</code>(실패해도 예외 없음) <code>loadProgram</code> <code>loadBinaryProgram</code> <code>flash</code></td><td>R3/R4</td><td>MVP 미제공 · 향후 명시 요청 action (Loom 기본값+설정 정책)</td></tr>
+<tr><td>Trace (STM/ETB/PRO TRACE)</td><td>—</td><td>VM에서 불가</td><td>범위 밖</td></tr>
+</table></div>
+<p class="legend">출처: <a href="#s19">[S19]</a> <a href="#s20">[S20]</a> <a href="#s21">[S21]</a> <a href="#s22">[S22]</a> <a href="#s23">[S23]</a>. 진행 중인 호출을 취소하는 API는 문서에 없음 → 타임아웃 또는 프로세스 그룹 종료 후 <code>unknown</code>으로 표기.</p>
+
+<h2>7. Backend 계약과 CLI 초안 (소형 Luna용) — 제안, 미구현</h2>
+<pre>trait DebugBackend {
+  fn capabilities(&amp;self) -&gt; Caps;   // nonintrusive_read, realtime_mode, flash, trace, multi_core
+  fn open(spec) / close(leave_as_is)
+  fn run_state() -&gt; {state, observed_at, certainty: fresh|stale|unknown}
+  fn read(loc, n, allow_halt) -&gt; Result&lt;Vals, E_WOULD_HALT&gt;
+  fn halt() / run() / step(kind) / bp(op) / reset(kind) / load(img)   // action, write_state
+}
+loom dbg status &lt;t&gt;
+loom dbg open &lt;t&gt; --ccxml F --core RE
+loom dbg read &lt;t&gt; &lt;sym|0xADDR&gt; [--allow-halt]
+loom dbg watch &lt;t&gt; --expr 'g_state==3' --every 20ms --timeout 5s   → {matched,value,t_match,polls,gaps,lat_p50,lat_p95}
+loom dbg sample &lt;t&gt; --vars a,b --every 10ms --for 2s --summary min,max,last
+loom dbg halt|run|step &lt;t&gt;   ·   loom dbg reset|load|flash &lt;t&gt; (향후, 명시 요청 action)   ·   loom dbg close &lt;t&gt;</pre>
+<ul>
+<li><b>Polling과 판정은 host worker가 수행</b>하고, 에이전트에는 키 고정 JSON 한 줄만 반환합니다. 원본 DSS 덤프는 반환하지 않습니다.</li>
+<li><b>STOP</b>: 큐와 watch를 취소합니다. halt·resume·reset·flash·disconnect는 하지 않습니다. 링크가 끊기면 <code>certainty=stale</code>와 증가하는 <code>age_ms</code>를 보고합니다.</li>
+<li><b>지연 지표</b>: 획득 지연(host↔bridge↔probe), LLM 지연, <b>end-to-end</b>(요청→실제 시작, 이벤트→올바른 보고)를 모두 기록합니다. 원인을 찾을 수 있게 구간을 나누되, end-to-end 값을 판정에서 빼지 않습니다.</li>
+<li>재연결은 사용자가 명시적으로 <code>open</code>할 때만 합니다(<code>Reopen::None</code>). 자동 halt나 reset은 하지 않습니다.</li>
+</ul>
+
+<h2>8. 단계</h2>
+<div class="tw"><table>
+<tr><th>단계</th><th>내용</th><th>수용 증거</th></tr>
+<tr><td>P0</td><td>dbg 계약 + FakeBackend + CLI/스킬</td><td>STOP 의미, stale 보고, 큐 직렬화, deadline 동작 테스트 — <b>프로브 검증 아님</b></td></tr>
+<tr><td>P1</td><td>x64 브리지에 CCS 21.0.1 + bridge.mjs</td><td>프로브 없이 오류 경로와 타임아웃 확인</td></tr>
+<tr><td>P2 (HW 게이트)</td><td>dtc_conf 점검 → connect(halt-on-connect off) → 상수 read → (명시 요청 시) halt/run → watch 1건</td><td>저널 이벤트, 획득 p50/p95, end-to-end 2구간, 연결 전후 run_state 불변</td></tr>
+<tr><td>P3 (향후)</td><td>BP / step / reset / flash / 멀티코어 — 명시 요청 action</td><td>Loom 기존 기본값과 설정 정책 하의 write_state (새 필수 승인 흐름 없음)</td></tr>
+</table></div>
+
+<h2>9. 사용자 확인 필요</h2>
+<ol><li>정확한 모델(BH-XDS-560v2 / BH-USB-560v2 / 라벨이 v1인지)</li><li>TI 칩/보드 P/N</li><li>x64 Windows/Linux PC 보유 여부</li><li>CCS 버전, .ccxml, ELF</li><li>halt/flash에 Loom 기본값을 쓸지, 별도 설정 정책을 둘지</li></ol>
+
+<h2>출처 (접근일 2026-11-14)</h2>
+<ol class="legend" style="font-size:.8rem">
+<li id="s1">S1 T <a href="https://software-dl.ti.com/ccs/esd/CCSv20/CCS_20_4_1/exports/CCS_20.4.1_ReleaseNote.htm">CCS 20.4.1 Release Notes</a></li>
+<li id="s2">S2 T <a href="https://software-dl.ti.com/ccs/esd/CCSv20/CCS_20_4_0/exports/CCS_20.4.0_ReleaseNote.htm">CCS 20.4.0 Release Notes</a></li>
+<li id="s3">S3 T <a href="https://software-dl.ti.com/ccs/esd/CCSv20/CCS_21_0_0/exports/ccstudio-ide_21.0.0_releasenote.html">CCStudio 21.0.0 Release Notes</a></li>
+<li id="s4">S4 T <a href="https://software-dl.ti.com/ccs/esd/CCSv20/CCS_21_0_1/exports/ccstudio-ide_21.0.1_releasenote.html">CCStudio 21.0.1 Release Notes</a></li>
+<li id="s5">S5 T <a href="https://www.ti.com/tool/download/CCSTUDIO/21.0.0">CCSTUDIO 21.0.0 download</a></li>
+<li id="s6">S6 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_overview.html">CCS 21.0.1 System Requirements</a></li>
+<li id="s7">S7 T <a href="https://downloads.ti.com/ccs/esd/CCSv20">CCS v20 landing</a></li>
+<li id="s8">S8 T <a href="https://software-dl.ti.com/ccs/esd/documents/ccsv12_macos_host_support.html">CCS v12 macOS host support</a></li>
+<li id="s9">S9 T <a href="https://software-dl.ti.com/ccs/esd/documents/xdsdebugprobes/emu_xds560v2.html">XDS560v2 Debug Probe</a></li>
+<li id="s10">S10 T <a href="https://software-dl.ti.com/ccs/esd/documents/xdsdebugprobes/emu_xds560.html">XDS560 (v1)</a></li>
+<li id="s11">S11 T <a href="https://www.ti.com/tool/TMDSEMU560V2STM-UE">TMDSEMU560V2STM-UE</a> (일반)</li>
+<li id="s12">S12 T <a href="https://www.ti.com/tool/TMDSEMU560V2STM-U">TMDSEMU560V2STM-U</a> (일반)</li>
+<li id="s13">S13 V <a href="https://www.blackhawk-dsp.com/products/jtag-emulators/xds560v2">Blackhawk XDS560v2 STM Emulator</a></li>
+<li id="s14">S14 V <a href="http://www.blackhawk-dsp.com/downloads/docs/datasheets/USB560v2-DS-01.pdf">USB560v2 datasheet (2012)</a></li>
+<li id="s15">S15 V <a href="http://www.blackhawk-dsp.com/downloads/docs/guides/Bh560v2Config-UG-05.pdf">Bh560v2Config UG-05 (2017)</a></li>
+<li id="s16">S16 V <a href="https://www.blackhawk-dsp.com/support/downloads">Blackhawk Download Center</a></li>
+<li id="s17">S17 V <a href="https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/791/5756.USB560v2_2D00_IG_2D00_01.pdf">USB560v2 Installation Guide (2012)</a></li>
+<li id="s18">S18 T <a href="https://software-dl.ti.com/ccs/esd/documents/xdsdebugprobes/emu_dtc_conf.html">dtc_conf</a></li>
+<li id="s19">S19 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_debug-scripting.html">CCS Scripting (21.0.1)</a></li>
+<li id="s20">S20 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_debug-scripting-migration.html">Migrating Legacy DSS</a></li>
+<li id="s21">S21 T <a href="https://software-dl.ti.com/ccs/esd/documents/scripting_api/ccs_20.2.0/ccs_scripting/docs/interfaces/Target.html">Scripting API Target</a></li>
+<li id="s22">S22 T <a href="https://software-dl.ti.com/ccs/esd/documents/scripting_api/ccs_20.1.0/ccs_scripting/docs/interfaces/Memory.html">Scripting API Memory</a></li>
+<li id="s23">S23 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_debug-main.html">Debug Overview (21.0.1)</a></li>
+<li id="s24">S24 T <a href="https://software-dl.ti.com/ccs/esd/documents/ccs_vmware.html">CCS on VMware</a></li>
+<li id="s25">S25 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_legal.html">CCS License</a></li>
+<li id="s26">S26 T <a href="https://software-dl.ti.com/ccs/esd/documents/users_guide/ccs_installation.html">CCS Installation</a></li>
+<li id="s27">S27 T <a href="https://software-dl.ti.com/ccs/esd/CCSv20/CCS_20_5_0/exports/CCS_20.5.0_ReleaseNote.htm">CCS 20.5.0 Release Notes</a></li>
+<li id="s28">S28 F <a href="https://e2e.ti.com/support/tools/code-composer-studio-group/ccs/f/code-composer-studio-forum/1696775/f29h85x-som-evm-f29h85x-c29x-read-memory-of-a-running-core-without-halting-it-as-on-c28x">E2E C29x real-time</a></li>
+<li id="s29">S29 F <a href="https://e2e.ti.com/support/tools/code-composer-studio-group/ccs/f/code-composer-studio-forum/343311/simulators-removed-in-ccsv6">E2E Simulators removed in CCSv6</a> (403, 스니펫만)</li>
+</ol>
+</main>
+</body>
+</html>

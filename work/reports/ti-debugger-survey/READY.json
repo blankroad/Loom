@@ -1,0 +1,49 @@
+{
+  "task": "ti-debugger-survey",
+  "scope": "Blackhawk XDS560v2 only (user correction)",
+  "model": "claude-opus-5-5",
+  "session": "b69cea51-12e2-4404-b913-e21c602b935f",
+  "workspace": "w2B",
+  "loom_head": "d6fc6f3",
+  "accessed": "2026-11-14",
+  "ready": true,
+  "artifacts": [
+    "SURVEY.md",
+    "SURVEY.html",
+    "STATUS.md",
+    "READY.json"
+  ],
+  "verdict": {
+    "macos_direct": "unsupported",
+    "windows_linux_x64_ccs21": "feasible_conditional (JTAG/cJTAG target; CCS21+Blackhawk to be confirmed at HW gate)",
+    "recommended": "macOS loomd dbg worker -> SSH tunnel -> x64 Win11/Ubuntu24.04 bridge running CCS Scripting (run.sh, Node) -> BH XDS560v2",
+    "vm_passthrough": "not officially supported; Apple silicon VM official support unconfirmed / not recommended (not proven impossible); native x64 host recommended",
+    "simulator": "official CCS20/21 simulator support not confirmed; not used as MVP validation; FakeBackend (not probe validation)"
+  },
+  "hardware_tested": false,
+  "implementation": false,
+  "web_tools": "WebSearch+WebFetch available; Ego/browser not used",
+  "sources_fetched": 29,
+  "remaining_unknowns": [
+    "exact Blackhawk model (BH-XDS-560v2 USB+LAN vs BH-USB-560v2; v1 USB560/LAN560 unsupported)",
+    "TI chip/board P/N (decides non-intrusive read, MSP430/SWD exclusion)",
+    "availability of x64 Windows/Linux bridge host",
+    "CCS 21 + Blackhawk driver version (not stated in 21.x notes)",
+    "CCS 21 scripting API reference online (only 20.1/20.2 public)",
+    "per-read latency host<->bridge<->probe (measure at HW gate)",
+    "halt/flash policy risk classes"
+  ],
+  "review_corrections_applied": [
+    "apple_silicon_vm_wording",
+    "simulator_wording",
+    "end_to_end_latency_metrics",
+    "action_policy_uses_existing_loom_defaults"
+  ],
+  "proposals_not_implemented": [
+    "loom dbg CLI",
+    "E_WOULD_HALT",
+    "DebugBackend trait"
+  ],
+  "editorial_pass": "English documentary quotes replaced with Korean paraphrases; identifiers and source links kept",
+  "state": "final_awaiting_exit"
+}
