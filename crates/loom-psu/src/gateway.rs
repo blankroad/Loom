@@ -193,14 +193,17 @@ fn risk_table() -> RiskTable {
 pub fn panel_manifest() -> Value {
     json!({
         "id": "psu.gauge", "domain": DOMAIN, "title": "벤치 전원 (PSU)", "version": 1, "milestone": "M1b",
-        "topics": [{"key": "psu", "filter": {"domains": [DOMAIN], "channelParam": "channel", "defaultChannel": "bench"},
+        // No default channel: an unbound gauge (PSU module tab) subscribes to nothing and sends nothing.
+        "topics": [{"key": "psu", "filter": {"domains": [DOMAIN], "channelParam": "channel"},
                     "encoding": "json", "snapshot": "required", "mirrorRows": 1000}],
         "queries": ["psu.status", "psu.meas"],
         "actions": [
             {"id": "emergencyOff", "rpc": "psu.out", "class": "request", "right": "watch", "confirm": "none",
              "safetyDirection": "reduce", "label": "비상 OFF"},
             {"id": "output", "rpc": "psu.out", "class": "request", "right": "operate", "confirm": "none", "label": "출력 토글"},
-            {"id": "set", "rpc": "psu.set", "class": "request", "right": "operate", "confirm": "none", "label": "설정"}
+            {"id": "set", "rpc": "psu.set", "class": "request", "right": "operate", "confirm": "none", "label": "설정"},
+            {"id": "connect", "rpc": "psu.connect", "class": "request", "right": "operate", "confirm": "none", "label": "PSU 연결"},
+            {"id": "disconnect", "rpc": "psu.disconnect", "class": "request", "right": "operate", "confirm": "none", "label": "PSU 연결 해제"}
         ],
         "memory": {"maxBytes": 2 << 20},
         "render": {"maxHz": 10, "budgetMs": 4, "lagTargetMs": 100},

@@ -84,6 +84,18 @@ fn registration_is_complete() {
         reg.panel_manifests()[0]["actions"][0]["safetyDirection"],
         "reduce"
     );
+    // UI parity (ui/src/panels/psu/gaugePanel.ts): explicit connect/disconnect, no implicit channel
+    let m = &reg.panel_manifests()[0];
+    let ids: Vec<&str> = m["actions"]
+        .as_array()
+        .expect("actions")
+        .iter()
+        .filter_map(|a| a["id"].as_str())
+        .collect();
+    assert_eq!(ids, ["emergencyOff", "output", "set", "connect", "disconnect"]);
+    assert_eq!(m["actions"][3]["rpc"], "psu.connect");
+    assert_eq!(m["actions"][4]["rpc"], "psu.disconnect");
+    assert!(m["topics"][0]["filter"].get("defaultChannel").is_none());
     assert_eq!(
         reg.evidence_verifiers()[0].predicates(),
         ["psu.current_lt", "psu.current_gt", "psu.voltage_between"]
