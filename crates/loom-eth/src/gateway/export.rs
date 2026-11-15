@@ -115,3 +115,57 @@ pub fn to_packet(rec: &PublishedRecord, interface_id: u32, data: Vec<u8>) -> (Pa
     };
     (pkt, dropped)
 }
+
+/// Fresh-name attempts for a default export file before giving up.
+pub const DEFAULT_FILE_ATTEMPTS: u32 = 64;
+
+/// Creates a NEW default export file `loom-eth-<ch>-<tag>[-n].pcapng` in `dir` (create_new, so an
+/// earlier export is never overwritten, also under concurrent calls). `ch`/`tag` are reduced to
+/// `[A-Za-z0-9._-]` so a channel name cannot leave `dir`. Only for the default path: an explicit
+/// `path` keeps its create/truncate semantics.
+pub fn create_default_file(
+    dir: &std::path::Path,
+    ch: &str,
+    tag: &str,
+) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    let safe = |s: &str| -> String {
+        let s: String = s
+            .chars()
+            .take(64)
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_') {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        let s = s.trim_start_matches('.').to_owned();
+        if s.is_empty() { "x".to_owned() } else { s }
+    };
+    let stem = format!("loom-eth-{}-{}", safe(ch), safe(tag));
+    for n in 0..DEFAULT_FILE_ATTEMPTS {
+        let name = if n == 0 {
+            format!("{stem}.pcapng")
+        } else {
+            format!("{stem}-{n}.pcapng")
+        };
+        let path = dir.join(name);
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+        {
+            Ok(f) => return Ok((path, f)),
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) => return Err(e),
+        }
+    }
+    Err(std::io::Error::new(
+        std::io::ErrorKind::AlreadyExists,
+        format!(
+            "{DEFAULT_FILE_ATTEMPTS} names taken for {stem}*.pcapng in {}",
+            dir.display()
+        ),
+    ))
+}

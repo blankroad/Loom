@@ -763,23 +763,38 @@ impl Handler for Export {
             let range = params.get("range").cloned().unwrap_or(Value::Null);
             let from = cursor_param(range.get("from"))?.unwrap_or_else(lookback);
             let to = cursor_param(range.get("to"))?;
-            let path = match str_param(&params, "path") {
-                Some(p) => std::path::PathBuf::from(p),
-                None => std::env::temp_dir().join(format!(
-                    "loom-eth-{ch}-{}.pcapng",
-                    ctx.request_id().unwrap_or("export")
-                )),
+            // Explicit path: create/truncate (CLI `-o FILE`). Default: a fresh daemon-side temp file
+            // per export (create_new + bounded suffixes), never an earlier export's file.
+            let explicit = str_param(&params, "path").map(std::path::PathBuf::from);
+            let opened = match &explicit {
+                Some(p) => std::fs::File::create(p).map(|f| (p.clone(), f)),
+                None => {
+                    let tag = ctx
+                        .request_id()
+                        .map_or_else(|| wall_now_ns().to_string(), str::to_owned);
+                    super::export::create_default_file(&std::env::temp_dir(), &ch, &tag)
+                }
             };
-            let file = std::fs::File::create(&path).map_err(|e| {
+            let (path, file) = opened.map_err(|e| {
+                let at = explicit.as_ref().map_or_else(std::env::temp_dir, Clone::clone);
                 DomainError::new(
                     ErrorCode::Internal,
-                    format!("cannot create {}: {e}", path.display()),
+                    format!("cannot create {}: {e}", at.display()),
                 )
             })?;
+            // A failed default export removes its own half-written file (never a user's path).
+            let fail = |e: DomainError| {
+                if explicit.is_none() {
+                    let _ = std::fs::remove_file(&path);
+                }
+                e
+            };
             let io = |e: loom_eth_pcapng::Error| {
                 DomainError::new(ErrorCode::Internal, format!("pcapng write: {e}"))
             };
-            let mut w = PcapNgWriter::new(std::io::BufWriter::new(file)).map_err(io)?;
+            let mut w = PcapNgWriter::new(std::io::BufWriter::new(file))
+                .map_err(io)
+                .map_err(fail)?;
             let mut ifaces: BTreeMap<u16, u32> = BTreeMap::new();
             let (mut packets, mut bytes) = (0usize, 0u64);
             let mut comments_dropped = 0usize;
@@ -831,11 +846,19 @@ impl Handler for Export {
                 bytes += u64::from(caplen);
                 true
             })
-            .await?;
+            .await;
+            let sum = match sum {
+                Ok(s) => s,
+                Err(e) => {
+                    drop(w);
+                    return Err(fail(e));
+                }
+            };
             if let Some(e) = err {
-                return Err(e);
+                drop(w);
+                return Err(fail(e));
             }
-            w.flush().map_err(io)?;
+            w.flush().map_err(io).map_err(fail)?;
             Ok(
                 json!({"path": path.display().to_string(), "packets": packets, "bytes": bytes,
                       "truncated": truncated || sum.budget_hit, "comments_dropped": comments_dropped, "gaps": sum.gaps}),

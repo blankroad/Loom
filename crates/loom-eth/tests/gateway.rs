@@ -762,6 +762,109 @@ fn export_round_trips_loom_meta_and_comments() {
     assert_eq!(pkts[2].data.len(), 14 + 20 + 8 + 3);
 }
 
+/// Packets of one pcapng file (reader-validated).
+fn read_pcapng(path: &std::path::Path) -> Vec<loom_eth_pcapng::Packet> {
+    use loom_eth_pcapng::{Block, PcapNgReader};
+    let file = std::fs::File::open(path).expect("exported file");
+    let mut rd = PcapNgReader::new(std::io::BufReader::new(file));
+    let mut pkts = Vec::new();
+    while let Some(b) = rd.next_block().expect("valid pcapng") {
+        if let Block::Packet(p) = b {
+            pkts.push(p);
+        }
+    }
+    pkts
+}
+
+#[test]
+fn default_exports_get_fresh_files_and_explicit_path_still_overwrites() {
+    let reg = registry();
+    let t0 = wall_now();
+    // Own channel name: the default files land in the shared temp dir. The harness gives every
+    // call the same request id ("rq-1"), the worst case for name collisions.
+    let ch = format!("exp-{}", std::process::id());
+    let a = doip_uds(&[0x22, 0xF1, 0x90]);
+    let svc = services(vec![
+        pkt(1, &ch, t0, &a, None),
+        pkt(2, &ch, t0 + 1_000, &doip_uds(&[0x10, 0x03]), None),
+    ]);
+    let export = |extra: Value| {
+        let mut p = json!({"ch": ch, "format": "pcapng", "range": {"from": "seq:1"}});
+        for (k, v) in extra.as_object().expect("object") {
+            p[k] = v.clone();
+        }
+        call(&reg, &svc, "eth.export", p, Duration::from_secs(5)).expect("export")
+    };
+    let path_of = |r: &Value| std::path::PathBuf::from(r["path"].as_str().expect("path"));
+
+    let first = export(json!({}));
+    let p1 = path_of(&first);
+    let before = std::fs::read(&p1).expect("first file");
+    let second = export(json!({"filter": "uds.sid == 0x10"}));
+    let p2 = path_of(&second);
+    let after = std::fs::read(&p1).expect("first file still there");
+    let (pk1, pk2) = (read_pcapng(&p1), read_pcapng(&p2));
+    let _ = (std::fs::remove_file(&p1), std::fs::remove_file(&p2));
+
+    assert_ne!(p1, p2, "second default export reused {}", p1.display());
+    for p in [&p1, &p2] {
+        assert_eq!(
+            p.parent(),
+            Some(std::env::temp_dir().as_path()),
+            "{}",
+            p.display()
+        );
+        let name = p.file_name().and_then(|n| n.to_str()).expect("name");
+        assert!(
+            name.starts_with(&format!("loom-eth-{ch}-")) && name.ends_with(".pcapng"),
+            "{name}"
+        );
+    }
+    assert_eq!(before, after, "first export changed by the second");
+    assert_eq!(
+        (first["packets"].as_u64(), second["packets"].as_u64()),
+        (Some(2), Some(1))
+    );
+    assert_eq!(
+        first["bytes"].as_u64(),
+        Some((a.len() + doip_uds(&[0x10, 0x03]).len()) as u64)
+    );
+    assert_eq!((pk1.len(), pk2.len()), (2, 1));
+    assert_eq!(pk1[0].data, a);
+
+    // Explicit path: documented `-o FILE` semantics (create or replace) are unchanged.
+    let out = std::env::temp_dir().join(format!("loom-eth-explicit-{}.pcapng", std::process::id()));
+    std::fs::write(&out, b"stale bytes that must be replaced").expect("seed");
+    let r = export(json!({"path": out.display().to_string()}));
+    let pk = read_pcapng(&out);
+    let _ = std::fs::remove_file(&out);
+    assert_eq!(path_of(&r), out);
+    assert_eq!((r["packets"].as_u64(), pk.len()), (Some(2), 2));
+}
+
+#[test]
+fn default_export_file_names_stay_in_the_dir_and_never_reuse_a_file() {
+    use loom_eth::gateway::export::create_default_file;
+    let dir = std::env::temp_dir().join(format!("loom-eth-alloc-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("dir");
+    let (p1, _f1) = create_default_file(&dir, "../../etc/x", "rq 1").expect("first");
+    std::fs::write(&p1, b"first").expect("write");
+    let (p2, _f2) = create_default_file(&dir, "../../etc/x", "rq 1").expect("second");
+    let first = std::fs::read(&p1).expect("read");
+    let _ = std::fs::remove_dir_all(&dir);
+    assert_eq!(
+        (p1.parent(), p2.parent()),
+        (Some(dir.as_path()), Some(dir.as_path()))
+    );
+    assert_ne!(p1, p2);
+    assert_eq!(first, b"first");
+    let n1 = p1.file_name().and_then(|n| n.to_str()).expect("name");
+    assert!(
+        !n1.contains('/') && !n1.contains(' ') && n1.starts_with("loom-eth-"),
+        "{n1}"
+    );
+}
+
 #[test]
 fn send_options_are_kind_specific_and_tcp_dry_run_keeps_its_shape() {
     let reg = registry();
