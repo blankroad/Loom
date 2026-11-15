@@ -1,0 +1,31 @@
+    Checking windows-sys v0.61.2
+    Checking serde_core v1.0.228
+    Checking memchr v2.8.3
+    Checking tracing-core v0.1.36
+    Checking windows-sys v0.52.0
+    Checking futures-core v0.3.34
+    Checking futures-util v0.3.34
+    Checking tracing v0.1.44
+    Checking memory-stats v1.2.0
+    Checking serde v1.0.228
+    Checking serde_json v1.0.149
+    Checking serde_bytes v0.11.19
+    Checking anstyle-query v1.1.5
+    Checking anstyle-wincon v3.0.11
+    Checking mio v1.2.4
+    Checking socket2 v0.6.5
+    Checking anstream v1.0.0
+    Checking clap_builder v4.6.7
+    Checking tokio v1.54.1
+    Checking rmp-serde v1.3.1
+    Checking schemars v1.2.3
+    Checking loom-proto v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-proto)
+    Checking clap v4.6.7
+    Checking loom-journal v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-journal)
+    Checking loom-domain-api v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-domain-api)
+    Checking loom-cli-kit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-cli-kit)
+    Checking loom-worker-sdk v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-worker-sdk)
+    Checking loom-testkit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-testkit)
+    Checking loom-video v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-video)
+    Checking loom-logic v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-logic)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.79s

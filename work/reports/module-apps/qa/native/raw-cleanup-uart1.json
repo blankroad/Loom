@@ -1,0 +1,1 @@
+{"schema_version":1,"ok":true,"cmd":"uart.close","data":{"channel":"qa-native-uart1","closed":true,"generation":1,"refs_left":0,"request_id":"w18","state":"sent","threads_left":0},"meta":{"truncated":false,"record_health":"ok","env":"bench","latch":false,"viewers":{"subscribed":1,"visible":1},"stream_epoch":"1794732461","visibility":"visible"},"others_since_last":{"count":"0"}}

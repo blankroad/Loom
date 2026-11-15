@@ -1,0 +1,9 @@
+observer events 161
+744 can.tx agent w6 1794742415408620584 {"method": "can.send", "write_state": "requested"}
+745 can.tx agent w6 1794742415416191709 {"method": "can.send", "reason": "frame on a hardware channel", "write_state": "accepted"}
+746 can.tx agent w6 1794742415346585000 {"count": 1, "frame": {"brs": false, "bytes": {"data": "c4747f2718b7f316", "encoding": "hex"}, "dlc": 8, "esi": false, "ext": false, "fd": false, "id": 768, "len": 8, "rtr": false}, "sent": 0, "write_state": "accepted"}
+747 can.tx agent w6 1794742415346646000 {"count": 1, "frame": {"brs": false, "bytes": {"data": "c4747f2718b7f316", "encoding": "hex"}, "dlc": 8, "esi": false, "ext": false, "fd": false, "id": 768, "len": 8, "rtr": false}, "sent": 1, "write_state": "sent"}
+748 can.frame agent w6 1794742415346644167 {"brs": false, "bytes": {"data": "c4747f2718b7f316", "encoding": "hex"}, "dlc": 8, "esi": false, "ext": false, "fd": false, "id": 768, "len": 8, "rtr": false}
+749 can.frame device None 1794742415351644750 {"brs": false, "bytes": {"data": "c4747f2718b7f316", "encoding": "hex"}, "dlc": 8, "esi": false, "ext": false, "fd": false, "id": 769, "len": 8, "rtr": false}
+754 can.tx agent w6 1794742415718125334 {"count": 1, "final": true, "frame": {"brs": false, "bytes": {"data": "c4747f2718b7f316", "encoding": "hex"}, "dlc": 8, "esi": false, "ext": false, "fd": false, "id": 768, "len": 8, "rtr": false}, "sent": 1, "write_state": "effect_unverified"}
+id counts {'0x310': 154, None: 5, '0x300': 1, '0x301': 1}

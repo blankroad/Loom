@@ -1,41 +1,77 @@
 {
-  "owner": "tauri-qa-opus",
-  "state": "PENDING_NATIVE_CHECKPOINT",
-  "blocker": "console session locked + display asleep; user unlock pending",
-  "scope": [
-    "desktop/scripts/**",
-    "desktop/README.md",
-    "work/reports/tauri-desktop/qa/**"
-  ],
-  "verified": [
-    "staging+embedded UI identity",
-    "e2e QA bundle",
-    "desktop/dist strict signature + identity",
-    "absent-daemon start",
-    "quit persistence",
-    "relaunch reuse",
-    "error/Retry",
-    "presence fix native",
-    "credential hygiene",
-    "browser parity"
-  ],
-  "pending": [
-    "WK RX render",
-    "keys+Tab to device",
-    "CLI->UI live",
-    "late-join render",
-    "final native screenshots"
-  ],
-  "unverified": [
-    "native menu Reconnect",
-    "CUA/AX input"
-  ],
+  "owner": "bench-final-qa-opus",
+  "workspace": "w2R",
+  "state": "RETURNED_FINAL2_BUILT_NATIVE_PENDING_LOCKED",
+  "updated": "2026-11-15T12:40+09:00",
+  "blocker": "macOS session locked + display asleep since 12:24; user unlock requested by ROOT; no bypass",
+  "production_build_run": true,
+  "builds": {
+    "b1_prefix": {
+      "ui_dist": "8215041d5dd0a398",
+      "loomd_staged": "8ed2ef33333fa108",
+      "dist_exe": "3643d396",
+      "e2e_exe": "159e30af",
+      "evidence": [
+        "evidence/final",
+        "evidence/native-final-attempt1-308",
+        "evidence/native-final-ordinary-cua",
+        "evidence/native-final-e2e-prefix"
+      ],
+      "native": "done (see REPORT.html)"
+    },
+    "final2": {
+      "ui_dist": "643e595265ae92e7",
+      "loomd_staged": "7efffad83fa7ef19",
+      "bundled_loomd": "3a4fa400983ec29b",
+      "dist_exe": "0a2a7a52",
+      "e2e_exe": "0265f8aa",
+      "checks": [
+        "full UI 686/686 + schema/tsc/lint exit 0",
+        "git diff --check clean",
+        "verify-loomd 6/6",
+        "verify-dist PASS",
+        "verify-bundle PASS"
+      ],
+      "evidence": [
+        "evidence/final2"
+      ],
+      "native": "PENDING"
+    }
+  },
   "processes_left": {},
-  "user_processes_touched": false,
-  "resume": "work/reports/tauri-desktop/qa/RESUME.md",
-  "kept": [
-    "/tmp/loom-tauri-build/qa/Loom-QA.app",
-    "work/reports/tauri-desktop/qa/evidence/**"
+  "root_cua_lease": "returned (b1 NATIVE_CHECKS_DONE); final2 hold pending unlock",
+  "ego": {
+    "space14": "no longer exists (closed/missing per guide; not closed by QA)",
+    "new_space": "space 16 created by ROOT (p1 = REPORT.html draft); reuse, never create another",
+    "user_spaces_touched": false
+  },
+  "pending_final2": [
+    "fresh startup positive/negative",
+    "macro wait + single strip",
+    "hidden-tab recipients",
+    "split kept after deep link",
+    "hidden REC recheck",
+    "ETH 2 exports distinct + UI path; failed TX reason",
+    "UDS collapsed capture + selected row + li.empty geometry",
+    "asset digests Ego==WK; canonical vs product captures",
+    "ROOT CUA keyboard broadcast (fresh observer)",
+    "ui-mismatch + error/Retry",
+    "global STOP last",
+    "final report + hygiene + cleanup"
   ],
-  "ego_spaces_left_by_qa": []
+  "report": "work/reports/tauri-desktop/qa/REPORT.html (DRAFT)",
+  "findings": [
+    "FINDING-GUARD-308.md",
+    "FINDING-TSC-ETH.md",
+    "FINDING-ENTRY-ROUTE.md",
+    "FINDING-MACRO-EXPECT.md",
+    "FINDING-UART-SCOPE-LAYOUT.md"
+  ],
+  "desktop_target_absent": true,
+  "resume": "work/reports/tauri-desktop/qa/RESUME-FINAL2.md",
+  "root_cross_platform_followup": {
+    "source_changed": true,
+    "handoff": "../../desktop-cross-platform/STATUS.md",
+    "before_native_acceptance": "Rebuild/restage matching ordinary and e2e Mac apps from current source, record fresh fingerprints. Prior final2 Mac artifacts/staging were preserved; their hashes do not cover these runtime/build changes. UI digest unchanged; prior visible acceptance still pending unlock."
+  }
 }

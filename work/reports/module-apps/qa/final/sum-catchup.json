@@ -1,0 +1,93 @@
+{
+  "result": "HIDDEN_CATCHUP_PASS (backend QA + UI ROOT), final build",
+  "build": "final db441bfb",
+  "context": "ROOT switched Integrated -> UDS tab; all UART views hidden (visible UART count 0); Integrated 8 groups retained (catchup-before.json)",
+  "observer": {
+    "client": "uart2-observer3",
+    "cmd": "loom events --since now --channel qa3-pty2 --follow --timeout 20 --max 1000 --json",
+    "initial_hw": "10397",
+    "viewers": {
+      "subscribed": 1,
+      "visible": 1
+    },
+    "armed_before_send": true,
+    "raw": "qa/final/raw-catchup-observer.out",
+    "rc": 0,
+    "completed": "20 s bounded, normal exit",
+    "events_total": 18,
+    "truncated": false,
+    "foreign_channel_events": 0
+  },
+  "send": {
+    "alias": "qa3-pty2",
+    "marker": "QAFIN2-3BD046",
+    "cmd": "loom uart send qa3-pty2 QAFIN2-3BD046 --eol lf --expect ack:QAFIN2-3BD046 --timeout 10 --idempotency-key qa-final-\u2026-uart2-catchup-QAFIN2-3BD046 --json",
+    "rc": 0,
+    "request_id": "w12",
+    "written_bytes": 14,
+    "expect": {
+      "matched": true,
+      "match": "ack:QAFIN2-3BD046",
+      "rx_offset_start": "2735",
+      "rx_offset_end": "2752"
+    },
+    "meta": {
+      "truncated": false,
+      "record_health": "ok",
+      "env": "sim",
+      "latch": false,
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "stream_epoch": "1794731770",
+      "visibility": "visible"
+    },
+    "others_since_last": {
+      "count": "3",
+      "origins": [
+        "agent"
+      ],
+      "from_cursor": "e1794731770:seq:6772",
+      "kinds": {
+        "can.tx": "1",
+        "logic.write": "1",
+        "uds.tx": "1"
+      },
+      "by_channel": {
+        "can:qa3-can": "1",
+        "logic": "1",
+        "uds": "1"
+      }
+    },
+    "others_note": "3 = QA own earlier writes under other clients (can.tx w9, logic.write stop, uds.tx w10), origin agent; no user activity"
+  },
+  "journal": {
+    "tx": {
+      "ref": "uart:qa3-pty2@e1794731770:seq:10408",
+      "request_id": "w12",
+      "bytes": "QAFIN2-3BD046\n"
+    },
+    "rx_ack": {
+      "ref": "uart:qa3-pty2@e1794731770:seq:10413",
+      "rx_offset": "2720",
+      "text": "QAFIN2-3BD046\r\nack:QAFIN2-3BD046\r\nfx> "
+    }
+  },
+  "fixture_exact": {
+    "pty2 /dev/ttys008 new bytes": "QAFIN2-3BD046\n",
+    "hex": "514146494e322d3342443034360a",
+    "exact": true,
+    "pty1 new bytes": 0
+  },
+  "for_root": "after returning to the same Integrated (retained 8 groups), local buffer search in qa3-pty2 pane for \"ack:QAFIN2-3BD046\" should be 1/1 without reload; geometry unchanged",
+  "recorded_utc": "2026-11-15T08:44:45Z",
+  "root_ui": {
+    "verdict": "FINAL_CATCHUP_UI_PASS",
+    "detail": "same Integrated 8 groups + same UART instance ids 0/1, no reload; hidden UART2 ACK QAFIN2-3BD046 1/1; prior UART1 ACK still 1/1; CAN 0x301 filter retained",
+    "evidence": [
+      "qa/final/browser/catchup-after.json",
+      "qa/final/browser/catchup-after.png"
+    ]
+  }
+}

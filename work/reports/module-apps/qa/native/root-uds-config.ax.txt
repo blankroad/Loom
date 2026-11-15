@@ -1,0 +1,149 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 166-308
+~									164 container
+~										165 container 진단 대상과 경로
++											166 text ECU
++											167 pop up button (collapsed) 대상, Value: qa-native-ecu (프리셋), Secondary Actions: Expand
++											168 text QA Native DoIP 경로
++											169 (settable, unknown) 경로
++												170 radio button DoIP, Help: DoIP (ISO 13400) — daemon 지원 (실제 엔티티 또는 내장 SIM bench ECU), Value: 1
++												171 radio button (disabled) CAN-TP 미지원, Help: CAN-TP (ISO 15765-2) — 백엔드 미지원: Loom UDS daemon에 CAN-TP 전송이 없습니다, Value: 0
++												172 radio button (disabled) EthDiag 미지원, Help: 벤더 Ethernet 진단 어댑터 — 백엔드 미지원, Value: 0
++											173 text 127.0.0.1:64681 · 0x0E80→0x1001 프리셋 · QA Native DoIP
++											174 container
++												175 text ○  연결 안 됨
++											176 button 연결, Help: uds.connect 127.0.0.1:64681 — 요청은 보내지 않음
++											177 button (expanded) 연결 설정, Secondary Actions: Collapse
++											178 button (collapsed) 주소 상세, Secondary Actions: Expand
++											179 container 활성 연결 개요
++												180 text 활성 연결 없음
++											181 tab group (selectable) 도구 서랍
++												182 tab (selectable) 서비스
++												183 tab (selectable) ECU·DID
++												184 tab (selectable) 명령·시퀀스
++												185 tab (selectable) 감시
++												186 tab (selectable) 프로젝트
++											187 container 연결 설정 · qa-native-ecu · DoIP
++												188 text 연결 설정 · qa-native-ecu · DoIP 편집 대상
++												189 pop up button (collapsed) 편집 대상, Value: DoIP · QA Native DoIP (qa-native-ecu), Secondary Actions: Expand
++												190 text id p-mwhrcu5t6fp
++												191 button 복제, Help: 편집 대상을 새 프로필 초안으로 복제
++												192 button 새 프로필, Help: 빈 DoIP 프로필 초안
++												193 button 삭제, Help: 이 프로필 삭제 (연결된 대상에는 영향 없음)
++												194 container 프로필
++													195 text 프로필 이름
++													196 text field (settable) 이름, Value: QA Native DoIP
++													197 text 1–80자 ECU 이름 (uds.connect name)
++													198 text field (settable) ECU 이름 (uds.connect name), Value: qa-native-ecu
++													199 text 영문·숫자·_.- 1–64자
++												200 container DoIP 경로
++													201 text DoIP 경로 엔티티
++													202 pop up button (collapsed) 엔티티, Value: DoIP 엔티티 (실제 ECU), Secondary Actions: Expand
++													203 text 실제 DoIP TCP 연결 DoIP 엔티티 호스트
++													204 text field (settable) DoIP 엔티티 호스트, Value: 127.0.0.1
++													205 text IPv4 또는 호스트 이름 TCP 포트
++													206 text field (settable) TCP 포트, Value: 64681
++													207 text 1–65535 · 기본 13400 Tester 논리 주소 0x
++													208 text field (settable) Tester 논리 주소, Value: 0E80
++													209 text 16-bit hex ECU 논리 주소 0x
++													210 text field (settable) ECU 논리 주소, Value: 1001
++													211 text 16-bit hex 활성화 타입
++													212 text field (settable) 활성화 타입, Value: 0
++													213 text 0–255 (routing activation)
++												214 container 연결 타이밍
++													215 text 연결 타이밍 연결 타임아웃 (ms)
++													216 text field (settable) 연결 타임아웃 (ms), Value: 5000
++													217 text 100–60000
++													218 text P2/P2*는 daemon이 보고한 값(uds.state)을 표시합니다.
++												219 text 저장됨 · 유효
++												220 button (disabled) 되돌리기
++												221 button 취소, Help: 초안 폐기 후 닫기
++												222 button (disabled) 저장, Help: 로컬 프로필 저장 — 연결·전송하지 않음
++												223 text 프로필은 이 브라우저의 로컬 설정이며 다음 [연결]부터 사용됩니다. 저장은 연결하지 않고, 이미 연결된 대상의 실제 주소는 daemon 상태(주소 상세)가 기준입니다.
++										224 container DID 목록
++											225 text DID 목록
++											226 button DID 목록 접기
++											227 search text field (settable) DID 검색, Placeholder: 이름 또는 hex 검색
++												228 text 이름 또는 hex 검색
++											229 list (settable) Read DID 빠른 선택 (선택만으로 전송하지 않음)
++												230 text (selected) 22 F1 90 VIN Vehicle Identification Number
++												231 text 22 F1 8C ECU Serial Number ECUSerialNumberDataIdentifier
++												232 text 22 F1 87 Spare Part Number vehicleManufacturerSparePartNumber
++												233 text 22 F1 91 ECU Hardware Number vehicleManufacturerECUHardwareNumber
++												234 text 22 F1 95 SW Version systemSupplierECUSoftwareVersionNumber
++												235 text 22 F1 86 Active Session ActiveDiagnosticSessionDataIdentifier
++											236 text 선택은 요청 편집기에만 채웁니다. 전송은 읽기로만.
++										237 container UDS 요청 (DID 읽기 / Raw PDU)
++											238 text 요청 대상 qa-native-ecu · DoIP · 연결 안 됨 — 위의 [연결]
++											239 (settable, unknown) 요청 모드 (←→)
++												240 radio button DID, Help: DID 읽기 — SID 0x22 + DID 자동 구성, Value: 1
++												241 radio button Raw, Help: Raw UDS PDU — 입력한 바이트(SID 포함) 그대로 전송, Value: 0
++											242 text SID 0x22 ReadDataByIdentifier
++											243 container
++												244 text DID
++												245 text field (settable) DID, Value: F190
++											246 menu Secondary Actions: Cancel
++											247 text VIN
++											248 container
++												249 text 요청 PDU 22 F1 90 3 B
++											250 button (disabled) 읽기, Help: qa-native-ecu 연결 안 됨 — 먼저 [연결] (uds.connect). 편집은 가능, 전송은 연결 후
++											251 button 취소, Help: 이 대상의 진행 중 요청 취소 (uds.abort — 이미 보낸 요청은 ⌛? 불확정이 될 수 있음)
++											252 text qa-native-ecu: daemon에 연결된 대상 아님 — 위의 [연결]로 연결한 뒤 전송. 요청 편집·DID 선택은 전송하지 않습니다.dry-run 미리보기는 연결 후
++										253 text 트랜잭션 0 · 진행 0
++										254 (settable, unknown) 기록 범위
++											255 radio button 전체, Value: 1
++											256 radio button 현재 ECU, Value: 0
++										257 button 기록 JSON 내보내기
++										258 button 기록 CSV 내보내기
++										259 button 완료된 기록 지우기 (표시에서만 — daemon 기록·진행 중 요청은 유지)
++										260 row (selectable)
++											261 cell (settable)
++												262 text #
++											263 cell (settable)
++												264 text 시각
++											265 cell (settable)
++												266 text ECU
++											267 cell (settable)
++												268 text 경로
++											269 cell (settable)
++												270 text DID · SID
++											271 cell (settable)
++												272 text 요청
++											273 cell (settable)
++												274 text 최종 응답
++											275 cell (settable)
++												276 text 상태
++											277 cell (settable)
++												278 text 78
++											279 cell (settable)
++												280 text 경과
++										281 table (settable) 트랜잭션 기록 (↑↓ 선택)
++										282 splitter 기록/상세 경계 크기 조절 (↑↓), Help: 기록/상세 경계 크기 조절 (↑↓) — 끌기 또는 화살표, 더블클릭 기본값, Value: 42
++										283 container 응답 순서
++											284 text 응답 순서
++											285 content list (settable) 선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)
++												286 text 트랜잭션을 선택하면 Tx·0x78·최종 응답·타임아웃 순서가 표시됩니다.
++										287 container 해석
++											288 text 해석
++											289 text 선택한 트랜잭션의 요청·응답 해석이 여기에 표시됩니다.
++										290 container UDS PDU 바이트
++											291 text 바이트 · UDS PDU
++											292 button 선택 PDU hex 복사
++											293 text UDS PDU 바이트
++										294 container 확정 값
++											295 text 확정 값 qa-native-ecu
++											296 button 확정 값 접기
++											297 text F190 VIN
++											298 text 확정 값 없음
++											299 text F18C ECU Serial Number
++											300 text 확정 값 없음
++											301 text F187 Spare Part Number
++											302 text 확정 값 없음
++											303 text F191 ECU Hardware Number
++											304 text 확정 값 없음
++											305 text F195 SW Version
++											306 text 확정 값 없음
++											307 text F186 Active Session
++											308 text 확정 값 없음
++											309 text daemon이 해석한 확정 응답(decoded)으로만 갱신. 각 값은 출처 트랜잭션·시각·경로를 유지합니다.
+The focused UI element is 163 container

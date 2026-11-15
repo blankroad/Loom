@@ -1,0 +1,46 @@
+
+ RUN  v5.1.0 /Users/ctmctm/workspace/Loom/ui
+
+ ❯ src/net/mux.test.ts (25 tests | 1 failed) 109ms
+   ❯ SubscriptionMux (25)
+     ❯ visibility leases (8 server subscriptions per connection) (9)
+       × F3: a disconnect while a suspended entry's subscribe is in flight; reopen places the waiting visible handle (no E_BUSY) 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/net/mux.test.ts > SubscriptionMux > visibility leases (8 server subscriptions per connection) > F3: a disconnect while a suspended entry's subscribe is in flight; reopen places the waiting visible handle (no E_BUSY)
+AssertionError: expected { filter: { …(2) }, …(2) } to match object { filter: { …(2) }, snapshot: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+@@ -2,10 +2,10 @@
+    "filter": {
+      "domains": [
+        "eth",
+      ],
+      "ext": {
+-       "eth_filter": "f3",
++       "eth_filter": "f1",
+      },
+    },
+    "snapshot": true,
+  }
+
+ ❯ src/net/mux.test.ts:537:39
+    535|       t.mux.onOpen(); // reopen alone must place the parked visible ha…
+    536|       await srv.settle();
+    537|       expect(t.subs().at(-1)!.params).toMatchObject({ filter: x(3), sn…
+       |                                       ^
+    538|       expect(t.mux.capacity()).toMatchObject({ entries: 2, parked: 0, …
+    539|       const sub = srv.subId(t.subs().at(-1)!)!;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 24 passed (25)
+   Start at  17:29:57
+   Duration  295ms (tests 67%, transform 22%, import 7%, setup 2%, worker 2%)
+

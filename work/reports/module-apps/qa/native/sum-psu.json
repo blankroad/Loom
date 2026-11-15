@@ -1,0 +1,30 @@
+{
+ "flow": "PSU external SCPI native Connect + read-only meas",
+ "verdict": "PASS",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "psu.connect",
+  "request_id": "w11",
+  "seqs": {
+   "requested": 4187,
+   "accepted": 4188,
+   "confirmed": 4192
+  },
+  "backend": "scpi-tcp",
+  "address": "127.0.0.1:64682",
+  "idn": "LOOM-TEST-FIXTURE,EXTPSU-1,0e07c104b3ff,0.1",
+  "live": "64 psu.meas device events by seq 4417, poll ~5 Hz"
+ },
+ "cli_readonly": {
+  "status": "connected, link up, out false, mode off, v 0.0 i 0.0, poll_n 108",
+  "meas": "v 0.0 i 0.0 p 0.0 out false",
+  "files": [
+   "raw-psu-status.json",
+   "raw-psu-meas.json"
+  ]
+ },
+ "fixture_log": "MEAS:VOLT? -> 0.0000, MEAS:CURR? -> 0.00000, OUTP? -> 0 (n 659-664); 0 VOLT/CURR/OUTP set commands in whole log",
+ "visible": "root-psu-open.*, root-psu-meas.*: OFF 0.000 V/A/W, 69 points growing",
+ "safety": "no ON/set/cycle by UI or CLI"
+}

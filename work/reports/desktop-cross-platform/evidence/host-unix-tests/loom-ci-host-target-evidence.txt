@@ -1,0 +1,2 @@
+h-test rc=0 :: cargo test --locked -p loom-video -p loom-logic
+h-clippy rc=0 :: cargo clippy --locked --no-deps -p loom-video -p loom-logic --all-targets -- -D warnings

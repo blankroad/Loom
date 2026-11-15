@@ -1,0 +1,36 @@
+
+> loom-desktop@0.1.0 test
+> node --test "scripts/portable/test/*.test.mjs"
+
+✔ collectArtifacts picks exactly the artifact this build produced (7.870416ms)
+✔ bundle globs cover every default bundle kind (0.196042ms)
+✔ strict (WARN = not verified = failure) defaults on in CI (0.228458ms)
+✔ tauri CLI must be the pinned devDependency, with an actionable message (58.287542ms)
+✔ manifest paths: repo-relative inside the repo, absolute outside (0.374542ms)
+✔ default bundles match the per-platform Tauri configs (1.688042ms)
+✔ externalBin stays binaries/loomd (runtime resolves <exe dir>/loomd[.exe]) (0.680125ms)
+✔ every configured icon exists; Windows has a real .ico (tauri-build resource) (1.18725ms)
+✔ npm scripts are portable (no POSIX-only shell syntax) and route through package.mjs (0.922584ms)
+✔ CLI argument parsing (0.86425ms)
+package: waiting for lock /tmp/loom-pkg-test-7uTELQ/target/.cargo-desktop.lock (held by test-a 2026-11-15T04:01:12+00:00)
+✔ sidecar names follow the Tauri externalBin convention per target (1.024792ms)
+✔ platform defaults are explicit and validated (1.596209ms)
+✔ desktop target dir: LOOM_DESKTOP_TARGET_DIR > CARGO_TARGET_DIR > default, never inside desktop/ (0.465333ms)
+✔ cmd.exe routing only for metacharacter-free args; no shell elsewhere (0.666875ms)
+✔ envWithout removes keys (case-insensitively on Windows) (0.466292ms)
+✔ dirDigest is byte-compatible with the stage-loomd.sh shasum pipeline (45.341209ms)
+✔ mkdir lock: exclusive, reports owner on timeout, releasable once (332.238334ms)
+✔ localStamp matches stat -f %Sm -t %Y-%m-%dT%H:%M:%S shape (0.363667ms)
+✔ stopChildren forwards to the whole POSIX process group and confirms it is gone (715.224001ms)
+✔ check: current staging has no reasons; each invariant is enforced (30.76725ms)
+✔ stage cargo env: CARGO_TARGET_DIR removed, LOOM_STAGE_TARGET_DIR used, desktop cache rejected (0.582833ms)
+✔ verify: PASS only when every file matches and CSP is present; stops its own daemon; removes temp home (2009.114293ms)
+✔ verify marks the stamp only for the exact staged binary sha (223.53925ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2335.879001

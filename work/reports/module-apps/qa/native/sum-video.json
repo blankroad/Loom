@@ -1,0 +1,38 @@
+{
+ "flow": "Video http-mjpeg native open + exact frame equality",
+ "verdict": "PASS (frame 1011 exact; frame 246 not matchable by design of published metadata)",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "video.open",
+  "request_id": "w13",
+  "seqs": {
+   "requested": 6850,
+   "accepted": 6851,
+   "capture_state": 6852,
+   "first_frame_state": 6860,
+   "confirmed": 6861
+  },
+  "capture_id": "v4e0216eadb82",
+  "capture_epoch": "1794742812244695001",
+  "config": "http-mjpeg http://127.0.0.1:64684/stream 640x360@15",
+  "live": "15/15 fps, ffmpeg drop 0 dup 0, frames_total 399 at check"
+ },
+ "exact_match": {
+  "frame_id": 1011,
+  "sha256": "af62715d231e5c15344c8c513c9ec3352ad634746d3203f7e997319985a5596d",
+  "ui": "root-video-stable.{png,ax.txt}: \uace0\uc815 frame 1011, same sha, burn-in RUN qn202208 F000675 20:41:19.728",
+  "cli": "video frame --id 1011 (raw-video-1007-1012.txt)",
+  "source": "fixture producer_seq 675 sent 11:41:19.729002Z (sent.ndjson)"
+ },
+ "frame246": {
+  "ui_sha": "a9ad42e0cfeed15712ba9bf0d54dec127a8c7ee4662411a795a60b22e3da2191",
+  "burnin": "F000165",
+  "result": "not matchable: ring 120 (~8 s) evicted before query; published video events (health/state) and journal carry no per-frame sha; UI freeze is display-only (daemon frozen=false)"
+ },
+ "observation_not_defect_claim": {
+  "what": "fixture /control/stall (QA-induced): capture_state stalled/no_frames at seq 8468 (+2 s, correct), then FFmpeg exit 0 at +5 s -> closed/eof seq 8537 stopped_at_frame 1011; frames 1009-1011 flushed at exit (1009 = dup sha of 1008). No auto-reopen for http-mjpeg.",
+  "resolution": "ROOT source review: documented manual-reconnect design (cli.rs:78 no auto reconnect; model.rs:351-360 reconnect disabled + rw_timeout 5000000 us; model.rs:1006 manual via video.open; gateway.rs:553 explicit reopen; tests classify clean EOF as closed). Not a blocker, no production fix. Frozen UI frame persists truthfully after source EOF."
+ },
+ "safety": "no CLI open/record; no avfoundation"
+}

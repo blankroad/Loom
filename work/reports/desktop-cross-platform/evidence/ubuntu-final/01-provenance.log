@@ -1,0 +1,14 @@
+1dc0b67cecd04a71535d29efe49b1ae1642306c834088c0b79e6f95a62fafbf3  /out/snapshot.sha256
+923
+rustc 1.93.1 (01f6ddf75 2026-02-11)
+binary: rustc
+commit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf
+commit-date: 2026-02-11
+host: aarch64-unknown-linux-gnu
+release: 1.93.1
+LLVM version: 21.1.8
+v24.22.2
+11.11.0
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+Version: 2.50.4-0ubuntu0.22.04.1

@@ -1,0 +1,61 @@
+
+ RUN  v5.1.0 /Users/ctmctm/workspace/Loom/ui
+
+ ❯ src/net/client.test.ts (4 tests | 2 failed) 8ms
+   ❯ MainNetClient narrow gap scoping (F1) (3)
+     × a merged can/[a,b] stream: source.gap on a reaches a only; domain-wide and subscription-wide gaps reach both 6ms
+     × a cross-domain union {can,psu}: a CAN overrun never reaches PSU; batch display_gap stays shared; kinds are ignored for own gaps 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/net/client.test.ts > MainNetClient narrow gap scoping (F1) > a merged can/[a,b] stream: source.gap on a reaches a only; domain-wide and subscription-wide gaps reach both
+AssertionError: expected [ 'source.gap@can/a', …(4) ] to deeply equal [ 'can.frame@can/b', …(3) ]
+
+- Expected
++ Received
+
+  [
++   "source.gap@can/a",
+    "can.frame@can/b",
+    "record.gap@can/*",
+    "display.gap@display/*",
+    "display.gap@core/*",
+  ]
+
+ ❯ src/net/client.test.ts:68:26
+     66|     expect(t.got.get(a)).toEqual(['can.frame@can/a', 'source.gap@can/a…
+     67|     // negative control: the old predicate (`|| kind.endsWith('.gap')`…
+     68|     expect(t.got.get(b)).toEqual(['can.frame@can/b', 'record.gap@can/*…
+       |                          ^
+     69|   });
+     70|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/net/client.test.ts > MainNetClient narrow gap scoping (F1) > a cross-domain union {can,psu}: a CAN overrun never reaches PSU; batch display_gap stays shared; kinds are ignored for own gaps
+AssertionError: expected [ 'source.gap@can/a', …(1) ] to deeply equal [ 'source.gap@can/a' ]
+
+- Expected
++ Received
+
+  [
+    "source.gap@can/a",
++   "source.gap@psu/p1",
+  ]
+
+ ❯ src/net/client.test.ts:80:28
+     78|     ]);
+     79|     t.deliver([{ k: 'batch', eid: 3, batch: batch('s1', [gap(10, 'sour…
+     80|     expect(t.got.get(can)).toEqual(['source.gap@can/a']); // own gap d…
+       |                            ^
+     81|     expect(t.got.get(psu)).toEqual([]); // neither the CAN gap nor ano…
+     82|     // the subscription's own loss summary is shared by every member (…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  17:29:21
+   Duration  180ms (transform 54%, tests 18%, import 15%, setup 7%, worker 6%)
+

@@ -1,0 +1,6 @@
+    Checking loom-video v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-video)
+    Checking loom-logic v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-logic)
+    Checking loom-gateway v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-gateway)
+    Checking loom-cli v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-cli)
+    Checking loom-bench v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-bench)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.16s

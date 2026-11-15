@@ -1,10 +1,10 @@
 {
- "app": "/Users/ctmctm/workspace/Loom/desktop/dist/Loom.app",
+ "app": "desktop/dist/Loom.app",
  "checks": [
   {
    "check": "info-plist",
    "result": "PASS",
-   "detail": "/Users/ctmctm/workspace/Loom/desktop/dist/Loom.app/Contents/Info.plist"
+   "detail": "desktop/dist/Loom.app/Contents/Info.plist"
   },
   {
    "check": "bundle-id",
@@ -24,12 +24,12 @@
   {
    "check": "loomd-identity",
    "result": "PASS",
-   "detail": "bundled b96de8e812d7565c6df8773570c4b63850f951e8c285d55be45e9e5a2ed40823 == ad-hoc re-sign of staged 49803a53bf1115dac6f6e8f6ece9339a968e4bd8e22197f05871d528a17a3bc8 (flags=0x10002(adhoc,runtime); debug /Users/ctmctm/workspace/Loom/target/debug/loomd baseline c7112c6)"
+   "detail": "bundled 3a4fa400983ec29b0b1b92c1c6e857c5eaea47f8634049dce824ddbedeafcc7c == ad-hoc re-sign of staged 7efffad83fa7ef19f8d188da259f428d0ca656f1411771df6d085ef4da15d26d (flags=0x10002(adhoc,runtime); debug /Users/ctmctm/workspace/Loom/target/debug/loomd baseline a8253c1)"
   },
   {
    "check": "loomd-embedded-ui",
    "result": "PASS",
-   "detail": "verify-loomd: /ui files compared=6 mismatched=0 csp=yes port=50503"
+   "detail": "verify-loomd: /ui files compared=6 mismatched=0 csp=yes port=56079"
   },
   {
    "check": "no-home-data",
@@ -54,7 +54,7 @@
   {
    "check": "size",
    "result": "INFO",
-   "detail": " 87M"
+   "detail": " 88M"
   }
  ]
 }

@@ -1,0 +1,221 @@
+Window: "Loom", App: Loom.
+0 standard window Loom, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/logic
+			3 container
+				4 link Loom, Help: Loom 통합 작업 공간, Value: localhost:62968/ui/#/l/m1-default
+				5 container 서비스
+					6 link 통합, Help: 통합 작업 공간 — 연결된 인터페이스에서 고른 관찰 보기, Value: localhost:62968/ui/#/l/m1-default
+					7 link UART, 열린 2개, Help: UART 작업대 · 열린 인터페이스 2개, Value: localhost:62968/ui/#/s/uart
+					8 link CAN, 열린 1개, Help: CAN 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/can
+					9 link Ethernet, 열린 1개, Help: Ethernet 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/eth
+					10 link UDS 진단, 열린 1개, Help: UDS 진단 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/uds
+					11 link PSU, 열린 1개, Help: PSU 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/psu
+					12 link 로직 분석기, 열린 1개, Help: 로직 분석기 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/logic
+					13 link 비디오 캡처, Help: 비디오 캡처 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/video
+				14 text [BENCH] 연결됨 REC ok 자격: approve
+				15 button ■ STOP 전체, Help: agent·script 쓰기와 잡을 모두 잠근다 (Ctrl-] x)
+			16 container
+				17 container 작업 공간 패널
+					18 toggle button 인터페이스, Help: 인터페이스 목록 — 다시 누르면 접기, Value: off
+				19 toolbar 작업 공간
+					20 toggle button 목록 펼치기, Help: 인터페이스 목록 접기/펼치기, Value: off
+					21 summary 패널 동작, Value: off
+						22 text 패널 동작
+					23 button 단축키, Help: 키보드 단축키 (Ctrl-] ?)
+				24 container 작업 공간
+					25 menu Secondary Actions: Cancel
+					26 menu Secondary Actions: Cancel
+					27 menu Secondary Actions: Cancel
+					28 menu Secondary Actions: Cancel
+					29 container
+						30 container
+							31 container 로직 분석기 · lc-1a1df00f399-1
+								32 text 1
+								33 tab group (selectable)
+									34 tab (selected) 로직 분석기 · lc-1a1df00f399-1
+								35 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+								36 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+								37 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+								38 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+								39 container 로직 분석기 · lc-1a1df00f399-1
+									40 container
+										41 pop up button (disabled, collapsed) 캡처 선택, Value: lc-1a1df00f399-1 · 캡처 중, Secondary Actions: Expand
+										42 text ● 캡처 중
+										43 text SYNTHETIC 생성 파형
+										44 text 1 MHz · 8ch · 디코더 uart:rx=D0:baudrate=115200:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first · 상한 10 s · 시작 USR
+										45 button ■ 캡처 정지, Help: 캡처 정지 — 안전 방향 (보기 권한도 가능)
+										46 text 샘플 8,831,584 (8.83 s)
+										47 text 전이 7,832
+										48 text 디코드 1,335
+										49 text 전이 생략 0
+										50 text 디코드 손실 0
+										51 text 잘린 줄 0
+										52 text 해석 못 한 줄 0
+										53 text 형식 오류 0
+										54 text 스트림 손실 0
+										55 text 수신 지연 126 ms
+										56 text SYNTHETIC: 원시 파형은 Loom이 생성한 이상 파형입니다. 디코드는 실제 libsigrok PD 결과입니다.
+										57 summary 새 캡처 설정, Value: off
+											58 text 새 캡처 설정
+										59 button −, Help: 축소 (-)
+										60 button +, Help: 확대 (+)
+										61 button 전체, Help: 전체 보기 (0)
+										62 toggle button ● 라이브 따라가기, Help: 최신 샘플 따라가기 (F / End), Value: on
+										63 text 8.822 s – 8.832 s · 7.9 smp/px
+										64 container 표시 레인
+											65 container
+												66 checkbox D0, Value: 1
+												67 text D0
+											68 container
+												69 checkbox D1, Value: 1
+												70 text D1
+											71 container
+												72 checkbox D2, Value: 1
+												73 text D2
+											74 container
+												75 checkbox D3, Value: 1
+												76 text D3
+											77 container
+												78 checkbox D4, Value: 1
+												79 text D4
+											80 container
+												81 checkbox D5, Value: 1
+												82 text D5
+											83 container
+												84 checkbox D6, Value: 1
+												85 text D6
+											86 container
+												87 checkbox D7, Value: 1
+												88 text D7
+										89 image 파형: D0, D1, D2, D3, D4, D5, D6, D7 · 8.822 s – 8.832 s · 7.9 smp/px · 디코드 트랙 uart-1
+										90 text 파형 위로 마우스 — sample·시각·레벨 · 휠 확대/축소 · 끌기/Shift+휠 이동 · ←/→ +/- 0 F
+										91 text 원시 파형 (logic.edges, sample 정확)
+										92 text 1px 안에 전이 ≥2 (밀집)
+										93 text 데이터 없음 — 생략/손실 구간
+										94 text 디코드 해석 (libsigrok PD 구간)
+										95 text 디코드 결과
+										96 text 1,335행 · 디코더 uart-1 · 해석 결과(원시 아님)
+										97 row (selectable)
+											98 cell (settable)
+												99 text sample 시작–끝
+											100 cell (settable)
+												101 text 시각 (sample clock)
+											102 cell (settable)
+												103 text 길이
+											104 cell (settable)
+												105 text 디코더
+											106 cell (settable)
+												107 text class
+											108 cell (settable)
+												109 text 내용
+										110 table (settable) 디코드 결과
+											111 row (selectable)
+												112 cell (selectable, settable) 8,800,286–8,800,356
+												113 cell (selectable, settable) 8.8003 s
+												114 cell (selectable, settable) 70 µs
+												115 cell (selectable, settable) uart-1
+												116 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												117 cell (selectable, settable) 4C
+											118 row (selectable)
+												119 cell (selectable, settable) 8,800,373–8,800,443
+												120 cell (selectable, settable) 8.8004 s
+												121 cell (selectable, settable) 70 µs
+												122 cell (selectable, settable) uart-1
+												123 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												124 cell (selectable, settable) 4F
+											125 row (selectable)
+												126 cell (selectable, settable) 8,800,460–8,800,530
+												127 cell (selectable, settable) 8.8005 s
+												128 cell (selectable, settable) 70 µs
+												129 cell (selectable, settable) uart-1
+												130 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												131 cell (selectable, settable) 47
+											132 row (selectable)
+												133 cell (selectable, settable) 8,800,546–8,800,616
+												134 cell (selectable, settable) 8.8005 s
+												135 cell (selectable, settable) 70 µs
+												136 cell (selectable, settable) uart-1
+												137 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												138 cell (selectable, settable) 2D
+											139 row (selectable)
+												140 cell (selectable, settable) 8,800,633–8,800,703
+												141 cell (selectable, settable) 8.8006 s
+												142 cell (selectable, settable) 70 µs
+												143 cell (selectable, settable) uart-1
+												144 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												145 cell (selectable, settable) 32
+											146 row (selectable)
+												147 cell (selectable, settable) 8,800,720–8,800,790
+												148 cell (selectable, settable) 8.8007 s
+												149 cell (selectable, settable) 70 µs
+												150 cell (selectable, settable) uart-1
+												151 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												152 cell (selectable, settable) 30
+											153 row (selectable)
+												154 cell (selectable, settable) 8,800,807–8,800,877
+												155 cell (selectable, settable) 8.8008 s
+												156 cell (selectable, settable) 70 µs
+												157 cell (selectable, settable) uart-1
+												158 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												159 cell (selectable, settable) 32
+											160 row (selectable)
+												161 cell (selectable, settable) 8,800,894–8,800,964
+												162 cell (selectable, settable) 8.8009 s
+												163 cell (selectable, settable) 70 µs
+												164 cell (selectable, settable) uart-1
+												165 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												166 cell (selectable, settable) 32
+											167 row (selectable)
+												168 cell (selectable, settable) 8,800,980–8,801,050
+												169 cell (selectable, settable) 8.801 s
+												170 cell (selectable, settable) 70 µs
+												171 cell (selectable, settable) uart-1
+												172 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												173 cell (selectable, settable) 30
+											174 row (selectable)
+												175 cell (selectable, settable) 8,801,067–8,801,137
+												176 cell (selectable, settable) 8.8011 s
+												177 cell (selectable, settable) 70 µs
+												178 cell (selectable, settable) uart-1
+												179 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												180 cell (selectable, settable) 38
+											181 row (selectable)
+												182 cell (selectable, settable) 8,801,154–8,801,224
+												183 cell (selectable, settable) 8.8012 s
+												184 cell (selectable, settable) 70 µs
+												185 cell (selectable, settable) uart-1
+												186 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												187 cell (selectable, settable) 0D
+											188 row (selectable)
+												189 cell (selectable, settable) 8,801,241–8,801,311
+												190 cell (selectable, settable) 8.8012 s
+												191 cell (selectable, settable) 70 µs
+												192 cell (selectable, settable) uart-1
+												193 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
+												194 cell (selectable, settable) 0A
+							195 text 로직 분석기 closed
+			196 container
+				197 text 로직 분석기 · 열린 1
+				198 container Activity
+					199 button (collapsed) Activity 50, Secondary Actions: Expand
+					200 container 20시 39분 12초.046 AGT qa-native-logic-observer#63333 core core.meta 5 call(s) in the last second
+				201 text Ctrl-] x STOP LOOM / bench
+				202 button ?, Help: 단축키 (Ctrl-] ?)
+			203 container
+				204 text 장치가 logic lc-1a1df00f399-1를 열었습니다
+				205 button 패널 열기
+	206 close button
+	207 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	208 minimize button
+	209 text Loom
+210 menu bar
+	211 Loom
+	212 File
+	213 Edit
+	214 View
+	215 Window
+	216 Help
+	217 Connection
+
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/logic

@@ -1,0 +1,92 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 181, 187-202, 204-251, 253-254
+~					8 link CAN, 열린 1개, Help: CAN 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/can
+~							178 container CAN 트레이스 · qa-native-can
++								256 text 1
++									257 tab (selected) CAN 트레이스 · qa-native-can
+~								186 container CAN 트레이스 · qa-native-can
++									258 text CAN qa-native-can
++									259 text BENCH
++									260 tab group (selectable)
++										261 tab (selected) 수신/송신
++										262 tab (selectable) 트레이스
++									263 text LIVE
++									264 button ⏸ 일시정지, Help: 렌더만 정지 (수집 계속) — Space
++									265 text field (settable) id 필터 (쉼표로 구분, Enter), Placeholder: id 필터 0x300,0x301
++									266 pop up button (collapsed) 방향 필터, Value: rx+tx, Secondary Actions: Expand
++									267 container
++										268 checkbox AGT, Value: 1
++										269 text  AGT
++									270 container
++										271 checkbox USR, Value: 1
++										272 text  USR
++									273 container
++										274 checkbox DEV, Value: 1
++										275 text  DEV
++									276 container
++										277 checkbox SCR, Value: 1
++										278 text  SCR
++									279 container 수신 (ID별 최신)
++										280 text 수신
++										281 text 집계 창 3 프레임 · ID 1/1,024 · gap 없음
++										282 button 집계 초기화, Help: 수신 요약만 새 집계 창으로 시작 (트레이스 링·기록은 그대로)
++										283 row (selectable)
++											284 cell (settable)
++												285 text CAN-ID
++											286 cell (settable)
++												287 text 유형
++											288 cell (settable)
++												289 text Len
++											290 cell (settable)
++												291 text Data
++											292 cell (settable)
++												293 text 주기 ms
++											294 cell (settable)
++												295 text 횟수
++											296 cell (settable)
++												297 text 마지막 s
++										298 table (settable) CAN 수신 요약
++											299 row (selectable) 0x310
+STD
+8
+00 00 00 00 00 00 00 00
+100.0
+3
+0.2000
++									300 container 송신 목록
++										301 text 송신
++										302 button + 새 메시지
++										303 button (disabled) 편집
++										304 button (disabled) 삭제
++										305 button (disabled) 보내기 (Space), Help: 선택한 메시지를 1회 송신 — 송신 줄과 같은 ActionGate·권한·dry-run 경로
++										306 text 주기 송신: 이 패널에서 미지원
++										307 row (selectable)
++											308 cell (settable)
++												309 text CAN-ID
++											310 cell (settable)
++												311 text 유형
++											312 cell (settable)
++												313 text Len
++											314 cell (settable)
++												315 text Data
++											316 cell (settable)
++												317 text 주기
++											318 cell (settable)
++												319 text 횟수
++											320 cell (settable)
++												321 text 트리거
++											322 cell (settable)
++												323 text 메모
++										324 table (settable) CAN 송신 목록
++										325 menu Secondary Actions: Cancel
++									326 text 송신
++									327 text field (settable) CAN 송신 (Enter), Placeholder: 0x300#00 · 18DAF110#02 10 03 · fd 0x123#…
++									328 button 보내기 ⏎
++									329 text R?
++									330 text 보이는 4 / 링 4 (상한 100,000) · 수신 0 fps · 화면 0 행/s
++							331 text CAN 트레이스 closed
+~				252 text CAN · 열린 1
++			332 container
++				333 text 사용자가 can qa-native-can를 다시 열었습니다
++				334 button 패널 열기
+The focused UI element is 186 container CAN 트레이스 · qa-native-can

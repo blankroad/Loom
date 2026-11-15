@@ -1,0 +1,68 @@
+{
+  "result": "FIXED_BUILD_READY",
+  "cmd": "npm --prefix desktop run dist -- --out-dir /tmp/loom-module-fixed --strict",
+  "rc": 0,
+  "started_utc": "2026-11-15T08:14:38Z",
+  "log": "work/reports/module-apps/qa/fix/dist.log",
+  "artifacts_json": {
+    "generated_at": "2026-11-15T08:16:05+00:00",
+    "baseline": "a8253c1",
+    "profile": "release",
+    "verified": true,
+    "strict": true,
+    "loomd_sha256": "51c01f250024b02401023adec1bc1b8e474013e8342933e0d0f17d1c03315a90",
+    "ui_dist_digest": "a52f57b61fcfa0e6e89f7ea0b73a6dcc61ceadb3b1fe3226cba608cbf4ddb2d0"
+  },
+  "checks": [
+    {
+      "check": "cargo-lock",
+      "result": "PASS",
+      "detail": "desktop/Cargo.lock unchanged (--locked)"
+    },
+    {
+      "check": "target:sidecar",
+      "result": "PASS",
+      "detail": "sha256 == staged"
+    },
+    {
+      "check": "app:artifact",
+      "result": "INFO",
+      "detail": "/tmp/loom-tauri-build/release/bundle/macos/Loom.app"
+    },
+    {
+      "check": "app:verify-bundle",
+      "result": "PASS",
+      "detail": "verify-bundle.sh (identity across ad-hoc re-sign, embedded UI) exit 0"
+    },
+    {
+      "check": "app:copy-codesign",
+      "result": "PASS",
+      "detail": "/tmp/loom-module-fixed/Loom.app signature valid after copy"
+    }
+  ],
+  "fingerprints_fixed": {
+    "app_tree": "53012ccfe8150c319f0c31c3e62b96039dfaa5aff4502bf12fc3140775bf8780",
+    "app_bytes": 30624467,
+    "staged_loomd": "51c01f250024b02401023adec1bc1b8e474013e8342933e0d0f17d1c03315a90",
+    "bundled_loomd": "e23a1c61d672df132534f0f384849830df0f00c8d3a43cb9477afca09cd673c7",
+    "loom_desktop": "636e4e2761e103bf8fd70dfcc6be0a345f28df7c1223d7c95cba7bd9643e0315",
+    "ui_dist_digest": "a52f57b61fcfa0e6e89f7ea0b73a6dcc61ceadb3b1fe3226cba608cbf4ddb2d0",
+    "cli": "d55b25f54ef14eb1d1bbc16ed7a02b75ca8efd02e220b8f252ee1e6f678d8270",
+    "ui_src_tree": "8b966e9e6c90be94348c601e439041ecdfd6e9150bcc72ecc05b3e1a1802c504"
+  },
+  "fingerprints_8f57_old": {
+    "app_tree": "e7f764cd58543c3f710aed08ee7973bb3b54ee3ca69ca510ab732d0880335382",
+    "staged_loomd": "b1957cdd99d4087e890f6f817d83f0a2b327df4d2f7df7ae4ca27007565a955d",
+    "bundled_loomd": "0d1dd4bb8a7e2e2eb6bd6a796d36a927defc672e89eb1debbe1fd1f267b2587d",
+    "loom_desktop": "f359cb5056424539709884094fdd8a09473b0f3f3752a3764a89624e21a5be7b",
+    "ui_dist_digest": "8f57d3cd898615511300d611b22be9b489158c678bc5b5e3bd1c878b27db8bf9"
+  },
+  "strict_checks": "verify PASS (embedded /ui 6 files 0 mismatched, csp); loomd-identity PASS (bundled e23a1c61 == ad-hoc re-sign of staged 51c01f25); loomd-embedded-ui PASS; codesign adhoc valid; copy-codesign PASS; all bundle checks PASS",
+  "untouched": {
+    "desktop/dist (user app 52634/daemon 52646)": "loom-desktop 3d74e813\u2026, loomd d4cfa7bb\u2026, artifacts.json 15:48 - unchanged; pids alive since 15:49:07",
+    "/tmp/loom-module-current (8f57 evidence)": "loom-desktop f359cb50\u2026, loomd 0d1dd4bb\u2026, artifacts.json 16:30 - unchanged",
+    "lqa1 daemon 76131": "alive, untouched"
+  },
+  "note": "target/release/loomd is now the fixed staged binary (51c01f25); the 8f57 staged hash b1957cdd stays recorded in /tmp/loom-module-current/artifacts.json and its bundled copy is preserved there",
+  "recorded_utc": "2026-11-15T08:16:29Z"
+}

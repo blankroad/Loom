@@ -1,0 +1,86 @@
+{
+  "result": "QA_CLEANUP_DONE",
+  "authorized_by": "ROOT FINAL_CATCHUP_UI_PASS message",
+  "lqa3_close": {
+    "client": "qa3-close",
+    "raw_dir": "qa/lqa3-close/",
+    "steps": [
+      "video close rc0 (closed at frame 16101, w13)",
+      "uart close qa3-pty1 rc0 (w14)",
+      "uart close qa3-pty2 rc0 (w15)",
+      "can close -c qa3-can rc0 (w16)",
+      "eth capture stop --ch qa3-eth rc0 stopped (w17)",
+      "psu disconnect qa3-psu rc0 output \"held (nothing sent)\"",
+      "logic already stopped (lc-1a1de5e1fb6-1 user_stop 08:43:23Z; history preserved in archive)",
+      "qa3-uds ended by daemon stop",
+      "loom daemon stop rc0 stopped_pid 18389; exit verified; no QA daemons/workers/observers remain"
+    ]
+  },
+  "evidence_copied_before_fixture_stop": "qa/lqa3-fixture-logs/ (MANIFEST.sha256, raw-offsets-final.json with lqa3 segment start/end)",
+  "fixtures_stopped": {
+    "method": "SIGTERM by exact own PID after verifying command lines",
+    "pids": [
+      76137,
+      3505,
+      76139,
+      76140,
+      76141,
+      82545
+    ],
+    "all_reaped": true,
+    "pty_holders_after": 0
+  },
+  "archive_before_rm": {
+    "file": "qa/archive/qa-homes-fx-final.tar.gz",
+    "sha256": "052553ac708c21ad8f20037dd7ca0e9f02c6305a6d9ae54595795f6e55f99f68",
+    "files": 751,
+    "manifest": "qa/archive/MANIFEST-homes-fx.sha256 (751 entries)",
+    "skipped": "xattrs and 2 stale unix sockets run/v/*.sock (not evidence)",
+    "secrets": "none (daemon.json removed by daemon stop; grep token/Bearer/boot= found none)"
+  },
+  "removed": [
+    "/tmp/lqa1",
+    "/tmp/lqa1-fx",
+    "/tmp/lqa2",
+    "/tmp/lqa2-fx",
+    "/tmp/lqa3"
+  ],
+  "absent": [
+    "/tmp/lqa3-fx (never created)"
+  ],
+  "kept_not_authorized": [
+    "/tmp/lqa1-bin (old CLI copy d55b25f5)",
+    "/tmp/loom-module-current (8f57)",
+    "/tmp/loom-module-fixed (a52)",
+    "/tmp/loom-module-final (final, for ROOT publish)"
+  ],
+  "untouched": "user app 52634 / daemon 52646 (alive since 15:49:07), ~/.loom, desktop/dist (artifacts.json 15:48), all production source",
+  "recorded_utc": "2026-11-15T08:46:49Z",
+  "archive_recount": {
+    "when": "2026-11-15T08:49:34Z",
+    "method": "metadata only: shasum -c tar.gz (OK); tar -tvzf listing; no extraction",
+    "tar_entries_total": 840,
+    "directories": 89,
+    "regular_files": 751,
+    "appledouble_entries": 0,
+    "manifest_entries": 751,
+    "manifest_vs_tar": "751/751 match both ways (0 missing, 0 extra)",
+    "per_top_dir_regular": {
+      "lqa1": 386,
+      "lqa2": 190,
+      "lqa3": 156,
+      "lqa1-fx": 15,
+      "lqa2-fx": 4
+    },
+    "other_archives_under_module-apps": "none (this is the only .tar/.tar.gz/.tgz/.zip)",
+    "root_1591": "not reproducible from this archive; 1591 = 840 entries + 751 regular, i.e. likely a double count (entries + files). The 751-regular-file claim stands; no correction needed."
+  },
+  "root_archive_clarification": {
+    "total_tar_members": 1680,
+    "regular_tar_members": 1591,
+    "appledouble_metadata_files": 840,
+    "manifest_content_files": 751,
+    "directory_members": 89,
+    "archive_bytes_changed": false
+  }
+}

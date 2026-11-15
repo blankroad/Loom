@@ -1,0 +1,134 @@
+Window: "Loom", App: Loom.
+0 standard window Loom, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/uart
+			3 container
+				4 link Loom, Help: Loom 통합 작업 공간, Value: localhost:62968/ui/#/l/m1-default
+				5 container 서비스
+					6 link 통합, Help: 통합 작업 공간 — 연결된 인터페이스에서 고른 관찰 보기, Value: localhost:62968/ui/#/l/m1-default
+					7 link UART, 열린 1개, Help: UART 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/uart
+					8 link CAN, Help: CAN 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/can
+					9 link Ethernet, Help: Ethernet 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/eth
+					10 link UDS 진단, Help: UDS 진단 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/uds
+					11 link PSU, Help: PSU 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/psu
+					12 link 로직 분석기, Help: 로직 분석기 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/logic
+					13 link 비디오 캡처, Help: 비디오 캡처 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/video
+				14 text [BENCH] 연결됨 REC ok 자격: approve
+				15 button ■ STOP 전체, Help: agent·script 쓰기와 잡을 모두 잠근다 (Ctrl-] x)
+			16 container
+				17 container UART 패널
+					18 toggle button 세션, Help: 저장된 세션 — 다시 누르면 접기 (Alt+1), Value: on
+					19 toggle button 매크로, Help: 매크로 — 다시 누르면 접기 (Alt+2), Value: off
+				20 toolbar UART 작업 공간
+					21 toggle button 세션 목록 접기, Help: 저장된 세션·매크로 패널 접기/펼치기 (Alt+0), Value: on
+					22 button 새 세션, Help: 새 UART 세션 저장
+					23 button 오른쪽 분할, Help: 활성 pane을 오른쪽으로 분할 (Alt+Shift+=)
+					24 button 아래 분할, Help: 활성 pane을 아래로 분할 (Alt+Shift+-)
+					25 toggle button 최대화, Help: 활성 pane 최대화/복원 (Alt+Shift+Enter), Value: off
+					26 button pane 닫기, Help: 활성 pane 닫기 (Alt+Shift+W) — 포트는 열린 채로
+					27 container 키 입력 대상 (터미널 타이핑만, 매크로는 매크로 패널)
+						28 text 키 입력 대상
+						29 toggle button 현재 세션, Help: 터미널 키 입력을 현재 세션에만 (기본) — 매크로 대상은 매크로 패널에서, Value: on
+						30 toggle button 연결된 모두, Help: 터미널 키 입력을 지금 연결된 쓰기 가능 세션 모두에 (켤 때 수신자 고정) — 매크로에는 영향 없음, Value: off
+						31 container
+							32 text →  qa-native-uart1  만
+					33 button 새 매크로
+					34 button 내보내기, Help: 세션·매크로 JSON 내보내기
+					35 button 가져오기, Help: JSON 가져오기
+					36 button 레이아웃 초기화, Help: 레이아웃만 초기 상태(열린 세션을 한 pane의 탭으로)로
+					37 button 단축키, Help: 단축키 (?)
+					38 text 대상 qa-native-uart1 /dev/ttys006  · pane 1
+				39 container 세션과 매크로
+					40 heading 저장된 UART 세션, Value: 2
+						41 text 저장된 UART 세션
+					42 text 2
+					43 button 새 세션
+					44 button 패널 접기, Help: 패널 접기 (Alt+0)
+					45 search text field (settable) 세션 검색, Placeholder: 별칭, 포트, baud 검색
+						46 text 별칭, 포트, baud 검색
+					47 container
+						48 button (expanded) 기타 (2), Secondary Actions: Collapse
+						49 container 더블클릭/Enter: 활성 pane에 열기
+							50 text qa-native-uart1
+							51 text pane 1
+							52 button qa-native-uart1 활성 pane에 열기, Help: 활성 pane에 탭으로 열기
+							53 button qa-native-uart1 오른쪽 분할에 열기, Help: 활성 pane 오른쪽 새 분할에 열기
+							54 button qa-native-uart1 아래 분할에 열기, Help: 활성 pane 아래 새 분할에 열기
+							55 button qa-native-uart1 설정, Help: 세션 설정
+							56 text /dev/ttys006 · 115200 8N1 · none
+						57 container 더블클릭/Enter: 활성 pane에 열기
+							58 text qa-native-uart2
+							59 button qa-native-uart2 활성 pane에 열기, Help: 활성 pane에 탭으로 열기
+							60 button qa-native-uart2 오른쪽 분할에 열기, Help: 활성 pane 오른쪽 새 분할에 열기
+							61 button qa-native-uart2 아래 분할에 열기, Help: 활성 pane 아래 새 분할에 열기
+							62 button qa-native-uart2 설정, Help: 세션 설정
+							63 text /dev/ttys005 · 115200 8N1 · none
+					64 button 새 세션
+					65 text 포트는 한 탭만 점유합니다. 이미 열린 세션을 다시 열면 그 탭이 활성 pane으로 옮겨집니다.
+				66 container 작업 공간
+					67 container
+						68 container
+							69 container UART 터미널 · qa-native-uart1
+								70 text 1
+								71 tab group (selectable)
+									72 tab (selected) UART 터미널 · qa-native-uart1
+								73 button pane 1에 세션 열기, Help: 이 pane에 세션 열기
+								74 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+								75 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+								76 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+								77 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+								78 container UART 터미널 · qa-native-uart1
+									79 container 이 pane의 실제 대상
+										80 text qa-native-uart1 /dev/ttys006 115200 8N1 · none · CR 연결됨 RX 1.3 kB · TX 16 B UART qa-native-uart1 ● open 115200 gen1 [BENCH]
+									81 toolbar UART qa-native-uart1 도구 막대
+										82 container 보기 형식
+											83 toggle button TERM, Help: 실제 터미널 (xterm) — 키 입력이 장치로 즉시 전송됨, Value: on
+											84 toggle button HEX, Help: 송수신 원본 바이트 HEX 보기 (키 입력 안 보냄), Value: off
+										85 toggle button 일시정지, Help: 화면 갱신 일시정지 (수신은 계속 기록), Value: off
+										86 button 지우기, Help: 화면만 지우기 — 장치·데몬 저널·서버 입력 줄에는 영향 없음 (로그·카운터 보존)
+										87 toggle button 시각, Help: 행 앞 수신 시각 표시/숨기기 — 데몬 저널의 호스트 수신 시각 HH:mm:ss.SSS · 장치 바이트는 바뀌지 않음, Value: on
+										88 button REC, Help: UART 기록 (이 탭의 원본 수신/송신을 .log 또는 .jsonl로)
+										89 pop up button (collapsed) 줄 끝, Help: Enter 시 보낼 줄 끝 (이 탭), Value: CR, Secondary Actions: Expand
+										90 button 매크로 실행 → qa-native-uart1
+										91 button 검색, Help: 검색 (터미널 스크롤백)
+										92 button (collapsed) Send String — Text/HEX와 줄 끝을 지정해 전송, Help: Send String — Text/HEX와 줄 끝을 지정해 전송 (uart.input), Secondary Actions: Expand
+										93 button 터미널 테마 전환 (현재 어두움), Help: 이 터미널만 밝게
+										94 button 포트 닫기
+										95 button qa-native-uart1 세션 설정
+										96 toggle button 더보기: 입력권·특수 키, 로그 저장, Value: off
+									97 search text field (settable) 터미널 검색, Value: ack:QANUART1-A5E251, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)
+										98 text (settable) ack:QANUART1-A5E251
+										99 button cancel
+									100 text 1/1
+									101 button 검색 닫기
+									102 container qa-native-uart1 터미널
+										103 text entry area (settable) Terminal input
+									104 menu Secondary Actions: Cancel
+									105 text AGT ▶ "QANUART1-A5E251⏎" 118s 전 │ rx 15 B/s
+							106 text UART 터미널 · qa-native-uart1 opened
+					107 menu Secondary Actions: Cancel
+					108 menu Secondary Actions: Cancel
+					109 menu Secondary Actions: Cancel
+					110 menu Secondary Actions: Cancel
+					111 menu Secondary Actions: Cancel
+			112 container
+				113 text 활성 pane 1 › qa-native-uart1 /dev/ttys006 115200 8N1 연결됨 RX 1.3 kB TX 16 B pane 1 · 탭 1 · 매크로 실행 0
+				114 container Activity
+					115 button (collapsed) Activity 50, Secondary Actions: Expand
+					116 container 20시 27분 57초.045 AGT qa-native-uart-observer#55965 core core.meta 1 call(s) in the last second
+				117 text Ctrl-] x STOP LOOM / bench
+				118 button ?, Help: 단축키 (Ctrl-] ?)
+	119 close button
+	120 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	121 minimize button
+	122 text Loom
+123 menu bar
+	124 Loom
+	125 File
+	126 Edit
+	127 View
+	128 Window
+	129 Help
+	130 Connection
+
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/uart

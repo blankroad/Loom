@@ -1,0 +1,8 @@
+{"event": "listening", "port": 64681, "wall_ns": 1794741728408135000, "fixturePID": 49312}
+{"event": "accepted", "peer": "127.0.0.1:65294", "wall_ns": 1794742536362939000, "fixturePID": 49312}
+{"dir": "rx", "ptype": "0x0005", "hex": "02fd0005000000070e800000000000", "wall_ns": 1794742536364166000, "fixturePID": 49312}
+{"dir": "tx", "ptype": "0x0006", "hex": "02fd0006000000090e8010011000000000", "note": "routing activation code 0x10", "wall_ns": 1794742536364348000, "fixturePID": 49312}
+{"dir": "rx", "ptype": "0x8001", "hex": "02fd8001000000070e80100122f190", "wall_ns": 1794742562024204000, "fixturePID": 49312}
+{"dir": "tx", "ptype": "0x8002", "hex": "02fd80020000000810010e800022f190", "note": "diag ACK", "wall_ns": 1794742562027290000, "fixturePID": 49312}
+{"dir": "tx", "ptype": "0x8001", "hex": "02fd80010000001a10010e8062f19051414e4154495645716e32303232303856494e", "note": "uds response 62f190", "wall_ns": 1794742562027503000, "fixturePID": 49312}
+{"event": "closed", "wall_ns": 1794742627383115000, "fixturePID": 49312}

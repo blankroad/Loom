@@ -1,0 +1,117 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 148, 150, 156-258
+~					134 link Ethernet, 열린 1개, Help: Ethernet 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/eth
+~						147 container 이더넷 패킷 · qa-native-eth
++							266 text 1
++								267 tab (selected) 이더넷 패킷 · qa-native-eth
+~							155 container 이더넷 패킷 · qa-native-eth
++								268 container
++									269 toolbar Ethernet 작업 공간
++										270 button 채널 추가, Help: 새 채널 이름 + NIC로 캡처 시작 (eth.capture.start) → 그 채널 패널 열기
++										271 button 캡처 시작…, Help: 정지된 채널 캡처 시작 (eth.capture.start)
++										272 button 캡처 정지, Help: 캡처 정지 — 안전 방향(보기 자격도 가능), 기록 유지 (eth.capture.stop)
++										273 toggle button 표시 일시정지, Help: 화면만 고정하고 저널에서 완전 범위 조회 — 캡처는 계속 (Space), Value: off
++										274 toggle button 자동 스크롤, Help: 새 패킷으로 자동 스크롤, Value: on
++										275 toggle button 색상, Help: 프로토콜 색상 규칙, Value: on
++										276 button (disabled) 스트림 따라가기, Help: 스트림 번호가 있는 TCP/UDP 패킷을 선택하세요 (daemon eth.follow)
++										277 button 내보내기, Help: 표시 범위를 pcapng로 내보내기 (eth.export) — 파일은 daemon(벤치) 머신에 생성, 완료 시 경로 표시
++										278 button 기록 지우기, Help: 이 패널의 보관 목록만 비움 — 저널·녹화 기록은 유지
++										279 toggle button 소켓 테스트, Help: UDP/TCP 소켓 테스트 패널 (Alt+S), Value: off
++										280 button 단축키, Help: 단축키 (?)
++										281 text qa-native-eth · 표시 3
++									282 container 캡처 채널
++										283 container qa-native-eth — 이 패널이 보여 주는 채널
++											284 text qa-native-eth ●  LIVE SIM tap
++											285 button 정지, Help: 캡처 정지 (eth.capture.stop)
++											286 text sim · pps ? · bps ? · 커널 드롭: 알 수 없음 · 기록 ok · ts synthetic
++										287 button 채널, Help: 채널 추가 — 새 채널 이름 + NIC로 캡처 시작
++									288 container 필터
++										289 text 범위
++										290 (settable, unknown) 표시 채널 범위
++											291 radio button qa-native-eth, Value: 1
++										292 text 캡처 필터 (없음)
++										293 pop up button (collapsed) 시간 기준, Help: Time 열 기준, Value: 캡처 시작 기준, Secondary Actions: Expand
++										294 text 라이브 · 표시 1/1 · 기록 100 % 표시 필터
++										295 text field (settable) 표시 필터, Placeholder: 예: doip && doip.target_address == 0x1001 — Enter 적용, Esc 되돌리기 (Ctrl+/)
++										296 button 표시 필터 저장, Help: 이 필터를 저장
++										297 pop up button (collapsed) 저장·이력, Value: ▾, Secondary Actions: Expand
++										298 button 적용, Help: 표시 필터 적용 (Enter) — 저장된 기록은 바뀌지 않음
++										299 button 표시 필터 지우기, Help: 표시 필터 지우기 — 전체 표시로 되돌림 (캡처 필터는 그대로)
++										300 text 필터 없음 · 전체 표시
++										301 text 표시 3 / 보관 3
++									302 container 패킷 캡처 작업 공간
++										303 row (selectable)
++											304 cell (settable)
++												305 text No.
++											306 cell (settable)
++												307 text Time
++											308 cell (settable)
++												309 text Source
++											310 cell (settable)
++												311 text Destination
++											312 cell (settable)
++												313 text Protocol
++											314 cell (settable)
++												315 text Length
++											316 cell (settable)
++												317 text Info
++											318 cell (settable)
++												319 text UDS
++											320 cell (settable)
++												321 text 출처
++										322 table (settable) 패킷 목록
++											323 row (selectable)
++												324 cell (selectable, settable)
++												325 cell (selectable, settable) 1191
++												326 cell (selectable, settable) 0.002091
++												327 cell (selectable, settable) 192.0.2.2
++												328 cell (selectable, settable) 255.255.255.255
++												329 cell (selectable, settable) DoIP
++												330 cell (selectable, settable) 82
++												331 cell (selectable, settable) Vehicle announcement (0x0004) VIN=LOOM0000000000001 LA=0x1000
++												332 cell (selectable, settable)
++												333 cell (selectable, settable) Description: device, Value: DEV
++											334 row (selectable)
++												335 cell (selectable, settable)
++												336 cell (selectable, settable) 1194
++												337 cell (selectable, settable) 0.103515
++												338 cell (selectable, settable) 192.0.2.2
++												339 cell (selectable, settable) 255.255.255.255
++												340 cell (selectable, settable) DoIP
++												341 cell (selectable, settable) 82
++												342 cell (selectable, settable) Vehicle announcement (0x0004) VIN=LOOM0000000000001 LA=0x1000
++												343 cell (selectable, settable)
++												344 cell (selectable, settable) Description: device, Value: DEV
++											345 row (selectable)
++												346 cell (selectable, settable)
++												347 cell (selectable, settable) 1195
++												348 cell (selectable, settable) 0.200533
++												349 cell (selectable, settable) 192.0.2.2
++												350 cell (selectable, settable) 255.255.255.255
++												351 cell (selectable, settable) DoIP
++												352 cell (selectable, settable) 82
++												353 cell (selectable, settable) Vehicle announcement (0x0004) VIN=LOOM0000000000001 LA=0x1000
++												354 cell (selectable, settable)
++												355 cell (selectable, settable) Description: device, Value: DEV
++										356 splitter 패킷 목록 | 상세 경계, Help: 패킷 목록 | 상세 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 52
++										357 text 패킷 상세
++										358 button (disabled) 재전송, Help: 선택 프레임을 그대로 raw 송신 (eth.send)
++										359 button (disabled) 편집 후 송신…, Help: hex 편집 + daemon dry-run 미리보기 후 송신
++										360 button (disabled) 기준 행, Help: 선택 행을 시간 기준으로
++										361 button (disabled) REF 복사, Help: 선택 패킷 증거 REF 복사
++										362 button ＋, Help: 모두 펼치기
++										363 button －, Help: 모두 접기
++										364 container
++											365 outline (selectable)
++											366 splitter 상세 | 바이트 경계, Help: 상세 | 바이트 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 55
++											367 text 바이트 행을 고르면 상세 트리와 바이트가 보입니다
++									368 text 패킷 선택 없음 — ↑/↓ 또는 F7/F8
++									369 text 라이브 표시 패킷 3 · 표시 필터 없음
++									370 text 보관 3행
++						371 text 이더넷 패킷 closed
+~				260 text Ethernet · 열린 1
++			372 container
++				373 text 장치가 eth qa-native-eth를 다시 열었습니다
++				374 button 패널 열기
++			375 text 채널 qa-native-eth 캡처 시작 — 그 채널 패널을 열었습니다
+The focused UI element is 127 HTML content Description: Loom, URL: localhost:62968/ui/#/s/eth

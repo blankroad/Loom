@@ -1,0 +1,2 @@
+uart2 events 0 hw 344
+status ok False E_NOT_OPEN None

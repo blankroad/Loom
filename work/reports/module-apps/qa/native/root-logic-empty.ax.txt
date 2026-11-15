@@ -1,0 +1,110 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 29-75, 80
+~		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/logic
++					95 container
++						96 container
++							97 container 로직 분석기
++								98 text 1
++								99 tab group (selectable)
++									100 tab (selected) 로직 분석기
++								101 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++								102 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++								103 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++								104 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++								105 container 로직 분석기
++									106 container
++										107 pop up button (collapsed) 캡처 선택, Value: 최신 캡처 따라가기, Secondary Actions: Expand
++										108 text 캡처 없음
++										109 text 활성 캡처 없음 — 아래 "새 캡처 설정"에서 시작하거나 에이전트 `loom logic start` 결과가 여기 표시됩니다
++										110 button (disabled) ■ 캡처 정지, Help: 캡처 정지 — 안전 방향 (보기 권한도 가능)
++										111 container (expanded) Secondary Actions: Collapse
++											112 summary 새 캡처 설정, Value: on
++												113 text 새 캡처 설정
++											114 text 수집: D0–D7 8채널 고정 (1 byte/sample). 표시 레인은 아래 보기 막대에서 고릅니다.
++											115 container
++												116 text 소스
++												117 pop up button (collapsed) 소스, Value: synthetic — Loom 생성 파형 + 실제 libsigrok 디코드, Secondary Actions: Expand
++											118 container
++												119 text 합성 텍스트
++												120 text field (settable) 합성 텍스트, Help: {n} = 4자리 프레임 번호, \r \n 이스케이프 사용 가능 (≤ 256 B), Value: LOOM {n}\r\n
++											121 container
++												122 text 프레임 주기 (ms)
++												123 number field (settable) 프레임 주기 (ms), Value: 100
++													124 stepper 0
++														125 unknown
++														126 unknown
++											127 container
++												128 text 샘플레이트
++												129 pop up button (collapsed) 샘플레이트, Value: 1 MHz, Secondary Actions: Expand
++											130 container
++												131 text 캡처 시간 (s)
++												132 number field (settable) 캡처 시간 (s), Value: 10
++													133 stepper 0
++														134 unknown
++														135 unknown
++											136 container
++												137 text 디코더
++												138 pop up button (collapsed) 디코더, Value: UART (libsigrok uart), Secondary Actions: Expand
++											139 container
++												140 text baudrate
++												141 pop up button (collapsed) baudrate, Value: 115200, Secondary Actions: Expand
++											142 container
++												143 text RX
++												144 pop up button (collapsed) RX, Value: D0, Secondary Actions: Expand
++											145 button ▶ 캡처 시작
++											146 text 같은 캡처를 CLI로
++											147 text loom logic start --source synthetic --rate 1M --channels D0,D1,D2,D3,D4,D5,D6,D7 --decode uart:baudrate=115200:rx=D0 --duration 10s --text "LOOM {n}\\r\\n" --frame-period 100ms
++											148 button 엔진 확인, Help: logic.status (읽기 전용) — 설치된 sigrok-cli와 Loom 지원 소스/디코더를 확인합니다. 장치를 열거나 USB를 스캔하지 않습니다.
++											149 text [엔진 확인]을 누르면 logic.status로 sigrok-cli·지원 소스를 확인합니다 (장치 열기/스캔 없음)
++										150 button −, Help: 축소 (-)
++										151 button +, Help: 확대 (+)
++										152 button 전체, Help: 전체 보기 (0)
++										153 toggle button ● 라이브 따라가기, Help: 최신 샘플 따라가기 (F / End), Value: on
++										154 container 표시 레인
++											155 container
++												156 checkbox D0, Value: 1
++												157 text D0
++											158 container
++												159 checkbox D1, Value: 1
++												160 text D1
++											161 container
++												162 checkbox D2, Value: 1
++												163 text D2
++											164 container
++												165 checkbox D3, Value: 1
++												166 text D3
++											167 container
++												168 checkbox D4, Value: 1
++												169 text D4
++											170 container
++												171 checkbox D5, Value: 1
++												172 text D5
++											173 container
++												174 checkbox D6, Value: 1
++												175 text D6
++											176 container
++												177 checkbox D7, Value: 1
++												178 text D7
++										179 image 파형 없음
++										180 text 원시 파형 (logic.edges, sample 정확)
++										181 text 1px 안에 전이 ≥2 (밀집)
++										182 text 데이터 없음 — 생략/손실 구간
++										183 text 디코드 해석 (libsigrok PD 구간)
++										184 text 디코드 결과
++										185 row (selectable)
++											186 cell (settable)
++												187 text sample 시작–끝
++											188 cell (settable)
++												189 text 시각 (sample clock)
++											190 cell (settable)
++												191 text 길이
++											192 cell (settable)
++												193 text 디코더
++											194 cell (settable)
++												195 text class
++											196 cell (settable)
++												197 text 내용
++										198 table (settable) 디코드 결과
+~				77 text 로직 분석기 · 열린 0
++					199 container 20시 38분 27초.046 AGT qa-native-psu-observer#62969 core core.meta 5 call(s) in the last second
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/logic

@@ -1,0 +1,281 @@
+{
+  "ui": "a52f57b6",
+  "results": [
+    {
+      "service": "uart",
+      "workspace": "uart",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "can",
+      "workspace": "can",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "can.trace"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "eth",
+      "workspace": "eth",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "eth.packets"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "uds",
+      "workspace": "uds",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "uds.console"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "psu",
+      "workspace": "psu",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "psu.gauge"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "logic",
+      "workspace": "logic",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "logic.analyzer"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    },
+    {
+      "service": "video",
+      "workspace": "video",
+      "counts": [
+        {
+          "label": "UART",
+          "count": "0"
+        },
+        {
+          "label": "CAN",
+          "count": "0"
+        },
+        {
+          "label": "Ethernet",
+          "count": "0"
+        },
+        {
+          "label": "UDS 진단",
+          "count": "0"
+        },
+        {
+          "label": "PSU",
+          "count": "0"
+        },
+        {
+          "label": "로직 분석기",
+          "count": "0"
+        },
+        {
+          "label": "비디오 캡처",
+          "count": "0"
+        }
+      ],
+      "panels": [
+        "video.workbench"
+      ],
+      "overflow": false,
+      "header": "L\nLoom\n통합\nUART\nCAN\nEthernet\nUDS 진단\nPSU\n로직 분석기\n비디오 캡처\n[SIM]\n연결됨\n● LIVE lag 0ms\nREC ok\n자격: watch\n■ STOP 전체"
+    }
+  ],
+  "integrated": {
+    "workspace": "integrated",
+    "text": "",
+    "panels": 0
+  }
+}

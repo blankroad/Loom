@@ -1,0 +1,8 @@
+185 qa-native-uart1 uart.write user w1 uart.open requested 
+186 qa-native-uart1 uart.write user w1 uart.open accepted 
+189 qa-native-uart1 uart.state device None open  1
+191 qa-native-uart1 uart.write user w1 uart.open sent 
+404 qa-native-uart2 uart.write user w3 uart.open requested 
+405 qa-native-uart2 uart.write user w3 uart.open accepted 
+406 qa-native-uart2 uart.state device None open  1
+408 qa-native-uart2 uart.write user w3 uart.open sent 

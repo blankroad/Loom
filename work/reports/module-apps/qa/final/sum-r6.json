@@ -1,0 +1,187 @@
+{
+  "result": "R6_PASS (backend QA + UI ROOT), final build",
+  "build": "final ui db441bfb / bundled loomd 38219c57",
+  "stream_epoch": "1794731770",
+  "status_before": "raw-r6-status-before.json: viewers 1/1, connections 2, subscriptions 8, hw 6434 (08:41:58Z)",
+  "observer": {
+    "client": "all-observer3",
+    "cmd": "loom events --since now --follow --timeout 20 --max 1000 --json",
+    "rc": 0,
+    "initial_hw": "6439",
+    "viewers": {
+      "subscribed": 1,
+      "visible": 1
+    },
+    "events_total": 684,
+    "seq_range": [
+      "6440",
+      "7123"
+    ],
+    "truncated": false,
+    "contiguous": true,
+    "per_domain": {
+      "video": 20,
+      "core": 50,
+      "logic": 234,
+      "can": 207,
+      "psu": 100,
+      "eth": 40,
+      "uart": 28,
+      "uds": 5
+    },
+    "logic_kinds": {
+      "logic.edges": 188,
+      "logic.annotations": 46
+    },
+    "video_kinds": {
+      "video.health": 20
+    }
+  },
+  "uart": {
+    "alias": "qa3-pty1",
+    "marker": "QAFIN1-919F33",
+    "rc": 0,
+    "request_id": "w8",
+    "expect": {
+      "matched": true,
+      "match": "ack:QAFIN1-919F33",
+      "rx_offset_start": "3194",
+      "rx_offset_end": "3211"
+    },
+    "pty1_fixture_new_bytes": "QAFIN1-919F33\n",
+    "exact": true
+  },
+  "can": {
+    "alias": "qa3-can",
+    "frame": "300#F2DA2CEF094A201F",
+    "rc": 0,
+    "request_id": "w9",
+    "write_state": "effective_verified",
+    "reply_ref": [
+      "can:qa3-can@e1794731770:seq:6780"
+    ],
+    "reply_bytes": "f2da2cef094a201f"
+  },
+  "uds": {
+    "alias": "qa3-uds",
+    "did": "F190",
+    "rc": 0,
+    "request_id": "w10",
+    "state": "confirmed",
+    "req": "22f190",
+    "resp": "62f1904f505553573236444f4950303030303031",
+    "vin": "OPUSW26DOIP000001",
+    "rtt_ms": 1.025,
+    "fixture_doip": [
+      [
+        "0x8001",
+        "rx",
+        null
+      ],
+      [
+        "0x8002",
+        "tx",
+        "diag ACK"
+      ],
+      [
+        "0x8001",
+        "tx",
+        "uds response 62f190"
+      ]
+    ]
+  },
+  "logic": {
+    "capture_id": "lc-1a1de5e1fb6-1",
+    "text_nonce": "QAFIN-230803",
+    "auto_end": "~08:44:12Z"
+  },
+  "video": {
+    "capture_id": "v8c894e4b02fc"
+  },
+  "recorded_utc": "2026-11-15T08:43:02Z",
+  "journal": {
+    "uart": {
+      "tx": "uart:qa3-pty1@e1794731770:seq:6767 (agent w8)",
+      "rx_ack": "seq 6772 (device)"
+    },
+    "can": {
+      "tx": "can:qa3-can@e1794731770:seq:6779 (agent w9)",
+      "rx_0x301": "seq 6780 (device, exact copy)"
+    },
+    "uds": {
+      "tx": "uds:qa3-uds@e1794731770:seq:6784-6786 (w10 requested/accepted/sent)",
+      "rx": "seq 6787 (device)",
+      "result": "seq 6788"
+    }
+  },
+  "subscription_accounting": {
+    "before_observer": {
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "connections": 2,
+      "subscriptions": 8,
+      "stream_seq_hw": "6434"
+    },
+    "during_cli_observer(all-observer3b, 8 s)": {
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "connections": 3,
+      "subscriptions": 8,
+      "stream_seq_hw": "7809"
+    },
+    "after_observer": {
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "connections": 2,
+      "subscriptions": 8,
+      "stream_seq_hw": "7442"
+    },
+    "reading": "UI viewer holds subscriptions=8 (cap) in all three samples. Attaching a CLI events --follow adds a CONNECTION (2->3) but the status \"subscriptions\" field stays 8: the CLI follow is not counted as a hub viewer subscription in this field. So the \"global 9\" demand (8 UI + 1 CLI observer) is visible as connections 3 / subscriptions 8, not as subscriptions 9. Connections 2 when idle = UI viewer + the one-shot status CLI call itself.",
+    "extra_readonly_observer": "all-observer3b 8 s (raw-r6-observer-b.out, rc 0) used only to sample status during attachment"
+  },
+  "logic_stop": {
+    "cmd": "loom logic stop lc-1a1de5e1fb6-1 --idempotency-key qa-final-\u2026-logic-stop --json",
+    "rc": 0,
+    "at_utc": "08:43:23Z (before 180 s auto-end ~08:44:12Z)",
+    "state": "stopped",
+    "reason": "user_stop",
+    "counters": {
+      "annotations": 4437,
+      "decoder_input_bytes": 130303769,
+      "dropped_annotations": 0,
+      "dropped_edges": 0,
+      "edges": 25284,
+      "emit_errors": 0,
+      "queue_dropped_annotations": 0,
+      "samples": 130303769,
+      "truncated_lines": 0,
+      "unparsed_lines": 0
+    },
+    "exit": {
+      "acquisition": null,
+      "decoder": {
+        "code": 0,
+        "signal": null,
+        "stop_style": "eof"
+      }
+    },
+    "quality": [
+      "synthetic"
+    ],
+    "raw": "qa/final/raw-logic-stop.json"
+  },
+  "root_ui": {
+    "verdict": "R6_UI_PASS (final db441bfb)",
+    "detail": "all 8 groups visible; UART1 ack:QAFIN1-919F33 1/1; CAN 0x301 F2DA2CEF094A201F; UDS VIN OPUSW26DOIP000001 + route; ETH growing; PSU ~300 points OFF; logic waveform+decoder live; video 30/30 fresh; both UART panes show honest merged resync-gap mark (not claimed lossless)",
+    "evidence": [
+      "qa/final/browser/integrated-eight-proof.json",
+      "qa/final/browser/integrated-eight-proof.png"
+    ]
+  }
+}

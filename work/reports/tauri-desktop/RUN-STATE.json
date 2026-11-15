@@ -1,5 +1,5 @@
 {
-  "state": "IMPLEMENTED; NATIVE_VISIBLE_ACCEPTANCE_PENDING_USER_UNLOCK — not DONE",
+  "state": "MODULE_APPS_PUBLISHED_NATIVE_SERVICE_ACCEPTANCE_PASS",
   "baseline": "c7112c6",
   "task": "Native Tauri app, Opus5.5 parallel",
   "root": "orchestration/review/index only",
@@ -24,30 +24,190 @@
       "session": "75228f2f-6a9a-46c8-ba97-2b52093e7c01",
       "owns": "desktop/scripts README + isolated native QA",
       "state": "PENDING_NATIVE checkpoint returned; all own fixtures/Ego cleaned; normal exit verified, w2K closed"
+    },
+    "tauri-final-opus": {
+      "workspace": "w2M",
+      "pane": "w2M:p1",
+      "session": "79fd111d-30bb-4ff4-b5cf-c0f71de86a36",
+      "model": "claude-opus-5-5",
+      "state": "RETURNED — normal /exit verified agent_not_found, w2M closed; desktop scope transferred to future integration QA",
+      "owns": "desktop integration/build/reembed/QA; peer UI read-only"
+    },
+    "bench-uart-opus": {
+      "workspace": "w2N",
+      "pane": "w2N:p1",
+      "session": "b5122f3a-1a7c-46c9-95c1-3bc53db2ba01",
+      "model": "claude-opus-5-5",
+      "owns": "shared shell/theme + UART product UI",
+      "state": "READY_TO_INTEGRATE — 210tests/Ego parity; fixtures cleaned, normal /exit verified, w2N closed"
+    },
+    "bench-diag-opus": {
+      "workspace": "w2P",
+      "pane": "w2P:p1",
+      "session": "739a7fe0-e0ab-47e1-b08b-00df0b6a6bf0",
+      "model": "claude-opus-5-5",
+      "owns": "Ethernet only + frozen shared workbench/eth helpers; UDS_FROZEN handoff ready",
+      "state": "READY_TO_INTEGRATE — ETH 45 tests+actual Ego live/card/add proof; own fixtures and space15 cleaned; normal /exit verified w2P closed"
+    },
+    "bench-uds-opus": {
+      "workspace": "w2Q",
+      "pane": "w2Q:p1",
+      "session": "724f265c-863a-459b-9de7-60ecde748f59",
+      "model": "claude-opus-5-5",
+      "owns": "ui/src/panels/uds/** + optional workbench/uds/**",
+      "state": "READY_TO_INTEGRATE — 51 targeted PASS/type/lint, normal /exit verified w2Q closed"
+    },
+    "bench-final-qa-opus": {
+      "workspace": "w2R",
+      "pane": "w2R:p1",
+      "model": "claude-opus-5-5",
+      "owns": "desktop/** + QA; sole final production builder after all UI READY",
+      "state": "RETURNED_FINAL2_BUILT_NATIVE_PENDING_LOCKED — report DRAFT/checkpoint ready, no own processes; normal /exit verified w2R closed",
+      "session": "ad5e4033-5664-4c6c-933f-7537a8bd0665"
+    },
+    "startup-fix-opus": {
+      "workspace": "w2S",
+      "pane": "w2S:p1",
+      "session": "ff9f793d-a54b-4a55-a8d0-79c93fd1a815",
+      "model": "claude-opus-5-5",
+      "owns": "ShellApp.tsx + focused startup-route regression tests",
+      "state": "READY_TO_INTEGRATE — pure bootstrap eligibility; real bootstrap+StrictMode regressions17+adjacent29/tsc/lint PASS; unwanted nested agent canceled/killed, parent completed directly; normal exit verified w2S closed"
+    },
+    "macro-fix-opus": {
+      "workspace": "w2T",
+      "pane": "w2T:p1",
+      "session": "0955f329-3603-4e60-ac92-9fd7ebd52e33",
+      "model": "claude-opus-5-5",
+      "owns": "UART expect literal contract, stale run-strip replace, hidden-tab state/recipient model with focused regressions",
+      "state": "READY_TO_INTEGRATE — 59 focused/type/lint, literal+strip+hiddenmodel; normalexit verified w2T closed"
+    },
+    "dock-fix-opus": {
+      "workspace": "w2V",
+      "pane": "w2V:p1",
+      "session": "5472bf24-76ec-4f1e-b312-48c2f4e3c5d4",
+      "model": "claude-opus-5-5",
+      "owns": "DockLayout.tsx and dock tests, dockHost only if necessary",
+      "state": "READY_TO_INTEGRATE — 116 focused/type/lint, real split/panelidentity 100hops+cap+explicitlayout tests; normalexit verified w2V closed"
+    },
+    "eth-export-fix-opus": {
+      "workspace": "w2W",
+      "pane": "w2W:p1",
+      "session": "d9883730-9e1a-403b-85e7-c3924cfa8730",
+      "model": "claude-opus-5-5",
+      "owns": "ETH default export atomic unique allocation/tests, UI actual completion/path/TX reason, explicitly approved optional readonly SDK action result/tests",
+      "state": "READY_TO_INTEGRATE — Rust56+UI/SDK100/type/lint/clippy/fmt PASS; source reviewaccepted; normalexitverified w2W closed"
     }
   },
   "preserve": "MAINw8, unrelated dirty files/user daemons/browser tabs",
   "shared_build_target": "/tmp/loom-tauri-build",
-  "browser": "exclusive QA worker",
-  "native_validation": "CUA binding cgWindowNotFound despite CG onscreen window; QA preparing actual WKWebView test automation fallback, native RX/keys not yet PASS",
+  "browser": "Ego16 p1 report DRAFT, ROOT previewed and handed off to user (agentDelegatedToUser); after user confirms unlock use takeOverTaskSpace(16), no new space. Earlier14 disappeared; protected user0/10/11/12 untouched.",
+  "native_validation": "New ordinary release actual CUA Enter+Tab0x09 device/CLI PASS; actual native Connection→Reconnect PASS UI new port54546, finalQA PID/identity check pending. Final module verification continues; startup default route fix in parallel.",
   "checks": {
     "root_rust_workspace": "34 tests passed including actual loomd lifecycle",
     "ui_worker_suite": "624 tests passed, typecheck/lint clean (Opus app owner)",
     "root_verify_dist": "PASS strict ad-hoc signature, no webdriver, daemon code identity, 6/6 embedded UI assets",
     "source": "git diff --check clean",
-    "screen": "locked=true displayAsleep=true (actual OS state; no bypass)"
+    "screen": "Unlocked; actual ROOT CUA native seven-service Connect/receive + three-pane Integrated + layout persistence PASS on db441bfb",
+    "root_desktop_current": "40 passed aggregate (15 desktop+3 host unit+21 lifecycle+1 actual loomd), evidence qa/root-desktop-regression.txt; initial wrong binary path corrected, only failed real test rerun",
+    "ui_final2": "686/686, schema/typecheck/lint PASS; git diff --check clean",
+    "ui_module_final": "761/761, type/full lint/schema/strict bundle/independent Opus Delta PASS (matching frozen build)"
   },
   "artifacts": {
     "app": "desktop/dist/Loom.app (local artifact, gitignored, 87MiB; release shell + verified debug daemon)",
     "qa_app": "/tmp/loom-tauri-build/qa/Loom-QA.app (debug e2e only; never distribute)",
     "resume": "work/reports/tauri-desktop/qa/RESUME.md",
-    "guide": "desktop/README.md"
+    "guide": "desktop/README.md",
+    "ubuntu_arm64_deb": "desktop/dist/linux-arm64/Loom_0.1.0_arm64.deb",
+    "cross_platform_guide": "desktop/README.md"
   },
   "cleanup": "All worker fixtures cleaned; ROOT-created default-home app19191+daemon19201 also stopped after PID/path/discovery ownership checks. User home contents preserved; user-owned other daemons untouched; MAINw8/reportHTTP preserved.",
-  "remaining": [
-    "User unlocks and wakes Mac display",
-    "Fresh visible native WK suite: UART RX, renderer Enter/Tab, CLI/UI equality, late join screenshots",
-    "Native OS input/menu checks where tool binding becomes available",
-    "Only after native acceptance mark task DONE"
+  "remaining": [],
+  "visual_reference": {
+    "shell": "work/reports/ui-style-survey/fable/index.html?design=F2",
+    "uart": "work/reports/uart-workbench/opus/index.html REV6.1",
+    "eth": "work/reports/ethernet-workbench/opus/index.html",
+    "uds": "work/reports/uds-read-did/app/index.html"
+  },
+  "root_native_proof_before_visual_correction": [
+    "CUA actual OS Enter root-native-1→device+CLI ack PASS",
+    "CUA actual OS Tab root-tab→0x09 at device+CLI ack PASS",
+    "Actual UART ticks visibly rendered after unlock"
+  ],
+  "integration_handoff": "work/reports/tauri-desktop/qa/INTEGRATION-HANDOFF.md",
+  "uds_next_task": "work/reports/tauri-desktop/UDS-PARITY-TASK.md",
+  "final_build": {
+    "ui_dist_digest": "643e595265ae92e70219cfadf0eff7c037948586547d4aedb8a26372996b0f05",
+    "loomd_sha256": "7efffad83fa7ef19f8d188da259f428d0ca656f1411771df6d085ef4da15d26d",
+    "ordinary_main_sha256": "0a2a7a52f47c34ea63e5826a38cf102fc2f226e7b4b242b920991a07c25ec53f",
+    "evidence": "qa/evidence/final2/fingerprints.txt"
+  },
+  "resume": "qa/RESUME-FINAL2.md",
+  "commit": "User authorized curated C1–C6 normal publication; final remote SHA verified directly through Git by ROOT.",
+  "cross_platform_extension": {
+    "state": "IMPLEMENTED_LOCAL_INTEGRATION_ACCEPTED_WINDOWS_NATIVE_CI_PENDING",
+    "handoff": "../desktop-cross-platform/STATUS.md",
+    "workers": {
+      "runtime": "w2X returned/exited/closed",
+      "packaging": "w2Y returned/exited/closed",
+      "ci": "w2Z returned/exited/closed"
+    },
+    "ubuntu_arm64": "desktop/dist/linux-arm64/Loom_0.1.0_arm64.deb (repository-relative path)",
+    "windows": "GNU compile/link passes; native MSVC/NSIS/install/launch CI configured, not run",
+    "acceptance": "Original Mac final2 app/staging preserved. Current runtime/build source requires fresh ordinary/e2e Mac builds before visible acceptance. UI digest unchanged; unchanged tests not repeated."
+  },
+  "current_mac_launch": {
+    "handoff": "../module-apps/RESUME-NATIVE.md",
+    "report": "../module-apps/REPORT.html",
+    "manifest": "../../../desktop/dist/artifacts.json",
+    "app_pid": 23400,
+    "daemon_pid": 23423,
+    "port": 62968,
+    "home": "/Users/ctmctm/.loom",
+    "app_path": "/Users/ctmctm/workspace/Loom/desktop/dist/Loom.app",
+    "ui_digest": "db441bfb3eb743125a7d71ca0b9da67b25cb9e7ff08a23d687969a7a35b039a9",
+    "app_tree_sha256": "302e5c5bccd65ffe18db12fae1fe632927eecad4bff9790c5b9d83a61ce2a321",
+    "bundled_loomd_sha256": "38219c57854bdf98eb0599406592c588f176dea5226c91967a0f7a6b4148ef2c",
+    "ui": "7 permanent module tabs plus Integrated; published own daemon serves exact6/6 finalUI files",
+    "native_visible_verified": true,
+    "browser_protocol": "PASS actual final8visibleIntegrated views and hiddenUARTcatchup; evidence ../module-apps/qa/final",
+    "preserve": "Leave new user-requested app and daemon open; QA fixtures stopped",
+    "worker": "module-native-qa foreground Opus5.5 returned PASS, normal exit verified agent_not_found, own w39 closed; scope reviewer w3A likewise closed. MAINw8 protected.",
+    "native_acceptance": "PASS seven service UI Connect/Start+same-daemon CLI co-observation; UART2 save-only/split; selected3paneIntegrated and layout persistence. Not older macro/REC backlog.",
+    "native_evidence": "../module-apps/NATIVE-RETURN.md"
+  },
+  "historical_mac_launches": [
+    {
+      "handoff": "../desktop-cross-platform/MAC-LAUNCH.md",
+      "manifest": "../desktop-cross-platform/mac-current-manifest.json",
+      "app_pid": 52634,
+      "daemon_pid": 52646,
+      "port": 59563,
+      "home": "/Users/ctmctm/.loom",
+      "ui": "Bench Light connected, 0 interfaces, actual native AX+screenshot",
+      "preserve": "User-requested live app/daemon: leave open",
+      "worker": "w20 returned/exited/closed"
+    }
+  ],
+  "module_apps_extension": {
+    "baseline": "a8253c1 shared dirty",
+    "status": "PUBLISHED_BROWSER_PROTOCOL_NATIVE_SERVICE_PASS",
+    "report": "../module-apps/REPORT.html",
+    "gates": "761 UItests/type/lint PASS; unchanged schema valid; strictMacbundle PASS; independentDeltaOpusPASS",
+    "commit_push": "Authorized scoped C1–C6 publication. See Git history and remote main for final SHA.",
+    "browser_result": {
+      "space": 16,
+      "state": "finished/user-owned",
+      "kept": "report Page (former p1) http://127.0.0.1:64785/module-apps/REPORT.html",
+      "closed": "owned QA viewer p2; its fixture daemon already stopped",
+      "server": "root-owned report server64785 kept to serve result"
+    },
+    "native_limits": "Fixture/sim only; native3panes vs browser8views; documented manual MJPEG reconnect; prior macro/REC final2 backlog not promoted."
+  },
+  "legacy_acceptance_backlog": [
+    "Fresh ordinary and e2e Mac builds from post-cross-platform source; record new matching fingerprints before native acceptance",
+    "Native recheck macro literal wait/hidden recipient/split/startup and actual keyboard broadcast",
+    "WK vs Ego final asset digests and canonical/product captures",
+    "HTML report with actual evidence and limitations",
+    "Scoped root commit and own worker/fixture/workspace cleanup"
   ]
 }

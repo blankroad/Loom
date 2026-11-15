@@ -1,0 +1,127 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 24, 26, 34-180
+~					10 link UDS 진단, 열린 1개, Help: UDS 진단 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/uds
+~						23 container UDS 콘솔 · qa-native-ecu
++							200 text 1
+~								27 tab (selectable) CAN 트레이스 · qa-native-can
+~								28 tab (selectable) 이더넷 패킷 · qa-native-eth
++								201 tab (selected) UDS 콘솔 · qa-native-ecu
+~							33 container UDS 콘솔 · qa-native-ecu
++								202 container
++									203 container 진단 대상과 경로
++										204 text ECU
++										205 pop up button (collapsed) 대상, Value: qa-native-ecu, Secondary Actions: Expand
++										206 text QA Native DoIP 경로
++										207 (settable, unknown) 경로
++											208 radio button DoIP, Help: DoIP (ISO 13400) — daemon 지원 (실제 엔티티 또는 내장 SIM bench ECU), Value: 1
++											209 radio button (disabled) CAN-TP 미지원, Help: CAN-TP (ISO 15765-2) — 백엔드 미지원: Loom UDS daemon에 CAN-TP 전송이 없습니다, Value: 0
++											210 radio button (disabled) EthDiag 미지원, Help: 벤더 Ethernet 진단 어댑터 — 백엔드 미지원, Value: 0
++										211 text doip · DoIP 0x1001 프리셋 · QA Native DoIP
++										212 container
++											213 text ●  연결됨
++										214 button (disabled) 연결됨, Help: 연결됨 — daemon에 연결 해제 RPC가 없어 해제할 수 없습니다 (재연결은 daemon auto_reconnect)
++										215 button (collapsed) 연결 설정, Secondary Actions: Expand
++										216 button (collapsed) 주소 상세, Secondary Actions: Expand
++										217 container 활성 연결 개요
++											218 text qa-native-ecu · doip
++										219 container qa-native-ecu ● doip DoIP 0x1001 sess=default? sec=🔒? TP off P2 50/5000 [BENCH] · 제어: 비어 있음
++											220 text 세션 default? 보안 🔒? TP off P2 50/5000ms 제어: 비어 있음
++											221 button T, Help: 제어 가져오기 (uds.lease.takeover)
++										222 tab group (selectable) 도구 서랍
++											223 tab (selectable) 서비스
++											224 tab (selectable) ECU·DID
++											225 tab (selectable) 명령·시퀀스
++											226 tab (selectable) 감시
++											227 tab (selectable) 프로젝트
++									228 container DID 목록
++										229 text DID 목록
++										230 button DID 목록 접기
++										231 search text field (settable) DID 검색, Placeholder: 이름 또는 hex 검색
++											232 text 이름 또는 hex 검색
++										233 list (settable) Read DID 빠른 선택 (선택만으로 전송하지 않음)
++											234 text (selected) 22 F1 90 VIN Vehicle Identification Number
++											235 text 22 F1 8C ECU Serial Number ECUSerialNumberDataIdentifier
++											236 text 22 F1 87 Spare Part Number vehicleManufacturerSparePartNumber
++											237 text 22 F1 91 ECU Hardware Number vehicleManufacturerECUHardwareNumber
++											238 text 22 F1 95 SW Version systemSupplierECUSoftwareVersionNumber
++											239 text 22 F1 86 Active Session ActiveDiagnosticSessionDataIdentifier
++										240 text 선택은 요청 편집기에만 채웁니다. 전송은 읽기로만.
++									241 container UDS 요청 (DID 읽기 / Raw PDU)
++										242 text 요청 대상 qa-native-ecu · DoIP doip DoIP 0x1001 · P2 50/5000 ms · 연결됨
++										243 (settable, unknown) 요청 모드 (←→)
++											244 radio button DID, Help: DID 읽기 — SID 0x22 + DID 자동 구성, Value: 1
++											245 radio button Raw, Help: Raw UDS PDU — 입력한 바이트(SID 포함) 그대로 전송, Value: 0
++										246 text SID 0x22 ReadDataByIdentifier
++										247 container
++											248 text DID
++											249 text field (settable) DID, Value: F190
++										250 menu Secondary Actions: Cancel
++										251 text VIN
++										252 container
++											253 text 요청 PDU 22 F1 90 3 B
++										254 button 읽기, Help: 요청 전송 (DID 입력란에서 Enter · Raw에서 Ctrl/⌘+Enter) — daemon dry-run·정책·ActionGate 경유
++										255 button 취소, Help: 이 대상의 진행 중 요청 취소 (uds.abort — 이미 보낸 요청은 ⌛? 불확정이 될 수 있음)
++										256 text Enter 또는 [읽기]로 전송. 선택만으로는 전송하지 않습니다.
++									257 text 트랜잭션 0 · 진행 0
++									258 (settable, unknown) 기록 범위
++										259 radio button 전체, Value: 1
++										260 radio button 현재 ECU, Value: 0
++									261 button 기록 JSON 내보내기
++									262 button 기록 CSV 내보내기
++									263 button 완료된 기록 지우기 (표시에서만 — daemon 기록·진행 중 요청은 유지)
++									264 row (selectable)
++										265 cell (settable)
++											266 text #
++										267 cell (settable)
++											268 text 시각
++										269 cell (settable)
++											270 text ECU
++										271 cell (settable)
++											272 text 경로
++										273 cell (settable)
++											274 text DID · SID
++										275 cell (settable)
++											276 text 요청
++										277 cell (settable)
++											278 text 최종 응답
++										279 cell (settable)
++											280 text 상태
++										281 cell (settable)
++											282 text 78
++										283 cell (settable)
++											284 text 경과
++									285 table (settable) 트랜잭션 기록 (↑↓ 선택)
++									286 splitter 기록/상세 경계 크기 조절 (↑↓), Help: 기록/상세 경계 크기 조절 (↑↓) — 끌기 또는 화살표, 더블클릭 기본값, Value: 42
++									287 container 응답 순서
++										288 text 응답 순서
++										289 content list (settable) 선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)
++											290 text 트랜잭션을 선택하면 Tx·0x78·최종 응답·타임아웃 순서가 표시됩니다.
++									291 container 해석
++										292 text 해석
++										293 text 선택한 트랜잭션의 요청·응답 해석이 여기에 표시됩니다.
++									294 container UDS PDU 바이트
++										295 text 바이트 · UDS PDU
++										296 button 선택 PDU hex 복사
++										297 text UDS PDU 바이트
++									298 container 확정 값
++										299 text 확정 값 qa-native-ecu
++										300 button 확정 값 접기
++										301 text F190 VIN
++										302 text 확정 값 없음
++										303 text F18C ECU Serial Number
++										304 text 확정 값 없음
++										305 text F187 Spare Part Number
++										306 text 확정 값 없음
++										307 text F191 ECU Hardware Number
++										308 text 확정 값 없음
++										309 text F195 SW Version
++										310 text 확정 값 없음
++										311 text F186 Active Session
++										312 text 확정 값 없음
++										313 text daemon이 해석한 확정 응답(decoded)으로만 갱신. 각 값은 출처 트랜잭션·시각·경로를 유지합니다.
++						314 text UDS 콘솔 closed
+~				182 text UDS · 열린 1
++			315 container
++				316 text 사용자가 uds qa-native-ecu를 열었습니다
++				317 button 패널 열기
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/uds

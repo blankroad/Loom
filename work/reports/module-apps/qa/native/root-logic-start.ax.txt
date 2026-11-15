@@ -1,0 +1,170 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 32, 34, 40-132, 137
+~					12 link 로직 분석기, 열린 1개, Help: 로직 분석기 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/logic
+~							31 container 로직 분석기 · lc-1a1df00f399-1
++								152 text 1
++									153 tab (selected) 로직 분석기 · lc-1a1df00f399-1
+~								39 container 로직 분석기 · lc-1a1df00f399-1
++									154 container
++										155 pop up button (disabled, collapsed) 캡처 선택, Value: lc-1a1df00f399-1 · 캡처 중, Secondary Actions: Expand
++										156 text ● 캡처 중
++										157 text SYNTHETIC 생성 파형
++										158 text 1 MHz · 8ch · 디코더 uart:rx=D0:baudrate=115200:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first · 상한 10 s · 시작 USR
++										159 button ■ 캡처 정지, Help: 캡처 정지 — 안전 방향 (보기 권한도 가능)
++										160 text 샘플 526,183 (526.18 ms)
++										161 text 전이 528
++										162 text 디코드 90
++										163 text 전이 생략 0
++										164 text 디코드 손실 0
++										165 text 잘린 줄 0
++										166 text 해석 못 한 줄 0
++										167 text 형식 오류 0
++										168 text 스트림 손실 0
++										169 text 수신 지연 95 ms
++										170 text SYNTHETIC: 원시 파형은 Loom이 생성한 이상 파형입니다. 디코드는 실제 libsigrok PD 결과입니다.
++										171 summary 새 캡처 설정, Value: off
++											172 text 새 캡처 설정
++										173 button −, Help: 축소 (-)
++										174 button +, Help: 확대 (+)
++										175 button 전체, Help: 전체 보기 (0)
++										176 toggle button ● 라이브 따라가기, Help: 최신 샘플 따라가기 (F / End), Value: on
++										177 text 516.183 ms – 526.183 ms · 7.9 smp/px
++										178 container 표시 레인
++											179 container
++												180 checkbox D0, Value: 1
++												181 text D0
++											182 container
++												183 checkbox D1, Value: 1
++												184 text D1
++											185 container
++												186 checkbox D2, Value: 1
++												187 text D2
++											188 container
++												189 checkbox D3, Value: 1
++												190 text D3
++											191 container
++												192 checkbox D4, Value: 1
++												193 text D4
++											194 container
++												195 checkbox D5, Value: 1
++												196 text D5
++											197 container
++												198 checkbox D6, Value: 1
++												199 text D6
++											200 container
++												201 checkbox D7, Value: 1
++												202 text D7
++										203 image 파형: D0, D1, D2, D3, D4, D5, D6, D7 · 516.183 ms – 526.183 ms · 7.9 smp/px · 디코드 트랙 uart-1
++										204 text 파형 위로 마우스 — sample·시각·레벨 · 휠 확대/축소 · 끌기/Shift+휠 이동 · ←/→ +/- 0 F
++										205 text 원시 파형 (logic.edges, sample 정확)
++										206 text 1px 안에 전이 ≥2 (밀집)
++										207 text 데이터 없음 — 생략/손실 구간
++										208 text 디코드 해석 (libsigrok PD 구간)
++										209 text 디코드 결과
++										210 text 90행 · 디코더 uart-1 · 해석 결과(원시 아님)
++										211 row (selectable)
++											212 cell (settable)
++												213 text sample 시작–끝
++											214 cell (settable)
++												215 text 시각 (sample clock)
++											216 cell (settable)
++												217 text 길이
++											218 cell (settable)
++												219 text 디코더
++											220 cell (settable)
++												221 text class
++											222 cell (settable)
++												223 text 내용
++										224 table (settable) 디코드 결과
++											225 row (selectable)
++												226 cell (selectable, settable) 500,286–500,356
++												227 cell (selectable, settable) 500.286 ms
++												228 cell (selectable, settable) 70 µs
++												229 cell (selectable, settable) uart-1
++												230 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												231 cell (selectable, settable) 4C
++											232 row (selectable)
++												233 cell (selectable, settable) 500,373–500,443
++												234 cell (selectable, settable) 500.373 ms
++												235 cell (selectable, settable) 70 µs
++												236 cell (selectable, settable) uart-1
++												237 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												238 cell (selectable, settable) 4F
++											239 row (selectable)
++												240 cell (selectable, settable) 500,460–500,530
++												241 cell (selectable, settable) 500.46 ms
++												242 cell (selectable, settable) 70 µs
++												243 cell (selectable, settable) uart-1
++												244 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												245 cell (selectable, settable) 47
++											246 row (selectable)
++												247 cell (selectable, settable) 500,546–500,616
++												248 cell (selectable, settable) 500.546 ms
++												249 cell (selectable, settable) 70 µs
++												250 cell (selectable, settable) uart-1
++												251 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												252 cell (selectable, settable) 2D
++											253 row (selectable)
++												254 cell (selectable, settable) 500,633–500,703
++												255 cell (selectable, settable) 500.633 ms
++												256 cell (selectable, settable) 70 µs
++												257 cell (selectable, settable) uart-1
++												258 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												259 cell (selectable, settable) 32
++											260 row (selectable)
++												261 cell (selectable, settable) 500,720–500,790
++												262 cell (selectable, settable) 500.72 ms
++												263 cell (selectable, settable) 70 µs
++												264 cell (selectable, settable) uart-1
++												265 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												266 cell (selectable, settable) 30
++											267 row (selectable)
++												268 cell (selectable, settable) 500,807–500,877
++												269 cell (selectable, settable) 500.807 ms
++												270 cell (selectable, settable) 70 µs
++												271 cell (selectable, settable) uart-1
++												272 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												273 cell (selectable, settable) 32
++											274 row (selectable)
++												275 cell (selectable, settable) 500,894–500,964
++												276 cell (selectable, settable) 500.894 ms
++												277 cell (selectable, settable) 70 µs
++												278 cell (selectable, settable) uart-1
++												279 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												280 cell (selectable, settable) 32
++											281 row (selectable)
++												282 cell (selectable, settable) 500,980–501,050
++												283 cell (selectable, settable) 500.98 ms
++												284 cell (selectable, settable) 70 µs
++												285 cell (selectable, settable) uart-1
++												286 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												287 cell (selectable, settable) 30
++											288 row (selectable)
++												289 cell (selectable, settable) 501,067–501,137
++												290 cell (selectable, settable) 501.067 ms
++												291 cell (selectable, settable) 70 µs
++												292 cell (selectable, settable) uart-1
++												293 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												294 cell (selectable, settable) 38
++											295 row (selectable)
++												296 cell (selectable, settable) 501,154–501,224
++												297 cell (selectable, settable) 501.154 ms
++												298 cell (selectable, settable) 70 µs
++												299 cell (selectable, settable) uart-1
++												300 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												301 cell (selectable, settable) 0D
++											302 row (selectable)
++												303 cell (selectable, settable) 501,241–501,311
++												304 cell (selectable, settable) 501.241 ms
++												305 cell (selectable, settable) 70 µs
++												306 cell (selectable, settable) uart-1
++												307 cell (selectable, settable) Description: sigrok-cli가 class를 제공하지 않음 (임의 생성하지 않음), Value: —
++												308 cell (selectable, settable) 0A
++							309 text 로직 분석기 closed
+~				134 text 로직 분석기 · 열린 1
++					310 container 20시 39분 4초.045 AGT qa-native-logic-observer#63333 core core.events.query 5 call(s) in the last second
++			311 container
++				312 text 장치가 logic lc-1a1df00f399-1를 열었습니다
++				313 button 패널 열기
++			314 text 캡처 시작 요청
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/logic

@@ -1,0 +1,101 @@
+   Compiling loom-desktop v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/src-tauri)
+   Compiling loom-desktop-host v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/host)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.81s
+     Running unittests src/main.rs (/tmp/loom-tauri-build/debug/deps/loom_desktop-1bde2520a03660ae)
+
+running 15 tests
+test config::tests::loom_home_and_explicit_binary_win ... ok
+test config::tests::empty_values_are_ignored ... ok
+test config::tests::defaults_use_home_dot_loom_and_bundled_daemon ... ok
+test config::tests::timeout_is_clamped_and_validated ... ok
+test config::tests::missing_home_and_exe_are_errors ... ok
+test config::tests::relative_paths_are_rejected ... ok
+test nav::tests::app_assets_allowed_before_and_after_connect ... ok
+test nav::tests::new_windows_open_child_external_or_deny ... ok
+test nav::tests::daemon_origin_only_exact_port_after_connect ... ok
+test nav::tests::external_links_and_blocked_schemes ... ok
+test nav::tests::downloads_only_from_daemon_page ... ok
+test nav::tests::top_level_navigation_never_opens_the_browser ... ok
+test ui_identity::tests::message_is_actionable_and_never_auto_stops ... ok
+test ui_identity::tests::verdicts ... ok
+test ui_identity::tests::stop_command_quotes_home_for_the_shell ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/tmp/loom-tauri-build/debug/deps/loom_desktop_host-176052c817ab01d5)
+
+running 3 tests
+test http::tests::parses_content_length_and_chunked ... ok
+test ui_index_tests::non_200_is_an_error ... ok
+test ui_index_tests::fetches_index_without_credentials ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lifecycle.rs (/tmp/loom-tauri-build/debug/deps/lifecycle-5d95357a3d4a5306)
+
+running 21 tests
+test fake_client_entry ... ok
+test fake_loomd_entry ... ok
+test chunked_bootstrap_answer_is_accepted ... ok
+test invalid_options_fail_fast_without_spawning ... ok
+test daemon_exiting_during_startup_is_reported_with_log ... ok
+test live_daemon_with_unsupported_proto_is_mismatch ... ok
+test missing_or_non_executable_binary_is_explicit ... ok
+test errors_display_is_actionable_and_redacted ... ok
+test reuses_existing_daemon_without_spawning ... ok
+test passes_ui_dir_only_when_starting ... ok
+test stale_discovery_pointing_at_foreign_daemon_is_replaced ... ok
+test stale_discovery_with_dead_port_is_replaced ... ok
+test bootstrap_url_off_canonical_origin_is_protocol_error ... ok
+test daemon_outlives_app_process_exit ... ok
+test stale_discovery_with_unsupported_proto_is_replaced_when_unowned ... ok
+test live_daemon_rejecting_token_is_auth_error ... ok
+test daemon_outlives_app_process_group_kill ... ok
+test concurrent_connects_start_exactly_one_daemon ... ok
+test slow_daemon_within_timeout_succeeds ... ok
+test starts_absent_daemon_detached_with_logged_stdio_and_survives_drop ... ok
+test hanging_daemon_times_out_bounded_and_is_left_running ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+     Running tests/real_loomd.rs (/tmp/loom-tauri-build/debug/deps/real_loomd-fae7f95167204b4b)
+
+running 1 test
+test real_loomd_lifecycle ... FAILED
+
+failures:
+
+---- real_loomd_lifecycle stdout ----
+
+thread 'real_loomd_lifecycle' (12918217) panicked at host/tests/real_loomd.rs:95:25:
+connect starts loomd: DaemonBinaryMissing { path: "/Users/ctmctm/workspace/Loom/desktop/binaries/loomd-aarch64-apple-darwin" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    real_loomd_lifecycle
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p loom-desktop-host --test real_loomd`
+
+ROOT correction: staged binary is desktop/src-tauri/binaries, not desktop/binaries. Rerun only failed real_loomd test.
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling memchr v2.8.3
+   Compiling syn v3.0.10
+   Compiling serde_derive v1.0.229
+   Compiling loom-desktop-host v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/host)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.27s
+     Running tests/real_loomd.rs (/tmp/loom-tauri-build/debug/deps/real_loomd-edf504a6e9922a35)
+
+running 1 test
+started=true pid=3904 port=53295 version=0.1.0 in 144.167292ms
+cli daemon status: ok, same pid
+test real_loomd_lifecycle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+

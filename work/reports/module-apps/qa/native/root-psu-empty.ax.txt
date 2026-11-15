@@ -1,0 +1,84 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 16-37, 39-42, 44-49, 51, 54-73, 75-82, 84, 86-87, 89-250, 268-269, 289-314
+~		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/psu
++			289 container
++				290 container 작업 공간 패널
++					291 toggle button 인터페이스, Help: 인터페이스 목록 — 다시 누르면 접기, Value: off
++				292 toolbar 작업 공간
++					293 toggle button 목록 펼치기, Help: 인터페이스 목록 접기/펼치기, Value: off
++					294 summary 패널 동작, Value: off
++						295 text 패널 동작
++					296 button 단축키, Help: 키보드 단축키 (Ctrl-] ?)
++				297 container 작업 공간
++					298 menu Secondary Actions: Cancel
++					299 menu Secondary Actions: Cancel
++					300 menu Secondary Actions: Cancel
++					301 menu Secondary Actions: Cancel
++					302 container
++						303 container
++							304 container 벤치 전원 (PSU)
++								305 text 1
++								306 tab group (selectable)
++									307 tab (selected) 벤치 전원 (PSU)
++								308 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++								309 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++								310 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++								311 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++								312 container 벤치 전원 (PSU)
++									313 container
++										314 container PSU 연결
++											315 text PSU 연결
++											316 text 별칭 미선택 — 아무 전원 장치에도 연결·명령하지 않았습니다. 연결해도 출력은 바뀌지 않습니다.
++											317 container
++												318 text 별칭
++												319 text field (settable) 별칭, Placeholder: 예: bench-a
++											320 container
++												321 text 백엔드
++												322 pop up button (collapsed) 백엔드, Value: sim · SimPsu (가상 전원), Secondary Actions: Expand
++											323 container
++												324 text 전압 한도 V (낮추기만)
++												325 text field (settable) 전압 한도 V (낮추기만), Placeholder: 프로필 기본
++											326 container
++												327 text 전류 한도 A (낮추기만)
++												328 text field (settable) 전류 한도 A (낮추기만), Placeholder: 프로필 기본
++											329 button (disabled) 연결, Help: 별칭과 백엔드 설정을 확인하세요
++											330 text loom psu connect <별칭>
++											331 text 지원: sim, scpi-tcp(루프백 소프트웨어 엔드포인트, VOLT/CURR/OUTP/MEAS만). VISA·USB·GPIB·LAN 계측기는 미구현. 데몬의 PSU 작업자는 한 번에 전원 1대만 구동합니다.
++											332 container
++												333 text 열린 전원 보기
++												334 text field (settable) 열린 전원 보기, Placeholder: 이미 연결된 별칭
++											335 button (disabled) 보기, Help: 이미 연결된 별칭의 게이지를 엽니다 (관측만 — 연결/출력 명령 없음)
++										336 text PSU
++										337 text 별칭 미선택
++										338 text 환경 BENCH
++										339 text backend 미보고 · IDN 미보고
++										340 text 출력 ?
++										341 text 보호 ?
++										342 button (disabled) ! 비상 OFF, Help: 별칭 미선택 — 끌 대상이 없습니다 (연결된 별칭의 게이지에서 항상 사용 가능)
++										343 toggle button (disabled) 출력 ON, Help: 출력 상태 미확인 — 토글 불가, Value: on
++										344 text R3
++										345 container 실측값
++											346 text 실측
++											347 text — V — A — W
++											348 text 측정 없음
++										349 container 설정값 (목표)
++											350 text 설정 (목표값)
++											351 text 전압 설정 — V 전류 제한 — A
++										352 text 전압 설정
++										353 text field (disabled, settable) 설정 전압, Placeholder: V
++										354 text V
++										355 text 전류 제한
++										356 text field (disabled, settable) 설정 전류, Placeholder: A
++										357 text A
++										358 button (disabled) 적용, Help: 별칭 미선택 — 연결 후 설정
++										359 text R2
++										360 text 60초 관측
++										361 text 실측 추세 · 메모리 창 (저장 기록 아님)
++										362 toggle button V, Help: 전압 레인 표시/숨김 (수집은 계속), Value: on
++										363 toggle button A, Help: 전류 레인 표시/숨김 (수집은 계속), Value: on
++										364 toggle button W, Help: 전력 레인 표시/숨김 (수집은 계속), Value: off
++										365 text V
++										366 text A
++										367 text 60 s 창 · 0점
+~				271 text PSU · 열린 0
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/psu

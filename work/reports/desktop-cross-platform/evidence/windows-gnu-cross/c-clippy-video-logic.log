@@ -1,0 +1,49 @@
+    Checking loom-proto v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-proto)
+    Checking loom-can-frame v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-can-frame)
+    Checking loom-uds-codec v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-codec)
+    Checking tungstenite v0.29.0
+    Checking loom-eth-decode v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-eth-decode)
+    Checking loom-uds-doip v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-doip)
+    Checking loom-eth-pcapng v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-eth-pcapng)
+    Checking loom-test-format v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-test-format)
+    Checking loom-can-isotp v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-can-isotp)
+    Checking loom-eth-capture v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-eth-capture)
+    Checking tokio-tungstenite v0.29.0
+    Checking loom-can-dbc v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-can-dbc)
+    Checking loom-uds-sim v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-sim)
+    Checking axum v0.8.9
+    Checking loom-eth-filter v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-eth-filter)
+    Checking loom-can-periodic v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-can-periodic)
+    Checking loom-can-sim v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-can-sim)
+   Compiling getrandom v0.4.3
+    Checking tempfile v3.27.0
+    Checking loom-ui-assets v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-ui-assets)
+    Checking loom-domain-api v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-domain-api)
+    Checking loom-journal v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-journal)
+    Checking loom-cli-kit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-cli-kit)
+    Checking loom-console v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-console)
+    Checking loom-worker-sdk v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-worker-sdk)
+error: large size difference between variants
+   --> crates/loom-console/src/matcher.rs:194:1
+    |
+194 | / enum Compiled {
+195 | |     Literal(Finder<'static>),
+    | |     ------------------------ the largest variant contains at least 288 bytes
+196 | |     Regex(Regex),
+    | |     ------------ the second-largest variant contains at least 32 bytes
+197 | | }
+    | |_^ the entire enum is at least 288 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.93.0/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+195 -     Literal(Finder<'static>),
+195 +     Literal(Box<Finder<'static>>),
+    |
+
+    Checking loom-test-predicate v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-test-predicate)
+    Checking loom-uds-runner v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uds-runner)
+error: could not compile `loom-console` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

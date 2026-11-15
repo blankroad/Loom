@@ -1,0 +1,233 @@
+    Checking loom-ui-assets v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-ui-assets)
+    Checking loom-uart v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-uart)
+    Checking loom-video v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-video)
+    Checking loom-echo v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-echo)
+error[E0433]: failed to resolve: could not find `unix` in `os`
+ --> crates/loom-video/src/worker.rs:9:14
+  |
+9 | use std::os::unix::net::{UnixListener, UnixStream};
+  |              ^^^^ could not find `unix` in `os`
+  |
+note: found an item that was configured out
+ --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+  |
+  = note: the item is gated here
+note: found an item that was configured out
+ --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+  |
+  = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:145:22
+    |
+145 |         use std::os::unix::process::CommandExt as _;
+    |                      ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:469:18
+    |
+469 |     use std::os::unix::fs::PermissionsExt as _;
+    |                  ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:724:26
+    |
+724 |             use std::os::unix::fs::OpenOptionsExt as _;
+    |                          ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:769:26
+    |
+769 |             use std::os::unix::fs::OpenOptionsExt as _;
+    |                          ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:897:18
+    |
+897 |     use std::os::unix::fs::FileTypeExt as _;
+    |                  ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `unix` in `os`
+   --> crates/loom-video/src/worker.rs:912:22
+    |
+912 |         use std::os::unix::fs::PermissionsExt as _;
+    |                      ^^^^ could not find `unix` in `os`
+    |
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:29:5
+    |
+    = note: the item is gated here
+note: found an item that was configured out
+   --> /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\std\src\os\mod.rs:84:41
+    |
+    = note: the item is gated here
+
+error[E0433]: failed to resolve: could not find `UnixStream` in `net`
+  --> crates/loom-video/src/media.rs:74:35
+   |
+74 |     let mut s = match tokio::net::UnixStream::connect(sock).await {
+   |                                   ^^^^^^^^^^ could not find `UnixStream` in `net`
+   |
+note: found an item that was configured out
+  --> /Users/ctmctm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/net/mod.rs:58:27
+   |
+54 | / cfg_net_unix! {
+55 | |     pub mod unix;
+56 | |     pub use unix::datagram::socket::UnixDatagram;
+57 | |     pub use unix::listener::UnixListener;
+58 | |     pub use unix::stream::UnixStream;
+   | |                           ^^^^^^^^^^
+59 | |     pub use unix::socket::UnixSocket;
+60 | | }
+   | |_- the item is gated here
+
+error[E0282]: type annotations needed
+  --> crates/loom-video/src/media.rs:76:19
+   |
+76 |         Err(e) if e.kind() == std::io::ErrorKind::NotFound || e.kind() == std::io::ErrorKind::ConnectionRefused => {
+   |                   ^ cannot infer type
+
+error[E0282]: type annotations needed
+  --> crates/loom-video/src/media.rs:74:9
+   |
+74 |     let mut s = match tokio::net::UnixStream::connect(sock).await {
+   |         ^^^^^
+...
+81 |     s.write_all(format!("{req}\n").as_bytes())
+   |     - type must be known at this point
+   |
+help: consider giving `s` an explicit type
+   |
+74 |     let mut s: /* Type */ = match tokio::net::UnixStream::connect(sock).await {
+   |              ++++++++++++
+
+error[E0282]: type annotations needed
+  --> crates/loom-video/src/media.rs:81:5
+   |
+81 | /     s.write_all(format!("{req}\n").as_bytes())
+82 | |         .await
+   | |______________^ cannot infer type
+
+error[E0282]: type annotations needed
+  --> crates/loom-video/src/media.rs:86:5
+   |
+86 | /     (&mut r)
+87 | |         .take(MAX_HEADER)
+88 | |         .read_until(b'\n', &mut line)
+89 | |         .await
+   | |______________^ cannot infer type
+
+error[E0282]: type annotations needed
+  --> crates/loom-video/src/media.rs:97:5
+   |
+97 | /     r.read_exact(&mut body)
+98 | |         .await
+   | |______________^ cannot infer type
+
+error[E0599]: no method named `process_group` found for struct `std::process::Command` in the current scope
+   --> crates/loom-video/src/worker.rs:146:11
+    |
+146 |         c.process_group(0);
+    |           ^^^^^^^^^^^^^ method not found in `std::process::Command`
+
+error[E0599]: no function or associated item named `from_mode` found for struct `Permissions` in the current scope
+   --> crates/loom-video/src/worker.rs:470:55
+    |
+470 |     std::fs::set_permissions(d, std::fs::Permissions::from_mode(0o700))
+    |                                                       ^^^^^^^^^ function or associated item not found in `Permissions`
+
+error[E0599]: no method named `mode` found for mutable reference `&mut std::fs::OpenOptions` in the current scope
+   --> crates/loom-video/src/worker.rs:728:18
+    |
+725 |               let mut file = std::fs::OpenOptions::new()
+    |  ____________________________-
+726 | |                 .write(true)
+727 | |                 .create_new(true)
+728 | |                 .mode(0o600)
+    | |                 -^^^^ method not found in `&mut std::fs::OpenOptions`
+    | |_________________|
+    |
+
+error[E0599]: no method named `mode` found for mutable reference `&mut std::fs::OpenOptions` in the current scope
+   --> crates/loom-video/src/worker.rs:773:18
+    |
+770 | /             std::fs::OpenOptions::new()
+771 | |                 .write(true)
+772 | |                 .create_new(true)
+773 | |                 .mode(0o600)
+    | |                 -^^^^ method not found in `&mut std::fs::OpenOptions`
+    | |_________________|
+    |
+
+error[E0599]: no method named `is_socket` found for struct `FileType` in the current scope
+   --> crates/loom-video/src/worker.rs:899:32
+    |
+899 |         Ok(m) if m.file_type().is_socket() => std::fs::remove_file(p),
+    |                                ^^^^^^^^^ method not found in `FileType`
+
+error[E0599]: no function or associated item named `from_mode` found for struct `Permissions` in the current scope
+   --> crates/loom-video/src/worker.rs:913:71
+    |
+913 |         let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+    |                                                                       ^^^^^^^^^ function or associated item not found in `Permissions`
+
+error[E0282]: type annotations needed
+   --> crates/loom-video/src/worker.rs:925:33
+    |
+925 |                         let _ = s.set_nonblocking(false);
+    |                                 ^ cannot infer type
+
+error[E0282]: type annotations needed
+   --> crates/loom-video/src/worker.rs:942:27
+    |
+942 |                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+    |                           ^ cannot infer type
+
+Some errors have detailed explanations: E0282, E0433, E0599.
+For more information about an error, try `rustc --explain E0282`.
+error: could not compile `loom-video` (lib) due to 21 previous errors

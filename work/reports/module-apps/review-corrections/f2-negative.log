@@ -1,0 +1,41 @@
+
+ RUN  v5.1.0 /Users/ctmctm/workspace/Loom/ui
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the @napi-rs/canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the @napi-rs/canvas npm package
+ ❯ src/panels/can/canTrace.test.ts (21 tests | 1 failed) 192ms
+   ❯ can.trace panel (15)
+     × F2: a read made before the panel mounted (bind / reload) is marked from the shell Activity ring — no extra subscription, no replay 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/panels/can/canTrace.test.ts > can.trace panel > F2: a read made before the panel mounted (bind / reload) is marked from the shell Activity ring — no extra subscription, no replay
+AssertionError: expected [ false, false, false ] to deeply equal [ true, true, false ]
+
+- Expected
++ Received
+
+  [
+-   true,
+-   true,
++   false,
++   false,
+    false,
+  ]
+
+ ❯ src/panels/can/canTrace.test.ts:174:66
+    172|     h.net.subs[CAN]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, ev…
+    173|     h.snapshotEnd(fs[2]!.seq, CAN);
+    174|     expect(rows(h.host).map((e) => e.dataset.agentRead === '1')).toEqu…
+       |                                                                  ^
+    175|     expect(h.host.querySelector('[data-testid="can-agent-read"]')!.tex…
+    176|     const ranges = () => (globalThis as unknown as { __loomCan: Record…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 passed (21)
+   Start at  17:31:45
+   Duration  750ms (environment 46%, tests 31%, transform 12%, import 10%, setup 1%)
+

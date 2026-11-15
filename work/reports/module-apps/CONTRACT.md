@@ -1,0 +1,9 @@
+# Always-available service applications
+
+WORKING. User explicitly replaces prior active-channel-only navigation: seven permanent module tabs plus Integrated. Module navigation is observation/UI only; connect is explicit. Integrated continues selecting actual connected interfaces and meaningful panels, no standalone module app auto-seeded there.
+
+Shared interface (ROOT decision): shell owner seeds unbound existing module panels on service routes when needed: eth.packets {}, uds.console {}, can.trace {}, psu.gauge {}, logic.analyzer {}, video.workbench {}. UART uses its existing React workbench chrome. Absent channel/targets means UNBOUND MODULE APPLICATION, never implicit lan1/bench/default ECU connection. Panel owners must render full actual tools with configuration/Connect access and empty data, disable alias-dependent operations until selected/connected. Shell owner owns routes/servicePreset/availableSlot integration, no panel ownership conflicts. Existing real channel-bound panels still work. Prefer no new SDK API; module owners reuse native module dialogs/actions. If a cross-file API is necessary, write REQUEST for ROOT/shell owner before changing SDK/shared files.
+
+UDS continues DoIP/sim connect with editable presets, raw UDS, DID/history; CAN/ETH observations do not imply binding. CAN-TP/EthDiag remain disabled until engine support. No protocol invention. Persist local configuration/navigation layout reasonably without regressing split/deep-link preservation. Treat tab-vs-channel distinction explicitly in tests: seven service tabs may be present with zero channel panes.
+
+Owners: A shell + UART; B Ethernet + UDS; C CAN + PSU + logic + video. Each edits only own RETURN/notes. ROOT owns STATUS and this contract. Shared integration/API questions are requests in separate files. No production edits by ROOT.

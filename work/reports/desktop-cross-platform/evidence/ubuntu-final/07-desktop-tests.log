@@ -1,0 +1,86 @@
+   Compiling loom-desktop v0.1.0 (/cache/src-snapshot/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.33s
+     Running unittests src/main.rs (/cache/desktop-target/debug/deps/loom_desktop-7c6ad1dcbb0a564d)
+
+running 26 tests
+test appimage::tests::appdir_requires_appimage_and_absolute_appdir ... ok
+test appimage::tests::fixups_strip_only_appdir_entries ... ok
+test config::tests::defaults_use_home_dot_loom_and_bundled_daemon ... ok
+test config::tests::empty_values_are_ignored ... ok
+test config::tests::bundled_daemon_name_has_the_platform_suffix ... ok
+test config::tests::loom_home_and_explicit_binary_win ... ok
+test appimage::tests::outside_appdir_is_used_as_is_without_copy ... ok
+test config::tests::missing_home_and_exe_are_errors ... ok
+test appimage::tests::loose_cache_directory_is_refused ... ok
+test config::tests::relative_paths_are_rejected ... ok
+test config::tests::timeout_is_clamped_and_validated ... ok
+test config::tests::userprofile_is_the_fallback_after_home ... ok
+test nav::tests::app_assets_allowed_before_and_after_connect ... ok
+test nav::tests::daemon_origin_only_exact_port_after_connect ... ok
+test nav::tests::downloads_only_from_daemon_page ... ok
+test nav::tests::external_links_and_blocked_schemes ... ok
+test nav::tests::external_url_serialization_has_no_whitespace_or_quotes ... ok
+test nav::tests::new_windows_open_child_external_or_deny ... ok
+test nav::tests::only_plain_http_links_reach_the_os ... ok
+test nav::tests::top_level_navigation_never_opens_the_browser ... ok
+test ui_identity::tests::message_is_actionable_and_never_auto_stops ... ok
+test ui_identity::tests::stop_commands_quote_home_per_shell ... ok
+test ui_identity::tests::unreadable_is_not_called_an_old_build ... ok
+test ui_identity::tests::verdicts ... ok
+test ui_identity::tests::stop_command_quotes_home_for_the_shell ... ok
+test appimage::tests::copies_once_then_reuses_only_a_verified_copy ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/cache/desktop-target/debug/deps/loom_desktop_host-44eeb9352da3eafe)
+
+running 4 tests
+test http::tests::parses_content_length_and_chunked ... ok
+test ui_index_tests::fetches_index_without_credentials ... ok
+test ui_index_tests::non_200_is_an_error ... ok
+test ui_index_tests::uses_canonical_localhost_host ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lifecycle.rs (/cache/desktop-target/debug/deps/lifecycle-e397df3483552856)
+
+running 23 tests
+test chunked_bootstrap_answer_is_accepted ... ok
+test fake_client_entry ... ok
+test fake_loomd_entry ... ok
+test daemon_exiting_during_startup_is_reported_with_log ... ok
+test invalid_options_fail_fast_without_spawning ... ok
+test daemon_env_overrides_apply_but_never_replace_loom_home ... ok
+test live_daemon_with_unsupported_proto_is_mismatch ... ok
+test missing_or_non_executable_binary_is_explicit ... ok
+test passes_ui_dir_only_when_starting ... ok
+test prepare_hook_runs_only_when_starting_and_its_binary_is_spawned ... ok
+test reuses_existing_daemon_without_spawning ... ok
+test errors_display_is_actionable_and_redacted ... ok
+test stale_discovery_pointing_at_foreign_daemon_is_replaced ... ok
+test daemon_outlives_app_process_exit ... ok
+test stale_discovery_with_dead_port_is_replaced ... ok
+test stale_discovery_with_unsupported_proto_is_replaced_when_unowned ... ok
+test daemon_outlives_app_process_group_kill ... ok
+test concurrent_connects_start_exactly_one_daemon ... ok
+test bootstrap_url_off_canonical_origin_is_protocol_error ... ok
+test slow_daemon_within_timeout_succeeds ... ok
+test starts_absent_daemon_detached_with_logged_stdio_and_survives_drop ... ok
+test live_daemon_rejecting_token_is_auth_error ... ok
+test hanging_daemon_times_out_bounded_and_is_left_running ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+     Running tests/real_loomd.rs (/cache/desktop-target/debug/deps/real_loomd-42231a7fdc961d49)
+
+running 1 test
+test real_loomd_lifecycle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_desktop_host
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

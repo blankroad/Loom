@@ -1,0 +1,18 @@
+{
+ "flow": "UART2 save-only no-autoconnect",
+ "verdict": "PASS",
+ "evidence": [
+  "root-uart2-saved.png",
+  "root-uart2-saved.ax.txt",
+  "raw-uart2-absent-t0.txt",
+  "raw-uart2-absent-t5.txt"
+ ],
+ "checks": {
+  "t0": "11:29:22Z uart2 events 0 hw 338, status E_NOT_OPEN",
+  "t5": "11:29:28Z uart2 events 0 hw 344, status E_NOT_OPEN",
+  "tty_holders": [
+   "fixture 53844 only"
+  ],
+  "ax": "saved sessions 2, uart2 listed with open buttons, no uart2 pane"
+ }
+}

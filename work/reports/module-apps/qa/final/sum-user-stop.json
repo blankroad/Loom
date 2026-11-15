@@ -1,0 +1,7 @@
+{
+  "app_pid": 52634,
+  "daemon_pid": 52646,
+  "app_stopped": "SIGTERM (normal, no force)",
+  "daemon_stopped": "old owned daemon normal stop",
+  "precondition": "same root-launched app; writes0/latchfalse; new seq14-18 only ROOT read-only meta/status, no device channels"
+}

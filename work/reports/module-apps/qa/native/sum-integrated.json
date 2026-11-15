@@ -1,0 +1,28 @@
+{
+ "flow": "Integrated 3 visible panes (UART1 + CAN trace + UDS) simultaneous markers",
+ "verdict": "PASS (native 3 visible panes)",
+ "markers": {
+  "uart": {
+   "text": "QANINT2-B3FF78",
+   "request_id": "w16",
+   "tx_seq": 10830,
+   "rx_seq": 10837,
+   "rx": "ack:QANINT2-B3FF78"
+  },
+  "can": {
+   "frame": "300#2EA4C7808A65A41B",
+   "request_id": "w17",
+   "tx_seq": 10841,
+   "rx_0x301_seq": 10842,
+   "write_state": "effective_verified"
+  },
+  "observer": "qa-native-int-observer, both channels, armed cursor e1794732461:seq:10814 before send"
+ },
+ "pre_pause_extra": {
+  "note": "sent at 11:42:09Z after earlier 'UI ready' and before ROOT's pause message arrived; not counted as visible-integrated proof",
+  "uart": "QANINT1-9D7D9F w14 rx seq 9429",
+  "can": "1E1F4C4D132F0AF4 w15 0x301 seq 9434"
+ },
+ "scope": "native 3 visible selected-combination; 8-group visible is browser-only evidence, not claimed native",
+ "visible": "root-integrated-markers.*: UART ack:QANINT2-B3FF78 search 1/1; CAN 0x301 2E A4 C7 80 8A 65 A4 1B; UDS VIN retained"
+}

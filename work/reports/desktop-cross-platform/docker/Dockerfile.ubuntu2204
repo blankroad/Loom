@@ -1,0 +1,31 @@
+# Toolchain-only image for the Loom desktop Ubuntu 22.04 build (CI worker evidence harness).
+# Built from an EMPTY context: no repository files are copied in. The repo is bind-mounted
+# read-only at run time and a filtered snapshot is made inside a named volume (see run.sh).
+# Packages = Tauri 2 Linux prerequisites (https://v2.tauri.app/start/prerequisites/) + harness tools.
+FROM ubuntu:22.04
+
+ARG RUST_VERSION=1.93.1
+ARG NODE_VERSION=24.22.2
+ARG PNPM_VERSION=11.11.0
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev \
+      libayatana-appindicator3-dev librsvg2-dev pkg-config \
+      ca-certificates xz-utils rsync python3 procps xvfb xauth dbus-x11 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Node (official tarball, checksum-verified against SHASUMS256.txt)
+RUN set -eux; arch="$(dpkg --print-architecture)"; case "$arch" in amd64) n=x64;; arm64) n=arm64;; esac; \
+    f="node-v${NODE_VERSION}-linux-${n}.tar.xz"; cd /tmp; \
+    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/${f}"; \
+    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt"; \
+    grep " ${f}\$" SHASUMS256.txt | sha256sum -c -; \
+    tar -xJf "$f" -C /usr/local --strip-components=1; rm -f "$f" SHASUMS256.txt; \
+    npm install -g "pnpm@${PNPM_VERSION}"; node --version; pnpm --version
+
+# Rust (rustup, pinned toolchain, minimal profile)
+ENV RUSTUP_HOME=/opt/rustup PATH=/opt/cargo/bin:$PATH
+RUN set -eux; curl -fsSL https://sh.rustup.rs -o /tmp/rustup.sh; \
+    CARGO_HOME=/opt/cargo sh /tmp/rustup.sh -y --no-modify-path --profile minimal --default-toolchain "${RUST_VERSION}"; \
+    rm /tmp/rustup.sh; rustc --version

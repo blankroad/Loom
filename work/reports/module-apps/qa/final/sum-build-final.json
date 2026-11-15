@@ -1,0 +1,73 @@
+{
+  "result": "FINAL_BUILD_READY",
+  "cmd": "npm --prefix desktop run dist -- --out-dir /tmp/loom-module-final --strict",
+  "rc": 0,
+  "started_utc": "2026-11-15T08:33:05Z",
+  "log": "work/reports/module-apps/qa/final/raw-dist.log",
+  "artifacts_json": {
+    "generated_at": "2026-11-15T08:34:32+00:00",
+    "baseline": "a8253c1",
+    "profile": "release",
+    "verified": true,
+    "strict": true,
+    "loomd_sha256": "fc32d4e26ee1ef56615c389e5d8f4964ad2abc101578669e579467d912110b06",
+    "ui_dist_digest": "db441bfb3eb743125a7d71ca0b9da67b25cb9e7ff08a23d687969a7a35b039a9"
+  },
+  "checks": [
+    {
+      "check": "cargo-lock",
+      "result": "PASS",
+      "detail": "desktop/Cargo.lock unchanged (--locked)"
+    },
+    {
+      "check": "target:sidecar",
+      "result": "PASS",
+      "detail": "sha256 == staged"
+    },
+    {
+      "check": "app:artifact",
+      "result": "INFO",
+      "detail": "/tmp/loom-tauri-build/release/bundle/macos/Loom.app"
+    },
+    {
+      "check": "app:verify-bundle",
+      "result": "PASS",
+      "detail": "verify-bundle.sh (identity across ad-hoc re-sign, embedded UI) exit 0"
+    },
+    {
+      "check": "app:copy-codesign",
+      "result": "PASS",
+      "detail": "/tmp/loom-module-final/Loom.app signature valid after copy"
+    }
+  ],
+  "strict_checks": "verify PASS (embedded /ui 6 files 0 mismatched, csp); loomd-identity PASS (bundled 38219c57 == ad-hoc re-sign of staged fc32d4e2); loomd-embedded-ui PASS; codesign adhoc valid; copy-codesign PASS; all bundle checks PASS",
+  "fingerprints": {
+    "final": {
+      "app_tree": "302e5c5bccd65ffe18db12fae1fe632927eecad4bff9790c5b9d83a61ce2a321",
+      "app_bytes": 30640883,
+      "staged_loomd": "fc32d4e26ee1ef56615c389e5d8f4964ad2abc101578669e579467d912110b06",
+      "bundled_loomd": "38219c57854bdf98eb0599406592c588f176dea5226c91967a0f7a6b4148ef2c",
+      "loom_desktop": "31cf2b41f7659bb6db55af87ea6c198787ea27133fb8aa82b8e40b0dfc48cdcc",
+      "ui_dist_digest": "db441bfb3eb743125a7d71ca0b9da67b25cb9e7ff08a23d687969a7a35b039a9",
+      "ui_src_tree": "1303905e31b154a2b30ccbe2781039f83325ff4a7d20b65a50bdfa0635d6bf55",
+      "cli": "d55b25f54ef14eb1d1bbc16ed7a02b75ca8efd02e220b8f252ee1e6f678d8270"
+    },
+    "a52": {
+      "app_tree": "53012ccf\u2026",
+      "staged_loomd": "51c01f25\u2026",
+      "bundled_loomd": "e23a1c61\u2026",
+      "loom_desktop": "636e4e27\u2026",
+      "ui_dist_digest": "a52f57b6\u2026"
+    },
+    "8f57": {
+      "app_tree": "e7f764cd\u2026",
+      "staged_loomd": "b1957cdd\u2026",
+      "bundled_loomd": "0d1dd4bb\u2026",
+      "loom_desktop": "f359cb50\u2026",
+      "ui_dist_digest": "8f57d3cd\u2026"
+    }
+  },
+  "untouched": "desktop/dist (52634/52646 alive since 15:49:07), /tmp/loom-module-fixed (a52, lqa2 daemon 3497 still running from it), /tmp/loom-module-current (8f57) - binaries unchanged",
+  "note": "target/release/loomd now = final staged fc32d4e2",
+  "recorded_utc": "2026-11-15T08:34:59Z"
+}

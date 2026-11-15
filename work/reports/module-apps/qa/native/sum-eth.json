@@ -1,0 +1,36 @@
+{
+ "flow": "Ethernet sim native capture + loopback UDP marker",
+ "verdict": "PASS (own-TX on sim tap + loopback sink receipt; not NIC RX)",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "eth.capture.start",
+  "request_id": "w7",
+  "seqs": {
+   "requested": 1184,
+   "accepted": 1185,
+   "confirmed": 1190
+  },
+  "iface": "sim",
+  "backend": "sim",
+  "pre_marker_live": "16 device eth.pkt + 13 eth.stats by seq 1362"
+ },
+ "marker": {
+  "text": "QANETH-624BDB",
+  "hex": "51414e4554482d363234424442",
+  "request_id": "w8",
+  "to": "127.0.0.1:65201",
+  "eth_tx_sent_seq": 1376,
+  "eth_pkt_seq": 1380,
+  "eth_pkt": "dir tx, attributed_origin agent, caplen 55, info '53678 \u2192 65201 Len=13', payload tail = marker",
+  "sink_rx": {
+   "wall_ns": 1794742466885507000,
+   "from": "127.0.0.1:53678",
+   "len": 13,
+   "hex": "exact"
+  },
+  "epoch": "1794732461",
+  "observer": "qa-native-eth-observer armed before send"
+ },
+ "visible": "root-eth-marker.*: filter udp.dstport == 65201 \u2192 seq 1380, payload 51 41 4e 45 54 48 2d 36 32 34 42 44 42 = QANETH-624BDB (matches CLI eth.pkt seq 1380 + sink)"
+}

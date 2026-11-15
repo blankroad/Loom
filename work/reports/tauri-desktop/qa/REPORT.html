@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bench Light QA</title>
+<style>
+:root{--bg:#fff;--sf:#f6f8fa;--line:#d1d9e0;--text:#1f2328;--muted:#59636e;--accent:#0969da;--ok:#1a7f37;--ok-bg:#dafbe1;--warn:#9a6700;--warn-bg:#fff8c5;--err:#cf222e;--err-bg:#ffebe9;--pend:#8250df;--pend-bg:#fbefff;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--sf);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Apple SD Gothic Neo",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:32px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}h3{font-size:14px;margin:18px 0 6px}
+p{margin:6px 0}code,.mono{font-family:var(--mono);font-size:12.5px}
+.banner{background:var(--warn-bg);border:1px solid #d4a72c;border-radius:6px;padding:12px 14px;margin:14px 0}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0}
+table{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}
+th,td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid var(--line)}th{background:var(--sf);font-weight:600}
+td.k{white-space:nowrap}
+.b{display:inline-block;padding:0 7px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap}
+.pass{background:var(--ok-bg);color:var(--ok)}.fail{background:var(--err-bg);color:var(--err)}.pend{background:var(--pend-bg);color:var(--pend)}.info{background:#ddf4ff;color:var(--accent)}.fixed{background:var(--warn-bg);color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+figure{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+figure img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line)}
+figcaption{padding:8px 10px;font-size:12.5px;color:var(--muted)}figcaption b{color:var(--text)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+ul{margin:6px 0;padding-left:20px}li{margin:2px 0}
+.muted{color:var(--muted)}
+</style>
+</head>
+<body><main>
+<h1>Loom Bench Light — final integration QA (DRAFT)</h1>
+<p class="muted">bench-final-qa-opus (w2R) · native foreground Opus 5.5 · 2026-11-15 · ROOT alone declares DONE / commits</p>
+
+<div class="banner"><b>State: DRAFT — final-build native acceptance is PENDING.</b> The final combined build (<b>final2</b>) is built and verified, but the macOS
+session has been <b>locked with the display asleep</b> since 12:24. WebKit then hides the page and pauses rendering, so no native or visual check has run on final2.
+QA does not bypass the lock (no caffeinate or OS settings). Everything native below comes from the <b>pre-patch build #1 (prefix)</b>. It is real
+evidence for that build, not for final2.</div>
+
+<h2>1. Builds — two distinct fingerprints (do not mix)</h2>
+<table>
+<tr><th></th><th>Build #1 — pre-patch prefix (11:41–11:48)</th><th>final2 — combined final (12:22–12:24)</th></tr>
+<tr><td class="k">Scope</td><td>A/ETH/UDS owner READY source + ROOT-transferred ETH tsc one line; desktop guard fix (308) rebuilt 11:47</td><td>+ STARTUP-ROUTE-FIX, MACRO-EXPECT-FIX, DOCK-ROUTE-FIX, ETH-EXPORT-FIX (SDK+Rust) + uds.css li.empty + uart.css EOF whitespace</td></tr>
+<tr><td class="k">UI checks</td><td>schema/lint OK, 666/666 (no load), tsc fixed → exit 0</td><td>schema/tsc/lint exit 0, <b>686/686</b>, <code>git diff --check</code> clean (evidence/final2/ui-checks.log)</td></tr>
+<tr><td class="k">ui/dist digest</td><td class="mono">8215041d5dd0a398…</td><td class="mono">643e595265ae92e7…</td></tr>
+<tr><td class="k">staged loomd</td><td class="mono">8ed2ef33333fa108… (bundled re-sign 0e55ba14…)</td><td class="mono">7efffad83fa7ef19… (bundled re-sign 3a4fa400…)</td></tr>
+<tr><td class="k">dist Loom.app exe</td><td class="mono">3643d396… (after guard fix)</td><td class="mono">0a2a7a52…</td></tr>
+<tr><td class="k">e2e Loom-QA.app exe</td><td class="mono">159e30af… (after guard fix)</td><td class="mono">0265f8aa…</td></tr>
+<tr><td class="k">git diff sha256</td><td class="mono">334eb71a… (ui desktop)</td><td class="mono">28417fa9… (ui desktop crates); untracked 86be472f…</td></tr>
+<tr><td class="k">Verify</td><td>verify-dist / verify-bundle PASS; both embed current index.html</td><td>verify-loomd 6/6, stage --check current, verify-dist PASS (LC_UUID identical), verify-bundle PASS; both embed current index.html</td></tr>
+<tr><td class="k">Evidence</td><td>evidence/final/, native-final-attempt1-308/, native-final-ordinary-cua/, native-final-e2e-prefix/</td><td>evidence/final2/ (build only; native PENDING)</td></tr>
+</table>
+<p class="muted">Reused per ROOT, not re-run here: ETH-EXPORT-FIX owner tests (Rust 56, UI 100). ROOT's aggregate 40 desktop tests (unchanged desktop Rust). QA's desktop guard tests after the 308 fix: loom-desktop 16, host unit 4, real_loomd 1 (evidence/final/desktop-targeted-tests.log).</p>
+
+<h2>2. Results</h2>
+<h3>Desktop / native (build #1 ordinary dist app unless noted)</h3>
+<table>
+<tr><th>Check</th><th>Result</th><th>Evidence</th></tr>
+<tr><td>UI identity guard, first native run</td><td><span class="b fixed">FOUND+FIXED</span> refused its own fresh daemon: HTTP 308 (Host 127.0.0.1). Fixed to GET <code>/ui/</code> on the canonical host with exact bytes, no redirect following; the unreadable case now has truthful wording; plus a real_loomd assertion</td><td>FINDING-GUARD-308.md</td></tr>
+<tr><td>Fresh daemon → identity Match, viewer visible</td><td><span class="b pass">PASS</span> b1</td><td>native-final-ordinary-cua/results.txt</td></tr>
+<tr><td>Quit → daemon/channel/device survive; reopen reuses daemon + Match</td><td><span class="b pass">PASS</span> b1</td><td>same</td></tr>
+<tr><td>ROOT CUA physical Enter / Tab (0x09) into the dut terminal</td><td><span class="b pass">PASS</span> b1 (root-native-bl1, root-tab-bl1; device + CLI ack)</td><td>results.txt, ROOT-OBSERVATIONS.md</td></tr>
+<tr><td>Native menu Connection → Reconnect after own daemon stop</td><td><span class="b pass">PASS</span> b1: new bundled loomd 46503, identity Match, viewer 1, served /ui/ == dist</td><td>results.txt</td></tr>
+<tr><td>Fresh startup lands on the UART workbench</td><td><span class="b fail">FAIL b1</span> → STARTUP-ROUTE-FIX (READY) · <span class="b pend">PENDING final2</span></td><td>FINDING-ENTRY-ROUTE.md</td></tr>
+<tr><td>Old-UI daemon mismatch refusal + daemon kept (native)</td><td><span class="b pend">PENDING final2</span> (a fail-closed refusal with daemon kept was observed in the 308 run)</td><td>native-final-attempt1-308</td></tr>
+<tr><td>Error/Retry light launch page</td><td><span class="b pend">PENDING final2</span> (light page rendered; screenshot 03)</td><td></td></tr>
+</table>
+
+<h3>UART (build #1 e2e WK, real daemon, two external ptys)</h3>
+<table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td>Session dialog port dropdown = live <code>uart.ports</code> (8 OS ports, identical to the CLI). Fixture ptys are not enumerated by macOS, which is recorded and not called a defect. dut2 is opened via the canonical <b>수동 입력…</b></td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Saved session group, open in the active pane, split right (real Dockview)</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Macro recipients 활성 (dut2 +1 / dut 0), 연결된 모두 (+1/+1), 선택 dut (+1/0), 선택 none (refused, no bytes), counted on the device rx.log</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Macro <code>wait</code> step: <code>uart.expect</code> bad patterns (kind 'text' vs literal)</td><td><span class="b fail">FAIL b1</span> → MACRO-EXPECT-FIX · <span class="b pend">PENDING final2</span></td></tr>
+<tr><td>Stale "실행 중" run-strip rows accumulate</td><td><span class="b fail">FAIL b1</span> → fixed · <span class="b pend">PENDING final2</span></td></tr>
+<tr><td>A connected session in a hidden tab is excluded ("상태 확인 중") from 연결된 모두 / 선택</td><td><span class="b fail">FAIL b1</span> → fixed · <span class="b pend">PENDING final2</span></td></tr>
+<tr><td>Split collapsed after an agent deep-link round trip</td><td><span class="b fail">FAIL b1</span> → DOCK-ROUTE-FIX · <span class="b pend">PENDING final2</span></td></tr>
+<tr><td>REC .log buffer → export in WK: valid UTF-8 with Korean (0 U+FFFD), marker + ack, per-line time, TX "⟨줄바꿈 없음⟩"; .jsonl with exact hex; desktop on_download</td><td><span class="b pass">PASS</span> b1</td></tr>
+<tr><td>REC continues while its tab is hidden (Dockview detaches the DOM): marker echo/ack/TX once each, ticks 358→373 contiguous, 0 dups</td><td><span class="b pass">PASS</span> b1 · recheck final2 (hidden model changed)</td></tr>
+<tr><td>Session/macro JSON export (파일로 저장) and import</td><td><span class="b pass">PASS</span> b1</td></tr>
+<tr><td>Keyboard broadcast 현재 / 연결된 모두 with physical OS keys across 2 ptys</td><td><span class="b pend">PENDING final2</span>: a ROOT CUA hold with a fresh concurrent observer. WebDriver printable keys are not delivered to xterm (driver limit), so they are not used</td></tr>
+<tr><td>Global STOP mid-macro (last step)</td><td><span class="b pend">PENDING final2</span>, run last, never self-released</td></tr>
+</table>
+
+<h3>Ethernet (build #1 e2e WK; external pcapng stream producer + UDP server)</h3>
+<table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td>CLI observer armed before GO: 17/17 frames, complete, gaps 0; UI lists 17 decoded rows (DoIP VA/RA/UDS, SOME/IP, TCP), all DEV origin</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Byte identity: seq 843 (UDS 62 F190 VIN) CLI bytes sha256 == producer frame #12 (a31fa273…); the UI hex pane shows the same 86 bytes</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Display filter <code>doip.payload_type == 0x8001</code>: UI 2 rows (841, 843) == CLI with the same filter</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Producer idle → card ERROR "stream idle timeout" shown honestly; a send on the errored channel is refused <code>E_LOCKED</code></td><td><span class="b pass">PASS</span> (includes 1 accidental QA mis-click send, refused, no bytes)</td></tr>
+<tr><td>채널 추가 (distinct from start): a new sim channel lan9 with its own panel; cards ext ERROR / lan9 LIVE "SIM tap"</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>Socket drawer UDP Text from lan9 → the external server received exactly <code>qa-udp-120848</code> (13 B) = UI dry-run bytes</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>UI 내보내기 (eth.export) content: 17 EPBs sha256-identical and in order with the producer</td><td><span class="b pass">PASS</span> b1</td></tr>
+<tr><td>Export location: fixed temp name overwritten, not shown in UI; failed TX row lacked its reason</td><td><span class="b info">INFO b1</span> → ETH-EXPORT-FIX · <span class="b pend">PENDING final2</span>: 2 exports → 2 distinct files + the UI path, and the failed-TX reason with a fresh nonce</td></tr>
+</table>
+
+<h3>UDS (build #1 e2e WK; external DoIP fixture, ECU 0x1001 / tester 0x0E80)</h3>
+<table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td>연결 설정 edited in the UI (DoIP 엔티티, host, port, tester/ECU LA); 저장 does not connect (fixture log unchanged); preset shows "연결 안 됨"</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>UI 연결 → fixture routing activation 0x0005 from 0x0E80 → 0x0006 code 0x10; daemon link up; UI 연결됨 + button disabled</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>DID F190 → 62 F190 + VIN; row bytes == fixture == CLI trace; 확정 값 with provenance (#1, time, route, user)</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>NRC FFFF → 7F 22 31 (failed row + toast); Raw 19 02 FF → 7F 19 11; CLI observer trace has all 6 PDUs</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>CAN-TP / EthDiag disabled "미지원" with reason; fixture TCP drop → daemon reconnected, UI 연결됨 truthful</td><td><span class="b pass">PASS</span></td></tr>
+<tr><td>응답 순서 empty state squeezed into a 58 px column (ROOT visual review)</td><td><span class="b fixed">FIXED</span> uds.css li.empty (QA, ROOT-transferred) · <span class="b pend">PENDING final2 geometry</span></td></tr>
+</table>
+
+<h3>Parity (canonical vs product, browser vs native)</h3>
+<table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td>WK bands (b1): header 44 / mtbar 46 / tab 32 / phead 33 / status 26, 13 px, canonical tokens (#fff, #f6f8fa, #d1d9e0, #1f2328, #0969da, #fd8c73). UART toolbar order and labels == canonical-controls</td><td><span class="b pass">PASS b1</span> · recheck final2</td></tr>
+<tr><td>Same /ui asset digests in Ego and WK (same probe: desktop/scripts/e2e/probes.mjs)</td><td><span class="b pend">PENDING final2</span></td></tr>
+<tr><td>Canonical vs product screenshots at 1440×900 (UART / ETH / UDS with settings collapsed and a selected row); browser vs native at the WK inner 1440×868</td><td><span class="b pend">PENDING final2</span></td></tr>
+</table>
+
+<h2>3. Captures (build #1, each opened and assessed; WK = WebDriver snapshot of the real app window)</h2>
+<div class="two">
+<figure><img src="report-assets/final-b1/00-canonical-uart.jpg" alt="canonical UART"><figcaption><b>Canonical</b> UART REV6.1 (Ego, 1440×900)</figcaption></figure>
+<figure><img src="report-assets/final-b1/11-uart-dut2-opened.jpg" alt="product UART"><figcaption><b>Product b1 WK</b>: UART workbench, dut2 opened via 수동 입력, live pty</figcaption></figure>
+<figure><img src="report-assets/final-b1/00-canonical-eth.jpg" alt="canonical ETH"><figcaption><b>Canonical</b> Ethernet workbench</figcaption></figure>
+<figure><img src="report-assets/final-b1/20-eth-stream-live.jpg" alt="product ETH"><figcaption><b>Product b1 WK</b>: external pcapng stream through Loom, 17 frames</figcaption></figure>
+<figure><img src="report-assets/final-b1/00-canonical-uds.jpg" alt="canonical UDS"><figcaption><b>Canonical</b> UDS Read DID</figcaption></figure>
+<figure><img src="report-assets/final-b1/31-uds-f190-confirmed.jpg" alt="product UDS"><figcaption><b>Product b1 WK</b>: real DoIP fixture, F190 confirmed with provenance (주소 상세 open; final capture PENDING with it collapsed)</figcaption></figure>
+</div>
+<h3>More build #1 evidence</h3>
+<div class="grid">
+<figure><img src="report-assets/final-b1/01-ordinary-reopen.jpg" alt=""><figcaption>Ordinary dist app (OS window capture) after reopen: landed on 통합 (entry-route finding)</figcaption></figure>
+<figure><img src="report-assets/final-b1/02-ordinary-after-reconnect.jpg" alt=""><figcaption>After native Connection → Reconnect: new daemon, dut reopened, backlog/live separator</figcaption></figure>
+<figure><img src="report-assets/final-b1/03-guard-308-refusal.jpg" alt=""><figcaption>Guard fail-closed on HTTP 308 (light launch page). The wording was later made truthful</figcaption></figure>
+<figure><img src="report-assets/final-b1/10-uart-session-dialog.jpg" alt=""><figcaption>New session dialog: real uart.ports list (no fixture ptys)</figcaption></figure>
+<figure><img src="report-assets/final-b1/12-uart-macro-dialog.jpg" alt=""><figcaption>Macro editor (send / wait / delay, scope, variables)</figcaption></figure>
+<figure><img src="report-assets/final-b1/13-uart-macro-wait-defect.jpg" alt=""><figcaption>Defect b1: wait step "unknown variant text"</figcaption></figure>
+<figure><img src="report-assets/final-b1/14-uart-stale-strips.jpg" alt=""><figcaption>Defect b1: stale run strips; 선택 → 없음 refused</figcaption></figure>
+<figure><img src="report-assets/final-b1/15-uart-hidden-tab-excluded.jpg" alt=""><figcaption>Defect b1: hidden-tab session excluded; split collapsed after deep link</figcaption></figure>
+<figure><img src="report-assets/final-b1/16-uart-rec-dialog.jpg" alt=""><figcaption>REC dialog: file picker honestly disabled in WK, buffer + export</figcaption></figure>
+<figure><img src="report-assets/final-b1/21-eth-detail-hex.jpg" alt=""><figcaption>ETH detail tree + hex of seq 843 (== producer bytes)</figcaption></figure>
+<figure><img src="report-assets/final-b1/22-eth-filter.jpg" alt=""><figcaption>Display filter result == CLI</figcaption></figure>
+<figure><img src="report-assets/final-b1/23-eth-channel-added.jpg" alt=""><figcaption>채널 추가 → lan9 panel, multi-channel cards</figcaption></figure>
+<figure><img src="report-assets/final-b1/24-eth-socket-udp.jpg" alt=""><figcaption>Socket drawer UDP send → server received the exact bytes</figcaption></figure>
+<figure><img src="report-assets/final-b1/30-uds-config.jpg" alt=""><figcaption>UDS 연결 설정 (preset ≠ connection)</figcaption></figure>
+<figure><img src="report-assets/final-b1/32-uds-nrc.jpg" alt=""><figcaption>NRC 0x31 failed row + toast; confirmed value untouched</figcaption></figure>
+</div>
+
+<h2>4. Bounded differences and limits (disclosed, not equivalence)</h2>
+<ul>
+<li>ETH (ROOT-accepted scope): per-channel <code>eth.packets{channel}</code> lists with real cards and no synthetic merged "전체" feed. No persistent TCP session state. No burst stimulus. Export is the daemon pcapng job.</li>
+<li>UART: splits and tabs are the real Dockview. Simulator-only items (SIM profiles, unplug) are omitted. WK has no File System Access, so REC is a <b>portable buffer export</b> (labelled "다운로드 요청"), not a durable live file; the daemon journal persists independently.</li>
+<li>UDS: DoIP + SIM only. CAN-TP / EthDiag are disabled with a reason. There is no disconnect RPC and no poll-stop.</li>
+<li>WK automation: input is WebDriver DOM events in the real WKWebView. Printable keys do not reach xterm (driver limit), so terminal text is proven only by ROOT physical CUA. The WK inner viewport is 1440×868 (a 900 px window including the 32 px title bar).</li>
+<li>Credentials: a pattern scan of evidence/final, final2 and native-final-* found 0 real tokens/codes. The only matches are the verify scripts' own check labels. The Ego product page will use the documented <b>watch</b> fixture (desktop/scripts/e2e/watch_url.py: the token stays in-process and the URL goes in a 0600 file).</li>
+<li>Signing: ad-hoc only. Developer ID and notarization are not in scope.</li>
+</ul>
+
+<h2>5. Pending on final2 (requires an unlocked, awake session), in order</h2>
+<ol>
+<li>Fresh e2e run: identity Match; fresh startup UART-only → <code>#/s/uart</code>; explicit <code>#/l/m1-default</code> stays (negative).</li>
+<li>Macro wait success + a single final strip. Hidden-tab recipients included. Split kept after the deep link. Hidden REC recheck with a fresh marker.</li>
+<li>ETH: 2 exports → 2 distinct files + the real UI path; failed-TX reason (fresh nonce).</li>
+<li>UDS final capture: settings collapsed, a selected row, response panes; li.empty geometry.</li>
+<li>Ego space 14 (claimed; p1 UART / p2 UDS canonical kept) + new product page: asset digests == WK; canonical vs product captures.</li>
+<li>ROOT CUA hold on the plain final2 app: keyboard broadcast 현재 / 연결된 모두 across 2 ptys, with a fresh <code>loom events --since now --follow --timeout 120</code> observer armed first.</li>
+<li>Native ui-mismatch refusal; error/Retry. Global STOP last (never released by QA).</li>
+<li>Final report update, hygiene, cleanup of own processes/tabs; READY_FOR_REVIEW to ROOT.</li>
+</ol>
+<p class="muted">Findings: FINDING-GUARD-308, FINDING-TSC-ETH (+ transferred one-liners), FINDING-ENTRY-ROUTE, FINDING-MACRO-EXPECT, FINDING-UART-SCOPE-LAYOUT. Older dark-UI run4 report: REPORT-run4-olddark.html (functional reference only).</p>
+</main></body></html>

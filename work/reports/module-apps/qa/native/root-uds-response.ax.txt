@@ -1,0 +1,133 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 38, 43, 50, 52-53, 74, 83, 85, 88, 133, 136, 140, 144-155, 162
+~								26 tab (selected) CAN 트레이스 · qa-native-can
+~								27 tab (selected) 이더넷 패킷 · qa-native-eth
++										177 text QA Native DoIP 경로
++										178 text doip · DoIP 0x1001 프리셋 · QA Native DoIP
++											179 text qa-native-ecu · doip
++											180 text 세션 default? 보안 🔒? TP off P2 50/5000ms 제어: 비어 있음
++											181 button T, Help: 제어 가져오기 (uds.lease.takeover)
++										182 text 요청 대상 qa-native-ecu · DoIP doip DoIP 0x1001 · P2 50/5000 ms · 연결됨
++										183 text VIN
++											184 text 요청 PDU 22 F1 90 3 B
++										185 text Enter 또는 [읽기]로 전송. 선택만으로는 전송하지 않습니다.
+~										118 row (selected)
+~										131 text 응답 순서 #1 · qa-native-ecu · doip DoIP 0x1001
+~										132 list (settable) 선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)
++											186 text +0 Tx ReadDataByIdentifier 22 F1 90
++											187 text (selected) +3.6ms Rx 긍정 응답 0x62 62 F1 90 51 41 4E 41 54 49 56 45 71 6E 32 30 32 32 30 38 56 49 4E
+~										135 text 해석 긍정 응답 0x62
++										188 description list
++											189 container
++												190 text 테스터 agent qa-native-sender#61036
++											191 container
++												192 text 서비스 ReadDataByIdentifier — ✓
++											193 container
++												194 text 요청 22 F1 90
++											195 container
++												196 text 논리 링크 qa-native-ecu · doip DoIP 0x1001
++											197 container
++												198 text 응답 상태 확정
++											199 container
++												200 text 응답 62 F1 90 51 41 4E 41 54 49 56 45 71 6E 32 30 32 32 30 38 56 49 4E
++											201 container
++												202 text NRC —
++											203 container
++												204 text p2/rtt 50/3.6ms
++											205 container
++												206 text 등급 R0
++											207 container
++												208 text request_id w9
++											209 container
++												210 text 갱신 4회 · confirmed
++										211 table
++											212 row (selectable) 이름
+오프셋
+값
+설명
++											213 row (selectable)
++												214 cell (selectable) RESPONSE_PDU
++												215 cell (selectable)
++												216 cell (selectable) 62 F1 90 51 41 4E 41 54 49 56 45 71 6E 32 30 32 32 30 38 56 49 4E
++												217 cell (selectable) 22 B
++											218 row (selectable)
++												219 cell (selectable) responseServiceId
++												220 cell (selectable) 0
++												221 cell (selectable) 0x62
++												222 cell (selectable) 긍정 응답 (요청 SID 0x22 + 0x40)
++											223 row (selectable)
++												224 cell (selectable) dataIdentifier
++												225 cell (selectable) 1–2
++												226 cell (selectable) F190
++												227 cell (selectable)
++											228 row (selectable)
++												229 cell (selectable) dataRecord
++												230 cell (selectable) 3–21
++												231 cell (selectable) 51 41 4E 41 54 49 56 45 71 6E 32 30 32 32 30 38 56 49 4E
++												232 cell (selectable) 19 B
++										233 text daemon 해석(decoded) 없음 — 확정 값 갱신 없음
++										234 container
++											235 text 긍정 응답 0x62 · 22 B · UDS PDU (DoIP/TCP 프레임 아님)
++											236 text 0000
++											237 text 62
++											238 text F1
++											239 text 90
++											240 text 51
++											241 text 41
++											242 text 4E
++											243 text 41
++											244 text 54
++											245 text 49
++											246 text 56
++											247 text 45
++											248 text 71
++											249 text 6E
++											250 text 32
++											251 text 30
++											252 text 32
++											253 text b
++											254 text .
++											255 text .
++											256 text Q
++											257 text A
++											258 text N
++											259 text A
++											260 text T
++											261 text I
++											262 text V
++											263 text E
++											264 text q
++											265 text n
++											266 text 2
++											267 text 0
++											268 text 2
++											269 text 0010
++											270 text 32
++											271 text 30
++											272 text 38
++											273 text 56
++											274 text 49
++											275 text 4E
++											276 text 2
++											277 text 0
++											278 text 8
++											279 text V
++											280 text I
++											281 text N
++										282 text F190 VIN
++										283 text 확정 값 없음
++										284 text F18C ECU Serial Number
++										285 text 확정 값 없음
++										286 text F187 Spare Part Number
++										287 text 확정 값 없음
++										288 text F191 ECU Hardware Number
++										289 text 확정 값 없음
++										290 text F195 SW Version
++										291 text 확정 값 없음
++										292 text F186 Active Session
++										293 text 확정 값 없음
++					294 container 20시 36분 8초.046 AGT qa-native-uds-observer#60937 core core.events.query 3 call(s) in the last second
+Selected:
+	118 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

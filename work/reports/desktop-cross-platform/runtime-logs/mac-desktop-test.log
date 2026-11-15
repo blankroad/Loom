@@ -1,0 +1,36 @@
+$ cargo test --locked -p loom-desktop (CARGO_TARGET_DIR=/tmp/loom-tauri-build) 2026-11-15T03:51:24Z
+   Compiling loom-desktop v0.1.0 (/Users/ctmctm/workspace/Loom/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.55s
+     Running unittests src/main.rs (/tmp/loom-tauri-build/debug/deps/loom_desktop-1bde2520a03660ae)
+
+running 26 tests
+test config::tests::empty_values_are_ignored ... ok
+test config::tests::defaults_use_home_dot_loom_and_bundled_daemon ... ok
+test config::tests::bundled_daemon_name_has_the_platform_suffix ... ok
+test appimage::tests::appdir_requires_appimage_and_absolute_appdir ... ok
+test appimage::tests::fixups_strip_only_appdir_entries ... ok
+test config::tests::loom_home_and_explicit_binary_win ... ok
+test config::tests::missing_home_and_exe_are_errors ... ok
+test config::tests::relative_paths_are_rejected ... ok
+test config::tests::timeout_is_clamped_and_validated ... ok
+test config::tests::userprofile_is_the_fallback_after_home ... ok
+test appimage::tests::outside_appdir_is_used_as_is_without_copy ... ok
+test nav::tests::app_assets_allowed_before_and_after_connect ... ok
+test nav::tests::new_windows_open_child_external_or_deny ... ok
+test nav::tests::external_url_serialization_has_no_whitespace_or_quotes ... ok
+test nav::tests::daemon_origin_only_exact_port_after_connect ... ok
+test nav::tests::external_links_and_blocked_schemes ... ok
+test nav::tests::top_level_navigation_never_opens_the_browser ... ok
+test ui_identity::tests::message_is_actionable_and_never_auto_stops ... ok
+test ui_identity::tests::stop_commands_quote_home_per_shell ... ok
+test nav::tests::only_plain_http_links_reach_the_os ... ok
+test nav::tests::downloads_only_from_daemon_page ... ok
+test ui_identity::tests::unreadable_is_not_called_an_old_build ... ok
+test ui_identity::tests::verdicts ... ok
+test appimage::tests::loose_cache_directory_is_refused ... ok
+test ui_identity::tests::stop_command_quotes_home_for_the_shell ... ok
+test appimage::tests::copies_once_then_reuses_only_a_verified_copy ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+rc=0

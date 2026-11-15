@@ -1,0 +1,9 @@
+   Compiling loom-video v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-video)
+   Compiling loom-logic v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-logic)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.17s
+  Executable unittests src/lib.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/loom_logic-f535d583d2542d66.exe)
+  Executable tests/engine.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/engine-97a910a861abb932.exe)
+  Executable tests/gateway.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/gateway-da4daf485cb48279.exe)
+  Executable unittests src/lib.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/loom_video-8e6099f143608c4e.exe)
+  Executable tests/fixture_e2e.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/fixture_e2e-6b23657f9591b2b0.exe)
+  Executable tests/platform_unsupported.rs (/tmp/loom-cross-windows/x86_64-pc-windows-gnu/debug/deps/platform_unsupported-4c1585b85ab8480a.exe)

@@ -1,0 +1,911 @@
+[
+  {
+    "route": "#/s/uart",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 213.5390625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 213.5390625,
+        "right": 259.2421875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 259.2421875,
+        "right": 330.3828125
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 330.3828125,
+        "right": 401.796875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.796875,
+        "right": 446.1328125
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 446.1328125,
+        "right": 523.84375
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.84375,
+        "right": 601.5546875
+      }
+    ],
+    "activeWorkspace": "uart",
+    "panelTabs": [],
+    "controls": [
+      {
+        "text": "세션 목록 접기",
+        "disabled": false
+      },
+      {
+        "text": "새 세션",
+        "disabled": false
+      },
+      {
+        "text": "오른쪽 분할",
+        "disabled": true
+      },
+      {
+        "text": "아래 분할",
+        "disabled": true
+      },
+      {
+        "text": "최대화",
+        "disabled": true
+      },
+      {
+        "text": "pane 닫기",
+        "disabled": true
+      },
+      {
+        "text": "현재 세션",
+        "disabled": false
+      },
+      {
+        "text": "연결된 모두",
+        "disabled": false
+      },
+      {
+        "text": "새 매크로",
+        "disabled": false
+      },
+      {
+        "text": "내보내기",
+        "disabled": false
+      },
+      {
+        "text": "가져오기",
+        "disabled": false
+      },
+      {
+        "text": "레이아웃 초기화",
+        "disabled": false
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "새 세션…",
+        "disabled": false
+      },
+      {
+        "text": "매크로",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/uart-1440.png"
+  },
+  {
+    "route": "#/s/can",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 259.078125
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 259.078125,
+        "right": 330.21875
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 330.21875,
+        "right": 401.6328125
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.6328125,
+        "right": 445.96875
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 445.96875,
+        "right": 523.6796875
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.6796875,
+        "right": 601.390625
+      }
+    ],
+    "activeWorkspace": "can",
+    "panelTabs": [
+      "CAN 트레이스"
+    ],
+    "controls": [
+      {
+        "text": "목록 펼치기",
+        "disabled": false
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "연결",
+        "disabled": true
+      },
+      {
+        "text": "열린 채널 조회",
+        "disabled": false
+      },
+      {
+        "text": "수신/송신",
+        "disabled": false
+      },
+      {
+        "text": "트레이스",
+        "disabled": false
+      },
+      {
+        "text": "⏸ 일시정지",
+        "disabled": false
+      },
+      {
+        "text": "보내기 ⏎",
+        "disabled": true
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/can-1440.png"
+  },
+  {
+    "route": "#/s/eth",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 258.6171875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 258.6171875,
+        "right": 331.140625
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 331.140625,
+        "right": 402.5546875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 402.5546875,
+        "right": 446.890625
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 446.890625,
+        "right": 524.6015625
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 524.6015625,
+        "right": 602.3125
+      }
+    ],
+    "activeWorkspace": "eth",
+    "panelTabs": [
+      "이더넷 패킷"
+    ],
+    "controls": [
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "채널 추가",
+        "disabled": true
+      },
+      {
+        "text": "캡처 시작…",
+        "disabled": true
+      },
+      {
+        "text": "캡처 정지",
+        "disabled": true
+      },
+      {
+        "text": "표시 일시정지",
+        "disabled": false
+      },
+      {
+        "text": "자동 스크롤",
+        "disabled": false
+      },
+      {
+        "text": "색상",
+        "disabled": false
+      },
+      {
+        "text": "스트림 따라가기",
+        "disabled": true
+      },
+      {
+        "text": "내보내기",
+        "disabled": true
+      },
+      {
+        "text": "기록 지우기",
+        "disabled": false
+      },
+      {
+        "text": "소켓 테스트",
+        "disabled": true
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "연결…",
+        "disabled": true
+      },
+      {
+        "text": "구성 편집…",
+        "disabled": false
+      },
+      {
+        "text": "삭제",
+        "disabled": true
+      },
+      {
+        "text": "채널",
+        "disabled": true
+      },
+      {
+        "text": "채널 미선택",
+        "disabled": false
+      },
+      {
+        "text": "★",
+        "disabled": false
+      },
+      {
+        "text": "적용",
+        "disabled": false
+      },
+      {
+        "text": "지우기",
+        "disabled": false
+      },
+      {
+        "text": "재전송",
+        "disabled": true
+      },
+      {
+        "text": "편집 후 송신…",
+        "disabled": true
+      },
+      {
+        "text": "기준 행",
+        "disabled": true
+      },
+      {
+        "text": "REF 복사",
+        "disabled": true
+      },
+      {
+        "text": "＋",
+        "disabled": false
+      },
+      {
+        "text": "－",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/eth-1440.png"
+  },
+  {
+    "route": "#/s/uds",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 258.6171875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 258.6171875,
+        "right": 329.7578125
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 329.7578125,
+        "right": 401.421875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.421875,
+        "right": 445.7578125
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 445.7578125,
+        "right": 523.46875
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.46875,
+        "right": 601.1796875
+      }
+    ],
+    "activeWorkspace": "uds",
+    "panelTabs": [
+      "UDS 콘솔"
+    ],
+    "controls": [
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "DoIP",
+        "disabled": false
+      },
+      {
+        "text": "CAN-TP미지원",
+        "disabled": true
+      },
+      {
+        "text": "EthDiag미지원",
+        "disabled": true
+      },
+      {
+        "text": "연결",
+        "disabled": true
+      },
+      {
+        "text": "연결 설정",
+        "disabled": false
+      },
+      {
+        "text": "주소 상세",
+        "disabled": false
+      },
+      {
+        "text": "서비스",
+        "disabled": false
+      },
+      {
+        "text": "ECU·DID",
+        "disabled": false
+      },
+      {
+        "text": "명령·시퀀스",
+        "disabled": false
+      },
+      {
+        "text": "감시",
+        "disabled": false
+      },
+      {
+        "text": "프로젝트",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "DID",
+        "disabled": false
+      },
+      {
+        "text": "Raw",
+        "disabled": false
+      },
+      {
+        "text": "읽기",
+        "disabled": true
+      },
+      {
+        "text": "취소",
+        "disabled": false
+      },
+      {
+        "text": "전체",
+        "disabled": false
+      },
+      {
+        "text": "현재 ECU",
+        "disabled": false
+      },
+      {
+        "text": "JSON",
+        "disabled": false
+      },
+      {
+        "text": "CSV",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/uds-1440.png"
+  },
+  {
+    "route": "#/s/psu",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 258.6171875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 258.6171875,
+        "right": 329.7578125
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 329.7578125,
+        "right": 401.171875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.171875,
+        "right": 445.9296875
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 445.9296875,
+        "right": 523.640625
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.640625,
+        "right": 601.3515625
+      }
+    ],
+    "activeWorkspace": "psu",
+    "panelTabs": [
+      "벤치 전원 (PSU)"
+    ],
+    "controls": [
+      {
+        "text": "목록 펼치기",
+        "disabled": false
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "연결",
+        "disabled": true
+      },
+      {
+        "text": "보기",
+        "disabled": true
+      },
+      {
+        "text": "! 비상 OFF",
+        "disabled": true
+      },
+      {
+        "text": "출력 ON",
+        "disabled": true
+      },
+      {
+        "text": "적용",
+        "disabled": true
+      },
+      {
+        "text": "V",
+        "disabled": false
+      },
+      {
+        "text": "A",
+        "disabled": false
+      },
+      {
+        "text": "W",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/psu-1440.png"
+  },
+  {
+    "route": "#/s/logic",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 258.6171875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 258.6171875,
+        "right": 329.7578125
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 329.7578125,
+        "right": 401.171875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.171875,
+        "right": 445.5078125
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 445.5078125,
+        "right": 523.1171875
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.1171875,
+        "right": 600.828125
+      }
+    ],
+    "activeWorkspace": "logic",
+    "panelTabs": [
+      "로직 분석기"
+    ],
+    "controls": [
+      {
+        "text": "목록 펼치기",
+        "disabled": false
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "■ 캡처 정지",
+        "disabled": true
+      },
+      {
+        "text": "▶ 캡처 시작",
+        "disabled": true
+      },
+      {
+        "text": "엔진 확인",
+        "disabled": false
+      },
+      {
+        "text": "−",
+        "disabled": false
+      },
+      {
+        "text": "+",
+        "disabled": false
+      },
+      {
+        "text": "전체",
+        "disabled": false
+      },
+      {
+        "text": "● 라이브 따라가기",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/logic-1440.png"
+  },
+  {
+    "route": "#/s/video",
+    "visibility": "visible",
+    "tabs": [
+      {
+        "domain": "uart",
+        "count": "0",
+        "x": 159.6875,
+        "right": 212.9140625
+      },
+      {
+        "domain": "can",
+        "count": "0",
+        "x": 212.9140625,
+        "right": 258.6171875
+      },
+      {
+        "domain": "eth",
+        "count": "0",
+        "x": 258.6171875,
+        "right": 329.7578125
+      },
+      {
+        "domain": "uds",
+        "count": "0",
+        "x": 329.7578125,
+        "right": 401.171875
+      },
+      {
+        "domain": "psu",
+        "count": "0",
+        "x": 401.171875,
+        "right": 445.5078125
+      },
+      {
+        "domain": "logic",
+        "count": "0",
+        "x": 445.5078125,
+        "right": 523.21875
+      },
+      {
+        "domain": "video",
+        "count": "0",
+        "x": 523.21875,
+        "right": 600.828125
+      }
+    ],
+    "activeWorkspace": "video",
+    "panelTabs": [
+      "비디오 캡처"
+    ],
+    "controls": [
+      {
+        "text": "목록 펼치기",
+        "disabled": false
+      },
+      {
+        "text": "단축키",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "",
+        "disabled": false
+      },
+      {
+        "text": "■ 캡처 닫기",
+        "disabled": true
+      },
+      {
+        "text": "⏸ 고정",
+        "disabled": true
+      },
+      {
+        "text": "📷 스냅샷",
+        "disabled": true
+      },
+      {
+        "text": "● 녹화 시작",
+        "disabled": true
+      },
+      {
+        "text": "열기",
+        "disabled": true
+      },
+      {
+        "text": "엔진 확인",
+        "disabled": false
+      }
+    ],
+    "pageOverflow": false,
+    "stopVisible": true,
+    "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/video-1440.png"
+  }
+]

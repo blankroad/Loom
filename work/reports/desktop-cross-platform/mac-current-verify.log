@@ -1,0 +1,17 @@
+info-plist         PASS  desktop/dist/Loom.app/Contents/Info.plist
+bundle-id          PASS  local.loom.desktop
+main-exe           PASS  Contents/MacOS/loom-desktop (arm64)
+version            INFO  0.1.0 min macOS 12.0
+loomd-identity     PASS  bundled d4cfa7bb513d0196ea282f36fc69b163d84ac10aaa8edce3c4a810994399b24f == ad-hoc re-sign of staged e56e10e2484deaea2b555e71cba612f42ead433d542fcdfbf66c6cf558b795cb (flags=0x10002(adhoc,runtime); release /Users/ctmctm/workspace/Loom/target/release/loomd baseline a8253c1)
+loomd-embedded-ui  PASS  verify-loomd: /ui files compared=6 mismatched=0 csp=yes port=59539
+no-home-data       PASS  no daemon.json/logs/journals/policy in bundle
+no-credentials     PASS  no '#boot=' / 'Bearer ' literals in resources
+no-qa-webdriver    PASS  no embedded WebDriver plugin in main executable
+codesign           PASS  valid (Signature=adhoc TeamIdentifier=not set )
+size               INFO   29M
+verify-bundle: PASS
+verify-dist: loomd __TEXT,__text staged=77f9ed0b07a4d8f947c72844c83e79e309a9668ba48ff981143ccfa45c9e4089 bundled=77f9ed0b07a4d8f947c72844c83e79e309a9668ba48ff981143ccfa45c9e4089
+verify-dist: loomd __TEXT,__const staged=be938b611be54026c19aa5bc4201978a4a08de80028ca59bc51e287ba9ee3885 bundled=be938b611be54026c19aa5bc4201978a4a08de80028ca59bc51e287ba9ee3885
+verify-dist: loomd LC_UUID staged=42293DB8-C5B6-3316-BC8A-398E8F5A3F5D bundled=42293DB8-C5B6-3316-BC8A-398E8F5A3F5D → identity PASS
+verify-dist: manifest work/reports/desktop-cross-platform/mac-current-manifest.json
+verify-dist: PASS

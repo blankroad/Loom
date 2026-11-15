@@ -1,0 +1,5 @@
+a-loomd-check rc=101 :: cargo check --locked -p loom-gateway --bin loomd --target x86_64-pc-windows-gnu
+b-workspace-check rc=101 :: cargo check --locked --keep-going --workspace --all-targets --target x86_64-pc-windows-gnu
+c-clippy-video-logic rc=101 :: cargo clippy --locked -p loom-video -p loom-logic -p loom-gateway --all-targets --target x86_64-pc-windows-gnu -- -D warnings
+d-loomd-build rc=101 :: cargo build --locked --release -p loom-gateway --bin loomd --target x86_64-pc-windows-gnu
+e-test-norun rc=101 :: cargo test --locked --no-run -p loom-video -p loom-logic --target x86_64-pc-windows-gnu

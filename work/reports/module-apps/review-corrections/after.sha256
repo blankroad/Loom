@@ -1,0 +1,11 @@
+0bb7f6e02d797737dd46a6137ce0a26559306c713fd00dc995b92d7d34d30c80  ui/src/net/api.ts
+f76fb015dc3555d402ddda087705d44b54c2a04d1493bee6493a98986bc6e75a  ui/src/net/mux.ts
+0d60df4d7408bdbcb51760c9a5ccc0ea59fe5331dcfbba69c6e9f931b24d6e40  ui/src/net/client.ts
+f5d6e62adaf009c7ae499afdc16997226eae91ff6fb9f8dc6777b84c7c9e8578  ui/src/net/mux.test.ts
+897dd8b5204633d5b97b8bb9fb692c37a94395984253920e3e13cfa36da26c72  ui/src/sdk/context.ts
+acce9f1037eb30043f37069b1f37606186fb6fbf7959dba59f4cad3e02a74c62  ui/src/sdk/capacityLive.test.ts
+db5f983154346d8ded8b4c88e14d17315e392f2ece6c56d6065976e71c2e4df7  ui/src/sdk/testing/harness.ts
+b3656cbf855e1770fc182efc365aebda9f6a9f03f0dc224ecdb2669f64a1afda  ui/src/panels/can/canTrace.ts
+74a51f4fbbafb378486386a31abc6412299ba89e485f934439eca1c0f2a02388  ui/src/panels/can/traceModel.ts
+857cf277fcf28b86ec44a88b41d4994b770046cf46a115f0f36342c2094cc97b  ui/src/panels/can/canTrace.test.ts
+d9a276c4e1d11d995d10671fa92c6d304f5b959e5e2274caf1d8e17b060ada34  ui/src/net/client.test.ts

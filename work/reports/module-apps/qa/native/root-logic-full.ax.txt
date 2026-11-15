@@ -1,0 +1,25 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 43-45, 47-58, 65, 92, 98, 195
+~									35 tab (selected) 로직 분석기
++										210 text ● 정지됨
++										211 text SYNTHETIC 생성 파형
++										212 text 1 MHz · 8ch · 디코더 uart:rx=D0:baudrate=115200:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first · 상한 10 s · 시작 USR
++										213 text 샘플 10,006,113 (10.01 s)
++										214 text 전이 8,888
++										215 text 디코드 1,515
++										216 text 전이 생략 0
++										217 text 디코드 손실 0
++										218 text 잘린 줄 0
++										219 text 해석 못 한 줄 0
++										220 text 형식 오류 0
++										221 text 스트림 손실 0
++										222 text 수신 지연 —
++										223 container
++											224 text 정지: 지정 시간 도달 · 디코더 exit 0 (eof) — 기록은 이 패널에 남아 있습니다 SYNTHETIC: 원시 파형은 Loom이 생성한 이상 파형입니다. 디코드는 실제 libsigrok PD 결과입니다.
+~										64 toggle button ● 라이브 따라가기, Help: 최신 샘플 따라가기 (F / End), Value: off
++										225 text 0 s – 10.006 s · 7928.8 smp/px
+~										91 image 파형: D0, D1, D2, D3, D4, D5, D6, D7 · 0 s – 10.006 s · 7928.8 smp/px · 디코드 트랙 uart-1
++										226 text 파형 위로 마우스 — sample·시각·레벨 · 휠 확대/축소 · 끌기/Shift+휠 이동 · ←/→ +/- 0 F
++										227 text 1,515행 · 디코더 uart-1 · 해석 결과(원시 아님)
++					228 container 20시 39분 29초.045 AGT qa-native-logic-observer#63333 core core.events.query 5 call(s) in the last second
+The focused UI element is 41 container

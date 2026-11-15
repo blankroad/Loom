@@ -1,0 +1,53 @@
+
+> loom-desktop@0.1.0 dist
+> node scripts/package.mjs dist --out-dir /out/dist
+
+stage: building ui/dist (pnpm build)
+$ tsc -b && vite build
+[36mvite v8.3.7 [32mbuilding client environment for production...[36m[39m
+transforming...
+✓ 133 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                         0.39 kB │ gzip:   0.26 kB
+dist/assets/net.worker-BleoIIWk.js     27.46 kB
+dist/assets/index-DrVvkZRL.css        309.60 kB │ gzip:  41.67 kB
+dist/assets/index-DTl2J0NA.js       1,669.53 kB │ gzip: 494.67 kB │ map: 5,586.30 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 550ms[39m
+stage: cleaning loom-ui-assets (release) to force re-embedding ui/dist 643e595265ae92e70219cfadf0eff7c037948586547d4aedb8a26372996b0f05
+stage: cargo build --locked --release -p loom-gateway --bin loomd
+   Compiling loom-ui-assets v0.1.0 (/cache/src-snapshot/crates/loom-ui-assets)
+   Compiling loom-gateway v0.1.0 (/cache/src-snapshot/crates/loom-gateway)
+    Finished `release` profile [optimized] target(s) in 49.35s
+stage: staged /cache/src-snapshot/desktop/src-tauri/binaries/loomd-aarch64-unknown-linux-gnu (sha256 d8fcdf2337ede611d156fac526f4d4254cdb5a904b3e1f2ecd94ef3be0809602, ui 643e595265ae92e70219cfadf0eff7c037948586547d4aedb8a26372996b0f05)
+verify: binary /cache/src-snapshot/desktop/src-tauri/binaries/loomd-aarch64-unknown-linux-gnu sha256=d8fcdf2337ede611d156fac526f4d4254cdb5a904b3e1f2ecd94ef3be0809602
+verify: /ui files compared=6 mismatched=0 csp=yes port=34641
+verify: stamp updated (embedded_ui_verified=true)
+verify: PASS
+verify: stopped spawned daemon (terminate-own-pid)
+bundle: tauri-cli 2.12.4; bundles deb (release)
+bundle: tauri build --bundles deb --ci -- --locked (CARGO_TARGET_DIR=/cache/desktop-target)
+        Info Looking up installed tauri packages to check mismatched versions...
+   Compiling loom-desktop v0.1.0 (/cache/src-snapshot/desktop/src-tauri)
+    Finished `release` profile [optimized] target(s) in 14.19s
+       Built application at: /cache/desktop-target/release/loom-desktop
+        Info Patching /cache/desktop-target/release/loom-desktop with bundle type information: deb
+    Bundling Loom_0.1.0_arm64.deb (/cache/desktop-target/release/bundle/deb/Loom_0.1.0_arm64.deb)
+    Finished 1 bundle at:
+        /cache/desktop-target/release/bundle/deb/Loom_0.1.0_arm64.deb (12.16 MiB)
+
+bundle: cargo-lock           PASS desktop/Cargo.lock unchanged (--locked)
+bundle: target:sidecar       PASS sha256 == staged
+bundle: deb:artifact         INFO /cache/desktop-target/release/bundle/deb/Loom_0.1.0_arm64.deb
+bundle: deb:sidecar          PASS sha256 == staged
+bundle: deb:app-binary       PASS usr/bin: loom-desktop next to loomd
+bundle: deb:control          INFO Package: loom; Version: 0.1.0; Architecture: arm64; Depends: libwebkit2gtk-4.1-0, libgtk-3-0
+bundle: artifact deb /out/dist/Loom_0.1.0_arm64.deb sha256 9b28d36c61f9f3286dfd10676a3b705fab76f41156a995d817b41c96192884c0
+bundle: manifest /out/dist/artifacts.json
+bundle: PASS (all bundle checks)

@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "generated_at": "2026-11-15T04:02:21+00:00",
+  "platform": "linux",
+  "target": "aarch64-unknown-linux-gnu",
+  "profile": "release",
+  "version": "0.1.0",
+  "tauri_cli": "tauri-cli 2.12.4",
+  "loomd_sha256": "d8fcdf2337ede611d156fac526f4d4254cdb5a904b3e1f2ecd94ef3be0809602",
+  "loomd_profile": "release",
+  "ui_dist_digest": "643e595265ae92e70219cfadf0eff7c037948586547d4aedb8a26372996b0f05",
+  "baseline": "unknown",
+  "verified": true,
+  "strict": true,
+  "artifacts": [
+    {
+      "kind": "deb",
+      "path": "/out/dist/Loom_0.1.0_arm64.deb",
+      "abs_path": "/out/dist/Loom_0.1.0_arm64.deb",
+      "sha256": "9b28d36c61f9f3286dfd10676a3b705fab76f41156a995d817b41c96192884c0",
+      "bytes": 12750150,
+      "sha256_kind": "file",
+      "built_from": "/cache/desktop-target/release/bundle/deb/Loom_0.1.0_arm64.deb"
+    }
+  ],
+  "checks": [
+    {
+      "check": "cargo-lock",
+      "result": "PASS",
+      "detail": "desktop/Cargo.lock unchanged (--locked)"
+    },
+    {
+      "check": "target:sidecar",
+      "result": "PASS",
+      "detail": "sha256 == staged"
+    },
+    {
+      "check": "deb:artifact",
+      "result": "INFO",
+      "detail": "/cache/desktop-target/release/bundle/deb/Loom_0.1.0_arm64.deb"
+    },
+    {
+      "check": "deb:sidecar",
+      "result": "PASS",
+      "detail": "sha256 == staged"
+    },
+    {
+      "check": "deb:app-binary",
+      "result": "PASS",
+      "detail": "usr/bin: loom-desktop next to loomd"
+    },
+    {
+      "check": "deb:control",
+      "result": "INFO",
+      "detail": "Package: loom; Version: 0.1.0; Architecture: arm64; Depends: libwebkit2gtk-4.1-0, libgtk-3-0"
+    }
+  ]
+}
+total 12456
+drwxr-xr-x  4 root root      128 Nov 15 04:02 .
+drwxr-xr-x 20 root root      640 Nov 15 04:02 ..
+-rw-r--r--  1 root root 12750150 Nov 15 04:02 Loom_0.1.0_arm64.deb
+-rw-r--r--  1 root root     1653 Nov 15 04:02 artifacts.json
+9b28d36c61f9f3286dfd10676a3b705fab76f41156a995d817b41c96192884c0  /out/dist/Loom_0.1.0_arm64.deb

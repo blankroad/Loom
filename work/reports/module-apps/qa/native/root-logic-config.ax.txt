@@ -1,0 +1,9 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 32, 42-43, 81, 83
++								152 text 1
++										153 text 캡처 없음
++										154 text 활성 캡처 없음 — 아래 "새 캡처 설정"에서 시작하거나 에이전트 `loom logic start` 결과가 여기 표시됩니다
+~												54 text field (settable) 합성 텍스트, Help: {n} = 4자리 프레임 번호, \r \n 이스케이프 사용 가능 (≤ 256 B), Value: QANLOG-202208\r\n
++											155 text loom logic start --source synthetic --rate 1M --channels D0,D1,D2,D3,D4,D5,D6,D7 --decode uart:baudrate=115200:rx=D0 --duration 10s --text "QANLOG-202208\\r\\n" --frame-period 100ms
++											156 text [엔진 확인]을 누르면 logic.status로 sigrok-cli·지원 소스를 확인합니다 (장치 열기/스캔 없음)
+The focused UI element is 54 text field (settable) 합성 텍스트, Help: {n} = 4자리 프레임 번호, \r \n 이스케이프 사용 가능 (≤ 256 B), Value: QANLOG-202208\r\n

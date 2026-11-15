@@ -1,0 +1,68 @@
+{
+ "flow": "UART1 native Connect + live RX + CLI marker",
+ "verdict": "PASS",
+ "native_connect": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "uart.open",
+  "request_id": "w1",
+  "seq": {
+   "requested": 185,
+   "accepted": 186,
+   "sent": 191
+  },
+  "state_open_seq": 189,
+  "config_seq": 190,
+  "path": "/dev/ttys006",
+  "transport": "pty",
+  "config": "115200 8N1 none",
+  "generation": 1,
+  "evidence": [
+   "root-uart1-open.png",
+   "root-uart1-open.ax.txt",
+   "raw-uart1-open-events.json",
+   "raw-uart1-status.json"
+  ]
+ },
+ "no_cli_open_before_native": true,
+ "marker": {
+  "text": "QANUART1-A5E251",
+  "sender_client": "qa-native-sender",
+  "request_id": "w2",
+  "tx_seqs": [
+   212,
+   213,
+   214,
+   216,
+   219
+  ],
+  "tx_data_seq": 218,
+  "written_bytes": 16,
+  "rx_seq": 220,
+  "rx_bytes": "QANUART1-A5E251\\r\\nack:QANUART1-A5E251\\r\\nfx> ",
+  "rx_offset_start": 737,
+  "rx_offset_end": 779,
+  "epoch": "1794732461",
+  "tx_to_rx_ms": 4.8,
+  "device_rx_log_contains_marker": true,
+  "observer_client": "qa-native-uart-observer (separate identity, armed before send, first snapshot before send)"
+ },
+ "live_receive": "tick N device events continue every ~3 s after marker (seq 231..273)",
+ "notes": [
+  "uart.expect --from now armed AFTER send -> E_TIMEOUT (QA sequencing error, not product); ack proven from observer seq 220",
+  "pre-connect tick 1..35 backlog delivered at open (fixture writes before open; expected PTY behaviour)",
+  "toast '\uc7a5\uce58\uac00 uart qa-native-uart1\ub97c \ub2e4\uc2dc \uc5f4\uc5c8\uc2b5\ub2c8\ub2e4' on FIRST open: wording observation only, not yet a defect claim",
+  "CUA typeText fast alias entry yielded only 't1'; ROOT pasted full alias before Connect: automation-entry fallback, no product bug claimed"
+ ],
+ "visible_ack": {
+  "evidence": [
+   "root-uart1-ack.png",
+   "root-uart1-ack.ax.txt"
+  ],
+  "search": "ack:QANUART1-A5E251 1/1",
+  "ui_line_ts_local": "20:27:11.922",
+  "cli_rx_seq220_wall": "2026-11-15T11:27:11.922Z (=20:27:11.922 KST)",
+  "ui_tx": "16 B == written_bytes 16",
+  "agent_indicator": "AGT \u25b6 \"QANUART1-A5E251\u23ce\""
+ }
+}

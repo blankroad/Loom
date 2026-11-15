@@ -1,0 +1,44 @@
+{
+  "port": 62968,
+  "files": [
+    {
+      "file": "assets/index-BD_R9uM0.css",
+      "status": 200,
+      "match": true,
+      "sha256": "f56317e275739715d671f17506ac6dd401ecd8e4ad0bb7cfa73fd132364b0787"
+    },
+    {
+      "file": "assets/index-URYTawWD.js",
+      "status": 200,
+      "match": true,
+      "sha256": "51e059cff2e9fc5ef5d64f4f0e3e2fbad8fc9ea7d03ac1efe6ffb65cca294a66"
+    },
+    {
+      "file": "assets/index-URYTawWD.js.map",
+      "status": 200,
+      "match": true,
+      "sha256": "8587c873ef4335ddfd44fdedb121f8eb6ac365b91f3e226a9f4f95e5617a70e1"
+    },
+    {
+      "file": "assets/net.worker-iKLXTfiY.js",
+      "status": 200,
+      "match": true,
+      "sha256": "660f8fbbbad13179188fcdb995f0bf7c9d802bcd9fae6812163e0b651e826ab0"
+    },
+    {
+      "file": "assets/net.worker-iKLXTfiY.js.map",
+      "status": 200,
+      "match": true,
+      "sha256": "a7c2504a4f950a241aed9c5a0ed0db4a00f4d548a99d937227549dcf8952fc59"
+    },
+    {
+      "file": "index.html",
+      "status": 200,
+      "match": true,
+      "sha256": "e8354148824497174c47524542358451fc5807e2eadf6eeabbac6e80ea215955"
+    }
+  ],
+  "compared": 6,
+  "mismatched": 0,
+  "scope": "public GET of actual published app own daemon UI; native-visible pending"
+}

@@ -1,0 +1,28 @@
+{
+  "app": "desktop/dist/Loom.app",
+  "bundle_id": "local.loom.desktop",
+  "version": "0.1.0",
+  "main_executable": {
+    "name": "loom-desktop",
+    "sha256": "3d74e8134cdfb1b60dadbdc3d0f7cfe26bb7faea3347aee588bf323cbee3b3d4",
+    "lc_uuid": "4B750976-D2F2-38FB-924F-EC91C57FE828"
+  },
+  "loomd": {
+    "pre_sign_staged_sha256": "e56e10e2484deaea2b555e71cba612f42ead433d542fcdfbf66c6cf558b795cb",
+    "stamp_sha256": "e56e10e2484deaea2b555e71cba612f42ead433d542fcdfbf66c6cf558b795cb",
+    "bundled_sha256": "d4cfa7bb513d0196ea282f36fc69b163d84ac10aaa8edce3c4a810994399b24f",
+    "lc_uuid": "42293DB8-C5B6-3316-BC8A-398E8F5A3F5D",
+    "profile": "release",
+    "source": "/Users/ctmctm/workspace/Loom/target/release/loomd",
+    "baseline": "a8253c1",
+    "identity_text_const_uuid": "PASS"
+  },
+  "ui_dist_digest": "643e595265ae92e70219cfadf0eff7c037948586547d4aedb8a26372996b0f05",
+  "signature": [
+    "CodeDirectory v=20500 size=17715 flags=0x10002(adhoc,runtime) hashes=547+3 location=embedded",
+    "Signature=adhoc",
+    "TeamIdentifier=not set"
+  ],
+  "verify_bundle_exit": 0,
+  "verified_at": "2026-11-15T06:48:52+00:00"
+}

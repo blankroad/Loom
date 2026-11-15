@@ -1,0 +1,6 @@
+::: 00-snapshot: rsync -a --delete --exclude=/.git/ --exclude=/target/ --exclude=/spikes/ --exclude=/work/ --exclude=/.worktrees/ --exclude=node_modules/ --exclude=/ui/dist/ --exclude=/ui/test-results/ --exclude=/desktop/dist/ --exclude=/desktop/src-tauri/binaries/ --exclude=/desktop/src-tauri/gen/schemas/ --exclude=/.loom/ --exclude=/.cargo/ --exclude=/.cargo-home/ --exclude=/.venv/ --exclude=.DS_Store /source/ /cache/src-snapshot/
+::: 00-snapshot rc=0 [required] (0s)
+::: 01-provenance: provenance
+::: 01-provenance rc=1 [required] (0s)
+::: required step 01-provenance failed
+docker_run_rc=1

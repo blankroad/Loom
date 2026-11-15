@@ -1,0 +1,62 @@
+{
+ "flow": "UDS over external DoIP fixture: native Connect + F190",
+ "verdict": "PASS",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "state_seq": 2286,
+  "target": "qa-native-ecu",
+  "addr": "DoIP 0x1001 @127.0.0.1:64681 tester 0x0E80",
+  "p2": "50/5000",
+  "fixture_log": "accepted + routing activation 0x0005->0x0006 code 0x10"
+ },
+ "read1_raw_proof_preserved": {
+  "request_id": "w9",
+  "seqs": {
+   "tx_sent": 2623,
+   "rx": 2624,
+   "result": 2625
+  },
+  "resp": "62f190 + 'QANATIVEqn202208VIN' (19 B)",
+  "decoded": "absent",
+  "ui": "daemon decoded \uc5c6\uc74c / \ud655\uc815\uac12 \uc5c6\uc74c (truthful)",
+  "fixture_log": "scratchpad native-qn202208/doip/doip.jsonl"
+ },
+ "root_cause": "QA fixture VIN was 19 bytes; loom-uds-codec did.rs:409 defines F190 as fixed 17 ASCII (ISO 3779), response.rs:290 returns LengthMismatch -> manager.rs:329 decode_dids None. Correct standard behaviour, NOT a product defect.",
+ "fixture_correction": {
+  "label": "FIXTURE-ONLY correction, authorized by ROOT",
+  "old_pid": 49312,
+  "new_pid": 61860,
+  "port": 64681,
+  "vin": "WLMNATV2X2N202208 (17 B, no I/O/Q)",
+  "copy": "/tmp/loom-nativeqa/doip_fixture_fixedport.py (only change: bind port from FIXTURE_PORT env; diff in /tmp/loom-nativeqa/doip2/fixture-copy.diff)",
+  "daemon_auto_reconnect": {
+   "down_seq": 3457,
+   "cause": "early eof",
+   "up_seq": 3463,
+   "generation": 2
+  }
+ },
+ "read2": {
+  "request_id": "w10",
+  "seqs": {
+   "requested": 3661,
+   "accepted": 3662,
+   "sent": 3663,
+   "rx": 3664,
+   "result": 3665
+  },
+  "resp": "62f190574c4d4e4154563258324e323032323038",
+  "decoded": [
+   {
+    "did": "F190",
+    "name": "VIN",
+    "value": "WLMNATV2X2N202208"
+   }
+  ],
+  "rtt_ms": 4.927,
+  "observer": "qa-native-uds-observer armed before send"
+ },
+ "product_change": "none",
+ "visible": "root-uds-vin.*: transaction w10 selected, DID decoded VIN WLMNATV2X2N202208, \ud655\uc815\uac12 \ubc18\uc601 1\uac1c"
+}

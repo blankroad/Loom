@@ -1,0 +1,36 @@
+{
+ "flow": "Logic synthetic native start + real sigrok UART decode",
+ "verdict": "PASS (synthetic source; decode by real sigrok-cli PD)",
+ "native_start": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "logic.start",
+  "request_id": "w12",
+  "seqs": {
+   "requested": 5309,
+   "accepted": 5310,
+   "confirmed": 5312
+  },
+  "capture_id": "lc-1a1df00f399-1",
+  "config": "synthetic, text QANLOG-202208\\r\\n, 1 MHz, uart rx=D0 115200 8N1, 10 s, frame 100 ms",
+  "no_cli_start": true
+ },
+ "observer": {
+  "client": "qa-native-logic-observer",
+  "armed": "2026-11-15T11:38:48Z cursor e1794732461:seq:5017 (before click)",
+  "events": 229,
+  "edge_batches": 96,
+  "edge_seqs": "5318..5729"
+ },
+ "decode": {
+  "decoder_argv": "/opt/homebrew/bin/sigrok-cli -P uart:rx=0:baudrate=115200 ... -A uart=rx-data",
+  "annotations": 1515,
+  "marker_repeats": 101,
+  "first_decoded_seq": 5360,
+  "bytes": "51 41 4E 4C 4F 47 2D 32 30 32 32 30 38 0D 0A",
+  "edges": 8888,
+  "dropped_annotations": 0,
+  "dropped_edges": 0
+ },
+ "visible": "root-logic-start.*: \u25cf\ucea1\ucc98\uc911, raw \uc804\uc774 528, \uc0dd\ub7b5 0, 90 annotation rows uart-1 (live)"
+}

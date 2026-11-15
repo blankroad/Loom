@@ -1,0 +1,173 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.191
+   Compiling serde_core v1.0.228
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.228
+   Compiling ref-cast v1.0.27
+   Compiling serde_json v1.0.149
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.19
+   Compiling hybrid-array v0.4.15
+   Compiling thiserror v2.0.21
+   Compiling const-oid v0.10.3
+   Compiling cfg-if v1.0.5
+   Compiling dyn-clone v1.0.20
+   Compiling autocfg v1.5.1
+   Compiling semver v1.0.28
+   Compiling base64 v0.22.1
+   Compiling num-traits v0.2.19
+   Compiling rustc_version v0.4.1
+   Compiling pin-project-lite v0.2.17
+   Compiling hex v0.4.3
+   Compiling syn v3.0.10
+   Compiling syn v2.0.119
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling cpufeatures v0.3.1
+   Compiling crc32c v0.6.9
+   Compiling once_cell v1.21.4
+   Compiling utf8parse v0.2.2
+   Compiling anstyle-parse v1.0.0
+   Compiling tracing-core v0.1.36
+   Compiling errno v0.3.14
+   Compiling anstyle v1.0.14
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling anstyle-query v1.1.5
+   Compiling anstream v1.0.0
+   Compiling signal-hook-registry v1.4.8
+   Compiling rmp v0.8.15
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling mio v1.2.4
+   Compiling socket2 v0.6.5
+   Compiling heck v0.5.0
+   Compiling bytes v1.12.1
+   Compiling strsim v0.11.1
+   Compiling clap_lex v1.1.1
+   Compiling serde_bytes v0.11.19
+   Compiling clap_builder v4.6.7
+   Compiling memory-stats v1.2.0
+   Compiling futures-task v0.3.34
+   Compiling futures-core v0.3.34
+   Compiling slab v0.4.12
+   Compiling serde_derive_internals v0.30.0
+   Compiling ref-cast-impl v1.0.27
+   Compiling thiserror-impl v2.0.21
+   Compiling tokio-macros v2.7.2
+   Compiling clap_derive v4.6.7
+   Compiling futures-macro v0.3.34
+   Compiling schemars_derive v1.2.3
+   Compiling tokio v1.54.1
+   Compiling futures-util v0.3.34
+   Compiling serde_derive v1.0.228
+   Compiling tracing-attributes v0.1.31
+   Compiling clap v4.6.7
+   Compiling tracing v0.1.44
+   Compiling schemars v1.2.3
+   Compiling rmp-serde v1.3.1
+   Compiling loom-proto v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-proto)
+   Compiling loom-journal v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-journal)
+   Compiling loom-domain-api v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-domain-api)
+   Compiling loom-cli-kit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-cli-kit)
+   Compiling loom-worker-sdk v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-worker-sdk)
+   Compiling loom-testkit v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-testkit)
+   Compiling loom-logic v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-logic)
+   Compiling loom-video v0.1.0 (/Users/ctmctm/workspace/Loom/crates/loom-video)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.99s
+     Running unittests src/lib.rs (/tmp/loom-ci-host-target/debug/deps/loom_logic-1f025527e098aee0)
+
+running 15 tests
+test cli::tests::flattened_read_rows_and_completeness_are_visible ... ok
+test model::tests::annotation_lines ... ok
+test model::tests::argv_fixed_eight_channels ... ok
+test model::tests::strict_validation ... ok
+test model::tests::synth_spi_clock_bounds_never_panic ... ok
+test cli::tests::synthetic_wire_has_no_legacy_keys ... ok
+test model::tests::edges_are_bounded_and_absolute ... ok
+test worker::tests::list_sections ... ok
+test cli::tests::explicit_source_and_model_validation ... ok
+test cli::tests::wait_is_finite_and_match_is_exclusive ... ok
+test cli::tests::read_bounds_and_cursor_roundtrip ... ok
+test worker::tests::worst_case_annotation_row_fits_batch_budget ... ok
+test cli::tests::spi_and_capture_limits_use_backend_wire ... ok
+test model::tests::worst_case_edges_payload_fits ... ok
+test model::tests::synth_uart_shape ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/engine.rs (/tmp/loom-ci-host-target/debug/deps/engine-4a5d2845f92faf08)
+
+running 10 tests
+test registration ... ok
+test missing_engine_is_an_error_not_a_fallback ... ok
+test busy_latch_and_drop_cleanup ... ok
+test acquisition_failure_is_reported_with_stderr ... ok
+test synthetic_uart_decodes_before_stop ... ok
+test decoder_closing_input_early_is_a_failure ... ok
+test sigrok_demo_with_decoder_tee_and_sample_bound ... ok
+test sigrok_demo_real_acquisition_and_clean_stop ... ok
+test synthetic_spi_all_modes ... ok
+test descendants_holding_pipes_are_group_killed ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.55s
+
+     Running tests/gateway.rs (/tmp/loom-ci-host-target/debug/deps/gateway-a614eae65338d4bc)
+
+running 4 tests
+test ascii_match_needs_lossless_run ... ok
+test producer_edges_cap_fits_snapshot_budget ... ok
+test read_rows_leave_envelope_headroom ... ok
+test snapshot_is_byte_bounded ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.66s
+
+     Running unittests src/lib.rs (/tmp/loom-ci-host-target/debug/deps/loom_video-699a5e73331a57cc)
+
+running 12 tests
+test media::tests::frame_query_is_id_only ... ok
+test media::tests::wide_header_values_are_exact ... ok
+test model::tests::quota_bounds ... ok
+test model::tests::ids_and_paths ... ok
+test model::tests::progress_and_exit ... ok
+test model::tests::splitter_frames_chunks_junk_oversize ... ok
+test model::tests::open_config_strict_and_explicit ... ok
+test model::tests::argv_templates ... ok
+test model::tests::url_rules ... ok
+test cli::tests::open_is_explicit_and_validated_locally ... ok
+test cli::tests::frame_snapshot_record_wait_read ... ok
+test model::tests::ring_bounds_and_lookup ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/fixture_e2e.rs (/tmp/loom-ci-host-target/debug/deps/fixture_e2e-72b2c08204681b06)
+
+running 4 tests
+test refused_source_fails_explicitly ... ok
+test storage_roots_socket_path_and_quota_are_explicit ... ok
+test live_snapshot_record_media_and_stop_cleanup ... ok
+test stall_disconnect_no_auto_reconnect_and_manual_reopen ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.16s
+
+     Running tests/platform_unsupported.rs (/tmp/loom-ci-host-target/debug/deps/platform_unsupported-368ef68a033f4bdb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_logic
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_video
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

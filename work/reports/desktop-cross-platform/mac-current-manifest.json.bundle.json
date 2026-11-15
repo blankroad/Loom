@@ -1,0 +1,60 @@
+{
+ "app": "desktop/dist/Loom.app",
+ "checks": [
+  {
+   "check": "info-plist",
+   "result": "PASS",
+   "detail": "desktop/dist/Loom.app/Contents/Info.plist"
+  },
+  {
+   "check": "bundle-id",
+   "result": "PASS",
+   "detail": "local.loom.desktop"
+  },
+  {
+   "check": "main-exe",
+   "result": "PASS",
+   "detail": "Contents/MacOS/loom-desktop (arm64)"
+  },
+  {
+   "check": "version",
+   "result": "INFO",
+   "detail": "0.1.0 min macOS 12.0"
+  },
+  {
+   "check": "loomd-identity",
+   "result": "PASS",
+   "detail": "bundled d4cfa7bb513d0196ea282f36fc69b163d84ac10aaa8edce3c4a810994399b24f == ad-hoc re-sign of staged e56e10e2484deaea2b555e71cba612f42ead433d542fcdfbf66c6cf558b795cb (flags=0x10002(adhoc,runtime); release /Users/ctmctm/workspace/Loom/target/release/loomd baseline a8253c1)"
+  },
+  {
+   "check": "loomd-embedded-ui",
+   "result": "PASS",
+   "detail": "verify-loomd: /ui files compared=6 mismatched=0 csp=yes port=59539"
+  },
+  {
+   "check": "no-home-data",
+   "result": "PASS",
+   "detail": "no daemon.json/logs/journals/policy in bundle"
+  },
+  {
+   "check": "no-credentials",
+   "result": "PASS",
+   "detail": "no '#boot=' / 'Bearer ' literals in resources"
+  },
+  {
+   "check": "no-qa-webdriver",
+   "result": "PASS",
+   "detail": "no embedded WebDriver plugin in main executable"
+  },
+  {
+   "check": "codesign",
+   "result": "PASS",
+   "detail": "valid (Signature=adhoc TeamIdentifier=not set )"
+  },
+  {
+   "check": "size",
+   "result": "INFO",
+   "detail": " 29M"
+  }
+ ]
+}

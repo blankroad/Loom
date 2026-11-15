@@ -1,0 +1,17 @@
+{
+  "issue": "QA process: on case-insensitive APFS, writing SUMMARY.json after raw summary.json (same name, different case) replaced the raw CLI envelope with QA summary content (file keeps the lowercase name)",
+  "affected": [
+    "qa/psu-connect.json",
+    "qa/uds-connect.json",
+    "qa/uds-did.json",
+    "qa/can-open.json",
+    "qa/video-open.json",
+    "qa/psu-meas.json",
+    "qa/fix/psu-connect.json",
+    "qa/fix/can-open.json",
+    "qa/fix/psu-meas.json"
+  ],
+  "impact": "raw envelopes not kept verbatim; every summary embeds the envelope data/meta/others_since_last fields (and request ids, rc, PDU bytes); journal + fixture logs remain independent primary evidence",
+  "mitigation": "from 08:2xZ: raw CLI outputs named raw-<step>.json, QA summaries sum-<step>.json (prefix-distinct, never case-only); affected files keep their overwritten provenance and are NOT reconstructed as raw (ROOT)",
+  "recorded_utc": "2026-11-15T08:24:46Z"
+}

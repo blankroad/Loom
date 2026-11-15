@@ -1,0 +1,6 @@
+{
+  "state": "STAGED",
+  "source": "/tmp/loom-module-final/Loom.app",
+  "dest": "/tmp/loom-module-publish/Loom.app",
+  "tree_sha256": "302e5c5bccd65ffe18db12fae1fe632927eecad4bff9790c5b9d83a61ce2a321"
+}

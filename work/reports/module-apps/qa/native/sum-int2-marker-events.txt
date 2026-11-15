@@ -1,0 +1,6 @@
+observer events 108
+10830 qa-native-uart1 uart.write agent w16 1794742999858760000 None b'QANINT2-B3FF78\r'
+10834 qa-native-uart1 uart.data agent w16 1794742999858897000 None b'QANINT2-B3FF78\r'
+10837 qa-native-uart1 uart.data device None 1794742999862960000 None b'QANINT2-B3FF78\r\nack:QANINT2-B3FF78\r\nfx> '
+10841 qa-native-can can.frame agent w17 1794742999877235208 768 b'.\xa4\xc7\x80\x8ae\xa4\x1b'
+10842 qa-native-can can.frame device None 1794742999882240833 769 b'.\xa4\xc7\x80\x8ae\xa4\x1b'

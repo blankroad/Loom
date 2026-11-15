@@ -1,0 +1,10 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 164, 166, 168-169
++									168 text AGT ▶ "QANUART1-A5E251⏎" 340s 전 │ rx 0 B/s
+~									165 search text field (settable) 터미널 검색, Value: ack:QANUART2-9A8E3D, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)
++										169 text (settable) ack:QANUART2-9A8E3D
++										170 button cancel
++									171 text 1/1
++									172 text AGT ▶ "QANUART2-9A8E3D⏎" 11s 전 │ rx 0 B/s
++					173 container 20시 32분 52초.046 AGT qa-native-uart-observer#58511 core core.events.query 5 call(s) in the last second
+The focused UI element is 165 search text field (settable) 터미널 검색, Value: ack:QANUART2-9A8E3D, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)

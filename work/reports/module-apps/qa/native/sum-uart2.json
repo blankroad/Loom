@@ -1,0 +1,43 @@
+{
+ "flow": "UART2 native split open + CLI marker",
+ "verdict": "PASS",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "uart.open",
+  "request_id": "w3",
+  "seqs": {
+   "requested": 404,
+   "accepted": 405,
+   "state_open": 406,
+   "config": 407,
+   "sent": 408
+  },
+  "path": "/dev/ttys005",
+  "config": "115200 8N1 none",
+  "generation": 1,
+  "no_open_before_click": "save-only checks 11:29:22Z/11:29:28Z E_NOT_OPEN"
+ },
+ "marker": {
+  "text": "QANUART2-9A8E3D",
+  "request_id": "w4",
+  "tx_seq": 436,
+  "tx_data_seq": 440,
+  "sent_seq": 441,
+  "rx_seq": 443,
+  "rx": "QANUART2-9A8E3D\\r\\nack:QANUART2-9A8E3D\\r\\nfx> ",
+  "rx_offset": [
+   1129,
+   1150
+  ],
+  "tx_to_rx_ms": 3.05,
+  "epoch": "1794732461",
+  "expect": "matched from off:1112 (pre-send)",
+  "isolation": "marker in uart2 rx.log 1, uart1 rx.log 0"
+ },
+ "visible": {
+  "split": "root-uart2-split.png: pane1 uart1 (ack:QANUART1 search 1/1 retained) | pane2 uart2 ticks",
+  "ack": "root-uart2-ack.ax.txt: ack:QANUART2-9A8E3D 1/1, AGT \u25b6 indicator, both panes retained"
+ },
+ "observation": "toast '\uc7a5\uce58\uac00 uart qa-native-uart2\ub97c \ub2e4\uc2dc \uc5f4\uc5c8\uc2b5\ub2c8\ub2e4' again on first open (same as uart1) \u2014 wording issue candidate, not claimed as defect"
+}

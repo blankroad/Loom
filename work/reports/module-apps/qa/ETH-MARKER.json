@@ -1,0 +1,116 @@
+{
+  "result": "ETH_MARKER_DONE",
+  "marker": "QAETH-075258-5CC7F7",
+  "marker_hex": "51414554482d3037353235382d354343374637",
+  "ch": "qa-eth",
+  "stream_epoch": "1794728047",
+  "evidence_scope": "browser compositor (Ego space16) + CLI observer on same daemon; OS locked -> no native-visible claim; sim backend + loopback OS socket, no NIC",
+  "udp_fixture": {
+    "pid": 82545,
+    "bind": "127.0.0.1:52198",
+    "script": "work/reports/external-simulator-validation/ethernet/udp_server.py",
+    "log": "/tmp/lqa1-fx/udp/udp-server.jsonl",
+    "received": [
+      {
+        "event": "rx",
+        "n": 1,
+        "wall_ns": 1794729185749712000,
+        "peer": "127.0.0.1:55415",
+        "len": 19,
+        "sha256": "092ecda15d6bc6c15cdbb1e20f818b4930c16185b23c9025f5029c4f9264805e",
+        "hex": "51414554482d3037353235382d354343374637"
+      }
+    ],
+    "datagrams_total": 1
+  },
+  "observer": {
+    "client": "eth-observer",
+    "cmd": "loom events --since now --channel qa-eth --follow --timeout 30 --max 200 --json",
+    "started_utc": "2026-11-15T07:53:05Z",
+    "initial_snapshot": {
+      "count": 0,
+      "stream_seq_hw": "994",
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "visibility": "visible"
+    },
+    "armed_before_send": true,
+    "rc": 0,
+    "completed": "30 s bounded, normal exit",
+    "events_total": 68
+  },
+  "dry_run": {
+    "rc": 0,
+    "data": {
+      "dry_run": true,
+      "info": "0 \u2192 52198 Len=19",
+      "len": 19,
+      "proto": "UDP",
+      "reason": "send to loopback",
+      "risk": "R1"
+    },
+    "sent_nothing": "udp server log had only its listening line"
+  },
+  "send": {
+    "client": "qa-eth",
+    "cmd": "loom eth send udp 51414554482d3037353235382d354343374637 --to 127.0.0.1:52198 --ch qa-eth --idempotency-key qa-mod-eth-QAETH-075258-5CC7F7 --json",
+    "rc": 0,
+    "data": {
+      "ch": "qa-eth",
+      "hex_preview": "51414554482d3037353235382d354343374637",
+      "kind": "udp",
+      "len": 19,
+      "request_id": "w5",
+      "state": "sent",
+      "to": "127.0.0.1:52198",
+      "write_state": "sent"
+    },
+    "meta": {
+      "truncated": false,
+      "record_health": "ok",
+      "env": "sim",
+      "latch": false,
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "stream_epoch": "1794728047",
+      "visibility": "visible"
+    },
+    "others_since_last": {
+      "count": "0",
+      "from_cursor": "e1794728047:seq:975"
+    }
+  },
+  "journal": {
+    "eth.tx": "e1794728047 seq 995-1001 request w5 (requested->accepted->sent, final at 1000; 1001 observed_src_seq 194)",
+    "eth.pkt": {
+      "ref": "eth:qa-eth@e1794728047:seq:1002",
+      "origin": "device",
+      "attributed_origin": "agent",
+      "dir": "tx",
+      "info": "55415 \u2192 52198 Len=19",
+      "source_seq": "194",
+      "link": {
+        "confidence": "exact",
+        "domain": "eth",
+        "request_id": "w5",
+        "role": "tx"
+      },
+      "frame_len": 61,
+      "frame_hex": "02000000000102000000000208004500002f0000000040117cbc7f0000017f000001d877cbe6001b053451414554482d3037353235382d354343374637",
+      "udp_payload_matches": true
+    }
+  },
+  "correlation": {
+    "send.request_id==eth.tx.request_id": true,
+    "eth.tx.observed_src_seq==eth.pkt._capture.source_seq": "194==194",
+    "bytes_exact": true,
+    "server_rx_hex==sent": true
+  },
+  "caveat": "own echoed frame (attributed_origin agent) proves correlation only, not device behaviour",
+  "redaction": "no token/cookie/code",
+  "recorded_utc": "2026-11-15T07:53:25Z"
+}

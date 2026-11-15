@@ -1,0 +1,59 @@
+
+ RUN  v5.1.0 /Users/ctmctm/workspace/Loom/ui
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the @napi-rs/canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the @napi-rs/canvas npm package
+ ❯ src/sdk/capacityLive.test.ts (3 tests | 2 failed) 1063ms
+   ❯ CAN live after a retained-dock tour (8 subscriptions per connection) (3)
+     × panel visibility drives the lease of every topic, including topics opened lazily while hidden 9ms
+     × F4 end to end: at the cap, a topic opened lazily by a hidden panel never merges or re-snapshots visible ones 117ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/sdk/capacityLive.test.ts > CAN live after a retained-dock tour (8 subscriptions per connection) > panel visibility drives the lease of every topic, including topics opened lazily while hidden
+AssertionError: expected [ undefined, undefined ] to deeply equal [ undefined, false ]
+
+- Expected
++ Received
+
+  [
+    undefined,
+-   false,
++   undefined,
+  ]
+
+ ❯ src/sdk/capacityLive.test.ts:264:48
+    262|     h.setVisible(true);
+    263|     // F4: the hidden open carries its lease in the subscribe itself (…
+    264|     expect(net.subs.map((s) => s.opts.active)).toEqual([undefined, fal…
+       |                                                ^
+    265|     expect(net.subs.map((s) => s.active)).toEqual([[false, true], [tru…
+    266|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/sdk/capacityLive.test.ts > CAN live after a retained-dock tour (8 subscriptions per connection) > F4 end to end: at the cap, a topic opened lazily by a hidden panel never merges or re-snapshots visible ones
+AssertionError: expected 10 to be 8 // Object.is equality
+
+- Expected
++ Received
+
+- 8
++ 10
+
+ ❯ src/sdk/capacityLive.test.ts:310:37
+    308|     hidden.ctx.store('t');
+    309|     await settle(frames);
+    310|     expect(d.log.subscribes.length).toBe(subsBefore); // 0 merges / 0 …
+       |                                     ^
+    311|     expect(d.log.unsubscribes).toBe(0);
+    312|     expect(resyncs()).toEqual([]); // no "merged" / "suspended_hidden"…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  17:30:35
+   Duration  1.76s (tests 66%, environment 26%, transform 4%, import 4%)
+

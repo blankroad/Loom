@@ -1,6 +1,25 @@
 # ROOT integration review and native observations
 
-State: WORKING. Native RX/input is not accepted yet.
+State: WORKING — new Bench Light native acceptance pending. Historical checkpoints below are retained, not current visual acceptance.
+
+## Bench Light correction / current run
+
+- ROOT rejected the old dark product as the wrong visual baseline. Agreed UART REV6.1, Ethernet and UDS workbenches were ported into the actual shared UI by native foreground Opus 5.5 owners. ROOT reviewed source, boundary fixes and actual Ego screenshots.
+- Old run4 after the screen was unlocked: ROOT CUA actual OS Enter (`root-native-1`) and Tab (`root-tab` + 0x09) reached the external PTY and the same CLI receive journal. This is valid functional evidence for that earlier UI, not acceptance of the new visual build.
+- New UI checks: 666 tests passed, schema/lint/typecheck passed (type-only ETH array fix), app bundles and signatures verified. Real-daemon UI identity defect (canonical localhost Host header) was fixed and tested against an actual isolated daemon. Other details in ROOT-REVIEW.md and finalQA evidence.
+- Waiting for stable private app NATIVE-REQUEST before new CUA checks. Never bind a nonrunning app path (CUA auto-launches and could use the default home). ROOT owns the native input lease while acting; QA holds its app automation until return.
+
+### New ordinary release native checks (2026-11-15 ~11:49 KST)
+
+- Verified live process 45431 executable is `desktop/dist/Loom.app/Contents/MacOS/loom-desktop`, private daemon 45073, port54389 and external PTY /dev/ttys000 before CUA binding. Actual ordinary signed release, no WebDriver.
+- CUA initial AX: app reopened at `#/l/m1-default` with live dut. ROOT clicked UART service to obtain the agreed workbench. The initial/fresh automatic route still needs actual QA measurement; clicking to UART is not proof of automatic startup routing.
+- CUA clicked actual Terminal input, typed `root-native-bl1`, physical Return. `smoke-native.sh check-typed root-native-bl1`: **PASS** external device bytes and CLI `ack:root-native-bl1` on same stream.
+- CUA typed `root-tab-bl1`, physical Tab, Return. `check-typed root-tab-bl1 --tab`: **PASS**, exact `0x09` at device plus CLI ack.
+- ROOT visually inspected CUA's actual app screenshot: Bench Light outer shell, sessions rail/sidebar and toolbar, dark terminal with host timestamp gutter, live ticks and both acks. No blank panel. This capture includes native title bar; browser/native CSS geometry comparisons remain QA's separate evidence.
+- QA stopped only private daemon45073 via ordinary `loom daemon stop`, preserving ordinary app45431. ROOT CUA fetched fresh native AX, clicked Connection menu then Reconnect. Same app navigated to `localhost:54546/ui/#/l/m1-default`, AX reports connected, interfaces0, RECok, visible1/1, approve, light Welcome. The missing dut is expected: the old daemon owned its connection; QA reopens it. This is actual native menu input, not DOM synthesis or app relaunch. QA verifies new PID, binary and identity Match.
+- **NATIVE_CHECKS_DONE** — ROOT returns the app input lease to finalQA. New ordinary release physical Enter, physical Tab0x09 and native menu Reconnect UI recovery passed. No production/default user daemon was touched. Final module flows, startup route measurement and final comparative screenshots/report still belong to QA.
+
+## Historical native checkpoint (superseded by later runs)
 
 - Reviewed host lifecycle source: same-home lock coordination, explicit binary, detached daemon, bounded probes, credential redaction, no Drop termination.
 - Reviewed app source and independent host reviews. Required native Reconnect after daemon restart and top-level external-navigation restriction; app owner implemented both. Packaging review findings sent to QA (PID identity, lockfile enforcement, separated targets, deadlines, token hygiene).

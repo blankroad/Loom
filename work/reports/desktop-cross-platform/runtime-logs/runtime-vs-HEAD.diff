@@ -1,0 +1,1408 @@
+diff --git a/desktop/Cargo.lock b/desktop/Cargo.lock
+index e6303ee..6e1dbf1 100644
+--- a/desktop/Cargo.lock
++++ b/desktop/Cargo.lock
+@@ -1928,6 +1928,7 @@ dependencies = [
+  "tauri",
+  "tauri-build",
+  "tauri-plugin-wdio-webdriver",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+diff --git a/desktop/host/src/lib.rs b/desktop/host/src/lib.rs
+index f34e57c..a6ee39c 100644
+--- a/desktop/host/src/lib.rs
++++ b/desktop/host/src/lib.rs
+@@ -7,8 +7,9 @@
+ //! Lifecycle guarantees:
+ //! - an existing daemon is always reused; a daemon is started only when the home's instance lock
+ //!   (`run/loomd.lock`) is free, serialized with the CLI through `run/start.lock`;
+-//! - a started daemon runs in its own process group with stdin `/dev/null` and stdout/stderr
+-//!   appended to `<home>/run/loomd.log` (0600) — no pipes, so closing or killing the app never
++//! - a started daemon runs in its own process group (Windows: detached, no console, out of the
++//!   app's job object when allowed) with stdin null and stdout/stderr appended to
++//!   `<home>/run/loomd.log` (0600 on Unix) — no pipes, so closing or killing the app never
+ //!   blocks on, signals or reaps-into-death the daemon;
+ //! - nothing here ever stops a daemon: [`DesktopSession`] has no `Drop` behaviour;
+ //! - the token, the bootstrap code and the viewer URL never appear in `Debug`/`Display` output or
+@@ -46,6 +47,10 @@ pub struct ConnectOptions {
+     pub ui_dir: Option<PathBuf>,
+     /// Bound on the whole [`connect`] call.
+     pub startup_timeout: Duration,
++    /// Environment changes for a daemon this call starts (`None` removes the variable), applied
++    /// before `LOOM_HOME`, which is always set to [`ConnectOptions::home`]. Used e.g. to keep a
++    /// Linux AppImage's mount-relative variables out of the long-lived daemon. Empty = inherit.
++    pub daemon_env: Vec<(std::ffi::OsString, Option<std::ffi::OsString>)>,
+ }
+ 
+ impl ConnectOptions {
+@@ -53,7 +58,8 @@ impl ConnectOptions {
+     pub const DEFAULT_STARTUP_TIMEOUT: Duration = Duration::from_secs(15);
+ }
+ 
+-/// Loom home exactly as the CLI resolves it: `LOOM_HOME`, else `~/.loom`.
++/// Loom home as the CLI and `loomd` resolve it: `LOOM_HOME`, else `$HOME/.loom`, else
++/// `%USERPROFILE%\.loom` (empty values count as unset here).
+ pub fn default_home() -> Option<PathBuf> {
+     if let Some(h) = std::env::var_os("LOOM_HOME").filter(|h| !h.is_empty()) {
+         return Some(PathBuf::from(h));
+@@ -108,6 +114,19 @@ impl DesktopSession {
+     }
+ }
+ 
++/// Bytes of the UI page `/ui/` served by the daemon on `port` (public static asset, no token):
++/// the exact document the desktop window loads (`http://localhost:<port>/ui/#boot=…`). Fetched on
++/// the canonical `localhost` host; any non-200 (including a 308 redirect) is an error, never followed.
++/// The desktop shell compares them with the UI build it was packaged with: a reused, older
++/// daemon keeps serving its own embedded UI, which must never be shown silently.
++pub fn daemon_ui_index(port: u16, timeout: Duration) -> io::Result<Vec<u8>> {
++    let r = http::get_public(port, "/ui/", timeout)?;
++    if r.status != 200 {
++        return Err(io::Error::other(format!("GET /ui/ returned HTTP {}", r.status)));
++    }
++    Ok(r.body)
++}
++
+ impl std::fmt::Debug for DesktopSession {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         f.debug_struct("DesktopSession")
+@@ -277,12 +296,28 @@ fn is_executable(p: &Path) -> bool {
+     }
+ }
+ 
+-fn spawn_daemon(o: &ConnectOptions, run: &Path, ui_dir: Option<&Path>) -> Result<Child, HostError> {
++/// Maps the configured [`ConnectOptions::daemon_bin`] to the file actually started (see
++/// [`connect_with`]).
++pub type PrepareDaemon<'a> = &'a dyn Fn(&Path) -> io::Result<PathBuf>;
++
++fn spawn_daemon(
++    o: &ConnectOptions,
++    run: &Path,
++    ui_dir: Option<&Path>,
++    prepare: PrepareDaemon<'_>,
++) -> Result<Child, HostError> {
+     if !is_executable(&o.daemon_bin) {
+         return Err(HostError::DaemonBinaryMissing {
+             path: o.daemon_bin.clone(),
+         });
+     }
++    let bin = prepare(&o.daemon_bin).map_err(|source| HostError::Spawn {
++        path: o.daemon_bin.clone(),
++        source,
++    })?;
++    if !is_executable(&bin) {
++        return Err(HostError::DaemonBinaryMissing { path: bin });
++    }
+     let log_path = run.join("loomd.log");
+     let mut lo = OpenOptions::new();
+     lo.create(true).append(true);
+@@ -299,41 +334,54 @@ fn spawn_daemon(o: &ConnectOptions, run: &Path, ui_dir: Option<&Path>) -> Result
+     let _ = writeln!(
+         log,
+         "loom-desktop-host: starting {} (unix time {now}, desktop pid {})",
+-        o.daemon_bin.display(),
++        bin.display(),
+         std::process::id()
+     );
+     let err_log = log.try_clone().map_err(home_err(&log_path))?;
+-    let mut cmd = Command::new(&o.daemon_bin);
++    let mut cmd = Command::new(&bin);
+     cmd.arg("run");
+     if let Some(dir) = ui_dir {
+         cmd.arg("--ui-dir").arg(dir);
+     }
++    for (k, v) in &o.daemon_env {
++        match v {
++            Some(v) => cmd.env(k, v),
++            None => cmd.env_remove(k),
++        };
++    }
+     cmd.env("LOOM_HOME", &o.home)
+         .current_dir(&o.home)
+         .stdin(Stdio::null())
+         .stdout(log)
+         .stderr(err_log);
+-    detach(&mut cmd);
+-    cmd.spawn().map_err(|source| HostError::Spawn {
+-        path: o.daemon_bin.clone(),
+-        source,
+-    })
++    spawn_detached(&mut cmd).map_err(|source| HostError::Spawn { path: bin, source })
+ }
+ 
+ #[cfg(unix)]
+-fn detach(cmd: &mut Command) {
++fn spawn_detached(cmd: &mut Command) -> io::Result<Child> {
+     use std::os::unix::process::CommandExt as _;
+     // Own process group: signals to the app's group (terminal Ctrl-C, group kill) skip the daemon.
+     cmd.process_group(0);
++    cmd.spawn()
+ }
+ 
++/// Same flags as `loom`'s `spawn_daemon`: no console, own process group, and out of the app's job
++/// object when the job allows breakaway (a launcher job with kill-on-close would otherwise take
++/// the daemon down with the app). A job that forbids breakaway fails the first spawn (access
++/// denied); the daemon is then started inside it, exactly as the CLI does.
+ #[cfg(windows)]
+-fn detach(cmd: &mut Command) {
++fn spawn_detached(cmd: &mut Command) -> io::Result<Child> {
+     use std::os::windows::process::CommandExt as _;
+     const DETACHED_PROCESS: u32 = 0x0000_0008;
+     const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+-    cmd.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW);
++    const CREATE_BREAKAWAY_FROM_JOB: u32 = 0x0100_0000;
++    const ERROR_ACCESS_DENIED: i32 = 5;
++    let base = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW;
++    match cmd.creation_flags(base | CREATE_BREAKAWAY_FROM_JOB).spawn() {
++        Err(e) if e.raw_os_error() == Some(ERROR_ACCESS_DENIED) => cmd.creation_flags(base).spawn(),
++        r => r,
++    }
+ }
+ 
+ /// Reap a daemon we started on a background thread so it never lingers as a zombie while the app
+@@ -374,6 +422,18 @@ fn validate(o: &ConnectOptions) -> Result<Option<PathBuf>, HostError> {
+ /// Reuse the daemon that owns `options.home`, or start `options.daemon_bin` if none does, then mint
+ /// a fresh viewer bootstrap URL. Bounded by `options.startup_timeout`. Never stops a daemon.
+ pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
++    connect_with(options, &|p| Ok(p.to_path_buf()))
++}
++
++/// [`connect`], with `prepare` turning the configured daemon binary into the file to start. It is
++/// called only when this call is about to start a daemon (holding `run/start.lock`, after the
++/// configured binary was found executable), never when an existing daemon is reused — e.g. the
++/// Linux AppImage build copies its bundled daemon out of the app's mount here. An error is a
++/// [`HostError::Spawn`] for the configured path, and nothing is started.
++pub fn connect_with(
++    options: &ConnectOptions,
++    prepare: PrepareDaemon<'_>,
++) -> Result<DesktopSession, HostError> {
+     let ui_dir = validate(options)?;
+     let home = options.home.as_path();
+     let t0 = Instant::now();
+@@ -399,7 +459,7 @@ pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
+         live_owner = daemon_lock_held(&run)?;
+         if !live_owner {
+             // Stale or absent discovery: the home has no daemon. Start ours.
+-            child = Some(spawn_daemon(options, &run, ui_dir.as_deref())?);
++            child = Some(spawn_daemon(options, &run, ui_dir.as_deref(), prepare)?);
+         }
+     }
+ 
+@@ -453,3 +513,62 @@ pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
+         }
+     })
+ }
++
++#[cfg(test)]
++mod ui_index_tests {
++    use super::*;
++    use std::io::{BufRead as _, BufReader};
++    use std::net::TcpListener;
++
++    /// One-shot local server: records the request head, answers with `reply`.
++    fn serve(reply: &'static [u8]) -> (u16, std::thread::JoinHandle<String>) {
++        let l = TcpListener::bind("127.0.0.1:0").unwrap();
++        let port = l.local_addr().unwrap().port();
++        let h = std::thread::spawn(move || {
++            let (mut s, _) = l.accept().unwrap();
++            let mut head = String::new();
++            let mut r = BufReader::new(s.try_clone().unwrap());
++            loop {
++                let mut line = String::new();
++                if r.read_line(&mut line).unwrap() == 0 || line == "\r\n" {
++                    break;
++                }
++                head.push_str(&line);
++            }
++            s.write_all(reply).unwrap();
++            head
++        });
++        (port, h)
++    }
++
++    #[test]
++    fn fetches_index_without_credentials() {
++        let (port, h) = serve(b"HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\n<!doctype html>");
++        let body = daemon_ui_index(port, Duration::from_secs(2)).unwrap();
++        assert_eq!(body, b"<!doctype html>");
++        let head = h.join().unwrap();
++        assert!(head.starts_with("GET /ui/ HTTP/1.1\r\n"));
++        assert!(!head.to_ascii_lowercase().contains("authorization"));
++    }
++
++    /// Regression (final QA, 2026-11-15): loomd redirects (308) any `Host: 127.0.0.1` GET outside
++    /// /rpc and /api/ to its canonical `localhost` origin; the identity fetch must not be redirected.
++    #[test]
++    fn uses_canonical_localhost_host() {
++        let (port, h) = serve(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
++        daemon_ui_index(port, Duration::from_secs(2)).unwrap();
++        let head = h.join().unwrap();
++        assert!(
++            head.contains(&format!("\r\nHost: localhost:{port}\r\n")),
++            "{head}"
++        );
++    }
++
++    #[test]
++    fn non_200_is_an_error() {
++        let (port, h) = serve(b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n");
++        let e = daemon_ui_index(port, Duration::from_secs(2)).unwrap_err();
++        assert!(e.to_string().contains("404"));
++        h.join().unwrap();
++    }
++}
+diff --git a/desktop/host/tests/lifecycle.rs b/desktop/host/tests/lifecycle.rs
+index d10d8a6..088f64b 100644
+--- a/desktop/host/tests/lifecycle.rs
++++ b/desktop/host/tests/lifecycle.rs
+@@ -17,7 +17,7 @@ use std::process::Command;
+ use std::sync::atomic::{AtomicU64, Ordering};
+ use std::time::{Duration, Instant};
+ 
+-use loom_desktop_host::{ConnectOptions, DesktopSession, HostError, connect};
++use loom_desktop_host::{ConnectOptions, DesktopSession, HostError, connect, connect_with};
+ 
+ const MODE_ENV: &str = "LOOM_FAKE_DAEMON_MODE";
+ const CLIENT_ENV: &str = "LOOM_FAKE_CLIENT";
+@@ -239,7 +239,7 @@ fn fake_bin(dir: &Path, mode: &str) -> PathBuf {
+     let exe = std::env::current_exe().unwrap();
+     let script = dir.join(format!("fake-loomd-{mode}"));
+     let body = format!(
+-        "#!/bin/sh\necho spawn >> \"$LOOM_HOME/spawn-count\"\nprintf '%s\\n' \"$@\" > \"$LOOM_HOME/fake-args\"\npwd > \"$LOOM_HOME/fake-cwd\"\n{MODE_ENV}={mode} exec '{}' fake_loomd_entry --exact --nocapture --test-threads=1\n",
++        "#!/bin/sh\necho spawn >> \"$LOOM_HOME/spawn-count\"\nprintf '%s\\n' \"$@\" > \"$LOOM_HOME/fake-args\"\npwd > \"$LOOM_HOME/fake-cwd\"\nprintf '%s|%s' \"${{LOOM_TEST_ENV_PROBE-unset}}\" \"${{HOME-unset}}\" > \"$LOOM_HOME/fake-env\"\n{MODE_ENV}={mode} exec '{}' fake_loomd_entry --exact --nocapture --test-threads=1\n",
+         exe.display()
+     );
+     fs::write(&script, body).unwrap();
+@@ -253,6 +253,7 @@ fn opts(home: &Path, bin: &Path) -> ConnectOptions {
+         daemon_bin: bin.to_path_buf(),
+         ui_dir: None,
+         startup_timeout: Duration::from_secs(10),
++        daemon_env: Vec::new(),
+     }
+ }
+ 
+@@ -420,6 +421,72 @@ fn passes_ui_dir_only_when_starting() {
+     );
+ }
+ 
++/// `daemon_env` reaches a daemon this call starts (set and remove), but can never redirect it to
++/// another home: `LOOM_HOME` is always the selected home.
++#[test]
++fn daemon_env_overrides_apply_but_never_replace_loom_home() {
++    let f = Fixture::new();
++    let bin = fake_bin(f.path(), "ok");
++    let mut o = opts(f.path(), &bin);
++    o.daemon_env = vec![
++        ("LOOM_TEST_ENV_PROBE".into(), Some("set-by-desktop".into())),
++        ("HOME".into(), None), // inherited from the test process: removal is real,
++        ("LOOM_HOME".into(), Some("/nonexistent-bogus-home".into())),
++    ];
++    let s = connect(&o).unwrap();
++    assert!(s.started());
++    // The probe file is under the real home, so LOOM_HOME was the selected one.
++    assert_eq!(
++        fs::read_to_string(f.path().join("fake-env")).unwrap(),
++        "set-by-desktop|unset"
++    );
++}
++
++/// `connect_with`'s prepare hook (Linux AppImage copy-out) runs only when a daemon is started:
++/// never on reuse (so a read-only home with a running daemon still connects), exactly once on a
++/// start, and the prepared file is what runs.
++#[test]
++fn prepare_hook_runs_only_when_starting_and_its_binary_is_spawned() {
++    use std::sync::atomic::{AtomicUsize, Ordering};
++    let calls = AtomicUsize::new(0);
++
++    // Reuse: hook never called (it would fail loudly).
++    let f = Fixture::new();
++    let _d = in_proc(f.path(), Serve::Ok, "loom/1.0");
++    let s = connect_with(&opts(f.path(), Path::new("/nonexistent/loomd")), &|_| {
++        calls.fetch_add(1, Ordering::SeqCst);
++        Err(std::io::Error::other("must not be called on reuse"))
++    })
++    .unwrap();
++    assert!(!s.started());
++    assert_eq!(calls.load(Ordering::SeqCst), 0);
++
++    // Start: hook called once with the configured binary; its result is what runs.
++    let f = Fixture::new();
++    let configured = fake_bin(f.path(), "ok");
++    let copies = f.path().join("copies");
++    fs::create_dir_all(&copies).unwrap();
++    let prepared = fake_bin(&copies, "ok");
++    let s = connect_with(&opts(f.path(), &configured), &|p| {
++        calls.fetch_add(1, Ordering::SeqCst);
++        assert_eq!(p, configured.as_path());
++        Ok(prepared.clone())
++    })
++    .unwrap();
++    assert!(s.started());
++    assert_eq!(calls.load(Ordering::SeqCst), 1);
++    assert!(f.log().contains(&format!("starting {}", prepared.display())), "{}", f.log());
++
++    // Hook failure: a spawn error naming the configured binary, and nothing started.
++    let f = Fixture::new();
++    let bin = fake_bin(f.path(), "ok");
++    let e = connect_with(&opts(f.path(), &bin), &|_| Err(std::io::Error::other("copy failed")))
++        .unwrap_err();
++    assert!(matches!(e, HostError::Spawn { .. }), "{e:?}");
++    assert!(e.to_string().contains("copy failed"), "{e}");
++    assert_eq!(f.spawns(), 0);
++}
++
+ #[test]
+ fn invalid_options_fail_fast_without_spawning() {
+     let f = Fixture::new();
+diff --git a/desktop/host/tests/real_loomd.rs b/desktop/host/tests/real_loomd.rs
+index a811e7a..bfdb277 100644
+--- a/desktop/host/tests/real_loomd.rs
++++ b/desktop/host/tests/real_loomd.rs
+@@ -88,6 +88,7 @@ fn real_loomd_lifecycle() {
+         daemon_bin: bin,
+         ui_dir: Some(ui),
+         startup_timeout: Duration::from_secs(30),
++        daemon_env: Vec::new(),
+     };
+ 
+     // 1. absent → started from the explicit binary
+@@ -113,6 +114,15 @@ fn real_loomd_lifecycle() {
+     let (st, _, body) = request(s.port(), "GET", "/ui/", "");
+     assert_eq!(st, 200);
+     assert!(body.contains("ldh-ui-dir-marker"));
++    // 2b. the desktop UI-identity fetch reads exactly those bytes from the REAL daemon (canonical
++    //     host rule: a `Host: 127.0.0.1` GET outside /api would be a 308; regression 2026-11-15)
++    let served = loom_desktop_host::daemon_ui_index(s.port(), Duration::from_secs(5))
++        .expect("identity fetch of /ui/ from the real daemon");
++    assert_eq!(
++        served,
++        b"<!doctype html><title>ldh-ui-dir-marker</title>".to_vec(),
++        "identity bytes must equal the served index.html exactly"
++    );
+ 
+     // 3. the minted code is a real, single-use viewer bootstrap
+     let code = code_of(s.viewer_url()).to_owned();
+diff --git a/desktop/src-tauri/Cargo.toml b/desktop/src-tauri/Cargo.toml
+index a1adb68..ae20b4e 100644
+--- a/desktop/src-tauri/Cargo.toml
++++ b/desktop/src-tauri/Cargo.toml
+@@ -1,6 +1,6 @@
+ [package]
+ name = "loom-desktop"
+-description = "Native macOS shell hosting the Loom UI served by loomd"
++description = "Native desktop shell (macOS, Windows, Linux) hosting the Loom UI served by loomd"
+ version.workspace = true
+ edition.workspace = true
+ rust-version.workspace = true
+@@ -21,6 +21,11 @@ loom-desktop-host = { path = "../host" }
+ # dist or release bundles; enabled only by `--features e2e` on debug builds (ROOT-approved).
+ tauri-plugin-wdio-webdriver = { version = "=1.5.1", optional = true }
+ 
++# Windows only: ShellExecuteW for explicit external links (nav::open_external). Same crate/version
++# Tauri already pulls in for Windows targets (no new download).
++[target.'cfg(windows)'.dependencies]
++windows-sys = { version = "0.61.2", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
++
+ [features]
+ # `cargo build` (dev) loads frontend/ from disk; bundles enable custom-protocol (tauri-cli does this).
+ custom-protocol = ["tauri/custom-protocol"]
+diff --git a/desktop/src-tauri/src/config.rs b/desktop/src-tauri/src/config.rs
+index da453e8..4b671d4 100644
+--- a/desktop/src-tauri/src/config.rs
++++ b/desktop/src-tauri/src/config.rs
+@@ -1,9 +1,13 @@
+ //! Launch configuration: which Loom home, which daemon binary, optional UI dir.
+ //!
+ //! Resolution is pure (env lookup + executable path injected) so it is unit-testable.
+-//! - home: `LOOM_HOME`, else `$HOME/.loom` (same rule as `loom` CLI and `loomd`).
+-//! - daemon binary: `LOOM_DESKTOP_DAEMON_BIN` (exact, absolute), else `loomd` next to the app
+-//!   executable (`Loom.app/Contents/MacOS/loomd`, where packaging places the bundled daemon).
++//! - home: `LOOM_HOME`, else `$HOME/.loom`, else `%USERPROFILE%\.loom` (same order as the `loom`
++//!   CLI and `loomd`; a Windows app started from Explorer/Start normally has no `HOME`). Empty
++//!   values count as unset.
++//! - daemon binary: `LOOM_DESKTOP_DAEMON_BIN` (exact, absolute), else `loomd` (`loomd.exe` on
++//!   Windows) next to the app executable, where Tauri's `externalBin` places the bundled daemon:
++//!   `Loom.app/Contents/MacOS/loomd`, `<install dir>\loomd.exe`, `/usr/bin/loomd`,
++//!   `$APPDIR/usr/bin/loomd` (AppImage; see `appimage`). Never searched on `PATH`.
+ //! - UI dir: `LOOM_DESKTOP_UI_DIR` (absolute) is passed to `loomd --ui-dir` only when this app
+ //!   starts the daemon; default `None` = the daemon's embedded UI.
+ //! - startup timeout: `LOOM_DESKTOP_STARTUP_TIMEOUT_MS`, clamped to 1..=120 s, default 20 s.
+@@ -16,7 +20,8 @@ pub const ENV_DAEMON_BIN: &str = "LOOM_DESKTOP_DAEMON_BIN";
+ pub const ENV_UI_DIR: &str = "LOOM_DESKTOP_UI_DIR";
+ pub const ENV_TIMEOUT_MS: &str = "LOOM_DESKTOP_STARTUP_TIMEOUT_MS";
+ pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(20);
+-pub const DAEMON_FILE_NAME: &str = "loomd";
++/// Bundled daemon file name for the platform this app was built for.
++pub const DAEMON_FILE_NAME: &str = if cfg!(windows) { "loomd.exe" } else { "loomd" };
+ 
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct LaunchConfig {
+@@ -33,6 +38,7 @@ impl LaunchConfig {
+             daemon_bin: self.daemon_bin.clone(),
+             ui_dir: self.ui_dir.clone(),
+             startup_timeout: self.startup_timeout,
++            daemon_env: Vec::new(),
+         }
+     }
+ }
+@@ -56,9 +62,9 @@ pub fn resolve(
+ ) -> Result<LaunchConfig, String> {
+     let home = match non_empty(env("LOOM_HOME")) {
+         Some(h) => PathBuf::from(h),
+-        None => match non_empty(env("HOME")) {
++        None => match non_empty(env("HOME")).or_else(|| non_empty(env("USERPROFILE"))) {
+             Some(h) => PathBuf::from(h).join(".loom"),
+-            None => return Err("neither LOOM_HOME nor HOME is set".into()),
++            None => return Err("none of LOOM_HOME, HOME or USERPROFILE is set".into()),
+         },
+     };
+     let daemon_bin = match non_empty(env(ENV_DAEMON_BIN)) {
+@@ -112,28 +118,34 @@ mod tests {
+         assert_eq!(c.home, PathBuf::from("/Users/u/.loom"));
+         assert_eq!(
+             c.daemon_bin,
+-            PathBuf::from("/Applications/Loom.app/Contents/MacOS/loomd")
++            Path::new("/Applications/Loom.app/Contents/MacOS").join(DAEMON_FILE_NAME)
+         );
+         assert_eq!(c.ui_dir, None);
+         assert_eq!(c.startup_timeout, DEFAULT_TIMEOUT);
+     }
+ 
++    /// An absolute path on the platform running the test (`C:` drive prefix on Windows).
++    fn abs(p: &str) -> String {
++        if cfg!(windows) { format!("C:{p}") } else { p.to_string() }
++    }
++
+     #[test]
+     fn loom_home_and_explicit_binary_win() {
++        let (home, bin, ui) = (abs("/tmp/iso"), abs("/opt/loom/loomd"), abs("/opt/loom/ui"));
+         let c = resolve(
+             env_of(&[
+                 ("HOME", "/Users/u"),
+-                ("LOOM_HOME", "/tmp/iso"),
+-                (ENV_DAEMON_BIN, "/opt/loom/loomd"),
+-                (ENV_UI_DIR, "/opt/loom/ui"),
++                ("LOOM_HOME", &home),
++                (ENV_DAEMON_BIN, &bin),
++                (ENV_UI_DIR, &ui),
+                 (ENV_TIMEOUT_MS, "5000"),
+             ]),
+             Some(Path::new(EXE)),
+         )
+         .unwrap();
+-        assert_eq!(c.home, PathBuf::from("/tmp/iso"));
+-        assert_eq!(c.daemon_bin, PathBuf::from("/opt/loom/loomd"));
+-        assert_eq!(c.ui_dir, Some(PathBuf::from("/opt/loom/ui")));
++        assert_eq!(c.home, PathBuf::from(home));
++        assert_eq!(c.daemon_bin, PathBuf::from(bin));
++        assert_eq!(c.ui_dir, Some(PathBuf::from(ui)));
+         assert_eq!(c.startup_timeout, Duration::from_secs(5));
+     }
+ 
+@@ -150,7 +162,7 @@ mod tests {
+         )
+         .unwrap();
+         assert_eq!(c.home, PathBuf::from("/h/.loom"));
+-        assert!(c.daemon_bin.ends_with("MacOS/loomd"));
++        assert!(c.daemon_bin.ends_with(Path::new("MacOS").join(DAEMON_FILE_NAME)));
+     }
+ 
+     #[test]
+@@ -165,6 +177,33 @@ mod tests {
+         assert!(e.contains(ENV_UI_DIR), "{e}");
+     }
+ 
++    /// Windows GUI launch: no `HOME`, only `USERPROFILE` (same fallback as `loomd`/`loom`).
++    #[test]
++    fn userprofile_is_the_fallback_after_home() {
++        let c = resolve(env_of(&[("USERPROFILE", "/win/u")]), Some(Path::new(EXE))).unwrap();
++        assert_eq!(c.home, PathBuf::from("/win/u/.loom"));
++        let c = resolve(
++            env_of(&[("HOME", "/h"), ("USERPROFILE", "/win/u")]),
++            Some(Path::new(EXE)),
++        )
++        .unwrap();
++        assert_eq!(c.home, PathBuf::from("/h/.loom"), "HOME wins, as in the CLI");
++        let c = resolve(
++            env_of(&[("HOME", ""), ("USERPROFILE", "/win/u")]),
++            Some(Path::new(EXE)),
++        )
++        .unwrap();
++        assert_eq!(c.home, PathBuf::from("/win/u/.loom"));
++    }
++
++    #[test]
++    fn bundled_daemon_name_has_the_platform_suffix() {
++        let c = resolve(env_of(&[("HOME", "/h")]), Some(Path::new(EXE))).unwrap();
++        let name = c.daemon_bin.file_name().unwrap().to_str().unwrap();
++        assert_eq!(name, format!("loomd{}", std::env::consts::EXE_SUFFIX));
++        assert_eq!(DAEMON_FILE_NAME, name);
++    }
++
+     #[test]
+     fn missing_home_and_exe_are_errors() {
+         assert!(resolve(env_of(&[]), Some(Path::new(EXE))).is_err());
+diff --git a/desktop/src-tauri/src/main.rs b/desktop/src-tauri/src/main.rs
+index 99347b8..3c01884 100644
+--- a/desktop/src-tauri/src/main.rs
++++ b/desktop/src-tauri/src/main.rs
+@@ -1,4 +1,5 @@
+-//! Loom desktop: a native macOS window hosting the real Loom UI served by `loomd`.
++//! Loom desktop: a native window (macOS WKWebView, Windows WebView2, Linux WebKitGTK) hosting the
++//! real Loom UI served by `loomd`.
+ //!
+ //! Flow: the main window opens on a local launch page (bundled `frontend/`). A worker thread runs
+ //! `loom_desktop_host::connect` — reuse the daemon of the selected `LOOM_HOME`, or start the
+@@ -6,7 +7,8 @@
+ //! viewer URL on the canonical `http://localhost:<port>` origin. On failure the launch page shows
+ //! the redacted, actionable error and a Retry button. Closing the window or quitting the app never
+ //! stops the daemon (the host crate spawns it detached; nothing here kills it). If the daemon
+-//! restarts later, Connection > Reconnect (⇧⌘R) returns to the launch page and connects afresh.
++//! restarts later, Connection > Reconnect (⇧⌘R / Ctrl+Shift+R) returns to the launch page and
++//! connects afresh.
+ //!
+ //! Security: the viewer URL / token are never logged or shown; only the local launch page has IPC
+ //! (capabilities/launch.json, no remote URLs); navigation is limited to the app assets and the
+@@ -17,8 +19,13 @@
+ #[cfg(all(feature = "e2e", not(debug_assertions)))]
+ compile_error!("feature `e2e` (in-app WebDriver server) is test-only; never build it in release");
+ 
++// Linux-only at run time; also compiled into Unix test builds so macOS runs its unit tests.
++#[cfg(any(target_os = "linux", all(unix, test)))]
++#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
++mod appimage;
+ mod config;
+ mod nav;
++mod ui_identity;
+ 
+ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+ use std::sync::{Arc, Mutex};
+@@ -128,12 +135,38 @@ fn start_attempt<R: Runtime>(app: &AppHandle<R>, launch: Arc<Launch>) {
+         .expect("spawn connect thread");
+ }
+ 
++/// Owned form of [`loom_desktop_host::PrepareDaemon`].
++type PrepareBox = Box<dyn Fn(&std::path::Path) -> std::io::Result<std::path::PathBuf>>;
++
+ fn connect_and_open<R: Runtime>(
+     app: &AppHandle<R>,
+     launch: &Launch,
+     config: &LaunchConfig,
+ ) -> Result<(), String> {
+-    let session = loom_desktop_host::connect(&config.connect_options()).map_err(|e| e.to_string())?;
++    #[allow(unused_mut)]
++    let mut options = config.connect_options();
++    #[allow(unused_mut)]
++    let mut prepare: PrepareBox = Box::new(|p| Ok(p.to_path_buf()));
++    // Linux AppImage: never start the long-lived daemon from the app's FUSE mount (see appimage).
++    // The copy happens only if this connect actually starts the daemon; reuse needs no write.
++    #[cfg(target_os = "linux")]
++    if let Some(appdir) = appimage::appdir(|k| std::env::var_os(k)) {
++        options.daemon_env = appimage::env_fixups(std::env::vars_os(), &appdir);
++        let home = options.home.clone();
++        prepare = Box::new(move |bin: &std::path::Path| {
++            appimage::stable_daemon(bin, &appdir, &home).map_err(|e| {
++                std::io::Error::new(
++                    e.kind(),
++                    format!(
++                        "could not copy it out of the AppImage into {}: {e}; check that the Loom home \
++                         is writable and owned by you, or install the .deb package",
++                        home.join("desktop").join("bin").display()
++                    ),
++                )
++            })
++        });
++    }
++    let session = loom_desktop_host::connect_with(&options, &*prepare).map_err(|e| e.to_string())?;
+     let url = Url::parse(session.viewer_url())
+         .map_err(|_| "The daemon returned an invalid viewer URL; retry.".to_string())?;
+     if !nav::is_daemon_origin(&url, Some(session.port())) {
+@@ -142,6 +175,47 @@ fn connect_and_open<R: Runtime>(
+             session.port()
+         ));
+     }
++    // Never show a UI build other than the one this app ships (a reused older daemon serves its own).
++    let served = loom_desktop_host::daemon_ui_index(session.port(), std::time::Duration::from_secs(5));
++    match ui_identity::verdict(ui_identity::EXPECTED_INDEX, served.as_deref().ok()) {
++        ui_identity::Verdict::Match => {}
++        ui_identity::Verdict::Unknown if cfg!(debug_assertions) => {
++            eprintln!("loom-desktop: WARNING unstaged dev build; daemon UI identity not checked")
++        }
++        ui_identity::Verdict::Unknown => return Err(ui_identity::unknown_message()),
++        ui_identity::Verdict::Mismatch => {
++            eprintln!(
++                "loom-desktop: UI build mismatch on reused daemon pid {} port {}: {}",
++                session.pid(),
++                session.port(),
++                match &served {
++                    Ok(b) => format!(
++                        "/ui/ {} B differs from expected {} B",
++                        b.len(),
++                        ui_identity::EXPECTED_INDEX.len()
++                    ),
++                    Err(e) => format!("/ui/ unreadable: {e}"),
++                }
++            );
++            return Err(match &served {
++                Ok(b) => ui_identity::mismatch_message(
++                    session.pid(),
++                    session.port(),
++                    &config.home.display().to_string(),
++                    &format!(
++                        "/ui/ {} B, 앱 기대값 {} B (내용 다름)",
++                        b.len(),
++                        ui_identity::EXPECTED_INDEX.len()
++                    ),
++                ),
++                Err(e) => ui_identity::unreadable_message(
++                    session.pid(),
++                    session.port(),
++                    &format!("/ui/ 읽기 실패: {e}"),
++                ),
++            });
++        }
++    }
+     *launch.port.lock().unwrap_or_else(|p| p.into_inner()) = Some(session.port());
+     eprintln!(
+         "loom-desktop: {} loomd pid {} on port {} (home {})",
+@@ -173,7 +247,40 @@ fn with_policy<'a, R: Runtime, M: Manager<R>>(
+     port: Arc<Mutex<Option<u16>>>,
+ ) -> WebviewWindowBuilder<'a, R, M> {
+     let nav_port = port.clone();
++    let dl_port = port.clone();
+     builder
++        // REC/export files: blob/data/attachment downloads from the daemon page only. Saved in the
++        // user's Downloads folder with a non-overwriting name (WebKit/WebView2 default; wry appends
++        // " (n)" on WebKitGTK). Only the file name is logged.
++        .on_download(move |_webview, event| match event {
++            tauri::webview::DownloadEvent::Requested { url, destination } => {
++                let p = *dl_port.lock().unwrap_or_else(|e| e.into_inner());
++                if !nav::download_allowed(&url, p) {
++                    eprintln!("loom-desktop: denied download (scheme {:?})", url.scheme());
++                    return false;
++                }
++                // Test builds only: keep QA downloads inside the isolated QA home.
++                #[cfg(all(feature = "e2e", debug_assertions))]
++                if let Some(dir) = std::env::var_os("LOOM_DESKTOP_QA_DOWNLOAD_DIR")
++                    && let Some(name) = destination.file_name().map(|n| n.to_owned())
++                {
++                    *destination = std::path::PathBuf::from(dir).join(name);
++                }
++                eprintln!(
++                    "loom-desktop: download accepted: {:?}",
++                    destination.file_name().unwrap_or_default()
++                );
++                true
++            }
++            tauri::webview::DownloadEvent::Finished { path, success, .. } => {
++                eprintln!(
++                    "loom-desktop: download finished success={success} file={:?}",
++                    path.as_ref().and_then(|p| p.file_name())
++                );
++                true
++            }
++            _ => true,
++        })
+         .on_navigation(move |url| {
+             let p = *nav_port.lock().unwrap_or_else(|e| e.into_inner());
+             match nav::navigation_action(url, p) {
+@@ -192,7 +299,7 @@ fn with_policy<'a, R: Runtime, M: Manager<R>>(
+             let p = *port.lock().unwrap_or_else(|e| e.into_inner());
+             match nav::new_window_action(&url, p) {
+                 // Same-origin pop-ups (e.g. daemon artifact links) open in another app window that
+-                // shares the WKWebView configuration (and thus the viewer cookie) and this policy.
++                // shares the webview context (and thus the viewer cookie) and this policy.
+                 Action::OpenChild => match open_child(&app, port.clone(), url, features) {
+                     Some(window) => NewWindowResponse::Create { window },
+                     None => NewWindowResponse::Deny,
+@@ -216,7 +323,11 @@ fn create_main<R: Runtime, M: Manager<R>>(
+         .title("Loom")
+         .inner_size(1440.0, 900.0)
+         .min_inner_size(900.0, 600.0)
+-        .background_color(tauri::window::Color(0x0f, 0x11, 0x15, 0xff));
++        // Bench Light: this window only (macOS NSAppearance aqua, Windows light title bar, GTK
++        // prefer-light), never the OS-wide appearance setting.
++        .theme(Some(tauri::Theme::Light))
++        // Bench Light --bg: no dark flash before the shared UI paints.
++        .background_color(tauri::window::Color(0xff, 0xff, 0xff, 0xff));
+     // Test-only (e2e debug builds): keep the window above others so macOS occlusion does not hide
+     // the page (WebKit stops requestAnimationFrame for a fully covered window). Opt-in per run.
+     #[cfg(all(feature = "e2e", debug_assertions))]
+diff --git a/desktop/src-tauri/src/nav.rs b/desktop/src-tauri/src/nav.rs
+index 613c92b..c1eb604 100644
+--- a/desktop/src-tauri/src/nav.rs
++++ b/desktop/src-tauri/src/nav.rs
+@@ -75,7 +75,21 @@ pub fn new_window_action(url: &Url, daemon_port: Option<u16>) -> Action {
+     }
+ }
+ 
+-/// The bundled launch page (Tauri asset protocol on macOS).
++/// Download request (`<a download>`, REC/export `blob:` links, `Content-Disposition: attachment`).
++/// Only content produced by the selected daemon page is saved: a `blob:` URL whose origin is the
++/// daemon origin, an in-page `data:` URL while connected, or the daemon origin itself. WKWebView
++/// cancels downloads outright when no handler is installed.
++pub fn download_allowed(url: &Url, daemon_port: Option<u16>) -> bool {
++    match url.scheme() {
++        // `blob:http://localhost:<port>/<uuid>` → the path is the creator's origin URL
++        "blob" => Url::parse(url.path()).is_ok_and(|inner| is_daemon_origin(&inner, daemon_port)),
++        "data" => daemon_port.is_some(),
++        _ => is_daemon_origin(url, daemon_port),
++    }
++}
++
++/// The bundled launch page: `tauri://localhost` on macOS/Linux, `http://tauri.localhost` on
++/// Windows (WebView2 custom-scheme convention used by Tauri 2).
+ pub fn launch_page_url() -> Url {
+     #[cfg(any(target_os = "windows", target_os = "android"))]
+     let s = "http://tauri.localhost/index.html";
+@@ -94,29 +108,16 @@ pub fn classify(url: &Url, daemon_port: Option<u16>) -> Nav {
+     }
+ }
+ 
+-/// Open an explicit external link in the user's default browser (macOS `open`). Only
+-/// `http(s)` URLs ever reach here; the URL is passed as one argv element, never through a shell.
++/// Open an explicit external link in the user's default browser. Only absolute `http(s)` URLs
++/// with a host ever reach the OS, always as one argument (never through a shell or `cmd /c start`):
++/// macOS `/usr/bin/open <url>`; Windows `ShellExecuteW("open", <url>)`; Linux/BSD `xdg-open <url>`
++/// (system copy preferred; inside an AppImage the `$APPDIR` environment is stripped first so the
++/// browser does not load the app's bundled GTK/GIO modules).
+ pub fn open_external(url: &Url) {
+-    if !matches!(url.scheme(), "http" | "https") {
++    if !is_external_link(url) {
+         return;
+     }
+-    #[cfg(target_os = "macos")]
+-    let r = std::process::Command::new("/usr/bin/open")
+-        .arg(url.as_str())
+-        .stdin(std::process::Stdio::null())
+-        .stdout(std::process::Stdio::null())
+-        .stderr(std::process::Stdio::null())
+-        .spawn()
+-        .map(|mut child| {
+-            // reap in the background so no zombie is left behind
+-            std::thread::spawn(move || child.wait());
+-        });
+-    #[cfg(not(target_os = "macos"))]
+-    let r: std::io::Result<()> = Err(std::io::Error::new(
+-        std::io::ErrorKind::Unsupported,
+-        "external links: macOS only",
+-    ));
+-    if let Err(e) = r {
++    if let Err(e) = platform_open(url) {
+         eprintln!(
+             "loom-desktop: could not open external link host {:?}: {e}",
+             url.host_str()
+@@ -124,6 +125,80 @@ pub fn open_external(url: &Url) {
+     }
+ }
+ 
++/// What [`open_external`] accepts: `http(s)` with a non-empty host and no credentials.
++pub fn is_external_link(url: &Url) -> bool {
++    matches!(url.scheme(), "http" | "https")
++        && url.host_str().is_some_and(|h| !h.is_empty())
++        && url.username().is_empty()
++        && url.password().is_none()
++}
++
++#[cfg(unix)]
++fn spawn_reaped(cmd: &mut std::process::Command) -> std::io::Result<()> {
++    let mut child = cmd
++        .stdin(std::process::Stdio::null())
++        .stdout(std::process::Stdio::null())
++        .stderr(std::process::Stdio::null())
++        .spawn()?;
++    // reap in the background so no zombie is left behind
++    std::thread::spawn(move || child.wait());
++    Ok(())
++}
++
++#[cfg(target_os = "macos")]
++fn platform_open(url: &Url) -> std::io::Result<()> {
++    spawn_reaped(std::process::Command::new("/usr/bin/open").arg(url.as_str()))
++}
++
++#[cfg(all(unix, not(target_os = "macos")))]
++fn platform_open(url: &Url) -> std::io::Result<()> {
++    #[cfg(target_os = "linux")]
++    let fixups = crate::appimage::current_env_fixups();
++    #[cfg(not(target_os = "linux"))]
++    let fixups: Vec<(std::ffi::OsString, Option<std::ffi::OsString>)> = Vec::new();
++    // The distro's xdg-open first (an AppImage may ship its own copy on its PATH).
++    let program = ["/usr/bin/xdg-open", "/usr/local/bin/xdg-open"]
++        .into_iter()
++        .map(std::path::Path::new)
++        .find(|p| p.is_file())
++        .map_or_else(|| std::path::PathBuf::from("xdg-open"), std::path::Path::to_path_buf);
++    let mut cmd = std::process::Command::new(program);
++    for (k, v) in fixups {
++        match v {
++            Some(v) => cmd.env(k, v),
++            None => cmd.env_remove(k),
++        };
++    }
++    spawn_reaped(cmd.arg(url.as_str()))
++}
++
++#[cfg(windows)]
++fn platform_open(url: &Url) -> std::io::Result<()> {
++    use windows_sys::Win32::UI::Shell::ShellExecuteW;
++    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
++    let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
++    let (verb, file) = (wide("open"), wide(url.as_str()));
++    // SAFETY: both strings are NUL-terminated UTF-16 buffers that outlive the call; null HWND,
++    // parameters and directory are documented as optional. Called on the UI thread (COM is
++    // initialised there by the webview), as ShellExecute requires.
++    let h = unsafe {
++        ShellExecuteW(
++            std::ptr::null_mut(),
++            verb.as_ptr(),
++            file.as_ptr(),
++            std::ptr::null(),
++            std::ptr::null(),
++            SW_SHOWNORMAL,
++        )
++    };
++    // Documented contract: a value greater than 32 means success.
++    if h as isize > 32 {
++        Ok(())
++    } else {
++        Err(std::io::Error::other(format!("ShellExecuteW returned {}", h as isize)))
++    }
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+@@ -221,4 +296,48 @@ mod tests {
+         assert_eq!(new_window_action(&u("data:text/html,x"), p), Action::Deny);
+         assert_eq!(new_window_action(&u("javascript:alert(1)"), p), Action::Deny);
+     }
++
++    #[test]
++    fn only_plain_http_links_reach_the_os() {
++        assert!(is_external_link(&u("https://example.com/docs?a=1&b=2")));
++        assert!(is_external_link(&u("http://example.com/")));
++        for s in [
++            "https://user:pw@example.com/",
++            "file:///C:/Windows/System32/calc.exe",
++            "javascript:alert(1)",
++            "ms-settings:display",
++            "search-ms:query=x",
++            "data:text/html,x",
++            "mailto:a@example.com",
++        ] {
++            assert!(!is_external_link(&u(s)), "{s}");
++        }
++    }
++
++    /// The OS sees one argument per URL (argv element / `lpFile`, never a shell): whitespace,
++    /// quotes and newlines are percent-encoded by URL serialization, so the value cannot be split.
++    #[test]
++    fn external_url_serialization_has_no_whitespace_or_quotes() {
++        let url = u("https://example.com/a b\"c'd`e?x=1&y=$(z)|w;q");
++        let s = url.as_str();
++        assert!(!s.contains([' ', '"', '`', '\n', '\t']), "{s}");
++    }
++
++    #[test]
++    fn downloads_only_from_daemon_page() {
++        let p = Some(47123);
++        assert!(download_allowed(
++            &u("blob:http://localhost:47123/0b6c1f2e-9a4d-4c55-8f7e-1d2c3b4a5f60"),
++            p
++        ));
++        assert!(download_allowed(&u("http://localhost:47123/api/export?x=1"), p));
++        assert!(download_allowed(&u("data:text/plain;base64,aGk="), p));
++        assert!(!download_allowed(&u("blob:http://localhost:47999/0b6c"), p));
++        assert!(!download_allowed(&u("blob:https://example.com/0b6c"), p));
++        assert!(!download_allowed(&u("blob:tauri://localhost/0b6c"), p));
++        assert!(!download_allowed(&u("https://example.com/f.bin"), p));
++        assert!(!download_allowed(&u("file:///etc/hosts"), p));
++        assert!(!download_allowed(&u("data:text/plain,hi"), None));
++        assert!(!download_allowed(&u("blob:http://localhost:47123/0b6c"), None));
++    }
+ }
+diff --git a/desktop/src-tauri/src/appimage.rs b/desktop/src-tauri/src/appimage.rs
+new file mode 100644
+index 0000000..61da2df
+--- /dev/null
++++ b/desktop/src-tauri/src/appimage.rs
+@@ -0,0 +1,285 @@
++//! Linux AppImage support (pure std; compiled and unit-tested on every Unix host).
++//!
++//! An AppImage runs from a FUSE mount (`$APPDIR`, e.g. `/tmp/.mount_LoomXXXX`) that disappears
++//! when the app process exits. The daemon is detached and outlives the app, so it must never run
++//! from that mount: it would fault on its next page-in and could not re-exec itself for
++//! `loomd worker` children. [`stable_daemon`] copies the bundled `loomd` once into the Loom home
++//! (`<home>/desktop/bin/loomd-<fnv64>`) and the app starts that copy instead.
++//!
++//! A cached copy is reused only when it is a regular file (not a symlink) owned by this user,
++//! mode exactly 0755, under directories (home, `desktop`, `desktop/bin`) owned by this user and not
++//! group/other-writable (`desktop/bin` is created 0700), and byte-for-byte equal
++//! to the bundled daemon. Otherwise it is replaced through a fresh `create_new` temp file in the
++//! same directory and an atomic `rename`. The file-name hash only separates builds; it is never
++//! trusted on its own.
++//!
++//! AppRun also points `PATH`, `XDG_DATA_DIRS`, GTK/GIO/GdkPixbuf module variables and friends into
++//! `$APPDIR`. [`env_fixups`] drops those entries for processes that outlive or leave the app: the
++//! daemon (and so its workers, ffmpeg, sigrok) and the default browser opened for external links.
++
++use std::ffi::{OsStr, OsString};
++use std::fs::{self, OpenOptions};
++use std::io::{self, Read as _, Write as _};
++use std::os::unix::ffi::{OsStrExt as _, OsStringExt as _};
++use std::os::unix::fs::{DirBuilderExt as _, MetadataExt as _, OpenOptionsExt as _, PermissionsExt as _};
++use std::path::{Path, PathBuf};
++
++/// `$APPDIR` when this process runs inside an AppImage (`APPIMAGE` and an absolute `APPDIR` set).
++pub fn appdir(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
++    env("APPIMAGE").filter(|v| !v.is_empty())?;
++    let dir = PathBuf::from(env("APPDIR").filter(|v| !v.is_empty())?);
++    (dir.is_absolute() && dir.parent().is_some()).then_some(dir)
++}
++
++/// Environment changes (`None` = remove) that strip every `$APPDIR` entry from `vars`. List
++/// values (`:`-separated) keep their entries outside `$APPDIR`; a variable left empty is removed.
++pub fn env_fixups(
++    vars: impl IntoIterator<Item = (OsString, OsString)>,
++    appdir: &Path,
++) -> Vec<(OsString, Option<OsString>)> {
++    let mut out = Vec::new();
++    for (k, v) in vars {
++        let entries: Vec<&[u8]> = v.as_bytes().split(|b| *b == b':').collect();
++        let inside = |e: &&[u8]| !e.is_empty() && Path::new(OsStr::from_bytes(e)).starts_with(appdir);
++        if !entries.iter().any(inside) {
++            continue;
++        }
++        let kept: Vec<&[u8]> = entries.into_iter().filter(|e| !inside(e) && !e.is_empty()).collect();
++        if kept.is_empty() {
++            out.push((k, None));
++        } else {
++            out.push((k, Some(OsString::from_vec(kept.join(&b':')))));
++        }
++    }
++    out
++}
++
++/// [`env_fixups`] for this process's environment, or nothing outside an AppImage.
++pub fn current_env_fixups() -> Vec<(OsString, Option<OsString>)> {
++    match appdir(|k| std::env::var_os(k)) {
++        Some(dir) => env_fixups(std::env::vars_os(), &dir),
++        None => Vec::new(),
++    }
++}
++
++/// FNV-1a 64 (stable across Rust releases; names cache entries only, never trusted alone).
++fn fnv64(bytes: &[u8]) -> u64 {
++    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(*b)).wrapping_mul(0x0000_0100_0000_01b3))
++}
++
++/// Called only after `symlink_metadata` showed a regular file inside a directory chain only this
++/// user can write, so the name cannot be swapped for a link in between.
++fn same_bytes(path: &Path, want: &[u8]) -> io::Result<bool> {
++    let mut f = fs::File::open(path)?;
++    if f.metadata()?.len() != want.len() as u64 {
++        return Ok(false);
++    }
++    let mut got = Vec::with_capacity(want.len());
++    f.read_to_end(&mut got)?;
++    Ok(got == want)
++}
++
++fn bad(msg: String) -> io::Error {
++    io::Error::new(io::ErrorKind::PermissionDenied, msg)
++}
++
++/// The daemon binary to start: `src` itself unless it lives inside `appdir`, else a verified copy
++/// under `<home>/desktop/bin` (see module docs).
++pub fn stable_daemon(src: &Path, appdir: &Path, home: &Path) -> io::Result<PathBuf> {
++    if !src.starts_with(appdir) {
++        return Ok(src.to_path_buf());
++    }
++    let bytes = fs::read(src)?;
++    let dir = home.join("desktop").join("bin");
++    fs::DirBuilder::new().recursive(true).mode(0o700).create(&dir)?;
++    let target = dir.join(format!("loomd-{:016x}", fnv64(&bytes)));
++
++    // Temp file first (O_CREAT|O_EXCL: never follows or reuses an existing name, link or not):
++    // proves the directory is writable and tells us our own uid.
++    let tmp = dir.join(format!(
++        ".loomd-{}-{}.tmp",
++        std::process::id(),
++        std::time::SystemTime::now()
++            .duration_since(std::time::UNIX_EPOCH)
++            .map_or(0, |d| d.as_nanos())
++    ));
++    let mut f = OpenOptions::new()
++        .write(true)
++        .create_new(true)
++        .mode(0o700)
++        .open(&tmp)?;
++    let result = (|| {
++        let uid = f.metadata()?.uid();
++        // Only this user may rename or replace anything on the way to the cached binary.
++        for d in [home, dir.parent().unwrap_or(&dir), &dir] {
++            let m = fs::symlink_metadata(d)?;
++            if !m.is_dir() || m.uid() != uid || m.mode() & 0o022 != 0 {
++                return Err(bad(format!(
++                    "{} must be a directory owned by this user and not writable by group/others",
++                    d.display()
++                )));
++            }
++        }
++        if let Ok(m) = fs::symlink_metadata(&target)
++            && m.file_type().is_file()
++            && m.uid() == uid
++            && m.mode() & 0o7777 == 0o755
++            && same_bytes(&target, &bytes)?
++        {
++            return Ok(false); // verified cached copy
++        }
++        f.write_all(&bytes)?;
++        f.sync_all()?;
++        fs::set_permissions(&tmp, fs::Permissions::from_mode(0o755))?;
++        fs::rename(&tmp, &target)?;
++        Ok(true)
++    })();
++    drop(f);
++    match result {
++        Ok(true) => Ok(target),
++        Ok(false) => {
++            let _ = fs::remove_file(&tmp);
++            Ok(target)
++        }
++        Err(e) => {
++            let _ = fs::remove_file(&tmp);
++            Err(e)
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::collections::HashMap;
++
++    struct TempDir(PathBuf);
++    impl Drop for TempDir {
++        fn drop(&mut self) {
++            let _ = fs::remove_dir_all(&self.0);
++        }
++    }
++    fn tempdir(tag: &str) -> TempDir {
++        let nanos = std::time::SystemTime::now()
++            .duration_since(std::time::UNIX_EPOCH)
++            .unwrap()
++            .as_nanos();
++        let p = std::env::temp_dir().join(format!("loom-appimage-{tag}-{}-{nanos}", std::process::id()));
++        fs::create_dir_all(&p).unwrap();
++        TempDir(fs::canonicalize(&p).unwrap())
++    }
++
++    fn env_of(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Option<OsString> {
++        let m: HashMap<String, OsString> = pairs.iter().map(|(k, v)| (k.to_string(), v.into())).collect();
++        move |k| m.get(k).cloned()
++    }
++
++    #[test]
++    fn appdir_requires_appimage_and_absolute_appdir() {
++        let a = "/tmp/.mount_LoomAB";
++        assert_eq!(appdir(env_of(&[("APPIMAGE", "/h/Loom.AppImage"), ("APPDIR", a)])), Some(a.into()));
++        assert_eq!(appdir(env_of(&[("APPDIR", a)])), None);
++        assert_eq!(appdir(env_of(&[("APPIMAGE", "x"), ("APPDIR", "rel")])), None);
++        assert_eq!(appdir(env_of(&[("APPIMAGE", "x"), ("APPDIR", "/")])), None);
++        assert_eq!(appdir(env_of(&[("APPIMAGE", ""), ("APPDIR", a)])), None);
++    }
++
++    #[test]
++    fn fixups_strip_only_appdir_entries() {
++        let d = Path::new("/tmp/.mount_LoomAB");
++        let vars = [
++            ("PATH", "/tmp/.mount_LoomAB/usr/bin:/usr/local/bin:/usr/bin"),
++            ("GDK_PIXBUF_MODULE_FILE", "/tmp/.mount_LoomAB/usr/lib/loaders.cache"),
++            ("XDG_DATA_DIRS", "/tmp/.mount_LoomAB/usr/share::/usr/share"),
++            ("APPDIR", "/tmp/.mount_LoomAB"),
++            ("HOME", "/home/u"),
++            ("LOOK_ALIKE", "/tmp/.mount_LoomABC/usr/bin"),
++        ]
++        .map(|(k, v)| (OsString::from(k), OsString::from(v)));
++        let mut f = env_fixups(vars, d);
++        f.sort();
++        let s = |v: &str| Some(OsString::from(v));
++        assert_eq!(
++            f,
++            vec![
++                ("APPDIR".into(), None),
++                ("GDK_PIXBUF_MODULE_FILE".into(), None),
++                ("PATH".into(), s("/usr/local/bin:/usr/bin")),
++                ("XDG_DATA_DIRS".into(), s("/usr/share")),
++            ]
++        );
++    }
++
++    #[test]
++    fn outside_appdir_is_used_as_is_without_copy() {
++        let t = tempdir("outside");
++        let src = t.0.join("loomd");
++        fs::write(&src, b"bin").unwrap();
++        let got = stable_daemon(&src, Path::new("/tmp/.mount_none"), &t.0.join("home")).unwrap();
++        assert_eq!(got, src);
++        assert!(!t.0.join("home").exists());
++    }
++
++    #[test]
++    fn copies_once_then_reuses_only_a_verified_copy() {
++        let t = tempdir("copy");
++        let appdir = t.0.join("mount");
++        fs::create_dir_all(appdir.join("usr/bin")).unwrap();
++        let src = appdir.join("usr/bin/loomd");
++        fs::write(&src, b"#!/bin/sh\necho daemon v1\n").unwrap();
++        let home = t.0.join("home");
++
++        let a = stable_daemon(&src, &appdir, &home).unwrap();
++        assert!(a.starts_with(home.join("desktop/bin")));
++        assert_eq!(fs::read(&a).unwrap(), fs::read(&src).unwrap());
++        assert_eq!(fs::metadata(&a).unwrap().mode() & 0o7777, 0o755);
++        assert_eq!(fs::metadata(a.parent().unwrap()).unwrap().mode() & 0o777, 0o700);
++        let ino = fs::metadata(&a).unwrap().ino();
++
++        // Verified cache: same inode reused, no temp files left behind.
++        assert_eq!(stable_daemon(&src, &appdir, &home).unwrap(), a);
++        assert_eq!(fs::metadata(&a).unwrap().ino(), ino);
++        assert_eq!(fs::read_dir(a.parent().unwrap()).unwrap().count(), 1);
++
++        // Same name, tampered bytes (same length) → replaced atomically.
++        fs::write(&a, b"#!/bin/sh\necho daemon XX\n").unwrap();
++        assert_eq!(stable_daemon(&src, &appdir, &home).unwrap(), a);
++        assert_eq!(fs::read(&a).unwrap(), fs::read(&src).unwrap());
++
++        // Wrong mode → replaced.
++        fs::set_permissions(&a, fs::Permissions::from_mode(0o775)).unwrap();
++        stable_daemon(&src, &appdir, &home).unwrap();
++        assert_eq!(fs::metadata(&a).unwrap().mode() & 0o7777, 0o755);
++
++        // Symlink planted at the name → replaced by a regular file, link target untouched.
++        let decoy = t.0.join("decoy");
++        fs::write(&decoy, b"decoy").unwrap();
++        fs::remove_file(&a).unwrap();
++        std::os::unix::fs::symlink(&decoy, &a).unwrap();
++        stable_daemon(&src, &appdir, &home).unwrap();
++        assert!(fs::symlink_metadata(&a).unwrap().file_type().is_file());
++        assert_eq!(fs::read(&decoy).unwrap(), b"decoy");
++
++        // A new build gets a new name; the old copy (maybe still running) is left alone.
++        fs::write(&src, b"#!/bin/sh\necho daemon v2\n").unwrap();
++        let b = stable_daemon(&src, &appdir, &home).unwrap();
++        assert_ne!(a, b);
++        assert!(a.exists() && b.exists());
++    }
++
++    #[test]
++    fn loose_cache_directory_is_refused() {
++        let t = tempdir("loose");
++        let appdir = t.0.join("mount");
++        fs::create_dir_all(&appdir).unwrap();
++        let src = appdir.join("loomd");
++        fs::write(&src, b"bin").unwrap();
++        let home = t.0.join("home");
++        let dir = home.join("desktop/bin");
++        fs::create_dir_all(&dir).unwrap();
++        fs::set_permissions(&dir, fs::Permissions::from_mode(0o777)).unwrap();
++        let e = stable_daemon(&src, &appdir, &home).unwrap_err();
++        assert_eq!(e.kind(), io::ErrorKind::PermissionDenied);
++        assert_eq!(fs::read_dir(&dir).unwrap().count(), 0, "temp file cleaned up");
++    }
++}
+diff --git a/desktop/src-tauri/src/ui_identity.rs b/desktop/src-tauri/src/ui_identity.rs
+new file mode 100644
+index 0000000..009e4fa
+--- /dev/null
++++ b/desktop/src-tauri/src/ui_identity.rs
+@@ -0,0 +1,185 @@
++//! UI build identity guard (read-only).
++//!
++//! The desktop window shows whatever UI the selected daemon embeds. A reused daemon that was
++//! started by an older build keeps serving its own (old) UI even after a new app is installed.
++//! Before navigating, the app compares the daemon's UI page `/ui/` (exact bytes, canonical host, no
++//! redirect following) with the `index.html` embedded in its
++//! own bundled loomd (staged by `desktop/scripts/stage-loomd.sh`, proven identical by
++//! `verify-loomd.sh`). Vite's `index.html` names every content-hashed asset, so equal bytes mean
++//! the same UI build. On a mismatch the launch page shows an actionable error; the running daemon
++//! is never stopped automatically.
++
++/// `index.html` (served at `/ui/`) of the UI embedded in this app's bundled loomd (empty if not staged).
++pub const EXPECTED_INDEX: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/ui-index.html"));
++
++#[derive(Debug, PartialEq, Eq)]
++pub enum Verdict {
++    /// Same UI build: navigate.
++    Match,
++    /// This app build carries no identity (unstaged dev build): cannot check.
++    Unknown,
++    /// Different (or unreadable) UI: do not navigate.
++    Mismatch,
++}
++
++pub fn verdict(expected: &[u8], served: Option<&[u8]>) -> Verdict {
++    match served {
++        _ if expected.is_empty() => Verdict::Unknown,
++        Some(s) if s == expected => Verdict::Match,
++        _ => Verdict::Mismatch,
++    }
++}
++
++/// Korean, actionable, credential-free message for the launch page error view.
++pub fn mismatch_message(pid: u32, port: u16, home: &str, detail: &str) -> String {
++    let stop = stop_command(home);
++    format!(
++        "실행 중인 Loom 데몬이 이 앱과 다른 UI 빌드를 제공하고 있어 화면을 열지 않았습니다.\n\n\
++         이 Loom 홈에서 이전 버전의 데몬(pid {pid}, 포트 {port})이 계속 실행 중입니다. \
++         앱은 실행 중인 데몬을 자동으로 중지하지 않습니다.\n\n\
++         해결: 진행 중인 기록·캡처를 확인한 뒤 {TERMINAL}에서\n  {stop}\n\
++         을 실행하고 Retry를 누르세요. 앱이 번들된 현재 버전의 데몬을 시작합니다.\n\n\
++         세부: {detail}"
++    )
++}
++
++/// Korean message when the daemon's UI page could not be read (non-200, timeout): the build is
++/// unknown, so it must not be called "older"; the daemon is still never stopped automatically.
++pub fn unreadable_message(pid: u32, port: u16, detail: &str) -> String {
++    format!(
++        "실행 중인 Loom 데몬(pid {pid}, 포트 {port})의 UI 화면을 확인하지 못해 열지 않았습니다. \
++         앱은 데몬이 이 앱과 같은 UI 빌드를 제공하는지 확인된 경우에만 화면을 엽니다.\n\n\
++         앱은 실행 중인 데몬을 자동으로 중지하지 않으며 진행 중인 기록·캡처는 그대로 유지됩니다. 잠시 후 Retry를 누르세요. \
++         계속 실패하면 데몬 로그(이 Loom 홈의 run/loomd.log)를 확인하세요.\n\n세부: {detail}"
++    )
++}
++
++/// Where the user pastes [`stop_command`].
++const TERMINAL: &str = if cfg!(windows) { "PowerShell" } else { "터미널" };
++
++/// Copy-paste command that stops the daemon of `home` in the platform's default shell.
++pub fn stop_command(home: &str) -> String {
++    if cfg!(windows) { ps_stop_command(home) } else { sh_stop_command(home) }
++}
++
++fn sh_stop_command(home: &str) -> String {
++    format!("LOOM_HOME={} loom daemon stop", sh_single_quote(home))
++}
++
++fn ps_stop_command(home: &str) -> String {
++    format!("$env:LOOM_HOME={}; loom daemon stop", ps_single_quote(home))
++}
++
++/// POSIX shell single-quoting for a copy-paste command line: `'` becomes `'\''`; everything else
++/// (spaces, `$`, backticks, `\`, newlines) is literal inside single quotes.
++fn sh_single_quote(s: &str) -> String {
++    format!("'{}'", s.replace('\'', r"'\''"))
++}
++
++/// PowerShell verbatim (single-quoted) string: every single-quote character — ASCII `'` and the
++/// typographic U+2018..U+201B that PowerShell also treats as quotes — is doubled; `$`, backticks
++/// and `\` are literal.
++fn ps_single_quote(s: &str) -> String {
++    let mut out = String::with_capacity(s.len() + 2);
++    out.push('\'');
++    for c in s.chars() {
++        if matches!(c, '\'' | '\u{2018}' | '\u{2019}' | '\u{201A}' | '\u{201B}') {
++            out.push(c);
++        }
++        out.push(c);
++    }
++    out.push('\'');
++    out
++}
++
++/// Korean message when this app build itself carries no UI identity (release builds only).
++pub fn unknown_message() -> String {
++    "이 앱 빌드에 UI 빌드 식별 정보가 없어 데몬 UI가 현재 버전인지 확인할 수 없습니다. \
++     `npm --prefix desktop run dist`(desktop/scripts/package.mjs; macOS는 stage-loomd.sh + build-app.sh도 가능)로 앱을 다시 빌드하세요."
++        .to_string()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn verdicts() {
++        assert_eq!(verdict(b"<a>", Some(b"<a>")), Verdict::Match);
++        assert_eq!(verdict(b"<a>", Some(b"<b>")), Verdict::Mismatch);
++        assert_eq!(verdict(b"<a>", None), Verdict::Mismatch);
++        assert_eq!(verdict(b"", Some(b"<b>")), Verdict::Unknown);
++        assert_eq!(verdict(b"", None), Verdict::Unknown);
++    }
++
++    #[test]
++    fn message_is_actionable_and_never_auto_stops() {
++        let m = mismatch_message(4242, 47123, "/Users/u/.loom", "index.html differs");
++        assert!(m.contains("pid 4242") && m.contains("포트 47123"));
++        assert!(m.contains(&stop_command("/Users/u/.loom")));
++        assert!(m.contains(TERMINAL));
++        assert!(m.contains("자동으로 중지하지 않습니다"));
++        assert!(!m.contains("#boot=") && !m.to_ascii_lowercase().contains("bearer"));
++    }
++
++    #[test]
++    fn unreadable_is_not_called_an_old_build() {
++        let m = unreadable_message(7, 8, "GET /ui/ returned HTTP 308");
++        assert!(m.contains("pid 7") && m.contains("포트 8") && m.contains("HTTP 308"));
++        assert!(m.contains("자동으로 중지하지 않으며") && m.contains("기록·캡처는 그대로 유지"));
++        assert!(!m.contains("이전 버전") && !m.contains("다른 UI 빌드"));
++    }
++
++    #[test]
++    fn stop_commands_quote_home_per_shell() {
++        assert_eq!(
++            sh_stop_command("/Users/u/O'Brien Lab/$x `y` \\z/.loom"),
++            r"LOOM_HOME='/Users/u/O'\''Brien Lab/$x `y` \z/.loom' loom daemon stop"
++        );
++        assert_eq!(
++            ps_stop_command("C:\\Users\\O'Brien\u{2019}s Lab\\$x `y`\\.loom"),
++            "$env:LOOM_HOME='C:\\Users\\O''Brien\u{2019}\u{2019}s Lab\\$x `y`\\.loom'; loom daemon stop"
++        );
++    }
++
++    /// The suggested command must survive a real shell: apostrophe + space (and other metacharacters)
++    /// in the home path round-trip exactly into LOOM_HOME.
++    #[cfg(unix)]
++    #[test]
++    fn stop_command_quotes_home_for_the_shell() {
++        let home = "/Users/u/O'Brien Lab/$x `y` \\z/.loom";
++        let m = mismatch_message(1, 2, home, "d");
++        assert!(m.contains(r"LOOM_HOME='/Users/u/O'\''Brien Lab/$x `y` \z/.loom' loom daemon stop"));
++        let line = m
++            .lines()
++            .find(|l| l.trim_start().starts_with("LOOM_HOME="))
++            .expect("command line");
++        let probe = line
++            .trim()
++            .replace(" loom daemon stop", " /usr/bin/printenv LOOM_HOME");
++        let out = std::process::Command::new("/bin/sh")
++            .arg("-c")
++            .arg(&probe)
++            .output()
++            .unwrap();
++        assert!(out.status.success());
++        assert_eq!(String::from_utf8(out.stdout).unwrap(), format!("{home}\n"));
++    }
++
++    /// Windows: the suggested PowerShell line round-trips the home exactly.
++    #[cfg(windows)]
++    #[test]
++    fn stop_command_quotes_home_for_powershell() {
++        // ASCII only: console code pages would garble a typographic quote in captured stdout
++        // (the U+2019 doubling is covered by `stop_commands_quote_home_per_shell`).
++        let home = "C:\\Users\\O'Brien Lab\\$x `y`\\.loom";
++        let line = ps_stop_command(home).replace("; loom daemon stop", "; [Console]::Out.Write($env:LOOM_HOME)");
++        let out = std::process::Command::new("powershell.exe")
++            .args(["-NoProfile", "-NonInteractive", "-Command"])
++            .arg(&line)
++            .output()
++            .unwrap();
++        assert!(out.status.success(), "{out:?}");
++        assert_eq!(String::from_utf8_lossy(&out.stdout), home);
++    }
++}

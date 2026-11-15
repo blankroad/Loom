@@ -1,0 +1,72 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 70, 79-106
+~					7 link UART, 열린 2개, Help: UART 작업대 · 열린 인터페이스 2개, Value: localhost:62968/ui/#/s/uart
+~							32 text →  qa-native-uart2  만
+~					38 text 대상 qa-native-uart2 /dev/ttys005  · pane 2
++							131 text pane 2
++								132 text 1
++									133 container 이 pane의 실제 대상
++										134 text qa-native-uart1 /dev/ttys006 115200 8N1 · none · CR 연결됨 RX 2.3 kB · TX 16 B UART qa-native-uart1 ● open 115200 gen1 [BENCH]
++									135 toolbar UART qa-native-uart1 도구 막대
++										136 container 보기 형식
++											137 toggle button TERM, Help: 실제 터미널 (xterm) — 키 입력이 장치로 즉시 전송됨, Value: on
++											138 toggle button HEX, Help: 송수신 원본 바이트 HEX 보기 (키 입력 안 보냄), Value: off
++										139 toggle button 일시정지, Help: 화면 갱신 일시정지 (수신은 계속 기록), Value: off
++										140 button 지우기, Help: 화면만 지우기 — 장치·데몬 저널·서버 입력 줄에는 영향 없음 (로그·카운터 보존)
++										141 toggle button 시각, Help: 행 앞 수신 시각 표시/숨기기 — 데몬 저널의 호스트 수신 시각 HH:mm:ss.SSS · 장치 바이트는 바뀌지 않음, Value: on
++										142 button REC, Help: UART 기록 (이 탭의 원본 수신/송신을 .log 또는 .jsonl로)
++										143 pop up button (collapsed) 줄 끝, Help: Enter 시 보낼 줄 끝 (이 탭), Value: CR, Secondary Actions: Expand
++										144 button 매크로 실행 → qa-native-uart1
++										145 toggle button 검색, Help: 검색 (터미널 스크롤백), Value: on
++										146 button (collapsed) Send String — Text/HEX와 줄 끝을 지정해 전송, Help: Send String — Text/HEX와 줄 끝을 지정해 전송 (uart.input), Secondary Actions: Expand
++										147 button 터미널 테마 전환 (현재 어두움), Help: 이 터미널만 밝게
++										148 button 포트 닫기
++										149 button qa-native-uart1 세션 설정
++										150 toggle button 더보기: 입력권·특수 키, 로그 저장, Value: off
++									151 search text field (settable) 터미널 검색, Value: ack:QANUART1-A5E251, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)
++										152 text (settable) ack:QANUART1-A5E251
++										153 button cancel
++									154 text 1/1
++									155 button 검색 닫기
++									156 container qa-native-uart1 터미널
++										157 text entry area (settable) Terminal input
++									158 menu Secondary Actions: Cancel
++									159 text AGT ▶ "QANUART1-A5E251⏎" 305s 전 │ rx 16 B/s
++							160 container UART 터미널 · qa-native-uart2
++								161 text 2
++								162 tab group (selectable)
++									163 tab (selected) UART 터미널 · qa-native-uart2
++								164 button pane 2에 세션 열기, Help: 이 pane에 세션 열기
++								165 button pane 2 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++								166 button pane 2 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++								167 toggle button pane 2 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++								168 button pane 2 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++								169 container UART 터미널 · qa-native-uart2
++									170 container 이 pane의 실제 대상
++										171 text qa-native-uart2 /dev/ttys005 115200 8N1 · none · CR 연결됨 RX 1.0 kB · TX 0 B UART qa-native-uart2 ● open 115200 gen1 [BENCH]
++									172 toolbar UART qa-native-uart2 도구 막대
++										173 container 보기 형식
++											174 toggle button TERM, Help: 실제 터미널 (xterm) — 키 입력이 장치로 즉시 전송됨, Value: on
++											175 toggle button HEX, Help: 송수신 원본 바이트 HEX 보기 (키 입력 안 보냄), Value: off
++										176 toggle button 일시정지, Help: 화면 갱신 일시정지 (수신은 계속 기록), Value: off
++										177 button 지우기, Help: 화면만 지우기 — 장치·데몬 저널·서버 입력 줄에는 영향 없음 (로그·카운터 보존)
++										178 toggle button 시각, Help: 행 앞 수신 시각 표시/숨기기 — 데몬 저널의 호스트 수신 시각 HH:mm:ss.SSS · 장치 바이트는 바뀌지 않음, Value: on
++										179 button REC, Help: UART 기록 (이 탭의 원본 수신/송신을 .log 또는 .jsonl로)
++										180 pop up button (collapsed) 줄 끝, Help: Enter 시 보낼 줄 끝 (이 탭), Value: CR, Secondary Actions: Expand
++										181 button 매크로 실행 → qa-native-uart2
++										182 button 검색, Help: 검색 (터미널 스크롤백)
++										183 button (collapsed) Send String — Text/HEX와 줄 끝을 지정해 전송, Help: Send String — Text/HEX와 줄 끝을 지정해 전송 (uart.input), Secondary Actions: Expand
++										184 button 터미널 테마 전환 (현재 어두움), Help: 이 터미널만 밝게
++										185 button 포트 닫기
++										186 button qa-native-uart2 세션 설정
++										187 toggle button 더보기: 입력권·특수 키, 로그 저장, Value: off
++									188 container qa-native-uart2 터미널
++										189 text entry area (settable) Terminal input
++									190 menu Secondary Actions: Cancel
++									191 text rx 1.0 KB/s
++							192 text UART 터미널 · qa-native-uart2 opened
+~				113 text 활성 pane 2 › qa-native-uart2 /dev/ttys005 115200 8N1 연결됨 RX 1.0 kB TX 0 B pane 2 · 탭 2 · 매크로 실행 0
++			193 container
++				194 text 장치가 uart qa-native-uart2를 다시 열었습니다
++				195 button 패널 열기
+The focused UI element is 57 container 더블클릭/Enter: 활성 pane에 열기

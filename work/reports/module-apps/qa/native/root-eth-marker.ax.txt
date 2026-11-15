@@ -1,0 +1,147 @@
+Window: "Loom", App: Loom.
+0 standard window Loom, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/eth
+			3 container
+				4 link Loom, Help: Loom 통합 작업 공간, Value: localhost:62968/ui/#/l/m1-default
+				5 container 서비스
+					6 link 통합, Help: 통합 작업 공간 — 연결된 인터페이스에서 고른 관찰 보기, Value: localhost:62968/ui/#/l/m1-default
+					7 link UART, 열린 2개, Help: UART 작업대 · 열린 인터페이스 2개, Value: localhost:62968/ui/#/s/uart
+					8 link CAN, 열린 1개, Help: CAN 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/can
+					9 link Ethernet, 열린 1개, Help: Ethernet 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/eth
+					10 link UDS 진단, Help: UDS 진단 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/uds
+					11 link PSU, Help: PSU 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/psu
+					12 link 로직 분석기, Help: 로직 분석기 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/logic
+					13 link 비디오 캡처, Help: 비디오 캡처 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/video
+				14 text [BENCH] 연결됨 REC ok 자격: approve
+				15 button ■ STOP 전체, Help: agent·script 쓰기와 잡을 모두 잠근다 (Ctrl-] x)
+			16 container 작업 공간
+				17 menu Secondary Actions: Cancel
+				18 menu Secondary Actions: Cancel
+				19 menu Secondary Actions: Cancel
+				20 container
+					21 container
+						22 container 이더넷 패킷 · qa-native-eth
+							23 text 1
+							24 tab group (selectable)
+								25 tab (selected) 이더넷 패킷 · qa-native-eth
+							26 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+							27 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+							28 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+							29 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+							30 container 이더넷 패킷 · qa-native-eth
+								31 container
+									32 toolbar Ethernet 작업 공간
+										33 button 채널 추가, Help: 새 채널 이름 + NIC로 캡처 시작 (eth.capture.start) → 그 채널 패널 열기
+										34 button 캡처 시작…, Help: 정지된 채널 캡처 시작 (eth.capture.start)
+										35 button 캡처 정지, Help: 캡처 정지 — 안전 방향(보기 자격도 가능), 기록 유지 (eth.capture.stop)
+										36 toggle button 라이브로, Help: 화면만 고정하고 저널에서 완전 범위 조회 — 캡처는 계속 (Space), Value: on
+										37 toggle button 자동 스크롤, Help: 새 패킷으로 자동 스크롤, Value: off
+										38 toggle button 색상, Help: 프로토콜 색상 규칙, Value: on
+										39 button (disabled) 스트림 따라가기, Help: 스트림 번호가 있는 TCP/UDP 패킷을 선택하세요 (daemon eth.follow)
+										40 button 내보내기, Help: 표시 범위를 pcapng로 내보내기 (eth.export) — 파일은 daemon(벤치) 머신에 생성, 완료 시 경로 표시
+										41 button 기록 지우기, Help: 이 패널의 보관 목록만 비움 — 저널·녹화 기록은 유지
+										42 toggle button 소켓 테스트, Help: UDP/TCP 소켓 테스트 패널 (Alt+S), Value: off
+										43 button 단축키, Help: 단축키 (?)
+										44 text #1380 UDP · 55 B · qa-native-eth
+									45 container 캡처 채널
+										46 container qa-native-eth — 이 패널이 보여 주는 채널
+											47 text qa-native-eth ●  LIVE SIM tap
+											48 button 정지, Help: 캡처 정지 (eth.capture.stop)
+											49 text sim · pps 0 · bps 776 · 커널 드롭: 알 수 없음 · 기록 ok · ts synthetic
+										50 button 채널, Help: 채널 추가 — 새 채널 이름 + NIC로 캡처 시작
+									51 container 필터
+										52 text 범위
+										53 (settable, unknown) 표시 채널 범위
+											54 radio button qa-native-eth, Value: 1
+										55 text 캡처 필터 (없음)
+										56 pop up button (collapsed) 시간 기준, Help: Time 열 기준, Value: 캡처 시작 기준, Secondary Actions: Expand
+										57 text 완전(저널 기준) · 1행 seq 1380–1380 표시 필터
+										58 text field (settable) 표시 필터, Value: udp.dstport == 65201, Placeholder: 예: doip && doip.target_address == 0x1001 — Enter 적용, Esc 되돌리기 (Ctrl+/)
+										59 text ✓ 3 ms
+										60 button 표시 필터 저장, Help: 이 필터를 저장
+										61 pop up button (collapsed) 저장·이력, Value: ▾, Secondary Actions: Expand
+										62 button 적용, Help: 표시 필터 적용 (Enter) — 저장된 기록은 바뀌지 않음
+										63 button 표시 필터 지우기, Help: 표시 필터 지우기 — 전체 표시로 되돌림 (캡처 필터는 그대로)
+										64 text 적용 중
+										65 text 표시 1 / 보관 49
+									66 container 패킷 캡처 작업 공간
+										67 row (selectable)
+											68 cell (settable)
+												69 text No.
+											70 cell (settable)
+												71 text Time
+											72 cell (settable)
+												73 text Source
+											74 cell (settable)
+												75 text Destination
+											76 cell (settable)
+												77 text Protocol
+											78 cell (settable)
+												79 text Length
+											80 cell (settable)
+												81 text Info
+											82 cell (settable)
+												83 text UDS
+											84 cell (settable)
+												85 text 출처
+										86 table (settable) 패킷 목록
+											87 row (selected)
+												88 cell (selectable, settable)
+												89 cell (selectable, settable) 1380
+												90 cell (selectable, settable) 14.151228
+												91 cell (selectable, settable) 127.0.0.1
+												92 cell (selectable, settable) 127.0.0.1
+												93 cell (selectable, settable) UDP
+												94 cell (selectable, settable) 55
+												95 cell (selectable, settable) 53678 → 65201 Len=13
+												96 cell (selectable, settable)
+												97 cell (selectable, settable) Description: 송신 주체(attributed_origin) — 기록 origin은 device, Value: AGT
+										98 splitter 패킷 목록 | 상세 경계, Help: 패킷 목록 | 상세 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 52
+										99 text 패킷 상세 eth:qa-native-eth@seq:1380 · 상세 6 ms
+										100 button 재전송, Help: 선택 프레임을 그대로 raw 송신 (eth.send)
+										101 button 편집 후 송신…, Help: hex 편집 + daemon dry-run 미리보기 후 송신
+										102 button 기준 행, Help: 선택 행을 시간 기준으로
+										103 button REF 복사, Help: 선택 패킷 증거 REF 복사
+										104 button ＋, Help: 모두 펼치기
+										105 button －, Help: 모두 접기
+										106 container
+											107 outline (selectable)
+												108 row (selectable, collapsed) Description: ▸ Frame 1380: 55 bytes, Secondary Actions: Expand, Value: ▸
+Frame 1380: 55 bytes
+												109 row (selectable, collapsed) Description: ▸ Ethernet II, Src: 02:00:00:00:00:02, Dst: 02:00:00:00:00:01, Secondary Actions: Expand, Value: ▸
+Ethernet II, Src: 02:00:00:00:00:02, Dst: 02:00:00:00:00:01
+												110 row (selectable, collapsed) Description: ▸ Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1, Secondary Actions: Expand, Value: ▸
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+												111 row (selectable, collapsed) Description: ▸ User Datagram Protocol, Src Port: 53678, Dst Port: 65201, Secondary Actions: Expand, Value: ▸
+User Datagram Protocol, Src Port: 53678, Dst Port: 65201
+											112 splitter 상세 | 바이트 경계, Help: 상세 | 바이트 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 55
+											113 text 바이트 0000 02 00 00 00 00 01 02 00 00 00 00 02 08 00 45 00 . . . . . . . . . . . . . . E . 0010 00 29 00 00 00 00 40 11 7c c2 7f 00 00 01 7f 00 . ) . . . . @ . | . . . . . . . 0020 00 01 d1 ae fe b1 00 15 59 e3 51 41 4e 45 54 48 . . . . . . . . Y . Q A N E T H 0030 2d 36 32 34 42 44 42 - 6 2 4 B D B
+									114 text 선택 seq 1380 · UDP · 55 B
+									115 text 완전 범위 패킷 1 · 표시 필터 적용(서버)
+									116 text 보관 49행
+						117 text 이더넷 패킷 closed
+			118 container
+				119 text Ethernet · 열린 1
+				120 container Activity
+					121 button (collapsed) Activity 50, Secondary Actions: Expand
+					122 container 20시 34분 53초.045 AGT anon-ctmctm#60238 core core.meta 1 call(s) in the last second
+				123 text Ctrl-] x STOP LOOM / bench
+				124 button ?, Help: 단축키 (Ctrl-] ?)
+	125 close button
+	126 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	127 minimize button
+	128 text Loom
+129 menu bar
+	130 Loom
+	131 File
+	132 Edit
+	133 View
+	134 Window
+	135 Help
+	136 Connection
+
+Selected:
+	87 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

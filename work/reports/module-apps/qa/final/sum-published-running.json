@@ -1,0 +1,13 @@
+{
+  "state": "PUBLISHED_RUNNING_NATIVE_VISIBLE_PENDING_LOCKED",
+  "app_pid": 23400,
+  "daemon_pid": 23423,
+  "port": 62968,
+  "daemon_bin_sha256": "38219c57854bdf98eb0599406592c588f176dea5226c91967a0f7a6b4148ef2c",
+  "ui_digest": "db441bfb3eb743125a7d71ca0b9da67b25cb9e7ff08a23d687969a7a35b039a9",
+  "worker_writes_all_zero": true,
+  "latch": false,
+  "native_visible_verified": false,
+  "reason": "Mac locked; unlock requested, no answer; no visible GUI claim",
+  "source": "normal app launched; app own bundled daemon, default home"
+}

@@ -1,0 +1,23 @@
+daemon.json: present
+daemon pid=176 exe=/usr/bin/loomd (want /usr/bin/loomd)
+daemon parent=  125
+GET /ui/ -> 200
+app alive after start: yes
+daemon alive after app exit: yes
+--- app.log (tail)
+
+(loom-desktop:125): dbind-WARNING **: 04:03:12.063: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files
+loom-desktop: started loomd pid 176 on port 47123 (home /tmp/loom-smoke-deb.NZhK)
+
+Session terminated, killing shell... ...killed.
+--- loomd.log (tail)
+loomd: listening on 127.0.0.1:47123 (daemon.json in /tmp/loom-smoke-deb.NZhK/run)
+loomd: shutting down (SIGTERM)
+loom-worker-sdk: gateway shutting down; sealing journal and exiting
+loom-worker-sdk: gateway shutting down; sealing journal and exiting
+loom-worker-sdk: gateway shutting down; sealing journal and exiting
+loom-worker-sdk: gateway shutting down; sealing journal and exiting
+2026-11-15T04:03:17.487357Z  INFO loom_worker_host::host: worker state instance=can_sim state="stopped" detail={}
+2026-11-15T04:03:17.487544Z  INFO loom_worker_host::host: worker state instance=video state="stopped" detail={}
+2026-11-15T04:03:17.487631Z  INFO loom_worker_host::host: worker state instance=echo state="stopped" detail={}
+2026-11-15T04:03:17.487679Z  INFO loom_worker_host::host: worker state instance=logic state="stopped" detail={}

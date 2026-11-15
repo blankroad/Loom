@@ -1,0 +1,92 @@
+{
+ "run_id": "qn202208",
+ "run_home": "/private/tmp/claude-501/-Users-ctmctm-workspace-Loom/eeeb866b-8820-4b5b-8e96-6d15b3b66cf2/scratchpad/native-qn202208",
+ "written_utc": "2026-11-15T11:23:34Z",
+ "app": {
+  "pid": 23400,
+  "bundle": "/Users/ctmctm/workspace/Loom/desktop/dist/Loom.app"
+ },
+ "daemon": {
+  "pid": 23423,
+  "port": 62968,
+  "home": "/Users/ctmctm/.loom",
+  "bin_sha256": "38219c57854bdf98eb0599406592c588f176dea5226c91967a0f7a6b4148ef2c",
+  "stream_epoch": "1794732461",
+  "baseline_seq": 22,
+  "served_ui_6of6_match_db441bfb": true,
+  "latch": false,
+  "channels_open_at_baseline": 0
+ },
+ "cli": {
+  "bin": "/Users/ctmctm/workspace/Loom/target/release/loom",
+  "env": "LOOM_NO_AUTOSTART=1",
+  "observer_clients": [
+   "qa-native-obs",
+   "qa-native-uart-observer"
+  ]
+ },
+ "fixtures": {
+  "doip_ecu": {
+   "alias": "qa-native-ecu",
+   "host": "127.0.0.1",
+   "port": 64681,
+   "pid": 61860,
+   "vin": "WLMNATV2X2N202208",
+   "ecu": "0x1001",
+   "tester": "0xe80",
+   "note": "restarted fixture-only (17B VIN) same port; first pid 49312 stopped"
+  },
+  "scpi_psu": {
+   "alias": "qa-native-psu",
+   "host": "127.0.0.1",
+   "port": 64682,
+   "pid": 49313,
+   "fixture_run_id": "0e07c104b3ff",
+   "output": "OFF (never ON/set/cycle)",
+   "alive": true
+  },
+  "mjpeg": {
+   "alias": "qa-native-cam",
+   "url": "http://127.0.0.1:64684/stream",
+   "pid": 49314,
+   "fps": 10.0,
+   "size": "640x360",
+   "alive": true
+  },
+  "can_sim": {
+   "alias": "qa-native-can",
+   "engine": "daemon can_sim worker (synthetic)"
+  },
+  "logic": {
+   "alias": "qa-native-logic",
+   "engine": "daemon logic worker (synthetic)"
+  },
+  "eth": {
+   "alias": "qa-native-eth",
+   "engine": "sim backend"
+  },
+  "uart1": {
+   "alias": "qa-native-uart1",
+   "tty": "/dev/ttys006",
+   "pid": 53843,
+   "state": "/tmp/loom-nativeqa/uart1",
+   "tick_s": 3
+  },
+  "uart2": {
+   "alias": "qa-native-uart2",
+   "tty": "/dev/ttys005",
+   "pid": 53844,
+   "state": "/tmp/loom-nativeqa/uart2",
+   "tick_s": 5
+  },
+  "udp_sink": {
+   "pid": 59734,
+   "port": 65201,
+   "state": "/tmp/loom-nativeqa/udp"
+  }
+ },
+ "credentials": "none minted/extracted/stored",
+ "cli_opened_devices_before_native_connect": [],
+ "superseded": "earlier uart-a/b (ttys005/006 pids 49310/49311) stopped unused before any open",
+ "state": "CLEANED 2026-11-15T11:46Z: qa-native uart1/2 closed (w18/w19), can closed (w20), eth capture stopped, psu disconnected (output held, nothing sent); all fixtures exited; /tmp/loom-nativeqa + scratchpad run removed after archive to qa/native/fixtures/. Remaining: UDS target qa-native-ecu link down (no disconnect verb). App 23400 / daemon 23423 kept running."
+}

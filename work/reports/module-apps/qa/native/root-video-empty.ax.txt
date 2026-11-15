@@ -1,0 +1,46 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 29-190, 195
+~		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/video
++					210 container
++						211 container
++							212 container 비디오 캡처
++								213 text 1
++								214 tab group (selectable)
++									215 tab (selected) 비디오 캡처
++								216 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++								217 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++								218 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++								219 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++								220 container 비디오 캡처
++									221 text 캡처 없음
++									222 button (disabled) ■ 캡처 닫기, Help: 수집 정지 + FFmpeg 정리 (안전 방향, 보기 권한 가능)
++									223 text 캡처 없음
++									224 text frame_id —
++									225 text sha256 —
++									226 button (disabled) ⏸ 고정
++									227 button (disabled) 📷 스냅샷
++									228 button (disabled) ● 녹화 시작
++									229 text 표시 0 fps
++									230 text 녹화 없음
++									231 text 오디오: 미지원 (video-only) · RTSP/DeckLink: 미지원 · 캡처보드/TCC: 미검증 · Windows: 캡처 미지원 (데몬이 video.open을 E_UNSUPPORTED로 거부)
++									232 container (expanded) Secondary Actions: Collapse
++										233 summary 새 캡처 열기 (명시적 소스), Value: on
++											234 text 새 캡처 열기 (명시적 소스)
++										235 container
++											236 text 소스
++											237 pop up button (collapsed) 소스, Value: http-mjpeg, Secondary Actions: Expand
++										238 container
++											239 text URL
++											240 text field (settable) URL, Value: http://127.0.0.1:8090/stream
++										241 container
++											242 text 크기
++											243 pop up button (collapsed) 크기, Value: 1280×720, Secondary Actions: Expand
++										244 container
++											245 text fps
++											246 pop up button (collapsed) fps, Value: 30 fps, Secondary Actions: Expand
++										247 button 열기
++										248 text loom video open --source http-mjpeg --url http://127.0.0.1:8090/stream --size 1280x720 --fps 30
++										249 button 엔진 확인, Help: video.capabilities (읽기 전용) — FFmpeg 경로/버전과 구현·검증된 소스를 확인합니다. 장치·카메라를 열지 않습니다.
+~				192 text 비디오 캡처 · 열린 0
++					250 container 20시 39분 40초.045 AGT qa-native-logic-observer#63333 core core.events.query 5 call(s) in the last second
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/video

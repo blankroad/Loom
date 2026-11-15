@@ -1,0 +1,378 @@
+Window: "Loom", App: Loom.
+0 standard window Loom, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: Loom, URL: localhost:62968/ui/#/l/m1-default
+			3 container
+				4 link Loom, Help: Loom 통합 작업 공간, Value: localhost:62968/ui/#/l/m1-default
+				5 container 서비스
+					6 link 통합, Help: 통합 작업 공간 — 연결된 인터페이스에서 고른 관찰 보기, Value: localhost:62968/ui/#/l/m1-default
+					7 link UART, 열린 2개, Help: UART 작업대 · 열린 인터페이스 2개, Value: localhost:62968/ui/#/s/uart
+					8 link CAN, 열린 1개, Help: CAN 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/can
+					9 link Ethernet, 열린 1개, Help: Ethernet 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/eth
+					10 link UDS 진단, 열린 1개, Help: UDS 진단 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/uds
+					11 link PSU, 열린 1개, Help: PSU 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/psu
+					12 link 로직 분석기, Help: 로직 분석기 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/logic
+					13 link 비디오 캡처, Help: 비디오 캡처 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/video
+				14 text [BENCH] 연결됨 REC ok 자격: approve
+				15 button ■ STOP 전체, Help: agent·script 쓰기와 잡을 모두 잠근다 (Ctrl-] x)
+			16 container
+				17 container 작업 공간 패널
+					18 toggle button 인터페이스, Help: 인터페이스 목록 — 다시 누르면 접기, Value: on
+				19 toolbar 작업 공간
+					20 toggle button 목록 접기, Help: 인터페이스 목록 접기/펼치기, Value: on
+					21 container
+						22 text 레이아웃
+						23 pop up button (collapsed) 레이아웃, Value: 기본 작업 공간, Secondary Actions: Expand
+					24 text field (settable) 저장할 레이아웃 이름, Placeholder: 이름
+					25 button 저장
+					26 summary 패널 동작, Value: off
+						27 text 패널 동작
+					28 button 단축키, Help: 키보드 단축키 (Ctrl-] ?)
+				29 container 인터페이스 탐색기
+					30 container 채널
+						31 container
+							32 text 인터페이스
+							33 container 연결된 인터페이스 수
+								34 text 6
+							35 button 인터페이스 추가
+							36 text 채널 검색
+							37 search text field (settable) 채널 검색, Placeholder: 이름, 도메인, 상태 검색
+								38 text 이름, 도메인, 상태 검색
+							39 text 채널을 선택해 보기를 엽니다.
+							40 button (collapsed) 비활성 인터페이스 2개 보기, Secondary Actions: Expand
+						41 container UART 채널
+							42 button (expanded) UART 2, Secondary Actions: Collapse
+							43 content list
+								44 container qa-native-uart1 보기
+									45 button UART qa-native-uart1 터미널 열기 · 연결됨, Help: 터미널 열기
+									46 container qa-native-uart1 보기
+										47 button UART qa-native-uart1 터미널 보기
+										48 button UART qa-native-uart1 트레이스 보기
+								49 container qa-native-uart2 보기
+									50 button UART qa-native-uart2 터미널 열기 · 연결됨, Help: 터미널 열기
+									51 container qa-native-uart2 보기
+										52 button UART qa-native-uart2 터미널 보기
+										53 button UART qa-native-uart2 트레이스 보기
+						54 container CAN 채널
+							55 button (expanded) CAN 1, Secondary Actions: Collapse
+							56 content list
+								57 container qa-native-can 보기
+									58 button CAN qa-native-can 트레이스 · 송신 열기 · 연결됨, Help: 트레이스 · 송신 열기
+									59 container qa-native-can 보기
+										60 button CAN qa-native-can 트레이스 · 송신 보기
+						61 container UDS 채널
+							62 button (expanded) UDS 1, Secondary Actions: Collapse
+							63 content list
+								64 container qa-native-ecu 보기
+									65 button UDS qa-native-ecu 진단 콘솔 열기 · 연결됨, Help: 진단 콘솔 열기
+									66 container qa-native-ecu 보기
+										67 button UDS qa-native-ecu 진단 콘솔 보기
+						68 container ETH 채널
+							69 button (expanded) ETH 1, Secondary Actions: Collapse
+							70 content list
+								71 container qa-native-eth 보기
+									72 button ETH qa-native-eth 패킷 · 캡처 열기 · 연결됨, Help: 패킷 · 캡처 열기
+									73 container qa-native-eth 보기
+										74 button ETH qa-native-eth 패킷 · 캡처 보기
+						75 container PSU 채널
+							76 button (expanded) PSU 1, Secondary Actions: Collapse
+							77 content list
+								78 container qa-native-psu 보기
+									79 button PSU qa-native-psu 전압 · 전류 열기 · 연결됨, Help: 전압 · 전류 열기
+									80 container qa-native-psu 보기
+										81 button PSU qa-native-psu 전압 · 전류 보기
+				82 container 작업 공간
+					83 container
+						84 container
+							85 container
+								86 container UDS 콘솔 · qa-native-ecu
+									87 text 1
+									88 tab group (selectable)
+										89 tab (selectable) UART 터미널 · qa-native-uart2
+										90 tab (selectable) 이더넷 패킷 · qa-native-eth
+										91 tab (selected) UDS 콘솔 · qa-native-ecu
+										92 tab (selectable) 벤치 전원 (PSU) · qa-native-psu
+										93 tab (selectable) 로직 분석기 · lc-1a1df00f399-1
+										94 tab (selectable) 비디오 캡처 · v4e0216eadb82
+									95 button pane 1에 세션 열기, Help: 이 pane에 세션 열기
+									96 text 5
+									97 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+									98 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+									99 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+									100 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+									101 container UDS 콘솔 · qa-native-ecu
+										102 container
+											103 container 진단 대상과 경로
+												104 text ECU
+												105 pop up button (collapsed) 대상, Value: qa-native-ecu, Secondary Actions: Expand
+												106 text 경로
+												107 (settable, unknown) 경로
+													108 radio button DoIP, Help: DoIP (ISO 13400) — daemon 지원 (실제 엔티티 또는 내장 SIM bench ECU), Value: 1
+													109 radio button (disabled) CAN-TP 미지원, Help: CAN-TP (ISO 15765-2) — 백엔드 미지원: Loom UDS daemon에 CAN-TP 전송이 없습니다, Value: 0
+													110 radio button (disabled) EthDiag 미지원, Help: 벤더 Ethernet 진단 어댑터 — 백엔드 미지원, Value: 0
+												111 text doip · DoIP 0x1001 프리셋 · QA Native DoIP
+												112 container
+													113 text ●  연결됨
+												114 button (disabled) 연결됨, Help: 연결됨 — daemon에 연결 해제 RPC가 없어 해제할 수 없습니다 (재연결은 daemon auto_reconnect)
+												115 button (collapsed) 연결 설정, Secondary Actions: Expand
+												116 button (collapsed) 주소 상세, Secondary Actions: Expand
+												117 container 활성 연결 개요
+													118 text qa-native-ecu · doip
+												119 container qa-native-ecu ● doip DoIP 0x1001 sess=default? sec=🔒? TP off P2 50/5000 [BENCH] · 제어: 비어 있음
+													120 text 세션 default? 보안 🔒? TP off P2 50/5000ms 제어: 비어 있음
+													121 button T, Help: 제어 가져오기 (uds.lease.takeover)
+												122 tab group (selectable) 도구 서랍
+													123 tab (selectable) 서비스
+													124 tab (selectable) ECU·DID
+													125 tab (selectable) 명령·시퀀스
+													126 tab (selectable) 감시
+													127 tab (selectable) 프로젝트
+											128 container UDS 요청 (DID 읽기 / Raw PDU)
+												129 text 요청 대상 qa-native-ecu · DoIP doip DoIP 0x1001 · P2 50/5000 ms · 연결됨
+												130 (settable, unknown) 요청 모드 (←→)
+													131 radio button DID, Help: DID 읽기 — SID 0x22 + DID 자동 구성, Value: 1
+													132 radio button Raw, Help: Raw UDS PDU — 입력한 바이트(SID 포함) 그대로 전송, Value: 0
+												133 text SID 0x22 ReadDataByIdentifier
+												134 container
+													135 text DID
+													136 text field (settable) DID, Value: F190
+												137 pop up button (collapsed) 빠른 DID 선택, Value: F190 · VIN, Secondary Actions: Expand
+												138 text VIN
+												139 container
+													140 text 요청 PDU 22 F1 90 3 B
+												141 button 읽기, Help: 요청 전송 (DID 입력란에서 Enter · Raw에서 Ctrl/⌘+Enter) — daemon dry-run·정책·ActionGate 경유
+												142 button 취소, Help: 이 대상의 진행 중 요청 취소 (uds.abort — 이미 보낸 요청은 ⌛? 불확정이 될 수 있음)
+												143 text Enter 또는 [읽기]로 전송. 선택만으로는 전송하지 않습니다.
+											144 text 트랜잭션 2 · 진행 0
+											145 (settable, unknown) 기록 범위
+												146 radio button 전체, Value: 1
+												147 radio button 현재 ECU, Value: 0
+											148 button 기록 JSON 내보내기
+											149 button 기록 CSV 내보내기
+											150 button 완료된 기록 지우기 (표시에서만 — daemon 기록·진행 중 요청은 유지)
+											151 row (selectable)
+												152 cell (settable)
+													153 text #
+												154 cell (settable)
+													155 text 시각
+												156 cell (settable)
+													157 text ECU
+												158 cell (settable)
+													159 text 경로
+												160 cell (settable)
+													161 text DID · SID
+												162 cell (settable)
+													163 text 요청
+												164 cell (settable)
+													165 text 최종 응답
+												166 cell (settable)
+													167 text 상태
+												168 cell (settable)
+													169 text 78
+												170 cell (settable)
+													171 text 경과
+											172 table (settable) 트랜잭션 기록 (↑↓ 선택)
+												173 row (selectable)
+													174 cell (selectable, settable) 1
+													175 cell (selectable, settable) 20:36:02.094
+													176 cell (selectable, settable) qa-native-ecu
+													177 cell (selectable, settable) Description: 요청을 처음 본 시점의 대상 경로 (uds.state), Value: doip DoIP 0x1001
+													178 cell (selectable, settable) Description: ReadDataByIdentifier, Value: F190 VIN
+													179 cell (selectable, settable) Description: 22 F1 90 (3 B), Value: 22 F1 90
+													180 cell (selectable, settable) 62 F1 90 51 41 4E 41 54 49 56 45 71 6E 32 30 32 32 30 38 56 49 4E
+													181 cell (selectable, settable) ●확정 ✓
+													182 cell (selectable, settable) responsePending (0x78) 횟수
+													183 cell (selectable, settable) 50/3.6ms
+												184 row (selectable)
+													185 cell (selectable, settable) 2
+													186 cell (selectable, settable) 20:37:23.047
+													187 cell (selectable, settable) qa-native-ecu
+													188 cell (selectable, settable) Description: 요청을 처음 본 시점의 대상 경로 (uds.state), Value: doip DoIP 0x1001
+													189 cell (selectable, settable) Description: ReadDataByIdentifier, Value: F190 VIN
+													190 cell (selectable, settable) Description: 22 F1 90 (3 B), Value: 22 F1 90
+													191 cell (selectable, settable) 62 F1 90 57 4C 4D 4E 41 54 56 32 58 32 4E 32 30 32 32 30 38
+													192 cell (selectable, settable) ●확정 ✓
+													193 cell (selectable, settable) responsePending (0x78) 횟수
+													194 cell (selectable, settable) 50/4.9ms
+											195 container 응답 순서
+												196 text 응답 순서
+												197 content list (settable) 선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)
+													198 text 트랜잭션을 선택하면 Tx·0x78·최종 응답·타임아웃 순서가 표시됩니다.
+											199 container 해석
+												200 text 해석
+												201 text 선택한 트랜잭션의 요청·응답 해석이 여기에 표시됩니다.
+											202 container UDS PDU 바이트
+												203 text 바이트 · UDS PDU
+												204 button 선택 PDU hex 복사
+												205 text UDS PDU 바이트
+											206 container 확정 값
+												207 text 확정 값 qa-native-ecu
+												208 button 확정 값 접기
+												209 text F190 VIN
+												210 text WLMNATV2X2N202208
+												211 container
+													212 text 출처 
+													213 link #2, Help: 출처 트랜잭션 선택
+														214 text #2
+													215 text  · 20:37:23.047 · doip DoIP 0x1001 · agent
+												216 text F18C ECU Serial Number
+												217 text 확정 값 없음
+												218 text F187 Spare Part Number
+												219 text 확정 값 없음
+												220 text F191 ECU Hardware Number
+												221 text 확정 값 없음
+												222 text F195 SW Version
+												223 text 확정 값 없음
+												224 text F186 Active Session
+												225 text 확정 값 없음
+												226 text daemon이 해석한 확정 응답(decoded)으로만 갱신. 각 값은 출처 트랜잭션·시각·경로를 유지합니다.
+								227 container CAN 트레이스 · qa-native-can
+									228 text 3
+									229 tab group (selectable)
+										230 tab (selected) CAN 트레이스 · qa-native-can
+									231 button pane 3 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+									232 button pane 3 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+									233 toggle button pane 3 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+									234 button pane 3 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+									235 container CAN 트레이스 · qa-native-can
+										236 text CAN qa-native-can
+										237 text BENCH
+										238 tab group (selectable)
+											239 tab (selectable) 수신/송신
+											240 tab (selected) 트레이스
+										241 text LIVE
+										242 button ⏸ 일시정지, Help: 렌더만 정지 (수집 계속) — Space
+										243 text field (settable) id 필터 (쉼표로 구분, Enter), Value: 0x301, Placeholder: id 필터 0x300,0x301
+										244 pop up button (collapsed) 방향 필터, Value: rx+tx, Secondary Actions: Expand
+										245 container
+											246 checkbox AGT, Value: 1
+											247 text  AGT
+										248 container
+											249 checkbox USR, Value: 1
+											250 text  USR
+										251 container
+											252 checkbox DEV, Value: 1
+											253 text  DEV
+										254 container
+											255 checkbox SCR, Value: 1
+											256 text  SCR
+										257 row (selectable)
+											258 cell (settable)
+												259 text 시각(s)
+											260 cell (settable)
+												261 text dir
+											262 cell (settable)
+												263 text 출처
+											264 cell (settable)
+												265 text id
+											266 cell (settable)
+												267 text len
+											268 cell (settable)
+												269 text data
+											270 cell (settable)
+												271 text 상태
+											272 cell (settable)
+												273 text 비고
+										274 table (settable) CAN 트레이스
+											275 row (selectable)
+												276 cell (selectable, settable)
+												277 cell (selectable, settable) 9954.392
+												278 cell (selectable, settable) rx
+												279 cell (selectable, settable) DEV
+												280 cell (selectable, settable) Description: 11bit id, Value: 0x301
+												281 cell (selectable, settable) Description: 8 B · DLC 코드 8, Value: 8
+												282 cell (selectable, settable) C4 74 7F 27 18 B7 F3 16
+												283 cell (selectable, settable)
+												284 cell (selectable, settable)
+											285 row (selectable)
+												286 cell (selectable, settable)
+												287 cell (selectable, settable) ⋯ 재동기화 — suspended_hidden (이 지점 앞뒤 사이 프레임은 질의로 확인)
+											288 row (selectable)
+												289 cell (selectable, settable)
+												290 cell (selectable, settable) 10468.787
+												291 cell (selectable, settable) rx
+												292 cell (selectable, settable) DEV
+												293 cell (selectable, settable) Description: 11bit id, Value: 0x301
+												294 cell (selectable, settable) Description: 8 B · DLC 코드 8, Value: 8
+												295 cell (selectable, settable) 1E 1F 4C 4D 13 2F 0A F4
+												296 cell (selectable, settable)
+												297 cell (selectable, settable)
+											298 row (selectable)
+												299 cell (selectable, settable)
+												300 cell (selectable, settable) 10538.927
+												301 cell (selectable, settable) rx
+												302 cell (selectable, settable) DEV
+												303 cell (selectable, settable) Description: 11bit id, Value: 0x301
+												304 cell (selectable, settable) Description: 8 B · DLC 코드 8, Value: 8
+												305 cell (selectable, settable) 2E A4 C7 80 8A 65 A4 1B
+												306 cell (selectable, settable)
+												307 cell (selectable, settable)
+										308 menu Secondary Actions: Cancel
+										309 text 송신
+										310 text field (settable) CAN 송신 (Enter), Placeholder: 0x300#00 · 18DAF110#02 10 03 · fd 0x123#…
+										311 button 보내기 ⏎
+										312 text R?
+										313 text 보이는 4 / 링 6,049 (상한 100,000) · 수신 10 fps · 화면 0 행/s
+							314 container UART 터미널 · qa-native-uart1
+								315 text 2
+								316 tab group (selectable)
+									317 tab (selected) UART 터미널 · qa-native-uart1
+								318 button pane 2에 세션 열기, Help: 이 pane에 세션 열기
+								319 button pane 2 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+								320 button pane 2 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+								321 toggle button pane 2 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+								322 button pane 2 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+								323 container UART 터미널 · qa-native-uart1
+									324 container 이 pane의 실제 대상
+										325 text qa-native-uart1 /dev/ttys006 115200 8N1 · none · CR 연결됨 RX 5.8 kB · TX 46 B (누락 구간 있음) UART qa-native-uart1 ● open 115200 gen1 [BENCH]
+									326 toolbar UART qa-native-uart1 도구 막대
+										327 container 보기 형식
+											328 toggle button TERM, Help: 실제 터미널 (xterm) — 키 입력이 장치로 즉시 전송됨, Value: on
+											329 toggle button HEX, Help: 송수신 원본 바이트 HEX 보기 (키 입력 안 보냄), Value: off
+										330 toggle button 일시정지, Help: 화면 갱신 일시정지 (수신은 계속 기록), Value: off
+										331 button 지우기, Help: 화면만 지우기 — 장치·데몬 저널·서버 입력 줄에는 영향 없음 (로그·카운터 보존)
+										332 toggle button 시각, Help: 행 앞 수신 시각 표시/숨기기 — 데몬 저널의 호스트 수신 시각 HH:mm:ss.SSS · 장치 바이트는 바뀌지 않음, Value: on
+										333 button REC, Help: UART 기록 (이 탭의 원본 수신/송신을 .log 또는 .jsonl로)
+										334 pop up button (collapsed) 줄 끝, Help: Enter 시 보낼 줄 끝 (이 탭), Value: CR, Secondary Actions: Expand
+										335 button 매크로 실행 → qa-native-uart1
+										336 button 검색, Help: 검색 (터미널 스크롤백)
+										337 button (collapsed) Send String — Text/HEX와 줄 끝을 지정해 전송, Help: Send String — Text/HEX와 줄 끝을 지정해 전송 (uart.input), Secondary Actions: Expand
+										338 button 터미널 테마 전환 (현재 어두움), Help: 이 터미널만 밝게
+										339 button 포트 닫기
+										340 button qa-native-uart1 세션 설정
+										341 toggle button 더보기: 입력권·특수 키, 로그 저장, Value: off
+									342 search text field (settable) 터미널 검색, Value: ack:QANINT2-B3FF78, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)
+										343 text (settable) ack:QANINT2-B3FF78
+										344 button cancel
+									345 text 1/1
+									346 button 검색 닫기
+									347 container qa-native-uart1 터미널
+										348 text entry area (settable) Terminal input, Secondary Actions: Show Writing Tools
+									349 menu Secondary Actions: Cancel
+									350 text AGT ▶ "QANINT2-B3FF78⏎" 17s 전 │ rx 16 B/s
+							351 text 비디오 캡처 · v4e0216eadb82 opened
+					352 menu Secondary Actions: Cancel
+					353 menu Secondary Actions: Cancel
+					354 menu Secondary Actions: Cancel
+					355 menu Secondary Actions: Cancel
+			356 container
+				357 text 통합 작업 공간 · 열린 인터페이스 6
+				358 container Activity
+					359 button (collapsed) Activity 50, Secondary Actions: Expand
+					360 container 20시 43분 37초.045 AGT qa-native-video-observer#64061 core core.events.query 5 call(s) in the last second
+				361 text Ctrl-] x STOP LOOM / bench
+				362 button ?, Help: 단축키 (Ctrl-] ?)
+	363 close button
+	364 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	365 minimize button
+	366 text Loom
+367 menu bar
+	368 Loom
+	369 File
+	370 Edit
+	371 View
+	372 Window
+	373 Help
+	374 Connection
+
+The focused UI element is 342 search text field (settable) 터미널 검색, Value: ack:QANINT2-B3FF78, Placeholder: 스크롤백 검색 (Enter 다음, Shift+Enter 이전)

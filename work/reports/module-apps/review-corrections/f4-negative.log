@@ -1,0 +1,41 @@
+
+ RUN  v5.1.0 /Users/ctmctm/workspace/Loom/ui
+
+ ❯ src/net/mux.test.ts (25 tests | 1 failed) 102ms
+   ❯ SubscriptionMux (25)
+     ❯ visibility leases (8 server subscriptions per connection) (9)
+       × F4: at the cap a topic opened lazily while hidden (active:false in subscribe) merges/resyncs nothing visible 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/net/mux.test.ts > SubscriptionMux > visibility leases (8 server subscriptions per connection) > F4: at the cap a topic opened lazily while hidden (active:false in subscribe) merges/resyncs nothing visible
+AssertionError: expected [ 'resync:merged', …(4) ] to deeply equal [ 'resync:subscription_cap' ]
+
+- Expected
++ Received
+
+  [
+-   "resync:subscription_cap",
++   "resync:merged",
++   "resync:merged",
++   "bind:3n",
++   "bind:2n",
++   "bind:4",
+  ]
+
+ ❯ src/net/mux.test.ts:560:32
+    558|       await srv.settle();
+    559|       // honest park of the hidden handle only; no merge, no suspend, …
+    560|       expect(kinds(t.drain())).toEqual(['resync:subscription_cap']);
+       |                                ^
+    561|       expect(t.calls.length).toBe(calls);
+    562|       expect(t.mux.stats).toMatchObject({ merged: 0, suspended: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 24 passed (25)
+   Start at  17:29:58
+   Duration  276ms (tests 68%, transform 22%, import 6%, setup 2%, worker 2%)
+

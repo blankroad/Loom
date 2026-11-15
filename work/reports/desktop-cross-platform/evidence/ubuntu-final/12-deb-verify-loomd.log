@@ -1,0 +1,5 @@
+verify: binary /usr/bin/loomd sha256=d8fcdf2337ede611d156fac526f4d4254cdb5a904b3e1f2ecd94ef3be0809602
+verify: /ui files compared=6 mismatched=0 csp=yes port=42455
+verify: stamp updated (embedded_ui_verified=true)
+verify: PASS
+verify: stopped spawned daemon (terminate-own-pid)

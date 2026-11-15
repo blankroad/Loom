@@ -1,0 +1,150 @@
+Window: "Loom", App: Loom.
+0 standard window Loom, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/can
+			3 container
+				4 link Loom, Help: Loom 통합 작업 공간, Value: localhost:62968/ui/#/l/m1-default
+				5 container 서비스
+					6 link 통합, Help: 통합 작업 공간 — 연결된 인터페이스에서 고른 관찰 보기, Value: localhost:62968/ui/#/l/m1-default
+					7 link UART, 열린 2개, Help: UART 작업대 · 열린 인터페이스 2개, Value: localhost:62968/ui/#/s/uart
+					8 link CAN, 열린 1개, Help: CAN 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/can
+					9 link Ethernet, Help: Ethernet 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/eth
+					10 link UDS 진단, Help: UDS 진단 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/uds
+					11 link PSU, Help: PSU 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/psu
+					12 link 로직 분석기, Help: 로직 분석기 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/logic
+					13 link 비디오 캡처, Help: 비디오 캡처 작업대 · 열린 인터페이스 0개, Value: localhost:62968/ui/#/s/video
+				14 text [BENCH] 연결됨 REC ok 자격: approve
+				15 button ■ STOP 전체, Help: agent·script 쓰기와 잡을 모두 잠근다 (Ctrl-] x)
+			16 container
+				17 container 작업 공간 패널
+					18 toggle button 인터페이스, Help: 인터페이스 목록 — 다시 누르면 접기, Value: off
+				19 toolbar 작업 공간
+					20 toggle button 목록 펼치기, Help: 인터페이스 목록 접기/펼치기, Value: off
+					21 summary 패널 동작, Value: off
+						22 text 패널 동작
+					23 button 단축키, Help: 키보드 단축키 (Ctrl-] ?)
+				24 container 작업 공간
+					25 menu Secondary Actions: Cancel
+					26 menu Secondary Actions: Cancel
+					27 container
+						28 container
+							29 container CAN 트레이스 · qa-native-can
+								30 text 1
+								31 tab group (selectable)
+									32 tab (selected) CAN 트레이스 · qa-native-can
+								33 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
+								34 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
+								35 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
+								36 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
+								37 container CAN 트레이스 · qa-native-can
+									38 text CAN qa-native-can
+									39 text BENCH
+									40 tab group (selectable)
+										41 tab (selected) 수신/송신
+										42 tab (selectable) 트레이스
+									43 text LIVE
+									44 button ⏸ 일시정지, Help: 렌더만 정지 (수집 계속) — Space
+									45 text field (settable) id 필터 (쉼표로 구분, Enter), Placeholder: id 필터 0x300,0x301
+									46 pop up button (collapsed) 방향 필터, Value: rx+tx, Secondary Actions: Expand
+									47 container
+										48 checkbox AGT, Value: 1
+										49 text  AGT
+									50 container
+										51 checkbox USR, Value: 1
+										52 text  USR
+									53 container
+										54 checkbox DEV, Value: 1
+										55 text  DEV
+									56 container
+										57 checkbox SCR, Value: 1
+										58 text  SCR
+									59 container 수신 (ID별 최신)
+										60 text 수신
+										61 text 집계 창 373 프레임 · ID 2/1,024 · gap 없음
+										62 button 집계 초기화, Help: 수신 요약만 새 집계 창으로 시작 (트레이스 링·기록은 그대로)
+										63 row (selectable)
+											64 cell (settable)
+												65 text CAN-ID
+											66 cell (settable)
+												67 text 유형
+											68 cell (settable)
+												69 text Len
+											70 cell (settable)
+												71 text Data
+											72 cell (settable)
+												73 text 주기 ms
+											74 cell (settable)
+												75 text 횟수
+											76 cell (settable)
+												77 text 마지막 s
+										78 table (settable) CAN 수신 요약
+											79 row (selectable) 0x301
+STD
+8
+C4 74 7F 27 18 B7 F3 16
+—
+1
+22.9142
+											80 row (selectable) 0x310
+STD
+8
+C4 00 00 00 00 00 00 00
+100.0
+372
+37.1000
+									81 container 송신 목록
+										82 text 송신
+										83 button + 새 메시지
+										84 button (disabled) 편집
+										85 button (disabled) 삭제
+										86 button (disabled) 보내기 (Space), Help: 선택한 메시지를 1회 송신 — 송신 줄과 같은 ActionGate·권한·dry-run 경로
+										87 text 주기 송신: 이 패널에서 미지원
+										88 row (selectable)
+											89 cell (settable)
+												90 text CAN-ID
+											91 cell (settable)
+												92 text 유형
+											93 cell (settable)
+												94 text Len
+											95 cell (settable)
+												96 text Data
+											97 cell (settable)
+												98 text 주기
+											99 cell (settable)
+												100 text 횟수
+											101 cell (settable)
+												102 text 트리거
+											103 cell (settable)
+												104 text 메모
+										105 table (settable) CAN 송신 목록
+										106 menu Secondary Actions: Cancel
+									107 text 송신
+									108 text field (settable) CAN 송신 (Enter), Placeholder: 0x300#00 · 18DAF110#02 10 03 · fd 0x123#…
+									109 button 보내기 ⏎
+									110 text R?
+									111 text 보이는 375 / 링 375 (상한 100,000) · 수신 10 fps · 화면 10 행/s
+							112 text CAN 트레이스 closed
+					113 menu Secondary Actions: Cancel
+					114 menu Secondary Actions: Cancel
+					115 menu Secondary Actions: Cancel
+			116 container
+				117 text CAN · 열린 1
+				118 container Activity
+					119 button (collapsed) Activity 50, Secondary Actions: Expand
+					120 container 20시 33분 49초.045 AGT qa-native-can-observer#59255 core core.meta 5 call(s) in the last second
+				121 text Ctrl-] x STOP LOOM / bench
+				122 button ?, Help: 단축키 (Ctrl-] ?)
+	123 close button
+	124 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	125 minimize button
+	126 text Loom
+127 menu bar
+	128 Loom
+	129 File
+	130 Edit
+	131 View
+	132 Window
+	133 Help
+	134 Connection
+
+The focused UI element is 37 container CAN 트레이스 · qa-native-can

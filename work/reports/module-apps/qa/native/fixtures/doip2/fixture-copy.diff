@@ -1,0 +1,4 @@
+74c74
+< s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('127.0.0.1', 0)); s.listen(4); s.settimeout(0.2)
+---
+> s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('127.0.0.1', int(os.environ.get('FIXTURE_PORT','0')))); s.listen(4); s.settimeout(0.2)

@@ -1,0 +1,72 @@
+{
+  "ui": "db441bfb",
+  "groups": [
+    {
+      "pane": "1",
+      "tabs": [
+        "qa3-pty1\nttys000"
+      ]
+    },
+    {
+      "pane": "5",
+      "tabs": [
+        "UDS 콘솔 · qa3-uds"
+      ]
+    },
+    {
+      "pane": "4",
+      "tabs": [
+        "이더넷 패킷 · qa3-eth"
+      ]
+    },
+    {
+      "pane": "3",
+      "tabs": [
+        "CAN 트레이스 · qa3-can"
+      ]
+    },
+    {
+      "pane": "2",
+      "tabs": [
+        "qa3-pty2\nttys008"
+      ]
+    },
+    {
+      "pane": "8",
+      "tabs": [
+        "로직 분석기 · lc-1a1de5e1fb6-1"
+      ]
+    },
+    {
+      "pane": "7",
+      "tabs": [
+        "비디오 캡처 · v8c894e4b02fc"
+      ]
+    },
+    {
+      "pane": "6",
+      "tabs": [
+        "벤치 전원 (PSU) · qa3-psu"
+      ]
+    }
+  ],
+  "uartIds": [
+    "dv-tabpanel-0",
+    "dv-tabpanel-1"
+  ],
+  "search": [
+    {
+      "query": "ack:QAFIN1-919F33",
+      "result": "1/1"
+    },
+    {
+      "query": "ack:QAFIN2-3BD046",
+      "result": "1/1"
+    }
+  ],
+  "canFilter": "0x301",
+  "overflow": false,
+  "sameGroups": true,
+  "sameUartInstances": true,
+  "reload": false
+}

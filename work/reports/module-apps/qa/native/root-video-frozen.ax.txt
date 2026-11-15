@@ -1,0 +1,13 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 40-41, 43-44, 48-49, 58
++									73 text ● 수신 중
++									74 text v4e0216eadb82 · epoch 1794742812244695001 · http-mjpeg http://127.0.0.1:64684/stream · 640×360@15
++									75 text 고정 frame 246
++									76 text frame_id 246
++									77 text sha256 a9ad42e0cfeed15712ba9bf0d54dec127a8c7ee4662411a795a60b22e3da2191
++									78 text ⏸ 고정됨 (capture v4e0216eadb82)
+~									45 button ▶ 실시간
++									79 text frames 254 · 수신 15/15 fps · 표시 5 fps · 마지막 수신 26 ms · fresh · dup 0 / drop 0 · oversize 0 · truncated 0 · junk 0B · media skip 0 · ring 120 · fetched 165 · same 82
++									80 text 녹화 없음
++					81 container 20시 40분 29초.045 AGT qa-native-video-observer#64061 core core.meta 1 call(s) in the last second
+The focused UI element is 39 container 비디오 캡처 · v4e0216eadb82

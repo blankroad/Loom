@@ -1,0 +1,48 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 145, 147, 153-172, 175-182, 186-190, 193-210, 219-225
+~					124 link PSU, 열린 1개, Help: PSU 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/psu
+~							144 container 벤치 전원 (PSU) · qa-native-psu
++								219 text 1
++									220 tab (selected) 벤치 전원 (PSU) · qa-native-psu
+~								152 container 벤치 전원 (PSU) · qa-native-psu
++									221 container
++										222 text PSU
++										223 text qa-native-psu
++										224 text 환경 BENCH
++										225 text scpi-tcp · 127.0.0.1:64682 · IDN LOOM-TEST-FIXTURE,EXTPSU-1,0e07c104b3ff,0.1
++										226 text ○ 출력 OFF
++										227 text off
++										228 text 보호 ?
++										229 button ! 비상 OFF, Help: qa-native-psu 채널만 확인 없이 즉시 출력 OFF (보기 자격도 가능, 인터록은 경고만)
++										230 toggle button 출력 ON, Help: 출력 켜기 (operate 권한, 쓰기 잠금 적용), Value: off
++										231 text R3
++										232 button 연결 해제, Help: psu.disconnect — 링크만 닫습니다. 출력은 그대로 유지됩니다 (끄려면 비상 OFF/출력 OFF)
++										233 container 실측값
++											234 text 실측
++											235 text 0.000 V 0.000 A 0.000 W
++											236 text age 0 ms
++										237 container 설정값 (목표)
++											238 text 설정 (목표값)
++											239 text 전압 설정 0.00 V 전류 제한 0.10 A
++										240 text 전압 설정
++										241 text field (settable) 설정 전압, Placeholder: 0.00
++										242 text V
++										243 text 전류 제한
++										244 text field (settable) 설정 전류, Placeholder: 0.10
++										245 text A
++										246 button 적용, Help: 입력한 값만 장치에 보냅니다. 입력 중에는 아무것도 보내지 않습니다.
++										247 text R2
++										248 text 60초 관측
++										249 text 실측 추세 · 메모리 창 (저장 기록 아님)
++										250 toggle button V, Help: 전압 레인 표시/숨김 (수집은 계속), Value: on
++										251 toggle button A, Help: 전류 레인 표시/숨김 (수집은 계속), Value: on
++										252 toggle button W, Help: 전력 레인 표시/숨김 (수집은 계속), Value: off
++										253 text V
++										254 text A
++										255 text 60 s 창 · 1점
++							256 text 벤치 전원 (PSU) closed
+~				213 text PSU · 열린 1
++			257 container
++				258 text 장치가 psu qa-native-psu를 다시 열었습니다
++				259 button 패널 열기
+The focused UI element is 115 HTML content Description: Loom, URL: localhost:62968/ui/#/s/psu

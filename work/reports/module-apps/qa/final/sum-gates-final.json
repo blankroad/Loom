@@ -1,0 +1,43 @@
+{
+  "freeze": {
+    "signal": "ROOT FINAL SOURCE_FREEZE F1-F4 (ROOT verified 761 tests / 69 files rc 0, tsc 0, scoped eslint 0)",
+    "snapshot": "work/reports/module-apps/qa/final/raw-sources-final.sha256",
+    "ui_src_tree": "1303905e31b154a2b30ccbe2781039f83325ff4a7d20b65a50bdfa0635d6bf55",
+    "ui_src_tree_a52": "8b966e9e6c90be94348c601e439041ecdfd6e9150bcc72ecc05b3e1a1802c504",
+    "changed_since_a52": {
+      "ui/src/net/api.ts": "0bb7f6e02d797737dd46a6137ce0a26559306c713fd00dc995b92d7d34d30c80",
+      "ui/src/net/client.test.ts": "d9a276c4e1d11d995d10671fa92c6d304f5b959e5e2274caf1d8e17b060ada34",
+      "ui/src/net/client.ts": "0d60df4d7408bdbcb51760c9a5ccc0ea59fe5331dcfbba69c6e9f931b24d6e40",
+      "ui/src/net/mux.test.ts": "f5d6e62adaf009c7ae499afdc16997226eae91ff6fb9f8dc6777b84c7c9e8578",
+      "ui/src/net/mux.ts": "f76fb015dc3555d402ddda087705d44b54c2a04d1493bee6493a98986bc6e75a",
+      "ui/src/panels/can/canTrace.test.ts": "857cf277fcf28b86ec44a88b41d4994b770046cf46a115f0f36342c2094cc97b",
+      "ui/src/panels/can/canTrace.ts": "b3656cbf855e1770fc182efc365aebda9f6a9f03f0dc224ecdb2669f64a1afda",
+      "ui/src/panels/can/traceModel.ts": "74a51f4fbbafb378486386a31abc6412299ba89e485f934439eca1c0f2a02388",
+      "ui/src/sdk/capacityLive.test.ts": "acce9f1037eb30043f37069b1f37606186fb6fbf7959dba59f4cad3e02a74c62",
+      "ui/src/sdk/context.ts": "897dd8b5204633d5b97b8bb9fb692c37a94395984253920e3e13cfa36da26c72",
+      "ui/src/sdk/testing/harness.ts": "db5f983154346d8ded8b4c88e14d17315e392f2ece6c56d6065976e71c2e4df7"
+    },
+    "owner_return": "RETURN-REVIEW-CORRECTIONS.md (READY_TO_FREEZE): 11 file hashes == QA freeze snapshot (0 missing, 0 mismatch); owner lint scope = eslint src/net src/sdk src/panels/can (QA full eslint . rc 0 covers all)"
+  },
+  "accepted_not_rerun": {
+    "vitest_full": "work/reports/module-apps/review-corrections/ui-test.log: 69 files / 761 tests passed, vitest rc=0 (log 17:32:09 local, after last source edit 17:31:46)",
+    "tsc": "review-corrections/ui-tsc.log: tsc rc=0 (17:32:07)"
+  },
+  "qa_ran": {
+    "eslint_full": {
+      "cmd": "cd ui && npx eslint .",
+      "rc": 0,
+      "log": "work/reports/module-apps/qa/final/raw-ui-eslint-full.log",
+      "why": "owner ui-lint.log records only \"eslint rc=0\", no scope"
+    },
+    "schema": {
+      "decision": "not rerun - inputs unchanged",
+      "now": "19da59e545a27ddf7cadfdd24cb71ca1d3f95bacb12594c5f31a7817270d8094"
+    },
+    "cli": {
+      "rc": 0,
+      "sha256": "d55b25f54ef14eb1d1bbc16ed7a02b75ca8efd02e220b8f252ee1e6f678d8270"
+    }
+  },
+  "recorded_utc": "2026-11-15T08:33:17Z"
+}

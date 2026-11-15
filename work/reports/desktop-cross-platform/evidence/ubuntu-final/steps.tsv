@@ -1,0 +1,16 @@
+00-snapshot	0	required	0s	rsync -a --delete --exclude=/.git/ --exclude=/target/ --exclude=/spikes/ --exclude=/work/ --exclude=/.worktrees/ --exclude=node_modules/ --exclude=/ui/dist/ --exclude=/ui/test-results/ --exclude=/desktop/dist/ --exclude=/desktop/src-tauri/binaries/ --exclude=/desktop/src-tauri/gen/schemas/ --exclude=/.loom/ --exclude=/.cargo/ --exclude=/.cargo-home/ --exclude=/.venv/ --exclude=.DS_Store /source/ /cache/src-snapshot/
+01-provenance	0	required	1s	provenance
+02-npm-ci	0	required	0s	npm ci --prefix desktop
+03-pnpm-install	0	required	1s	pnpm --dir ui install --frozen-lockfile
+04-packaging-tests	0	required	2s	npm --prefix desktop test
+05-dist	0	required	67s	npm --prefix desktop run dist -- --out-dir /out/dist
+06-check	0	required	0s	node desktop/scripts/package.mjs check
+07-desktop-tests	0	required	6s	env CARGO_TARGET_DIR=/cache/desktop-target cargo test --locked --manifest-path desktop/Cargo.toml -p loom-desktop-host -p loom-desktop
+08-manifest-deb-only	0	required	0s	only_deb
+10-deb-contents	0	required	1s	dpkg-deb -c /out/dist/Loom_0.1.0_arm64.deb
+11-deb-install	0	required	0s	dpkg -i /out/dist/Loom_0.1.0_arm64.deb
+12-deb-verify-loomd	0	required	0s	node desktop/scripts/package.mjs verify /usr/bin/loomd
+12b-installed-identity	0	required	0s	bash -c sha256sum /usr/bin/loomd /cache/src-snapshot/desktop/src-tauri/binaries/loomd-*-linux-gnu && cmp /usr/bin/loomd /cache/src-snapshot/desktop/src-tauri/binaries/loomd-*-linux-gnu
+13-deb-launch-smoke	0	required	6s	launch_smoke deb /usr/bin/loomd /usr/bin/loom-desktop
+15-artifacts	0	required	0s	bash -c cat /out/dist/artifacts.json && ls -la /out/dist && sha256sum /out/dist/*.deb
+99-snapshot-drift	0	required	0s	drift

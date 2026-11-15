@@ -1,0 +1,102 @@
+{
+  "result": "UART_MARKER_DONE",
+  "marker": "QAMOD-074117-9A69BD",
+  "channel": "qa-pty",
+  "generation": 1,
+  "stream_epoch": "1794728047",
+  "evidence_scope": "browser compositor (Ego space16) + CLI observer on same daemon; OS locked -> no native-visible claim",
+  "observer": {
+    "client": "uart-observer",
+    "cmd": "loom events --since now --channel qa-pty --follow --timeout 60 --max 200 --json",
+    "initial_snapshot": {
+      "count": 0,
+      "stream_seq_hw": "102",
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "visibility": "visible"
+    },
+    "armed_before_send": true,
+    "events_received": 35,
+    "rc": 0,
+    "completed": "bounded 60 s timeout reached, exited normally",
+    "events_total": 41
+  },
+  "send": {
+    "client": "qa-uart",
+    "cmd": "loom uart send qa-pty 'QAMOD-074117-9A69BD' --eol lf --expect 'ack:QAMOD-074117-9A69BD' --timeout 10 --idempotency-key qa-mod-uart-marker-QAMOD-074117-9A69BD --json",
+    "rc": 0,
+    "request_id": "w2",
+    "written_bytes": 20,
+    "state": "sent",
+    "expect": {
+      "matched": true,
+      "match": "ack:QAMOD-074117-9A69BD",
+      "rx_offset_start": "2291",
+      "rx_offset_end": "2314",
+      "started_rx_offset": "2270"
+    },
+    "meta": {
+      "truncated": false,
+      "record_health": "ok",
+      "env": "sim",
+      "latch": false,
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      },
+      "stream_epoch": "1794728047",
+      "visibility": "visible"
+    },
+    "others_since_last": {
+      "count": "0",
+      "from_cursor": "e1794728047:seq:30"
+    }
+  },
+  "journal": {
+    "tx_requested": "uart:qa-pty@e1794728047:seq:119 (uart.write requested, request w2, len 20)",
+    "tx_bytes": {
+      "ref": "e1794728047:seq:123",
+      "kind": "uart.data",
+      "origin": "agent",
+      "hex": "51414d4f442d3037343131372d3941363942440a",
+      "text": "QAMOD-074117-9A69BD\n"
+    },
+    "tx_sent": "e1794728047:seq:124 (uart.write sent, written_bytes 20, final)",
+    "rx_device": {
+      "ref": "e1794728047:seq:126",
+      "kind": "uart.data",
+      "origin": "device",
+      "rx_offset": "2270",
+      "len": 50,
+      "hex": "51414d4f442d3037343131372d3941363942440d0a61636b3a51414d4f442d3037343131372d3941363942440d0a66783e20",
+      "text": "QAMOD-074117-9A69BD\r\nack:QAMOD-074117-9A69BD\r\nfx> "
+    },
+    "expect_result": "e1794728047:seq:128 (matched ack line)"
+  },
+  "decoded_rx_lines": [
+    {
+      "text": "QAMOD-074117-9A69BD",
+      "rx": "2270-2291"
+    },
+    {
+      "text": "ack:QAMOD-074117-9A69BD",
+      "rx": "2291-2316"
+    },
+    {
+      "text": "fx> ",
+      "rx": "2316-2322",
+      "note": "prompt after ack"
+    }
+  ],
+  "fixture_rx_log": {
+    "path": "/tmp/lqa1-fx/uart/rx.log",
+    "bytes_before": 0,
+    "bytes_after": 20,
+    "exact_hex": "51414d4f442d3037343131372d3941363942440a",
+    "equals_tx": true
+  },
+  "redaction": "no token/cookie/code; no secret-env used",
+  "not_done": "no other domain write; observer bounded 60 s (single run)"
+}

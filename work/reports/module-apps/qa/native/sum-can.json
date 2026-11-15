@@ -1,0 +1,32 @@
+{
+ "flow": "CAN sim native Connect + 0x300 marker",
+ "verdict": "PASS",
+ "native_open": {
+  "ui_client": "ui-f6344db8e70f",
+  "origin": "user",
+  "rpc": "can.open",
+  "request_id": "w5",
+  "seqs": {
+   "requested": 493,
+   "accepted": 494,
+   "channel_state_open": 495,
+   "sent": 496
+  },
+  "backend": "sim",
+  "bus": "qa-native-can",
+  "nodes": "default",
+  "pre_marker_live_rx": "0x310 device frames (114 by seq 649)"
+ },
+ "marker": {
+  "frame": "300#C4747F2718B7F316",
+  "request_id": "w6",
+  "tx_frame_seq": 748,
+  "rx_0x301_seq": 749,
+  "rx_data": "c4747f2718b7f316 (exact)",
+  "tx_to_rx_ms": 5.0,
+  "epoch": "1794732461",
+  "observer": "qa-native-can-observer armed before send"
+ },
+ "visible": "root-can-ack.ax.txt/png: 0x301 C4 74 7F 27 18 B7 F3 16",
+ "qa_note": "CLI --expect 301 parsed as decimal 0x12D -> write_state effect_unverified; QA flag error, not product; 0x301 proven by observer seq 749 + UI"
+}

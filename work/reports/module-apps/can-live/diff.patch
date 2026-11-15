@@ -1,0 +1,1249 @@
+diff --git a/ui/src/net/api.ts b/ui/src/net/api.ts
+index ead3e4e..496b04e 100644
+--- a/ui/src/net/api.ts
++++ b/ui/src/net/api.ts
+@@ -32,6 +32,11 @@ export interface SubscribeOptions {
+   maxBatchMs?: number;
+   encoding?: 'json' | 'binary';
+   coalesceBy?: 'id';
++  /**
++   * Shell-owned stream (Activity, test, STOP-adjacent monitoring): never suspended or folded into
++   * a union by the mux, so its handlers never see a lease resync. Not part of the subscription key.
++   */
++  pinned?: boolean;
+ }
+ 
+ /** Worker-side receive/decode times of a delivery (performance.timeOrigin+now, ms). */
+@@ -59,6 +64,12 @@ export interface SubscriptionHandlers {
+ export interface Subscription {
+   readonly id: string;
+   close(): void;
++  /**
++   * Visibility lease (default active). A hidden handle keeps its server subscription until an
++   * ACTIVE handle needs the slot; then it is suspended (onResync("suspended_hidden")) and
++   * re-placed with a fresh snapshot when it becomes active again. Optional so fakes stay valid.
++   */
++  setActive?(active: boolean): void;
+ }
+ 
+ export interface NetClient {
+diff --git a/ui/src/net/client.ts b/ui/src/net/client.ts
+index 427f6cf..884c112 100644
+--- a/ui/src/net/client.ts
++++ b/ui/src/net/client.ts
+@@ -8,7 +8,7 @@
+ // therefore stops pulling and the core's decode budget (budget.ts) takes over.
+ // Control path: `control` messages are dispatched the moment they arrive.
+ 
+-import type { EventsBatch, LoomEvent, SubscribeFilter } from '../proto/provisional';
++import type { EventsBatch, LoomEvent, SnapshotPart, SubscribeFilter } from '../proto/provisional';
+ import type { ClockEstimate, ConnState, NetClient, Subscription, SubscribeOptions, SubscriptionHandlers } from './api';
+ import type { DeliveryItem } from './budget';
+ import { UNSYNCED } from './clock';
+@@ -132,6 +132,9 @@ export class MainNetClient implements NetClient {
+         for (const s of this.bound.values()) s.delete(hid);
+         if (!this.closed) this.port.post({ t: 'unsub', hid });
+       },
++      setActive: (active: boolean) => {
++        if (open && !this.closed) this.port.post({ t: 'active', hid, active });
++      },
+     };
+   }
+ 
+@@ -208,6 +211,12 @@ export class MainNetClient implements NetClient {
+       const hd = this.handlers.get(item.hid);
+       if (!hd) return;
+       hd.narrow = item.narrow;
++      // a handle is bound to one entry at a time (suspend/merge rebinds it): drop older bindings
++      for (const [eid, set] of this.bound) {
++        if (eid === item.eid) continue;
++        set.delete(item.hid);
++        if (set.size === 0) this.bound.delete(eid);
++      }
+       let s = this.bound.get(item.eid);
+       if (!s) this.bound.set(item.eid, (s = new Set()));
+       s.add(item.hid);
+@@ -220,7 +229,7 @@ export class MainNetClient implements NetClient {
+       const { h, filter, narrow } = hd;
+       switch (item.k) {
+         case 'part':
+-          safe(() => h.onSnapshotPart?.(narrow ? withPartEvents(item.part, partEvents(item.part).filter((e) => matchesFilter(filter, e))) : item.part));
++          safe(() => h.onSnapshotPart?.(narrow ? narrowPart(item.part, filter) : item.part));
+           break;
+         case 'end':
+           safe(() => h.onSnapshotEnd?.(item.h));
+@@ -257,6 +266,17 @@ export class MainNetClient implements NetClient {
+   }
+ }
+ 
++/**
++ * A narrow handle's view of a shared snapshot part: its own events, and only reducer items of
++ * its domains/channels (an item without a channel is domain-wide and kept).
++ */
++function narrowPart(part: SnapshotPart, f: SubscribeFilter): SnapshotPart {
++  const p = withPartEvents(part, partEvents(part).filter((e) => matchesFilter(f, e)));
++  if (!part.items) return p;
++  const items = part.items.filter((it) => (!f.domains || f.domains.includes(it.domain)) && (!f.channels || it.channel == null || f.channels.includes(it.channel)));
++  return { ...p, items };
++}
++
+ /** One throwing listener must not starve the others. */
+ function safe(fn: () => void): void {
+   try {
+diff --git a/ui/src/net/core.ts b/ui/src/net/core.ts
+index ebe4211..67e78ff 100644
+--- a/ui/src/net/core.ts
++++ b/ui/src/net/core.ts
+@@ -153,6 +153,11 @@ export class NetCore {
+         return;
+       case 'unsub':
+         this.mux.unsubscribe(m.hid);
++        this.maybeDeliver();
++        return;
++      case 'active':
++        this.mux.setActive(m.hid, m.active);
++        this.maybeDeliver();
+         return;
+       case 'pull':
+         this.pullWaiting = true;
+diff --git a/ui/src/net/mux.test.ts b/ui/src/net/mux.test.ts
+index bb6c1b8..6f024a2 100644
+--- a/ui/src/net/mux.test.ts
++++ b/ui/src/net/mux.test.ts
+@@ -123,31 +123,29 @@ describe('SubscriptionMux', () => {
+     expect(subs()).toHaveLength(2);
+   });
+ 
+-  it('enforces ≤ 8 server subs: covering entry is shared (narrow), otherwise park + resync, placed when a slot frees', async () => {
++  it('at the cap an active handle makes room by folding a compatible stream into an exact union (no park); the slot is reused only after the unsubscribe reply', async () => {
+     const { mux, subs, drain, calls } = setup({ maxSubs: 2 });
+     mux.onOpen();
+     mux.subscribe(1, { domains: ['can'] }, SNAP);
+-    mux.subscribe(2, { domains: ['uart'] }, SNAP);
++    mux.subscribe(2, { domains: ['uart'], channels: ['u0'] }, SNAP);
+     mux.subscribe(3, { domains: ['can'], channels: ['ch1'] }, SNAP); // covered by #1
+-    mux.subscribe(4, { domains: ['uds'] }, SNAP); // nothing covers it
++    mux.subscribe(4, { domains: ['uds'] }, SNAP); // nothing covers it: absorb into can → {domains:[can,uds]} (exact union)
+     expect(subs()).toHaveLength(2);
+-    expect(mux.parkedCount).toBe(1);
+-    expect(kinds(drain())).toEqual(['bind:1', 'bind:2', 'bind:3n', 'resync:subscription_cap']);
+-    // #2's subscribe is still in flight: its server slot stays counted until it is answered and released
+-    mux.unsubscribe(2);
+-    expect(subs()).toHaveLength(2);
+-    expect(mux.parkedCount).toBe(1);
+-    const sub2 = calls.find((c) => c.method === 'core.subscribe' && (c.params.filter as { domains: string[] }).domains[0] === 'uart')!;
+-    sub2.resolve({ sub_id: 's-uart', stream_epoch: '1' });
++    expect(mux.capacity()).toMatchObject({ entries: 1, parked: 3 }); // union group (1, 3, 4) waits for the released slot
++    // the can entry's queued binds were purged with it; its handles learn the stream is being re-made
++    expect(kinds(drain())).toEqual(['bind:2', 'resync:merged', 'resync:merged']);
++    // the can subscribe is still in flight: its slot stays counted until answered and released
++    for (const c of calls.filter((x) => x.method === 'core.subscribe')) c.resolve({ sub_id: `s-${(c.params.filter as { domains: string[] }).domains[0]}`, stream_epoch: '1' });
+     await tick();
+-    const unsub = calls.find((c) => c.method === 'core.unsubscribe')!;
+-    expect(unsub.params).toEqual({ sub_id: 's-uart' });
++    const unsubs = calls.filter((c) => c.method === 'core.unsubscribe');
++    expect(unsubs.map((c) => c.params.sub_id)).toEqual(['s-can']);
+     expect(subs()).toHaveLength(2); // not before the server confirmed the release
+-    unsub.resolve({});
++    for (const u of unsubs) u.resolve({});
+     await tick();
+-    expect(subs()).toHaveLength(3);
+-    expect(subs()[2]!.params.filter).toEqual({ domains: ['uds'] });
++    expect(subs().slice(2).map((c) => c.params.filter)).toEqual([{ domains: ['can', 'uds'] }]);
+     expect(mux.parkedCount).toBe(0);
++    // every member of the union is bound narrowly (filtered to its own filter on the main thread)
++    expect(kinds(drain()).sort()).toEqual(['bind:1n', 'bind:3n', 'bind:4n']);
+   });
+ 
+   it('late snapshot frames of a subscription closed while subscribing are dropped, not orphaned', async () => {
+@@ -292,4 +290,230 @@ describe('SubscriptionMux', () => {
+     expect(kinds(drain())).toEqual(['resync:client_queue_overflow']);
+     expect(subs()).toHaveLength(2);
+   });
++
++  // -------------------------------------------------------------------------
++  // visibility leases + bounded capacity (TASK-CAN-LIVE)
++
++  describe('visibility leases (8 server subscriptions per connection)', () => {
++    /** a server that enforces the cap like loomd (hub MAX_SUBS_PER_CONN) and answers every call */
++    function server(t: ReturnType<typeof setup>, max: number) {
++      let held = 0;
++      let maxHeld = 0;
++      let busy = 0;
++      let n = 0;
++      const done = new Set<Call>();
++      const settle = async () => {
++        for (let round = 0; round < 50; round++) {
++          const open = t.calls.filter((c) => !done.has(c));
++          if (!open.length) return;
++          for (const c of open) {
++            done.add(c);
++            if (c.method === 'core.unsubscribe') {
++              held--;
++              c.resolve({});
++            } else if (c.method === 'core.subscribe') {
++              if (held >= max) {
++                busy++;
++                c.reject(new NetError({ code: 'rpc', message: 'subscription limit', dataCode: 'E_BUSY', maybeSent: true }));
++              } else {
++                held++;
++                maxHeld = Math.max(maxHeld, held);
++                c.resolve({ sub_id: `s${++n}`, stream_epoch: '1' });
++              }
++            }
++          }
++          await tick();
++        }
++      };
++      return { settle, held: () => held, maxHeld: () => maxHeld, busy: () => busy };
++    }
++    const filterOf = (c: Call) => c.params.filter;
++    const SHELL = { domains: ['core', 'test'] };
++    const PIN = { snapshot: true, pinned: true };
++
++    it('retained-dock tour (real filters): CAN agent-read activity rides on the shell stream; bound CAN gets a slot', async () => {
++      const t = setup();
++      const srv = server(t, 8);
++      t.mux.onOpen();
++      let hid = 0;
++      t.mux.subscribe(++hid, SHELL, PIN); // shell (always active, pinned)
++      const tour = [
++        { domains: ['uart'], channels: ['qa-uart'] },
++        { domains: ['eth'], channels: ['qa-eth'] },
++        { domains: ['uds'] },
++        { domains: ['video'], kinds: ['video.state', 'video.frame'] }, // unbound video: whole domain
++        { domains: ['logic'], kinds: ['logic.state', 'logic.capture'] }, // unbound logic
++        { domains: ['psu'], channels: ['qa-psu'] },
++      ];
++      for (const f of tour) {
++        t.mux.subscribe(++hid, f, SNAP); // module shown …
++        await srv.settle();
++        t.mux.setActive(hid, false); // … then the user moves on: the dock is retained (hidden)
++      }
++      const can = hid + 1;
++      const act = hid + 2;
++      t.mux.subscribe(can, { domains: ['can'], channels: ['qa-can'] }, SNAP);
++      t.mux.subscribe(act, { domains: ['core'], kinds: ['core.activity'] }, { snapshot: false });
++      await srv.settle();
++      expect(t.subs().map(filterOf)).not.toContainEqual({ domains: ['core'], kinds: ['core.activity'] }); // no own slot
++      expect(t.subs().at(-1)!.params).toMatchObject({ filter: { domains: ['can'], channels: ['qa-can'] }, snapshot: true });
++      expect(t.mux.capacity()).toMatchObject({ entries: 8, parked: 0, suspended: 0 });
++      expect(kinds(t.drain()).filter((k) => k.startsWith('resync'))).toEqual([]);
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBeLessThanOrEqual(8);
++    });
++
++    it('over the cap, the visible bound CAN suspends the least-recently-visible hidden dock (ACK handoff), then gets snapshot + live', async () => {
++      const t = setup();
++      const srv = server(t, 8);
++      t.mux.onOpen();
++      t.mux.subscribe(1, SHELL, PIN);
++      // seven hidden module docks with mutually distinct domains/channels (2 UART ports, 2 ETH, …)
++      const hidden = [
++        { domains: ['uart'], channels: ['qa-uart'] },
++        { domains: ['eth'], channels: ['qa-eth'] },
++        { domains: ['uds'] },
++        { domains: ['video'], kinds: ['video.state'] },
++        { domains: ['logic'], kinds: ['logic.state'] },
++        { domains: ['psu'], channels: ['qa-psu'] },
++        { domains: ['eth'], channels: ['qa-eth2'], ext: { eth_filter: 'udp' } },
++      ];
++      for (let i = 0; i < hidden.length; i++) {
++        t.mux.subscribe(10 + i, hidden[i]!, SNAP);
++        await srv.settle();
++        t.mux.setActive(10 + i, false);
++      }
++      t.drain();
++      expect(t.mux.capacity()).toMatchObject({ entries: 8, active: 1 });
++      t.mux.subscribe(99, { domains: ['can'], channels: ['qa-can'] }, SNAP);
++      // the oldest hidden dock (UART, hid 10) lends its slot; CAN is not told "subscription_cap"
++      expect(kinds(t.drain())).toEqual(['resync:suspended_hidden']);
++      const unsub = t.calls.filter((c) => c.method === 'core.unsubscribe');
++      expect(unsub).toHaveLength(1);
++      expect(t.subs().map(filterOf)).not.toContainEqual({ domains: ['can'], channels: ['qa-can'] }); // waits for the ACK
++      await srv.settle();
++      const canCall = t.subs().at(-1)!;
++      expect(canCall.params).toMatchObject({ filter: { domains: ['can'], channels: ['qa-can'] }, snapshot: true });
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBe(8);
++      // native order: snapshot → end → live 0x301 / 0x310 reach the CAN handle
++      const sub = `s${t.subs().length}`;
++      t.mux.onNotification(partNote(sub, range(1966, 1966)));
++      t.mux.onNotification(endNote(sub, 1966));
++      t.mux.onNotification(evNote(sub, range(1972, 1975)));
++      expect(kinds(t.drain())).toEqual(['bind:99', 'part:1', 'end:1966', 'batch:1972,1973,1974,1975']);
++    });
++
++    it('hidden → shown: a suspended handle is re-placed with a FRESH snapshot (no after_seq), suspending the next LRU hidden one', async () => {
++      const t = setup({ maxSubs: 3 });
++      const srv = server(t, 3);
++      t.mux.onOpen();
++      t.mux.subscribe(1, SHELL, PIN);
++      t.mux.subscribe(2, { domains: ['psu'], channels: ['qa-psu'] }, SNAP);
++      t.mux.subscribe(3, { domains: ['uds'] }, SNAP);
++      await srv.settle();
++      t.mux.setActive(2, false); // PSU hidden first (LRU)
++      t.mux.setActive(3, false);
++      t.mux.subscribe(4, { domains: ['can'], channels: ['qa-can'] }, SNAP);
++      await srv.settle();
++      t.drain();
++      expect(t.mux.capacity()).toMatchObject({ entries: 3, suspended: 1 });
++      t.mux.setActive(4, false); // CAN hidden, PSU shown again
++      t.mux.setActive(2, true);
++      expect(kinds(t.drain())).toEqual(['resync:suspended_hidden']); // UDS (hidden longest now) lends its slot
++      await srv.settle();
++      const psu = t.subs().at(-1)!;
++      expect(psu.params.filter).toEqual({ domains: ['psu'], channels: ['qa-psu'] });
++      expect(psu.params.snapshot).toBe(true);
++      expect(psu.params).not.toHaveProperty('after_seq');
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBeLessThanOrEqual(3);
++    });
++
++    it('under the cap, hiding/showing docks costs no server calls (no churn)', async () => {
++      const t = setup();
++      const srv = server(t, 8);
++      t.mux.onOpen();
++      for (let h = 1; h <= 5; h++) t.mux.subscribe(h, { domains: [`d${h}`] }, SNAP);
++      await srv.settle();
++      const before = t.calls.length;
++      for (let i = 0; i < 200; i++) t.mux.setActive(1 + (i % 5), i % 2 === 0);
++      for (let h = 1; h <= 5; h++) t.mux.setActive(h, true);
++      await srv.settle();
++      expect(t.calls.length).toBe(before);
++      expect(kinds(t.drain()).filter((k) => k.startsWith('resync'))).toEqual([]);
++    });
++
++    it('Integrated: shell + all seven modules visible at once fit in 8; many visible UART ports share one exact union', async () => {
++      const t = setup();
++      const srv = server(t, 8);
++      t.mux.onOpen();
++      t.mux.subscribe(1, SHELL, PIN);
++      const seven = [
++        { domains: ['uart'], channels: ['u0'] },
++        { domains: ['eth'], channels: ['qa-eth'] },
++        { domains: ['uds'] },
++        { domains: ['can'], channels: ['qa-can'] },
++        { domains: ['psu'], channels: ['qa-psu'] },
++        { domains: ['logic'], channels: ['la0'], kinds: ['logic.capture'] },
++        { domains: ['video'], channels: ['cam0'], kinds: ['video.frame'] },
++      ];
++      seven.forEach((f, i) => t.mux.subscribe(10 + i, f, SNAP));
++      t.mux.subscribe(30, { domains: ['core'], kinds: ['core.activity'] }, { snapshot: false }); // CAN agent-read
++      await srv.settle();
++      expect(t.mux.capacity()).toMatchObject({ entries: 8, parked: 0 });
++      expect(kinds(t.drain()).filter((k) => k.startsWith('resync'))).toEqual([]);
++      // five more UART ports shown side by side: no park, UART streams fold into one exact union
++      for (let p = 1; p <= 5; p++) t.mux.subscribe(40 + p, { domains: ['uart'], channels: [`u${p}`] }, SNAP);
++      await srv.settle();
++      const items = t.drain();
++      expect(kinds(items).filter((k) => k === 'resync:subscription_cap')).toEqual([]);
++      expect(t.mux.capacity()).toMatchObject({ entries: 8, parked: 0 });
++      const uartUnion = t.subs().map(filterOf).filter((f) => f.domains?.includes('uart') && (f.channels?.length ?? 0) === 6);
++      expect(uartUnion).toEqual([{ domains: ['uart'], channels: ['u0', 'u1', 'u2', 'u3', 'u4', 'u5'] }]);
++      // the other six modules and the shell were never merged or resynced
++      const others = t.subs().map(filterOf).filter((f) => !f.domains?.includes('uart'));
++      expect(others).toEqual([SHELL, ...seven.filter((f) => !f.domains.includes('uart'))]); // each subscribed exactly once
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBeLessThanOrEqual(8);
++    });
++
++    it('genuine capacity: mutually unmergeable visible handles park with "subscription_cap" and are placed as soon as one is hidden', async () => {
++      const t = setup({ maxSubs: 2 });
++      const srv = server(t, 2);
++      t.mux.onOpen();
++      const eth = (x: string) => ({ domains: ['eth'], channels: ['qa-eth'], ext: { eth_filter: x } });
++      t.mux.subscribe(1, eth('tcp'), SNAP);
++      t.mux.subscribe(2, eth('udp'), SNAP);
++      await srv.settle();
++      t.drain();
++      t.mux.subscribe(3, eth('arp'), SNAP);
++      expect(kinds(t.drain())).toEqual(['resync:subscription_cap']);
++      expect(t.mux.capacity()).toMatchObject({ entries: 2, parked: 1, active: 3 });
++      t.mux.setActive(1, false); // the user hides one view: its slot goes to the waiting one
++      expect(kinds(t.drain())).toEqual(['resync:suspended_hidden']);
++      await srv.settle();
++      expect(t.subs().at(-1)!.params.filter).toEqual(eth('arp'));
++      expect(t.mux.capacity()).toMatchObject({ entries: 2, parked: 0, suspended: 1 });
++      t.mux.setActive(1, true); // shown again while both others are visible: honest park, no eviction of visible ones
++      expect(kinds(t.drain())).toEqual(['bind:3', 'resync:subscription_cap']);
++      expect(srv.busy()).toBe(0);
++    });
++
++    it('a parked or suspended handle that is closed leaves no state behind', async () => {
++      const t = setup({ maxSubs: 1 });
++      const srv = server(t, 1);
++      t.mux.onOpen();
++      t.mux.subscribe(1, { domains: ['a'], ext: { x: 1 } }, SNAP);
++      await srv.settle();
++      t.mux.setActive(1, false);
++      t.mux.subscribe(2, { domains: ['b'], ext: { x: 2 } }, SNAP);
++      await srv.settle();
++      t.mux.unsubscribe(1); // suspended
++      t.mux.unsubscribe(2);
++      await srv.settle();
++      expect(t.mux.capacity()).toMatchObject({ entries: 0, handles: 0, parked: 0, suspended: 0 });
++      expect(srv.held()).toBe(0);
++    });
++  });
+ });
+diff --git a/ui/src/net/mux.ts b/ui/src/net/mux.ts
+index 41904cc..226e853 100644
+--- a/ui/src/net/mux.ts
++++ b/ui/src/net/mux.ts
+@@ -19,13 +19,29 @@
+ // batches) — the same view as a fresh subscription without a second server sub.
+ // The replay log is bounded; once it overflows the entry is no longer joinable
+ // by snapshot handles (they get a new entry or park).
++//
++// Visibility leases (TASK-CAN-LIVE): a handle is ACTIVE while its panel is visible
++// (setActive; new handles start active, shell-owned subscriptions never go inactive).
++// Hiding tears nothing down. Only when an ACTIVE handle cannot be placed does the mux
++// make room, bounded and without timers or retries:
++//   a. SUSPEND the least-recently-visible entry whose handles are all inactive
++//      (core.unsubscribe; its handles get onResync("suspended_hidden"), keep their
++//      panel/mirror state, and are re-placed with a FRESH snapshot when shown again);
++//   b. else MERGE the two compatible entries whose union is cheapest (same options,
++//      ext and origins; an exact union such as uart/[a,b] first) into one server
++//      subscription: its handles get onResync("merged"), then the union's fresh
++//      snapshot, filtered per handle on the main thread (narrow bind);
++//   c. else the handle stays parked with onResync("subscription_cap") — genuine
++//      capacity, placed as soon as a slot frees or a panel is hidden.
++// Freed slots go to merge groups first, then active handles (most recent first), then
++// inactive ones. Slots still draining count as freed (no second relief for them).
+ 
+ import type { EventsBatch, LoomEvent, SubscribeFilter, U64 } from '../proto/provisional';
+ import type { SubscribeOptions } from './api';
+ import type { DeliveryItem, DeliveryQueue } from './budget';
+ import type { NetError, Timers } from './rpc';
+ import type { Inbound, LocalCtx } from './wire';
+-import { eventSeq, filterCovers, isControlEvent, readSubscribeResult, rebatch, subscribeParams, subscriptionKey, unsubscribeParams } from './wire';
++import { eventSeq, filterCovers, filterKey, isControlEvent, readSubscribeResult, rebatch, subscribeParams, subscriptionKey, unsubscribeParams } from './wire';
+ 
+ type Phase = 'idle' | 'subscribing' | 'snapshot' | 'live' | 'failed';
+ 
+@@ -64,8 +80,34 @@ interface Entry {
+ 
+ interface Parked {
+   hid: number;
++  /** placement filter: the handle's own, or the union of a merge group */
++  filter: SubscribeFilter;
++  opts: SubscribeOptions;
++  /** member of a merge group (placed before any other parked handle) */
++  merge?: boolean;
++}
++
++/** one main-thread handle: its own filter (narrow binding) and visibility lease */
++interface HandleInfo {
+   filter: SubscribeFilter;
+   opts: SubscribeOptions;
++  active: boolean;
++  /** lease clock at the last visibility change (LRU for suspension) */
++  touched: number;
++  state: 'bound' | 'parked' | 'suspended';
++}
++
++/** Capacity as the mux sees it (exposed for diagnostics and tests). */
++export interface MuxCapacity {
++  maxSubs: number;
++  entries: number;
++  draining: number;
++  handles: number;
++  active: number;
++  parked: number;
++  suspended: number;
++  /** entries carrying more than one distinct handle filter (shared/merged) */
++  shared: number;
+ }
+ 
+ export interface MuxLimits {
+@@ -120,7 +162,9 @@ export class SubscriptionMux {
+   private nextEid = 1;
+   private connected = false;
+   private readonly l: MuxLimits;
+-  readonly stats = { orphansDropped: 0, unknownSub: 0, resyncs: 0 };
++  private readonly handles = new Map<number, HandleInfo>();
++  private leaseClock = 0;
++  readonly stats = { orphansDropped: 0, unknownSub: 0, resyncs: 0, suspended: 0, merged: 0 };
+ 
+   constructor(private readonly d: MuxDeps) {
+     this.l = { ...DEFAULT_MUX_LIMITS, ...d.limits };
+@@ -138,14 +182,183 @@ export class SubscriptionMux {
+     return this.byHid.get(hid)?.hids.size ?? 0;
+   }
+ 
++  capacity(): MuxCapacity {
++    let active = 0;
++    let suspended = 0;
++    for (const h of this.handles.values()) {
++      if (h.active) active++;
++      if (h.state === 'suspended') suspended++;
++    }
++    let shared = 0;
++    for (const e of this.entries.values()) {
++      const keys = new Set([...e.hids].map((h) => filterKey(this.handles.get(h)?.filter ?? e.filter)));
++      if (keys.size > 1 || (keys.size === 1 && !keys.has(filterKey(e.filter)))) shared++;
++    }
++    return { maxSubs: this.l.maxSubs, entries: this.entries.size, draining: this.draining, handles: this.handles.size, active, parked: this.parked.length, suspended, shared };
++  }
++
+   subscribe(hid: number, filter: SubscribeFilter, opts: SubscribeOptions): void {
++    this.handles.set(hid, { filter, opts, active: true, touched: ++this.leaseClock, state: 'parked' });
+     if (this.place(hid, filter, opts)) return;
++    this.park(hid, filter, opts);
++  }
++
++  /**
++   * Visibility lease. Hiding changes nothing at once (no churn under the cap); a hidden
++   * handle's entry only becomes suspendable. Showing re-places a suspended handle (fresh
++   * snapshot) and makes room for a parked one.
++   */
++  setActive(hid: number, active: boolean): void {
++    const h = this.handles.get(hid);
++    if (!h || h.active === active) return;
++    h.active = active;
++    h.touched = ++this.leaseClock;
++    if (!active) {
++      // a visible handle waiting for a slot can take this one's now (genuine-capacity park)
++      if (this.parked.some((p) => p.merge || this.handles.get(p.hid)?.active) && this.relieve()) this.placeParked();
++      return;
++    }
++    if (h.state === 'suspended') {
++      if (!this.place(hid, h.filter, h.opts)) this.park(hid, h.filter, h.opts);
++    } else if (h.state === 'parked') {
++      this.parked.sort(parkOrder(this.handles));
++      if (this.relieve()) this.placeParked();
++    }
++  }
++
++  private park(hid: number, filter: SubscribeFilter, opts: SubscribeOptions): void {
++    const h = this.handles.get(hid);
+     if (this.parked.length >= this.l.parked) {
++      this.handles.delete(hid);
+       this.d.queue.pushExempt({ k: 'resync', eid: -1, hid, reason: 'subscription_cap_full' }, 0);
+       return;
+     }
++    if (h) h.state = 'parked';
+     this.parked.push({ hid, filter, opts });
+-    this.d.queue.pushExempt({ k: 'resync', eid: -1, hid, reason: 'subscription_cap' }, 0);
++    this.parked.sort(parkOrder(this.handles));
++    // an active handle makes room (suspend hidden / merge); only genuine excess is reported
++    const covered = h?.active === true && this.relieve();
++    if (!covered) this.d.queue.pushExempt({ k: 'resync', eid: -1, hid, reason: 'subscription_cap' }, 0);
++    else this.placeParked();
++  }
++
++  /** distinct server subscriptions the waiting active handles (and merge groups) need */
++  private demand(): number {
++    const keys = new Set<string>();
++    for (const p of this.parked) if (p.merge || this.handles.get(p.hid)?.active) keys.add(subscriptionKey(p.filter, p.opts));
++    return keys.size;
++  }
++
++  /**
++   * Make room for every waiting active handle: suspend hidden-only entries (LRU), else merge.
++   * Slots still draining count as free. Each step lowers entries.size by ≥ 1 net, so this
++   * ends after ≤ maxSubs steps. true = the waiting demand fits.
++   */
++  private relieve(): boolean {
++    for (let guard = 0; guard <= this.l.maxSubs * 2; guard++) {
++      if (this.demand() <= this.l.maxSubs - this.entries.size) return true;
++      if (!this.suspendOne() && !this.mergeOne()) return false;
++    }
++    return this.demand() <= this.l.maxSubs - this.entries.size;
++  }
++
++  private suspendOne(): boolean {
++    let best: Entry | null = null;
++    let bestAt = Infinity;
++    for (const e of this.entries.values()) {
++      if (e.closed || e.hids.size === 0 || e.opts.pinned) continue;
++      let at = -Infinity;
++      let anyActive = false;
++      for (const hid of e.hids) {
++        const h = this.handles.get(hid);
++        if (!h || h.active) anyActive = true;
++        else at = Math.max(at, h.touched);
++      }
++      if (!anyActive && at < bestAt) {
++        best = e;
++        bestAt = at;
++      }
++    }
++    if (!best) return false;
++    const hids = [...best.hids];
++    this.closeEntry(best);
++    for (const hid of hids) {
++      const h = this.handles.get(hid);
++      if (h) h.state = 'suspended';
++      this.d.queue.pushExempt({ k: 'resync', eid: -1, hid, reason: 'suspended_hidden' }, 0);
++    }
++    this.stats.suspended++;
++    return true;
++  }
++
++  /**
++   * Fold two streams into one union subscription (frees one slot net). Candidates are pairs of
++   * open entries, and an open entry with a waiting active handle ("absorb": only that entry is
++   * re-subscribed). Cheapest union first; on a tie absorbing wins (fewer handles disturbed).
++   */
++  private mergeOne(): boolean {
++    const open = [...this.entries.values()].filter((e) => !e.closed && e.hids.size > 0 && !e.opts.pinned);
++    const waiting = this.parked.filter((p) => !p.merge && this.handles.get(p.hid)?.active);
++    // 1. a waiting handle joins a union already being formed: no server call at all
++    for (const w of waiting) {
++      const g = this.parked.find((p) => p.merge && mergeCost(p.filter, p.opts, w.filter, w.opts) === 0);
++      if (!g) continue;
++      const key = subscriptionKey(g.filter, g.opts);
++      const union = unionFilter(g.filter, w.filter);
++      for (const p of this.parked) if (p.merge && subscriptionKey(p.filter, p.opts) === key) p.filter = union;
++      w.filter = union;
++      w.opts = g.opts;
++      w.merge = true;
++      this.parked.sort(parkOrder(this.handles));
++      return true;
++    }
++    // 2. fold an open entry with a waiting handle ("absorb") or with another entry
++    let best: { a: Entry; b: Entry | null; w: Parked | null; cost: number } | null = null;
++    const consider = (a: Entry, b: Entry | null, w: Parked | null, cost: number | null) => {
++      if (cost === null) return;
++      if (!best || cost < best.cost || (cost === best.cost && w && !best.w)) best = { a, b, w, cost };
++    };
++    for (let i = 0; i < open.length; i++) {
++      const a = open[i]!;
++      for (const w of waiting) consider(a, null, w, mergeCost(a.filter, a.opts, w.filter, w.opts));
++      for (let j = i + 1; j < open.length; j++) consider(a, open[j]!, null, mergeCost(a.filter, a.opts, open[j]!.filter, open[j]!.opts));
++    }
++    if (!best) return false;
++    const { a, b, w } = best as { a: Entry; b: Entry | null; w: Parked | null };
++    const union = unionFilter(a.filter, b ? b.filter : w!.filter);
++    const opts = a.opts;
++    const hids = [...a.hids, ...(b ? b.hids : [])];
++    this.closeEntry(a);
++    if (b) this.closeEntry(b);
++    const group: Parked[] = [];
++    for (const hid of hids) {
++      const h = this.handles.get(hid);
++      if (h) h.state = 'parked';
++      group.push({ hid, filter: union, opts, merge: true });
++      this.d.queue.pushExempt({ k: 'resync', eid: -1, hid, reason: 'merged' }, 0);
++    }
++    if (w) group.push({ hid: w.hid, filter: union, opts, merge: true }); // never had a stream: no resync
++    const moved = new Set([...hids, ...(w ? [w.hid] : [])]);
++    this.parked = [...group, ...this.parked.filter((p) => !moved.has(p.hid))];
++    this.stats.merged++;
++    return true;
++  }
++
++  /** Close a server subscription without touching its handles' bookkeeping beyond the entry. */
++  private closeEntry(e: Entry): void {
++    for (const hid of e.hids) this.byHid.delete(hid);
++    e.hids.clear();
++    e.closed = true;
++    e.gen++;
++    this.d.timers.clearTimeout(e.retryTimer);
++    this.entries.delete(e.eid);
++    this.d.queue.purge(e.eid);
++    if (e.subId) {
++      this.bySub.delete(e.subId);
++      this.releaseLater(e.subId);
++    } else if (e.phase === 'subscribing') {
++      this.releaseLater(null);
++    }
+   }
+ 
+   /**
+@@ -179,29 +392,27 @@ export class SubscriptionMux {
+   }
+ 
+   private placeParked(): void {
+-    const waiting = this.parked;
++    const waiting = this.parked.sort(parkOrder(this.handles));
+     this.parked = [];
+     for (const p of waiting) if (!this.place(p.hid, p.filter, p.opts)) this.parked.push(p);
++    // a waiting active handle that a freed slot did not reach: make room again (bounded)
++    if (this.parked.some((p) => p.merge || this.handles.get(p.hid)?.active) && this.relieve()) {
++      const again = this.parked;
++      this.parked = [];
++      for (const p of again) if (!this.place(p.hid, p.filter, p.opts)) this.parked.push(p);
++    }
+   }
+ 
+   unsubscribe(hid: number): void {
++    this.handles.delete(hid);
+     this.parked = this.parked.filter((p) => p.hid !== hid);
+     const e = this.byHid.get(hid);
+     if (!e) return;
+     this.byHid.delete(hid);
+     e.hids.delete(hid);
+     if (e.hids.size > 0) return;
+-    e.closed = true;
+-    e.gen++;
+-    this.d.timers.clearTimeout(e.retryTimer);
+-    this.entries.delete(e.eid);
+-    this.d.queue.purge(e.eid);
+-    if (e.subId) {
+-      this.bySub.delete(e.subId);
+-      this.releaseLater(e.subId);
+-    } else if (e.phase === 'subscribing') {
+-      this.releaseLater(null); // held until the in-flight subscribe is answered and released
+-    }
++    // an in-flight subscribe stays counted (draining) until it is answered and released
++    this.closeEntry(e);
+     // a slot may be free: place parked handles in order
+     this.placeParked();
+   }
+@@ -300,33 +511,40 @@ export class SubscriptionMux {
+     let exact: Entry | null = null;
+     for (const e of this.entries.values()) if (e.key === key && joinable(e)) exact = e;
+     if (exact) {
+-      this.join(exact, hid, opts, false);
++      this.join(exact, hid, opts);
+       return true;
+     }
++    const covering = () => {
++      for (const e of this.entries.values()) {
++        if (
++          joinable(e) &&
++          (e.opts.encoding ?? 'json') === (opts.encoding ?? 'json') &&
++          e.opts.coalesceBy === opts.coalesceBy &&
++          filterCovers(e.filter, filter)
++        ) {
++          this.join(e, hid, opts);
++          return true;
++        }
++      }
++      return false;
++    };
++    // a live-only handle never needs a replay: join a covering stream before spending a slot
++    // (CAN's agent-read activity topic rides on the shell's core stream)
++    if (!opts.snapshot && covering()) return true;
+     if (this.entries.size + this.draining < this.l.maxSubs) {
+       const e = this.newEntry(this.nextEid++, filter, opts);
+       this.entries.set(e.eid, e);
+-      e.hids.add(hid);
+-      this.byHid.set(hid, e);
+-      this.d.queue.pushExempt({ k: 'bind', eid: e.eid, hid, narrow: false }, 0);
++      this.join(e, hid, opts);
+       if (this.connected) this.start(e, false);
+       return true;
+     }
+-    for (const e of this.entries.values()) {
+-      if (
+-        joinable(e) &&
+-        (e.opts.encoding ?? 'json') === (opts.encoding ?? 'json') &&
+-        e.opts.coalesceBy === opts.coalesceBy &&
+-        filterCovers(e.filter, filter)
+-      ) {
+-        this.join(e, hid, opts, true);
+-        return true;
+-      }
+-    }
+-    return false;
++    return covering();
+   }
+ 
+-  private join(e: Entry, hid: number, opts: SubscribeOptions, narrow: boolean): void {
++  private join(e: Entry, hid: number, opts: SubscribeOptions): void {
++    const h = this.handles.get(hid);
++    // narrow = the handle's own filter is not the entry's (covering join or merge group)
++    const narrow = filterKey(h?.filter ?? e.filter) !== filterKey(e.filter);
+     // bind first: untargeted items already queued are covered by the replay
+     this.d.queue.pushExempt({ k: 'bind', eid: e.eid, hid, narrow }, 0);
+     if (opts.snapshot && e.replay) {
+@@ -334,6 +552,8 @@ export class SubscriptionMux {
+     }
+     e.hids.add(hid);
+     this.byHid.set(hid, e);
++    if (h) h.state = 'bound';
++    if (opts.pinned && !e.opts.pinned) e.opts = { ...e.opts, pinned: true }; // a shell stream stays pinned
+   }
+ 
+   private newEntry(eid: number, filter: SubscribeFilter, opts: SubscribeOptions): Entry {
+@@ -528,3 +748,45 @@ export class SubscriptionMux {
+     for (const n of mine) this.onNotification(n);
+   }
+ }
++
++// ---------------------------------------------------------------------------
++// lease helpers (pure)
++
++/** merge groups first, then active handles (most recently shown first), then hidden ones */
++function parkOrder(handles: ReadonlyMap<number, HandleInfo>): (a: Parked, b: Parked) => number {
++  const rank = (p: Parked) => (p.merge ? 0 : handles.get(p.hid)?.active ? 1 : 2);
++  return (a, b) => rank(a) - rank(b) || (handles.get(b.hid)?.touched ?? 0) - (handles.get(a.hid)?.touched ?? 0);
++}
++
++const dimUnion = (a?: readonly string[], b?: readonly string[]) => (!a || !b ? undefined : [...new Set([...a, ...b])].sort());
++const sameDim = (a?: readonly string[], b?: readonly string[]) => JSON.stringify(a ? [...a].sort() : null) === JSON.stringify(b ? [...b].sort() : null);
++
++/** smallest filter selecting everything either selects (absent dimension = all; never an empty list) */
++export function unionFilter(a: SubscribeFilter, b: SubscribeFilter): SubscribeFilter {
++  const u: SubscribeFilter = {};
++  const d = dimUnion(a.domains, b.domains);
++  const c = dimUnion(a.channels, b.channels);
++  const k = dimUnion(a.kinds, b.kinds);
++  if (d) u.domains = d;
++  if (c) u.channels = c;
++  if (k) u.kinds = k;
++  if (a.origins) u.origins = [...a.origins];
++  if (a.ext !== undefined) u.ext = a.ext;
++  return u;
++}
++
++/**
++ * Cost of serving both entries from one union subscription; null = not mergeable (different
++ * options, push-down ext or origins). 0 = exact union (one covers the other, or they differ in
++ * one dimension only, e.g. uart/[a] + uart/[b]); otherwise the number of differing dimensions
++ * (the cross product may carry extra rows, filtered per handle on the main thread).
++ */
++function mergeCost(af: SubscribeFilter, ao: SubscribeOptions, bf: SubscribeFilter, bo: SubscribeOptions): number | null {
++  const opt = (o: SubscribeOptions) => JSON.stringify([o.snapshot, o.maxBatchMs ?? null, o.encoding ?? 'json', o.coalesceBy ?? null]);
++  if (opt(ao) !== opt(bo)) return null;
++  if (JSON.stringify(af.ext ?? null) !== JSON.stringify(bf.ext ?? null)) return null;
++  if (!sameDim(af.origins, bf.origins)) return null;
++  if (filterCovers(af, bf) || filterCovers(bf, af)) return 0;
++  const diff = [sameDim(af.domains, bf.domains), sameDim(af.channels, bf.channels), sameDim(af.kinds, bf.kinds)].filter((same) => !same).length;
++  return diff <= 1 ? 0 : diff;
++}
+diff --git a/ui/src/net/protocol.ts b/ui/src/net/protocol.ts
+index e2561b1..17376a4 100644
+--- a/ui/src/net/protocol.ts
++++ b/ui/src/net/protocol.ts
+@@ -14,6 +14,8 @@ export type CoreIn =
+   | { t: 'cancel'; id: number }
+   | { t: 'sub'; hid: number; filter: SubscribeFilter; opts: SubscribeOptions }
+   | { t: 'unsub'; hid: number }
++  /** visibility lease of one subscription handle (mux.setActive) */
++  | { t: 'active'; hid: number; active: boolean }
+   /** main thread is ready for the next delivery (sent at most once per frame) */
+   | { t: 'pull' }
+   | { t: 'visible'; visible: boolean; extra?: PresenceExtra }
+diff --git a/ui/src/panels/can/canTrace.test.ts b/ui/src/panels/can/canTrace.test.ts
+index 44287eb..e6256e3 100644
+--- a/ui/src/panels/can/canTrace.test.ts
++++ b/ui/src/panels/can/canTrace.test.ts
+@@ -27,12 +27,32 @@ const tx = (rid: string, state: Parameters<typeof writeEv>[1], origin: 'agent' |
+ });
+ 
+ describe('can.trace panel', () => {
+-  it('subscribes to can/<channel> and shares the activity topic shape with the shell', () => {
++  it('subscribes to can/<channel>; the activity topic is live-only and contained in the shell stream', () => {
+     h = mountPanel('can.trace', { channel: 'ch1' });
+     expect(h.net.subs[CAN]!.filter).toEqual({ domains: ['can'], channels: ['ch1'] });
+     expect(h.net.subs[CAN]!.opts.snapshot).toBe(true);
+-    expect(h.net.subs[ACT]!.filter).toEqual({ kinds: ['core.activity'] });
+-    expect(h.net.subs[ACT]!.opts).toEqual({ snapshot: true });
++    expect(h.net.subs[ACT]!.filter).toEqual({ domains: ['core'], kinds: ['core.activity'] });
++    expect(h.net.subs[ACT]!.opts).toEqual({ snapshot: false });
++    // containment in the shell stream (no server slot) is proven end-to-end in sdk/capacityLive.test.ts
++  });
++
++  it('genuine capacity is visible: a parked bound stream shows "구독 대기", then live once placed', () => {
++    h = mountPanel('can.trace', { channel: 'qa-can' });
++    const root = h.host.querySelector<HTMLElement>('[data-testid="can-trace"]')!;
++    h.net.subs[CAN]!.h.onResync?.('subscription_cap'); // net mux: no server slot for this visible view
++    h.frame();
++    expect(root.dataset.subscription).toBe('waiting');
++    expect(h.host.querySelector('[data-testid="can-live"]')!.textContent).toBe('구독 대기');
++    expect(h.host.querySelector('[data-testid="can-status"]')!.textContent).toContain('구독 대기');
++    h.snapshotEnd('1966'); // placed: snapshot arrives
++    h.batch([frame(0x301, 'c47a7a2663de839a', { channel: 'qa-can' })]);
++    expect(root.dataset.subscription).toBe('live');
++    expect(h.host.querySelector('[data-testid="can-live"]')!.textContent).toBe('LIVE');
++    expect(rows(h.host).some((r) => r.dataset.id === '0x301')).toBe(true);
++    // a lease resync (hidden dock lent its slot) is not a capacity wait
++    h.net.subs[CAN]!.h.onResync?.('suspended_hidden');
++    h.frame();
++    expect(root.dataset.subscription).toBe('live');
+   });
+ 
+   it('E-UI-3 rows: AGT tx row with request_id and stage, DEV rx 0x301', () => {
+diff --git a/ui/src/panels/can/canTrace.ts b/ui/src/panels/can/canTrace.ts
+index f0c1347..fea81ec 100644
+--- a/ui/src/panels/can/canTrace.ts
++++ b/ui/src/panels/can/canTrace.ts
+@@ -32,8 +32,11 @@ import {
+   type PanelContext,
+   type PanelInstance,
+   type PanelManifest,
++  type RowView,
++  type StoreMirror,
+ } from '../../sdk';
+ import './can.css';
++import { createCanConnect, type CanConnectSection } from './canConnect';
+ import { formatFrame, parseSendLine } from './sendLine';
+ import {
+   bytesForRows,
+@@ -111,9 +114,34 @@ const setText = (e: HTMLElement, t: string) => {
+ };
+ const fmtN = (n: number) => n.toLocaleString('ko-KR');
+ 
+-export function channelOf(props: Readonly<Record<string, unknown>>): string {
++/** bound channel (`channel`, legacy `ch`); null = unbound module application (no implicit ch0) */
++export function channelOf(props: Readonly<Record<string, unknown>>): string | null {
+   const c = props.channel ?? props.ch;
+-  return typeof c === 'string' && c ? c : 'ch0';
++  return typeof c === 'string' && c ? c : null;
++}
++
++/** Never-fed mirror for the unbound module: no subscription is opened (ctx.store is lazy). */
++const idleMirror = (): StoreMirror<LoomEvent> => ({
++  snapshot: null,
++  snapshotDone: true,
++  headSeq: 0n,
++  gaps: [],
++  tail: () => [],
++  after: () => [],
++  overwritten: 0,
++  project: async () => ({ rows: [], fromSeq: null, toSeq: null, truncated: false }),
++  onAppend: () => () => {},
++});
++const IDLE_ROWS: RowView = { list: () => [], get: () => undefined, onChange: () => () => {}, evicted: 0, rejected: 0 };
++
++/**
++ * Bound stream state from the mirror: 'waiting' while the newest mark is the net layer's
++ * subscription-cap park and no snapshot has arrived; 'live' otherwise; 'unbound' without a channel.
++ */
++export function subWaitOf(mirror: Pick<StoreMirror<LoomEvent>, 'gaps' | 'snapshotDone'>, bound: boolean): 'unbound' | 'waiting' | 'live' {
++  if (!bound) return 'unbound';
++  const g = mirror.gaps[mirror.gaps.length - 1];
++  return !mirror.snapshotDone && g?.kind === 'resync' && g.cause.startsWith('subscription_cap') ? 'waiting' : 'live';
+ }
+ 
+ export type CanView = 'rxtx' | 'trace';
+@@ -148,12 +176,14 @@ export function parseIdFilter(s: string): Set<number> | null {
+ }
+ 
+ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): PanelInstance {
+-  const channel = channelOf(ctx.props);
++  const bound = channelOf(ctx.props);
++  /** unbound: the full application with empty data; alias-dependent operations stay disabled */
++  const channel = bound ?? '';
+   const now = opts.now ?? (() => performance.now());
+   const model = new CanTraceModel({ capacity: rowsOf(ctx.props), now, recordOk: () => ctx.recordHealth === 'ok' });
+-  const mirror = ctx.store('can');
+-  const actMirror = ctx.store('activity');
+-  const rowView = ctx.rows({ domain: 'can', channel });
++  const mirror = bound ? ctx.store('can') : idleMirror();
++  const actMirror = bound ? ctx.store('activity') : idleMirror();
++  const rowView = bound ? ctx.rows({ domain: 'can', channel: bound }) : IDLE_ROWS;
+   const mine = new Set<string>(); // FIFO ≤ MY_REQ_MAX
+   const isMine = (rid: string) => mine.has(rid);
+ 
+@@ -161,8 +191,9 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+   const root = el('div', 'can-trace');
+   root.dataset.testid = 'can-trace';
+   root.dataset.channel = channel;
++  root.dataset.bound = String(bound !== null);
+   const top = el('div', 'ct-bar-top');
+-  const chLabel = el('span', 'mono', `CAN ${channel}`);
++  const chLabel = el('span', 'mono', bound ? `CAN ${bound}` : 'CAN · 채널 미선택');
+   const envBadge = el('span', 'muted');
+   const live = el('span', 'ct-live');
+   live.dataset.testid = 'can-live';
+@@ -271,7 +302,9 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+   tabRxTx.addEventListener('click', () => setView('rxtx'));
+   tabTrace.addEventListener('click', () => setView('trace'));
+ 
+-  root.append(createLatchLine(ctx), top, tableHost, rxtx.root, send, status);
++  // unbound module: interface/connect section above the (empty) tools
++  const connect: CanConnectSection | null = bound ? null : createCanConnect(ctx, () => curView);
++  root.append(createLatchLine(ctx), ...(connect ? [connect.root] : []), top, tableHost, rxtx.root, send, status);
+   setView(curView);
+ 
+   // ---------------- ingest ----------------
+@@ -431,6 +464,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+     msg.classList.toggle('err', err);
+   };
+   const doSend = () => {
++    if (!bound) return; // unbound: nothing to send to (input is disabled too)
+     const r = parseSendLine(input.value, channel);
+     if (!r.ok) {
+       input.setAttribute('aria-invalid', 'true');
+@@ -471,7 +505,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+   };
+   const sendEntry = (uid: number) => {
+     const e = txList.get(uid);
+-    if (!e) return;
++    if (!e || !bound) return;
+     rxtx.say(`▶ ${e.text} …`);
+     sendParams({ ...e.params }, e.text, (rid, err) => {
+       if (err === null) {
+@@ -515,7 +549,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+     previewAbort?.abort();
+     previewAbort = null;
+     const gen = ++previewGen;
+-    if (!params) {
++    if (!params || !bound) {
+       setRisk('R?', `입력하면 등급을 미리 봅니다 — ${RISK_HINT}`, 'idle');
+       return;
+     }
+@@ -542,7 +576,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+   };
+ 
+   input.addEventListener('input', () => {
+-    if (!input.value.trim()) {
++    if (!input.value.trim() || !bound) {
+       input.removeAttribute('aria-invalid');
+       schedulePreview(null);
+       return;
+@@ -647,11 +681,15 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+     }
+     // U-3: same lock as the shell's ActionGate (STALLED / disconnected) — disabled, not "refused on Enter"
+     const hasRight = ctx.rights.has('operate') || ctx.rights.has('approve');
+-    const writable = hasRight && !ctx.writeLocked;
++    connect?.update(hasRight && !ctx.writeLocked, hasRight);
++    // unbound: no alias to send to — every send path stays disabled until a channel is bound
++    const writable = bound !== null && hasRight && !ctx.writeLocked;
+     if (input.disabled === writable) {
+       input.disabled = !writable;
+       sendBtn.disabled = !writable;
+-      input.placeholder = writable ? '0x300#00 · 18DAF110#02 10 03 · fd 0x123#…' : hasRight ? '연결 STALLED — 쓰기 잠김' : '송신은 operate 권한 필요';
++      input.placeholder = writable
++        ? '0x300#00 · 18DAF110#02 10 03 · fd 0x123#…'
++        : !bound ? '채널을 연결하거나 선택하면 송신할 수 있습니다' : hasRight ? '연결 STALLED — 쓰기 잠김' : '송신은 operate 권한 필요';
+     }
+     rxtx.setWritable(writable);
+     // Receive list redraw: every frame while cheap; once a draw costs > RXTX_SLOW_MS (large id
+@@ -682,6 +720,14 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+       `보이는 ${fmtN(view.listCount)} / 링 ${fmtN(model.count)} (상한 ${fmtN(model.capacity)})`,
+       `수신 ${fmtN(Math.round(fpsIn))} fps · 화면 ${fmtN(Math.round(dispRate))} 행/s`,
+     ];
++    // genuine capacity: the bound stream is waiting for a server subscription slot (net mux parked it)
++    const wait = subWaitOf(mirror, bound !== null);
++    if (root.dataset.subscription !== wait) root.dataset.subscription = wait;
++    if (wait === 'waiting') {
++      parts.unshift('구독 대기 — 이 연결의 서버 구독 8개를 보이는 패널이 모두 쓰는 중 (다른 보기를 숨기거나 닫으면 자동 연결)');
++      setText(live, '구독 대기');
++      if (live.className !== 'ct-live degraded') live.className = 'ct-live degraded';
++    }
+     if (model.omitted) parts.push(`화면 생략 누적 ${fmtN(model.omitted)}`);
+     if (model.evicted) parts.push(`보관 범위 밖 ${fmtN(model.evicted)} → 질의`);
+     setText(status, parts.join(' · '));
+@@ -717,6 +763,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
+     },
+     dispose() {
+       clearInterval(tick);
++      connect?.dispose();
+       if (previewTimer !== null) cancel(previewTimer);
+       previewAbort?.abort();
+       offFrame();
+@@ -740,21 +787,28 @@ export const CAN_TRACE_MANIFEST: PanelManifest = {
+   topics: [
+     {
+       key: 'can',
+-      filter: (p) => ({ domains: ['can'], channels: [channelOf(p)] }),
++      // unbound panels never open this topic (ctx.store is not called); '' would match no channel anyway
++      filter: (p) => ({ domains: ['can'], channels: [channelOf(p) ?? ''] }),
+       snapshot: 'required',
+       mirrorRows: MIRROR_ROWS,
+     },
+     {
+-      // identical (filter, options) to the shell's Activity subscription → the net layer
+-      // shares ONE server subscription (contract v1: ≤ 8 per viewer connection)
++      // agent-read ranges: live core.activity (the daemon publishes it as domain core). Contained in the
++      // shell's single stream {domains:[core,test]} and live-only, so the net layer serves it from that
++      // stream (narrow) and it never costs one of the connection's 8 server subscriptions.
+       key: 'activity',
+-      filter: () => ({ kinds: ['core.activity'] }),
+-      snapshot: 'required',
++      filter: () => ({ domains: ['core'], kinds: ['core.activity'] }),
++      snapshot: 'none',
+     },
+   ],
+   // can.send is also a query, but only with dry_run:true (risk preview; SDK enforces it)
+-  queries: ['can.trace.query', 'can.send'],
+-  actions: [{ id: 'send', rpc: 'can.send', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 1회 송신' }],
++  // can.status: unbound module lists already-open channels (explicit button, read-only)
++  queries: ['can.trace.query', 'can.send', 'can.status'],
++  actions: [
++    { id: 'send', rpc: 'can.send', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 1회 송신' },
++    // unbound module: explicit open of the selected backend (can_sim only); navigation never calls it
++    { id: 'open', rpc: 'can.open', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 채널 열기' },
++  ],
+   // ring at the 2M upper bound + mirror; default 100k rows uses ~1/20 of this
+   memory: { maxBytes: Math.ceil(bytesForRows(ROWS_MAX) + 16 * 1024 * 1024) },
+   render: { maxHz: 60, budgetMs: 8, lagTargetMs: 150 },
+diff --git a/ui/src/sdk/context.ts b/ui/src/sdk/context.ts
+index 4931e2c..142ca78 100644
+--- a/ui/src/sdk/context.ts
++++ b/ui/src/sdk/context.ts
+@@ -27,6 +27,9 @@ export class UndeclaredError extends Error {
+ export interface WriteHandle {
+   /** null when the RPC result carried no request_id */
+   readonly requestId: string | null;
++  /** The action's successful RPC result: a success envelope's `data`, or the bare result. Optional so
++   * fake handles stay valid; `undefined` = no result reported. Failures never get here (act() throws). */
++  readonly result?: unknown;
+   state(): WriteState | null;
+   onChange(cb: (s: WriteState) => void): Unsubscribe;
+ }
+@@ -187,6 +190,8 @@ export function createPanelContext(
+ ): PanelContextHandle {
+   const mirrors = new Map<string, EventMirror>();
+   const subByKey = new Map<string, Subscription>();
++  /** last visibility given to setVisible (new panels are opened to be seen) */
++  let leaseVisible = true;
+   const unsubs: Unsubscribe[] = [];
+   let frameCb: ((budgetMs: number) => bigint | void) | null = null;
+   const now = deps.now ?? (() => performance.now());
+@@ -291,6 +296,7 @@ export function createPanelContext(
+       },
+     );
+     subByKey.set(topicKey, sub);
++    if (!leaseVisible) sub.setActive?.(false); // opened lazily while hidden
+     return mirror;
+   };
+ 
+@@ -414,7 +420,7 @@ export function createPanelContext(
+       // bare result or D5 envelope {data:{request_id, write_state, …}} (CAN schema v1 §3)
+       const rid = result?.request_id ?? result?.data?.request_id;
+       const requestId = typeof rid === 'string' ? rid : null;
+-      return writeHandle(deps.rows, requestId);
++      return writeHandle(deps.rows, requestId, unwrapDomainResult<unknown>(spec.rpc, result));
+     },
+ 
+     scheduler: {
+@@ -473,6 +479,11 @@ export function createPanelContext(
+     ctx,
+     setVisible(v) {
+       handle.setVisible(v);
++      // visibility lease (net mux): a hidden panel lends its server subscription slot to a visible one
++      // only when one is needed; it keeps its instance, drafts and mirror, and is re-snapshotted when shown
++      if (leaseVisible === v) return;
++      leaseVisible = v;
++      for (const s of subByKey.values()) s.setActive?.(v);
+     },
+     dispose() {
+       for (const s of subByKey.values()) s.close();
+@@ -487,9 +498,10 @@ export function createPanelContext(
+   };
+ }
+ 
+-function writeHandle(rows: RowStore, requestId: string | null): WriteHandle {
++function writeHandle(rows: RowStore, requestId: string | null, result: unknown): WriteHandle {
+   return {
+     requestId,
++    result,
+     state: () => (requestId ? (rows.get(requestId)?.state ?? null) : null),
+     onChange(cb) {
+       if (!requestId) return () => {};
+diff --git a/ui/src/shell/services.ts b/ui/src/shell/services.ts
+index d1c5f86..a88f637 100644
+--- a/ui/src/shell/services.ts
++++ b/ui/src/shell/services.ts
+@@ -1,6 +1,7 @@
+ // Wires one NetClient into the shell stores. Created once per tab in main.tsx.
+ 
+ import type { NetClient } from '../net/api';
++import type { LoomEvent, SubscribeFilter } from '../proto/provisional';
+ import { ActionGate } from '../sdk/actionGate';
+ import { parseEvidenceRef, type EvidenceRef } from '../sdk/evidenceRef';
+ import { SimpleCursorBus, type ShellUiHooks } from '../sdk/context';
+@@ -22,6 +23,8 @@ import { LocalLayoutStore, type LayoutBackend } from './dock/layoutStore';
+ import { parseRoute, sameSlot, serviceAllowsDomain, slotHash, type Slot } from './routes';
+ 
+ export const TICK_MS = 250;
++/** The shell's single data subscription: Activity (domain core) + test sessions. Panels may share it narrowly. */
++export const SHELL_STREAM_FILTER: SubscribeFilter = { domains: ['core', 'test'] };
+ const MAX_TOASTS = 5; // ring: oldest removed
+ export const TOAST_MS = 4_000;
+ const MAX_EXTRA_SLOTS = 4; // auto/explicitly opened panels beside the layout; oldest dropped
+@@ -63,6 +66,12 @@ export class ToastStore extends Emitter {
+ export class UiStateStore extends Emitter {
+   approvalsOpen = false;
+   helpOpen = false;
++  /** bumps when the visible dock (per-module workspace) changes, so chrome reading `dock.current` re-renders */
++  dockEpoch = 0;
++  noteDockChange(): void {
++    this.dockEpoch++;
++    this.changed();
++  }
+   /** no-dock fallback only (tests, embedding without a dock): panels opened beside the layout.
+    * With the dock mounted, showSlot opens dock tabs instead (DockHost.open). */
+   extraSlots: Slot[] = [];
+@@ -345,35 +354,33 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}):
+       window.addEventListener('keydown', onKey, true);
+       offs.push(() => window.removeEventListener('keydown', onKey, true));
+     }
+-    // Activity is not a control kind: the shell holds one subscription for it.
++    // ONE shell data stream (TASK-CAN-LIVE: the connection has 8 server subscriptions; the shell keeps 1 so the
++    // integrated workspace fits all seven modules). `core` carries Activity (core.activity is not a control kind;
++    // the daemon publishes it as domain core) and test.* adds the late-join snapshot (reducer state + backlog;
++    // test.* are priority events, so live ones also arrive on the control path — duplicates are dropped by seq in
++    // the store). Panels may ride on this stream narrowly (e.g. CAN's agent-read activity topic).
++    const applyShellEvent = (e: LoomEvent) => {
++      if (e.kind === 'core.activity' || e.kind === 'core.agent_cursor') activity.applyEvent(e);
++    };
+     const sub = net.subscribe(
+-      { kinds: ['core.activity'] },
+-      { snapshot: true },
++      SHELL_STREAM_FILTER,
++      { snapshot: true, pinned: true }, // never suspended or folded by the mux (STOP/Activity/test monitoring)
+       {
+         onSnapshotPart: (p) => {
+           shell.noteSnapshotItems(p.items ?? []);
+-          p.events?.forEach((e) => activity.applyEvent(e));
++          for (const it of p.items ?? []) if (it.domain === 'test') testSession.applySnapshotState(it.state);
++          const evs = p.events ?? [];
++          evs.forEach(applyShellEvent);
++          testSession.applyMany(evs.filter((e) => e.domain === 'test'));
+         },
+         onBatch: (b) => {
+-          b.events.forEach((e) => activity.applyEvent(e));
++          b.events.forEach(applyShellEvent);
++          const t = b.events.filter((e) => e.domain === 'test');
++          if (t.length) testSession.applyMany(t);
+         },
+       },
+     );
+     offs.push(() => sub.close());
+-    // test.* are priority events (control path); this subscription adds the late-join
+-    // snapshot (reducer state + backlog). Duplicates are dropped by seq in the store.
+-    const testSub = net.subscribe(
+-      { domains: ['test'] },
+-      { snapshot: true },
+-      {
+-        onSnapshotPart: (p) => {
+-          for (const it of p.items ?? []) if (it.domain === 'test') testSession.applySnapshotState(it.state);
+-          testSession.applyMany(p.events ?? []);
+-        },
+-        onBatch: (b) => testSession.applyMany(b.events),
+-      },
+-    );
+-    offs.push(() => testSub.close());
+     offs.push(scheduler.onDegradedChange(() => shell.tick(now())));
+     if (opts.autoTick !== false) {
+       const h = setInterval(() => {
+diff --git a/ui/src/store/testing/fakeNet.ts b/ui/src/store/testing/fakeNet.ts
+index 414248a..76e9030 100644
+--- a/ui/src/store/testing/fakeNet.ts
++++ b/ui/src/store/testing/fakeNet.ts
+@@ -40,7 +40,7 @@ export class FakeNet implements NetClient {
+   calls: RecordedCall[] = [];
+   httpStops = 0;
+   visible: boolean[] = [];
+-  subs: { id: string; filter: SubscribeFilter; opts: SubscribeOptions; h: SubscriptionHandlers; closed: boolean }[] = [];
++  subs: { id: string; filter: SubscribeFilter; opts: SubscribeOptions; h: SubscriptionHandlers; closed: boolean; active: boolean[] }[] = [];
+   /** method → result (or throw) */
+   responders = new Map<string, (params: unknown) => unknown>();
+   private stateCbs = new Set<(s: ConnState) => void>();
+@@ -84,13 +84,16 @@ export class FakeNet implements NetClient {
+     return (r ? r(params) : {}) as R;
+   }
+   subscribe(filter: SubscribeFilter, opts: SubscribeOptions, h: SubscriptionHandlers): Subscription {
+-    const rec = { id: `sub-${this.nextSub++}`, filter, opts, h, closed: false };
++    const rec = { id: `sub-${this.nextSub++}`, filter, opts, h, closed: false, active: [] as boolean[] };
+     this.subs.push(rec);
+     return {
+       id: rec.id,
+       close: () => {
+         rec.closed = true;
+       },
++      setActive: (a: boolean) => {
++        rec.active.push(a);
++      },
+     };
+   }
+   clock(): ClockEstimate {

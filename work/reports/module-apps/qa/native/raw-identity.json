@@ -1,0 +1,40 @@
+{
+ "served_ui": [
+  {
+   "file": "assets/index-BD_R9uM0.css",
+   "sha256": "f56317e275739715d671f17506ac6dd401ecd8e4ad0bb7cfa73fd132364b0787",
+   "match": true
+  },
+  {
+   "file": "assets/index-URYTawWD.js",
+   "sha256": "51e059cff2e9fc5ef5d64f4f0e3e2fbad8fc9ea7d03ac1efe6ffb65cca294a66",
+   "match": true
+  },
+  {
+   "file": "assets/index-URYTawWD.js.map",
+   "sha256": "8587c873ef4335ddfd44fdedb121f8eb6ac365b91f3e226a9f4f95e5617a70e1",
+   "match": true
+  },
+  {
+   "file": "assets/net.worker-iKLXTfiY.js",
+   "sha256": "660f8fbbbad13179188fcdb995f0bf7c9d802bcd9fae6812163e0b651e826ab0",
+   "match": true
+  },
+  {
+   "file": "assets/net.worker-iKLXTfiY.js.map",
+   "sha256": "a7c2504a4f950a241aed9c5a0ed0db4a00f4d548a99d937227549dcf8952fc59",
+   "match": true
+  },
+  {
+   "file": "index.html",
+   "sha256": "e8354148824497174c47524542358451fc5807e2eadf6eeabbac6e80ea215955",
+   "match": true
+  }
+ ],
+ "mismatched": 0,
+ "daemon_bin_sha256": "38219c57854bdf98eb0599406592c588f176dea5226c91967a0f7a6b4148ef2c",
+ "ps": [
+  "23400     1 Sun Nov 15 17:47:39 2026     /Users/ctmctm/workspace/Loom/desktop/dist/Loom.app/Contents/MacOS/loom-desktop",
+  "23423 23400 Sun Nov 15 17:47:41 2026     /Users/ctmctm/workspace/Loom/desktop/dist/Loom.app/Contents/MacOS/loomd run"
+ ]
+}

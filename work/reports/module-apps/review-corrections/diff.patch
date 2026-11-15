@@ -1,0 +1,569 @@
+--- a/ui/src/net/api.ts
++++ b/ui/src/net/api.ts
+@@ -37,6 +37,12 @@
+    * a union by the mux, so its handlers never see a lease resync. Not part of the subscription key.
+    */
+   pinned?: boolean;
++  /**
++   * Initial visibility lease (default true). `false` = the handle is opened hidden: it never makes the
++   * mux relieve pressure (suspend/merge) before the caller could say so. Pinned handles are always
++   * active. Not part of the subscription key and never sent to the daemon.
++   */
++  active?: boolean;
+ }
+ 
+ /** Worker-side receive/decode times of a delivery (performance.timeOrigin+now, ms). */
+--- a/ui/src/net/mux.ts
++++ b/ui/src/net/mux.ts
+@@ -197,8 +197,12 @@
+     return { maxSubs: this.l.maxSubs, entries: this.entries.size, draining: this.draining, handles: this.handles.size, active, parked: this.parked.length, suspended, shared };
+   }
+ 
+-  subscribe(hid: number, filter: SubscribeFilter, opts: SubscribeOptions): void {
+-    this.handles.set(hid, { filter, opts, active: true, touched: ++this.leaseClock, state: 'parked' });
++  subscribe(hid: number, filter: SubscribeFilter, options: SubscribeOptions): void {
++    // the initial lease travels with the subscribe (a hidden lazy open never relieves pressure); it is
++    // handle state only, never part of the entry's options, key or wire params
++    const { active: initial, ...opts } = options;
++    const active = initial !== false || opts.pinned === true;
++    this.handles.set(hid, { filter, opts, active, touched: ++this.leaseClock, state: 'parked' });
+     if (this.place(hid, filter, opts)) return;
+     this.park(hid, filter, opts);
+   }
+@@ -428,6 +432,9 @@
+         this.start(e, false);
+       }
+     }
++    // a handle parked while the old connection dropped an in-flight release has no other trigger
++    // (its slot's catch saw connected=false): place it now. Idempotent, gated by the cap as always.
++    this.placeParked();
+   }
+ 
+   onDisconnect(): void {
+--- a/ui/src/net/client.ts
++++ b/ui/src/net/client.ts
+@@ -243,8 +243,8 @@
+             safe(() => onBatch(item.batch, timing));
+             break;
+           }
+-          // gaps of the shared stream stay visible to every narrow handle
+-          const evs = item.batch.events.filter((e) => matchesFilter(filter, e) || e.kind.endsWith('.gap'));
++          // a loss event reaches a narrow handle only when it concerns that handle's stream (kinds ignored)
++          const evs = item.batch.events.filter((e) => matchesFilter(filter, e) || gapConcerns(filter, e));
+           if (evs.length || item.batch.display_gap) safe(() => onBatch(rebatch(item.batch, evs), timing));
+           break;
+         }
+@@ -276,7 +276,28 @@
+   const items = part.items.filter((it) => (!f.domains || f.domains.includes(it.domain)) && (!f.channels || it.channel == null || f.channels.includes(it.channel)));
+   return { ...p, items };
+ }
++
++/**
++ * Domains that name no affected stream: a gap published under them (the hub's own `display.gap`
++ * for a subscription start/overload, the daemon's `record.gap`, a local `display.gap` of a
++ * cross-domain union) is a loss of the shared subscription itself.
++ */
++const STREAMLESS_GAP_DOMAINS: ReadonlySet<string> = new Set(['core', 'display', 'record', 'source']);
+ 
++/**
++ * Does a `*.gap` event concern a narrow handle? Contract 02: a gap's domain/channel name the
++ * AFFECTED stream. Scope it to the handle's domains/channels only, ignoring kinds (a CAN topic
++ * filtered to can.frame still loses frames on a can source.gap) and origins (loss rows are
++ * attributed to the device stream). No channel = the whole domain; a streamless domain = the
++ * whole subscription, shared by every handle bound to it.
++ */
++function gapConcerns(f: SubscribeFilter, e: LoomEvent): boolean {
++  if (!e.kind.endsWith('.gap')) return false;
++  if (STREAMLESS_GAP_DOMAINS.has(e.domain)) return true;
++  if (f.domains && !f.domains.includes(e.domain)) return false;
++  return e.channel == null || !f.channels || f.channels.includes(e.channel);
++}
++
+ /** One throwing listener must not starve the others. */
+ function safe(fn: () => void): void {
+   try {
+--- a/ui/src/net/mux.test.ts
++++ b/ui/src/net/mux.test.ts
+@@ -302,6 +302,7 @@
+       let busy = 0;
+       let n = 0;
+       const done = new Set<Call>();
++      const ids = new Map<Call, string>();
+       const settle = async () => {
+         for (let round = 0; round < 50; round++) {
+           const open = t.calls.filter((c) => !done.has(c));
+@@ -318,14 +319,23 @@
+               } else {
+                 held++;
+                 maxHeld = Math.max(maxHeld, held);
+-                c.resolve({ sub_id: `s${++n}`, stream_epoch: '1' });
++                ids.set(c, `s${++n}`);
++                c.resolve({ sub_id: ids.get(c), stream_epoch: '1' });
+               }
+             }
+           }
+           await tick();
+         }
+       };
+-      return { settle, held: () => held, maxHeld: () => maxHeld, busy: () => busy };
++      /** the socket drops: every open call fails as rpc.failAll does, the server forgets the connection's subs */
++      const drop = () => {
++        for (const c of t.calls.filter((x) => !done.has(x))) {
++          done.add(c);
++          c.reject(new NetError({ code: 'disconnected', message: 'socket closed', maybeSent: true }));
++        }
++        held = 0;
++      };
++      return { settle, drop, subId: (c: Call) => ids.get(c), held: () => held, maxHeld: () => maxHeld, busy: () => busy };
+     }
+     const filterOf = (c: Call) => c.params.filter;
+     const SHELL = { domains: ['core', 'test'] };
+@@ -500,6 +510,71 @@
+       expect(srv.busy()).toBe(0);
+     });
+ 
++    it('F3: a disconnect while a suspended entry\'s subscribe is in flight; reopen places the waiting visible handle (no E_BUSY)', async () => {
++      const t = setup({ maxSubs: 2 });
++      const srv = server(t, 2);
++      const x = (n: number) => ({ domains: ['eth'], ext: { eth_filter: `f${n}` } }); // mutually unmergeable
++      t.mux.onOpen();
++      t.mux.subscribe(1, x(1), SNAP);
++      t.mux.subscribe(2, x(2), SNAP);
++      await srv.settle();
++      t.mux.setActive(2, false); // retained hidden dock
++      srv.drop();
++      t.mux.onDisconnect();
++      await tick();
++      t.mux.onOpen(); // reconnect: both entries re-subscribe (in flight)
++      t.drain();
++      t.mux.subscribe(3, x(3), SNAP); // the user shows a third view
++      // the hidden, still-subscribing entry is suspended; its slot drains until that subscribe is answered
++      expect(kinds(t.drain())).toEqual(['resync:suspended_hidden']); // no "subscription_cap": counted as freed
++      expect(t.mux.capacity()).toMatchObject({ entries: 1, draining: 1, parked: 1 });
++      srv.drop(); // the socket drops before the answer: the rejected subscribe sees connected=false
++      t.mux.onDisconnect();
++      await tick();
++      expect(t.subs().map((c) => c.params.filter)).not.toContainEqual(x(3));
++      t.mux.onOpen(); // reopen alone must place the parked visible handle (old: parked forever, no signal)
++      await srv.settle();
++      expect(t.subs().at(-1)!.params).toMatchObject({ filter: x(3), snapshot: true });
++      expect(t.mux.capacity()).toMatchObject({ entries: 2, parked: 0, suspended: 1, draining: 0 });
++      const sub = srv.subId(t.subs().at(-1)!)!;
++      t.mux.onNotification(partNote(sub, range(1, 1)));
++      t.mux.onNotification(endNote(sub, 1));
++      expect(kinds(t.drain())).toEqual(['bind:3', 'part:1', 'end:1']); // actual placement: snapshot reaches it
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBeLessThanOrEqual(2);
++    });
++
++    it('F4: at the cap a topic opened lazily while hidden (active:false in subscribe) merges/resyncs nothing visible', async () => {
++      const t = setup({ maxSubs: 3 });
++      const srv = server(t, 3);
++      t.mux.onOpen();
++      t.mux.subscribe(1, SHELL, { ...PIN, active: false }); // pinned: always active
++      t.mux.subscribe(2, { domains: ['uart'], channels: ['u0'] }, SNAP); // two visible, mergeable streams
++      t.mux.subscribe(3, { domains: ['uart'], channels: ['u1'] }, SNAP);
++      await srv.settle();
++      t.drain();
++      const calls = t.calls.length;
++      t.mux.subscribe(4, { domains: ['psu'], channels: ['p0'] }, { snapshot: true, active: false });
++      await srv.settle();
++      // honest park of the hidden handle only; no merge, no suspend, no visible resync, no server call
++      expect(kinds(t.drain())).toEqual(['resync:subscription_cap']);
++      expect(t.calls.length).toBe(calls);
++      expect(t.mux.stats).toMatchObject({ merged: 0, suspended: 0 });
++      expect(t.mux.capacity()).toMatchObject({ entries: 3, parked: 1, active: 3 });
++      // the lease is not part of the subscription key: a hidden open of an identical filter shares the entry
++      t.mux.subscribe(5, { domains: ['uart'], channels: ['u0'] }, { snapshot: true, active: false });
++      expect(t.mux.refcount(5)).toBe(2);
++      expect(t.calls.length).toBe(calls);
++      // … and never reaches the wire
++      for (const c of t.subs()) expect(c.params).not.toHaveProperty('active');
++      // shown: now it relieves pressure (folds the visible UART pair) and gets its slot
++      t.mux.setActive(4, true);
++      await srv.settle();
++      expect(t.subs().at(-1)!.params.filter).toEqual({ domains: ['psu'], channels: ['p0'] });
++      expect(srv.busy()).toBe(0);
++      expect(srv.maxHeld()).toBeLessThanOrEqual(3);
++    });
++
+     it('a parked or suspended handle that is closed leaves no state behind', async () => {
+       const t = setup({ maxSubs: 1 });
+       const srv = server(t, 1);
+--- a/ui/src/sdk/context.ts
++++ b/ui/src/sdk/context.ts
+@@ -5,6 +5,7 @@
+ import type { Env, LoomEvent, Right, WriteState } from '../proto/provisional';
+ import { daemonNowNs, LagTracker, RenderMetrics } from '../store/renderMetrics';
+ import type { RenderScheduler, PanelHandle } from '../store/renderScheduler';
++import type { ActivityEntry } from '../store/adapter';
+ import type { RowStore } from '../store/rowStore';
+ import type { ShellControlStore } from '../store/shellControl';
+ import type { ActionGate } from './actionGate';
+@@ -74,6 +75,13 @@
+   rows(filter: RowFilter): RowView;
+   /** highest seq any agent has acknowledged (core.agent_cursor); null = none yet */
+   agentCursor: { seq(): bigint | null; on(cb: () => void): Unsubscribe };
++  /**
++   * Agent read ranges (`core.activity` with a range) of this panel's domain that the shell's bounded
++   * Activity ring already holds: the newest `limit`, oldest first; with `channel`, only reads of that
++   * channel or domain-wide ones. Lets a panel restore read marks for reads made before it mounted (or
++   * before a reload's snapshot). Read-only: no subscription, no call; empty when the shell has none.
++   */
++  agentReads(limit: number, channel?: string): readonly AgentRead[];
+   query<R = unknown>(rpc: string, params: object, signal?: AbortSignal): Promise<R>;
+   /** Read-only same-origin GET of a declared media path (`manifest.media.prefixes`); credentials same-origin,
+    * `cache: no-store`, redirects are errors. Throws UndeclaredError / MediaPathError before any request. */
+@@ -99,6 +107,17 @@
+   };
+ }
+ 
++/** One agent read range from the shell's Activity ring (see PanelContext.agentReads). */
++export interface AgentRead {
++  /** seq of the core.activity event (dedup against the panel's live activity topic) */
++  readonly seq: bigint;
++  /** the read's channel; null = domain-wide */
++  readonly channel: string | null;
++  readonly seqA: bigint;
++  readonly seqB: bigint;
++  readonly actor: string;
++}
++
+ export interface LatchInfo {
+   readonly on: boolean;
+   readonly by: string | null;
+@@ -116,7 +135,12 @@
+   cursor: CursorBus;
+   ui: ShellUiHooks;
+   /** ActivityStore (agent cursor). Optional for tests. */
+-  agentCursor?: { readonly agentCursor: bigint; subscribe(cb: () => void): Unsubscribe };
++  agentCursor?: {
++    readonly agentCursor: bigint;
++    subscribe(cb: () => void): Unsubscribe;
++    /** newest first, at most n entries (ActivityStore.recent: its bounded ring) */
++    recent?(n: number): readonly ActivityEntry[];
++  };
+   /** tab-wide lag/render metrics (shell); a private one is used when absent (tests) */
+   metrics?: RenderMetrics;
+   /** monotonic ms (performance.now) */
+@@ -260,6 +284,9 @@
+         ...(spec.maxBatchMs !== undefined ? { maxBatchMs: spec.maxBatchMs } : {}),
+         ...(spec.encoding !== undefined ? { encoding: spec.encoding } : {}),
+         ...(spec.coalesceBy !== undefined ? { coalesceBy: spec.coalesceBy } : {}),
++        // opened lazily while hidden: the lease travels with the subscribe, so the mux never relieves
++        // pressure (suspend/merge visible streams) for a panel nobody is looking at
++        ...(leaseVisible ? {} : { active: false }),
+       },
+       {
+         onSnapshotPart: (p) => {
+@@ -296,7 +323,6 @@
+       },
+     );
+     subByKey.set(topicKey, sub);
+-    if (!leaseVisible) sub.setActive?.(false); // opened lazily while hidden
+     return mirror;
+   };
+ 
+@@ -358,6 +384,18 @@
+         return c === undefined || c < 0n ? null : c;
+       },
+       on: (cb) => deps.agentCursor?.subscribe(cb) ?? (() => {}),
++    },
++
++    agentReads(limit, channel) {
++      const out: AgentRead[] = [];
++      const ring = deps.agentCursor?.recent?.(Number.MAX_SAFE_INTEGER) ?? []; // newest first, ≤ ring capacity
++      for (const e of ring) {
++        if (out.length >= limit) break;
++        if (!e.range || e.domain !== m.domain) continue;
++        if (channel !== undefined && e.channel !== null && e.channel !== channel) continue;
++        out.push({ seq: e.seq, channel: e.channel, seqA: e.range.seqA, seqB: e.range.seqB, actor: e.actor });
++      }
++      return out.reverse();
+     },
+ 
+     store(topicKey) {
+--- a/ui/src/sdk/capacityLive.test.ts
++++ b/ui/src/sdk/capacityLive.test.ts
+@@ -260,6 +260,57 @@
+     h.ctx.store('b'); // opened while hidden
+     h.setVisible(false);
+     h.setVisible(true);
+-    expect(net.subs.map((s) => s.active)).toEqual([[false, true], [false, true]]);
++    // F4: the hidden open carries its lease in the subscribe itself (never "active, then inactive")
++    expect(net.subs.map((s) => s.opts.active)).toEqual([undefined, false]);
++    expect(net.subs.map((s) => s.active)).toEqual([[false, true], [true]]);
+   });
++
++  it('F4 end to end: at the cap, a topic opened lazily by a hidden panel never merges or re-snapshots visible ones', async () => {
++    const d = fakeDaemon();
++    const frames: (() => void)[] = [];
++    const net = createNetClient('ws://localhost:7421/rpc', { inline: true, deps: d.deps, frames: { request: (cb) => frames.push(cb) } });
++    await tick();
++    d.open();
++    await settle(frames);
++    const shell = new ShellControlStore();
++    shell.setConn(net.state, 0);
++    const now = () => 0;
++    const deps = {
++      net, scheduler: new RenderScheduler({ raf: () => 1, cancelRaf: () => {}, now }), rows: new RowStore({ now }), shell,
++      gate: new ActionGate({ net, rights: () => shell.rights, writeLocked: () => false, confirmUi: { confirm: async () => true } }),
++      cursor: new SimpleCursorBus(), ui: { reveal: () => {}, openPanel: () => {}, toast: () => {} }, agentCursor: new ActivityStore(), now, absNowMs: now,
++    };
++    net.subscribe(SHELL_STREAM_FILTER, { snapshot: true, pinned: true }, { onBatch: () => {} });
++    // Integrated: 7 visible streams, two of them mergeable (UART u0/u1) → shell + 7 = 8
++    const visible: [string, SubscribeFilter][] = [
++      ['uart.terminal', { domains: ['uart'], channels: ['u0'] }],
++      ['uart.terminal', { domains: ['uart'], channels: ['u1'] }],
++      ['eth.packets', { domains: ['eth'], channels: ['qa-eth'] }],
++      ['uds.console', { domains: ['uds'] }],
++      ['can.trace', { domains: ['can'], channels: ['qa-can'] }],
++      ['psu.gauge', { domains: ['psu'], channels: ['qa-psu'] }],
++      ['logic.analyzer', { domains: ['logic'], channels: ['la0'] }],
++    ];
++    const mirrors = visible.map(([id, f], i) => {
++      const h = createPanelContext(moduleManifest(id, f), {}, deps, `${id}#${i}`);
++      open.push({ h });
++      return h.ctx.store('t');
++    });
++    const resyncs = () => mirrors.flatMap((m) => m.gaps.filter((g) => g.kind === 'resync').map((g) => g.cause));
++    await settle(frames);
++    expect(d.held()).toBe(MAX_SUBS_PER_CONN);
++    expect(resyncs()).toEqual([]);
++    const subsBefore = d.log.subscribes.length;
++    // a retained panel, hidden before it ever opened its topic, opens it lazily now
++    const hidden = createPanelContext(moduleManifest('video.workbench', { domains: ['video'], channels: ['cam0'] }), {}, deps, 'video#hidden');
++    open.push({ h: hidden });
++    hidden.setVisible(false);
++    hidden.ctx.store('t');
++    await settle(frames);
++    expect(d.log.subscribes.length).toBe(subsBefore); // 0 merges / 0 visible re-snapshots
++    expect(d.log.unsubscribes).toBe(0);
++    expect(resyncs()).toEqual([]); // no "merged" / "suspended_hidden" on any visible panel
++    expect(d.log.busy).toBe(0);
++    net.close();
++  });
+ });
+--- a/ui/src/sdk/testing/harness.ts
++++ b/ui/src/sdk/testing/harness.ts
+@@ -35,7 +35,8 @@
+ export function mountPanel(
+   id: string,
+   props: Props = {},
+-  opts: { hello?: Partial<HelloResult>; now?: () => number } = {},
++  /** activity: core.activity / core.agent_cursor events the shell's ActivityStore already holds when the panel mounts */
++  opts: { hello?: Partial<HelloResult>; now?: () => number; activity?: LoomEvent[] } = {},
+ ): Harness {
+   const reg = getPanel(id);
+   if (!reg) throw new Error(`panel ${id} not registered (import its module first)`);
+@@ -48,6 +49,7 @@
+   shell.setConn(net.state, 0);
+   const rows = new RowStore({ now });
+   const activity = new ActivityStore();
++  for (const e of opts.activity ?? []) activity.applyEvent(e);
+   let pending: (() => void) | null = null;
+   const scheduler = new RenderScheduler({
+     raf: (cb) => {
+--- a/ui/src/panels/can/canTrace.ts
++++ b/ui/src/panels/can/canTrace.ts
+@@ -39,6 +39,7 @@
+ import { createCanConnect, type CanConnectSection } from './canConnect';
+ import { formatFrame, parseSendLine } from './sendLine';
+ import {
++  AGENT_RANGES,
+   bytesForRows,
+   CanTraceModel,
+   DISPLAY_BUDGET_ROWS_PER_S,
+@@ -390,6 +391,15 @@
+   };
+ 
+   let lastActSeq = -1n;
++  // agent reads made before this panel mounted (or before a reload's shell snapshot): the live-only
++  // activity topic has no replay, so seed once from the shell's bounded Activity ring (read-only, no
++  // subscription/call). lastActSeq dedups the live topic against the seeded seqs.
++  if (bound) {
++    for (const r of ctx.agentReads(AGENT_RANGES, channel)) {
++      if (r.seq > lastActSeq) lastActSeq = r.seq;
++      model.addAgentRange(Number(r.seqA), Number(r.seqB), r.actor, now());
++    }
++  }
+   const consumeActivity = () => {
+     let changed = false;
+     for (const ev of actMirror.after(lastActSeq)) {
+--- a/ui/src/panels/can/traceModel.ts
++++ b/ui/src/panels/can/traceModel.ts
+@@ -653,10 +653,15 @@
+     const a = r ? (numOf(r.from) ?? numOf(r.seq_a)) : null;
+     const b = r ? (numOf(r.to) ?? numOf(r.seq_b)) : null;
+     if (a === null || b === null) return false;
+-    this.agentRanges.push({ a: Math.min(a, b), b: Math.max(a, b), actor: str(p.actor) ?? str(p.client_id) ?? ev.client_id ?? 'agent', atMs: nowMs });
++    this.addAgentRange(a, b, str(p.actor) ?? str(p.client_id) ?? ev.client_id ?? 'agent', nowMs);
++    return true;
++  }
++
++  /** one agent-read range (live core.activity, or seeded from the shell's Activity ring); keeps the newest AGENT_RANGES */
++  addAgentRange(a: number, b: number, actor: string, nowMs: number): void {
++    this.agentRanges.push({ a: Math.min(a, b), b: Math.max(a, b), actor, atMs: nowMs });
+     if (this.agentRanges.length > AGENT_RANGES) this.agentRanges.shift();
+     this.version++;
+-    return true;
+   }
+ 
+   agentReadAt(seq: number): AgentRange | null {
+--- a/ui/src/panels/can/canTrace.test.ts
++++ b/ui/src/panels/can/canTrace.test.ts
+@@ -154,9 +154,43 @@
+     );
+     const marked = rows(h.host).map((e) => e.dataset.agentRead === '1');
+     expect(marked).toEqual([true, true, false]);
++    expect(h.host.querySelector('[data-testid="can-agent-read"]')!.textContent).toContain(`seq ${fs[0]!.seq}–${fs[1]!.seq}`);
++  });
++
++  it('F2: a read made before the panel mounted (bind / reload) is marked from the shell Activity ring — no extra subscription, no replay', () => {
++    const fs = [frame(0x100, '00'), frame(0x101, '00'), frame(0x102, '00')];
++    const read = (a: string, b: string, channel: string) =>
++      ev({ kind: 'core.activity', domain: 'core', origin: 'agent', payload: { actor: 'claude-1', verb: 'read', domain: 'can', channel, range: { seq_a: a, seq_b: b }, summary: 'trace' } });
++    const mine = read(fs[0]!.seq, fs[1]!.seq, 'ch0');
++    const other = read(fs[2]!.seq, fs[2]!.seq, 'ch9'); // another channel's read: not ours
++    // the shell's ActivityStore already holds both (live before mount, or the shell snapshot after a reload)
++    h = mountPanel('can.trace', { channel: 'ch0' }, { activity: [mine, other] });
++    expect(h.net.subs).toHaveLength(2); // can + the live-only activity topic: nothing extra
++    expect(h.net.subs[ACT]!.opts.snapshot).toBe(false);
++    expect(h.net.calls).toEqual([]); // no query / read / send
++    // the frames come from the CAN snapshot after mount
++    h.net.subs[CAN]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, events: fs, items: [] } as never);
++    h.snapshotEnd(fs[2]!.seq, CAN);
++    expect(rows(h.host).map((e) => e.dataset.agentRead === '1')).toEqual([true, true, false]);
+     expect(h.host.querySelector('[data-testid="can-agent-read"]')!.textContent).toContain(`seq ${fs[0]!.seq}–${fs[1]!.seq}`);
++    const ranges = () => (globalThis as unknown as { __loomCan: Record<string, { model: { agentRanges: unknown[] } }> }).__loomCan['can.trace']!.model.agentRanges.length;
++    expect(ranges()).toBe(1);
++    // seq dedup: the same activity event arriving on the live topic (e.g. a shell re-snapshot) adds nothing
++    h.batch([mine], ACT);
++    expect(ranges()).toBe(1);
++    // a newer live read still applies on top
++    h.batch([read(fs[2]!.seq, fs[2]!.seq, 'ch0')], ACT);
++    expect(ranges()).toBe(2);
++    expect(rows(h.host).map((e) => e.dataset.agentRead === '1')).toEqual([true, true, true]);
+   });
+ 
++  it('F2: an unbound CAN panel reads no Activity ring and marks nothing', () => {
++    h = mountPanel('can.trace', {}, { activity: [ev({ kind: 'core.activity', domain: 'core', origin: 'agent', payload: { domain: 'can', channel: 'ch0', range: { seq_a: '1', seq_b: '9' } } })] });
++    expect(h.net.subs).toHaveLength(0);
++    expect(h.net.calls).toEqual([]);
++    expect(h.host.querySelector('[data-testid="can-agent-read"]')?.textContent ?? '').not.toContain('seq 1');
++  });
++
+   it('client filter by id', () => {
+     h = mountPanel('can.trace', { channel: 'ch0' });
+     h.batch([frame(0x100, '00'), frame(0x300, '00'), frame(0x301, '00')]);
+--- /dev/null
++++ b/ui/src/net/client.test.ts
+@@ -0,0 +1,108 @@
++// MainNetClient narrow dispatch (REVIEW-FIX F1, F4): a loss event of a merged/covering stream reaches
++// only the handles whose domain/channel it concerns (contract 02: a gap names the AFFECTED stream);
++// subscription-wide losses stay shared. The initial lease travels inside the `sub` message.
++
++import { describe, expect, it } from 'vitest';
++import type { EventsBatch, LoomEvent, SubscribeFilter } from '../proto/provisional';
++import type { DeliveryItem } from './budget';
++import { MainNetClient, type CorePort } from './client';
++import type { CoreIn, CoreOut } from './protocol';
++import { batch, ev } from './testing/fixtures';
++
++function setup() {
++  const posted: CoreIn[] = [];
++  let feed: (m: CoreOut) => void = () => {};
++  const port: CorePort = {
++    post: (m) => posted.push(m),
++    listen: (cb) => (feed = cb),
++    terminate: () => {},
++  };
++  const client = new MainNetClient(port, { clientId: 'ui-t', stopUrl: 'http://x/stop', frames: { request: () => {} } });
++  const got = new Map<number, string[]>();
++  const open = (filter: SubscribeFilter) => {
++    const id = posted.length;
++    client.subscribe(filter, { snapshot: false }, {
++      onBatch: (b: EventsBatch) => got.get(hid)!.push(...b.events.map((e) => `${e.kind}@${e.domain}/${e.channel ?? '*'}`), ...(b.display_gap ? ['display_gap'] : [])),
++    });
++    const hid = (posted[id] as Extract<CoreIn, { t: 'sub' }>).hid;
++    got.set(hid, []);
++    return hid;
++  };
++  const deliver = (items: DeliveryItem[]) => feed({ t: 'deliver', items });
++  return { client, posted, got, open, deliver };
++}
++
++const gap = (seq: number, kind: string, domain: string, channel: string | null): LoomEvent => {
++  const e = ev(seq, kind, { domain, payload: { count: '3', cause: 'driver_overrun' } });
++  if (channel === null) delete e.channel;
++  else e.channel = channel;
++  return e;
++};
++
++describe('MainNetClient narrow gap scoping (F1)', () => {
++  it('a merged can/[a,b] stream: source.gap on a reaches a only; domain-wide and subscription-wide gaps reach both', () => {
++    const t = setup();
++    const a = t.open({ domains: ['can'], channels: ['a'] });
++    const b = t.open({ domains: ['can'], channels: ['b'] });
++    // mux merged both into one union subscription (eid 7) and bound them narrowly
++    t.deliver([
++      { k: 'bind', eid: 7, hid: a, narrow: true },
++      { k: 'bind', eid: 7, hid: b, narrow: true },
++    ]);
++    t.deliver([
++      {
++        k: 'batch',
++        eid: 7,
++        batch: batch('s1', [
++          ev(1, 'can.frame', { channel: 'a' }),
++          gap(2, 'source.gap', 'can', 'a'), // own (a) / foreign (b)
++          ev(3, 'can.frame', { channel: 'b' }),
++          gap(4, 'record.gap', 'can', null), // domain-wide: both
++          gap(5, 'display.gap', 'display', null), // hub's subscription-level loss: both
++          gap(6, 'display.gap', 'core', null), // hub subscription-start resync gap: both
++        ]),
++      },
++    ]);
++    expect(t.got.get(a)).toEqual(['can.frame@can/a', 'source.gap@can/a', 'record.gap@can/*', 'display.gap@display/*', 'display.gap@core/*']);
++    // negative control: the old predicate (`|| kind.endsWith('.gap')`) also gave b `source.gap@can/a`
++    expect(t.got.get(b)).toEqual(['can.frame@can/b', 'record.gap@can/*', 'display.gap@display/*', 'display.gap@core/*']);
++  });
++
++  it('a cross-domain union {can,psu}: a CAN overrun never reaches PSU; batch display_gap stays shared; kinds are ignored for own gaps', () => {
++    const t = setup();
++    const can = t.open({ domains: ['can'], channels: ['a'], kinds: ['can.frame'] });
++    const psu = t.open({ domains: ['psu'], channels: ['p0'] });
++    t.deliver([
++      { k: 'bind', eid: 3, hid: can, narrow: true },
++      { k: 'bind', eid: 3, hid: psu, narrow: true },
++    ]);
++    t.deliver([{ k: 'batch', eid: 3, batch: batch('s1', [gap(10, 'source.gap', 'can', 'a'), gap(11, 'source.gap', 'psu', 'p1')]) }]);
++    expect(t.got.get(can)).toEqual(['source.gap@can/a']); // own gap despite kinds:[can.frame]
++    expect(t.got.get(psu)).toEqual([]); // neither the CAN gap nor another PSU channel's gap; no empty batch
++    // the subscription's own loss summary is shared by every member (an empty-event batch still delivered)
++    t.deliver([{ k: 'batch', eid: 3, batch: { ...batch('s1', []), display_gap: { count: 4 } } as unknown as EventsBatch }]);
++    expect(t.got.get(can)!.at(-1)).toBe('display_gap');
++    expect(t.got.get(psu)).toEqual(['display_gap']);
++  });
++
++  it('a non-narrow (exact) handle still receives every event of its subscription unchanged', () => {
++    const t = setup();
++    const a = t.open({ domains: ['can'], channels: ['a'] });
++    t.deliver([{ k: 'bind', eid: 1, hid: a, narrow: false }]);
++    t.deliver([{ k: 'batch', eid: 1, batch: batch('s1', [gap(1, 'source.gap', 'can', 'zz')]) }]);
++    expect(t.got.get(a)).toEqual(['source.gap@can/zz']);
++  });
++});
++
++describe('MainNetClient initial lease (F4)', () => {
++  it('a hidden open carries active:false inside the single sub message (no follow-up active message)', () => {
++    const t = setup();
++    const before = t.posted.length;
++    t.client.subscribe({ domains: ['psu'] }, { snapshot: true, active: false }, { onBatch: () => {} });
++    const msgs = t.posted.slice(before);
++    expect(msgs).toHaveLength(1);
++    expect(msgs[0]).toMatchObject({ t: 'sub', opts: { snapshot: true, active: false } });
++    // the worker transport structured-clones the message: the flag survives (worker/inline parity)
++    expect(structuredClone(msgs[0])).toEqual(msgs[0]);
++  });
++});

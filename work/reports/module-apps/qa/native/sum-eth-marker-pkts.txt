@@ -1,0 +1,9 @@
+observer events 33
+1372 eth.tx agent w8 1794742466952262125 {"method": "eth.send", "write_state": "requested"}
+1373 eth.tx agent w8 1794742466952764459 {"method": "eth.send", "reason": "send to loopback", "write_state": "accepted"}
+1374 eth.tx agent w8 1794742466882247000 {"ch": "qa-native-eth", "hex_preview": "51414e4554482d363234424442", "kind": "udp", "len": 13, "to": "127.0.0.1:65201", "write_state": "requested"}
+1375 eth.tx agent w8 1794742466882265000 {"ch": "qa-native-eth", "hex_preview": "51414e4554482d363234424442", "kind": "udp", "len": 13, "to": "127.0.0.1:65201", "write_state": "accepted"}
+1376 eth.tx agent w8 1794742466885342000 {"ch": "qa-native-eth", "hex_preview": "51414e4554482d363234424442", "kind": "udp", "len": 13, "to": "127.0.0.1:65201", "write_state": "sent"}
+1377 eth.tx agent w8 1794742466956728042 {"final": true, "method": "eth.send", "write_state": "sent"}
+1379 eth.tx agent w8 1794742466885620000 {"ch": "qa-native-eth", "hex_preview": "51414e4554482d363234424442", "kind": "udp", "len": 13, "observed_src_seq": "18", "to": "127.0.0.1:65201", "write_state": "sent"}
+1380 eth.pkt device None 1794742466885563000 {"attributed_origin": "agent", "bytes": {"comments": [], "data": "AgAAAAABAgAAAAACCABFAAApAAAAAEARfMJ/AAABfwAAAdGu/rEAFVnjUUFORVRILTYyNEJEQg==", "encoding": "base64", "loom_comment": null}, "caplen": 55, "ch": "qa-native-eth", "dir": "tx", "dst": "127.0.0.1", "info": "53678 \u2192 65201 Len=13", "layers": {"_capture": {"interface_id": 0, "replay_src_seq": null, "section": "18446744073709551615", "source_seq": "18", "

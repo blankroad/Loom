@@ -1,0 +1,28 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 119, 121, 127-155, 160
+~					100 link 비디오 캡처, 열린 1개, Help: 비디오 캡처 작업대 · 열린 인터페이스 1개, Value: localhost:62968/ui/#/s/video
+~							118 container 비디오 캡처 · v4e0216eadb82
++								163 text 1
++									164 tab (selected) 비디오 캡처 · v4e0216eadb82
+~								126 container 비디오 캡처 · v4e0216eadb82
++									165 text ● 수신 중
++									166 text v4e0216eadb82 · epoch 1794742812244695001 · http-mjpeg http://127.0.0.1:64684/stream · 640×360@15
++									167 button ■ 캡처 닫기, Help: 수집 정지 + FFmpeg 정리 (안전 방향, 보기 권한 가능)
++									168 text frame_id 3
++									169 text sha256 acbd7f0bab0c7d7af2c82dbe98894a7688e9a920de78767cfc7b60b10edd7a37
++									170 button ⏸ 고정
++									171 button 📷 스냅샷
++									172 button ● 녹화 시작
++									173 text 표시 3 fps
++									174 text 녹화 없음
++									175 text 오디오: 미지원 (video-only) · RTSP/DeckLink: 미지원 · 캡처보드/TCC: 미검증 · Windows: 캡처 미지원 (데몬이 video.open을 E_UNSUPPORTED로 거부)
++									176 summary 새 캡처 열기 (명시적 소스), Value: off
++										177 text 새 캡처 열기 (명시적 소스)
++							178 text 비디오 캡처 closed
+~				157 text 비디오 캡처 · 열린 1
++					179 container 20시 40분 12초.046 AGT qa-native-video-observer#64061 core core.events.query 4 call(s) in the last second
++			180 container
++				181 text 장치가 video v4e0216eadb82를 열었습니다
++				182 button 패널 열기
++			183 text 캡처 열기 요청됨
+The focused UI element is 126 container 비디오 캡처 · v4e0216eadb82

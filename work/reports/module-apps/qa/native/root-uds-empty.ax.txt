@@ -1,0 +1,128 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 20-43, 45-48, 50-54, 56, 58-64, 66-113, 117, 137-144
+~		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/uds
++				137 text 현재 연결 지원: DoIP·시뮬레이터. CAN·Ethernet 관찰 패널은 선택 ECU와의 대응 관계를 의미하지 않습니다.
++				138 container
++					139 container
++						140 container UDS 콘솔
++							141 text 1
++							142 tab group (selectable)
++								143 tab (selected) UDS 콘솔
++								144 tab (selectable) CAN 트레이스 · qa-native-can
++								145 tab (selectable) 이더넷 패킷 · qa-native-eth
++							146 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++							147 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++							148 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++							149 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++							150 container UDS 콘솔
++								151 container
++									152 container 진단 대상과 경로
++										153 text ECU
++										154 pop up button (collapsed) 대상, Value: ecu1 (프리셋), Secondary Actions: Expand
++										155 text SIM bench (가상 ECU) · SIM bench 경로
++										156 (settable, unknown) 경로
++											157 radio button DoIP, Help: DoIP (ISO 13400) — daemon 지원 (실제 엔티티 또는 내장 SIM bench ECU), Value: 1
++											158 radio button (disabled) CAN-TP 미지원, Help: CAN-TP (ISO 15765-2) — 백엔드 미지원: Loom UDS daemon에 CAN-TP 전송이 없습니다, Value: 0
++											159 radio button (disabled) EthDiag 미지원, Help: 벤더 Ethernet 진단 어댑터 — 백엔드 미지원, Value: 0
++										160 text SIM bench · 0x0E80→0x1001 SIM · SIM bench (가상 ECU)
++										161 container
++											162 text ○  연결 안 됨
++										163 button 연결, Help: uds.connect sim:bench — 요청은 보내지 않음
++										164 button (collapsed) 연결 설정, Secondary Actions: Expand
++										165 button (collapsed) 주소 상세, Secondary Actions: Expand
++										166 container 활성 연결 개요
++											167 text 활성 연결 없음
++										168 tab group (selectable) 도구 서랍
++											169 tab (selectable) 서비스
++											170 tab (selectable) ECU·DID
++											171 tab (selectable) 명령·시퀀스
++											172 tab (selectable) 감시
++											173 tab (selectable) 프로젝트
++									174 container DID 목록
++										175 text DID 목록
++										176 button DID 목록 접기
++										177 search text field (settable) DID 검색, Placeholder: 이름 또는 hex 검색
++											178 text 이름 또는 hex 검색
++										179 list (settable) Read DID 빠른 선택 (선택만으로 전송하지 않음)
++											180 text (selected) 22 F1 90 VIN Vehicle Identification Number
++											181 text 22 F1 8C ECU Serial Number ECUSerialNumberDataIdentifier
++											182 text 22 F1 87 Spare Part Number vehicleManufacturerSparePartNumber
++											183 text 22 F1 91 ECU Hardware Number vehicleManufacturerECUHardwareNumber
++											184 text 22 F1 95 SW Version systemSupplierECUSoftwareVersionNumber
++											185 text 22 F1 86 Active Session ActiveDiagnosticSessionDataIdentifier
++										186 text 선택은 요청 편집기에만 채웁니다. 전송은 읽기로만.
++									187 container UDS 요청 (DID 읽기 / Raw PDU)
++										188 text 요청 대상 ecu1 · DoIP · 연결 안 됨 — 위의 [연결]
++										189 (settable, unknown) 요청 모드 (←→)
++											190 radio button DID, Help: DID 읽기 — SID 0x22 + DID 자동 구성, Value: 1
++											191 radio button Raw, Help: Raw UDS PDU — 입력한 바이트(SID 포함) 그대로 전송, Value: 0
++										192 text SID 0x22 ReadDataByIdentifier
++										193 container
++											194 text DID
++											195 text field (settable) DID, Value: F190
++										196 menu Secondary Actions: Cancel
++										197 text VIN
++										198 container
++											199 text 요청 PDU 22 F1 90 3 B
++										200 button (disabled) 읽기, Help: ecu1 연결 안 됨 — 먼저 [연결] (uds.connect). 편집은 가능, 전송은 연결 후
++										201 button 취소, Help: 이 대상의 진행 중 요청 취소 (uds.abort — 이미 보낸 요청은 ⌛? 불확정이 될 수 있음)
++										202 text ecu1: daemon에 연결된 대상 아님 — 위의 [연결]로 연결한 뒤 전송. 요청 편집·DID 선택은 전송하지 않습니다.
++									203 text 트랜잭션 0 · 진행 0
++									204 (settable, unknown) 기록 범위
++										205 radio button 전체, Value: 1
++										206 radio button 현재 ECU, Value: 0
++									207 button 기록 JSON 내보내기
++									208 button 기록 CSV 내보내기
++									209 button 완료된 기록 지우기 (표시에서만 — daemon 기록·진행 중 요청은 유지)
++									210 row (selectable)
++										211 cell (settable)
++											212 text #
++										213 cell (settable)
++											214 text 시각
++										215 cell (settable)
++											216 text ECU
++										217 cell (settable)
++											218 text 경로
++										219 cell (settable)
++											220 text DID · SID
++										221 cell (settable)
++											222 text 요청
++										223 cell (settable)
++											224 text 최종 응답
++										225 cell (settable)
++											226 text 상태
++										227 cell (settable)
++											228 text 78
++										229 cell (settable)
++											230 text 경과
++									231 table (settable) 트랜잭션 기록 (↑↓ 선택)
++									232 splitter 기록/상세 경계 크기 조절 (↑↓), Help: 기록/상세 경계 크기 조절 (↑↓) — 끌기 또는 화살표, 더블클릭 기본값, Value: 42
++									233 container 응답 순서
++										234 text 응답 순서
++										235 content list (settable) 선택 트랜잭션 이벤트 (↑↓, 바이트/해석 대상 선택)
++											236 text 트랜잭션을 선택하면 Tx·0x78·최종 응답·타임아웃 순서가 표시됩니다.
++									237 container 해석
++										238 text 해석
++										239 text 선택한 트랜잭션의 요청·응답 해석이 여기에 표시됩니다.
++									240 container UDS PDU 바이트
++										241 text 바이트 · UDS PDU
++										242 button 선택 PDU hex 복사
++										243 text UDS PDU 바이트
++									244 container 확정 값
++										245 text 확정 값 ecu1
++										246 button 확정 값 접기
++										247 text F190 VIN
++										248 text 확정 값 없음
++										249 text F18C ECU Serial Number
++										250 text 확정 값 없음
++										251 text F187 Spare Part Number
++										252 text 확정 값 없음
++										253 text F191 ECU Hardware Number
++										254 text 확정 값 없음
++										255 text F195 SW Version
++										256 text 확정 값 없음
++										257 text F186 Active Session
++										258 text 확정 값 없음
++										259 text daemon이 해석한 확정 응답(decoded)으로만 갱신. 각 값은 출처 트랜잭션·시각·경로를 유지합니다.
+~				119 text UDS · 열린 0
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/uds

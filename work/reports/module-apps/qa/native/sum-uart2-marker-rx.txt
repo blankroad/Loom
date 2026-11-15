@@ -1,0 +1,5 @@
+observer events 16
+436 uart.write agent w4 1794742361076006000 b'QANUART2-9A8E3D\r'
+440 uart.data agent w4 1794742361076526000 b'QANUART2-9A8E3D\r'
+441 uart.write agent w4 1794742361076641000 {"deferred_ms": 0, "final": true, "remaining_bytes": 0, "write_state": "sent", "written_bytes": 16}
+443 uart.data device None 1794742361079057000 b'QANUART2-9A8E3D\r\nack:QANUART2-9A8E3D\r\nfx> '

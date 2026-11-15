@@ -1,0 +1,97 @@
+The following is a diff from the previous accessibility tree for Window: "Loom" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 16-60, 62-110, 112-115, 120, 135-136
+~		2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/eth
++			135 container 작업 공간
++				136 menu Secondary Actions: Cancel
++				137 menu Secondary Actions: Cancel
++				138 menu Secondary Actions: Cancel
++				139 container
++					140 container
++						141 container 이더넷 패킷
++							142 text 1
++							143 tab group (selectable)
++								144 tab (selected) 이더넷 패킷
++							145 button pane 1 오른쪽으로 분할, Help: 오른쪽으로 분할 (Alt+Shift+=)
++							146 button pane 1 아래로 분할, Help: 아래로 분할 (Alt+Shift+-)
++							147 toggle button pane 1 최대화, Help: 최대화 (Alt+Shift+Enter), Value: off
++							148 button pane 1 pane 닫기, Help: pane 닫기 (Alt+Shift+W)
++							149 container 이더넷 패킷
++								150 container
++									151 toolbar Ethernet 작업 공간
++										152 button 채널 추가, Help: 새 채널 이름 + NIC로 캡처 시작 (eth.capture.start) → 그 채널 패널 열기
++										153 button 캡처 시작…, Help: 정지된 채널 캡처 시작 (eth.capture.start)
++										154 button (disabled) 캡처 정지, Help: 캡처 정지 — 안전 방향(보기 자격도 가능), 기록 유지 (eth.capture.stop)
++										155 toggle button 표시 일시정지, Help: 화면만 고정하고 저널에서 완전 범위 조회 — 캡처는 계속 (Space), Value: off
++										156 toggle button 자동 스크롤, Help: 새 패킷으로 자동 스크롤, Value: on
++										157 toggle button 색상, Help: 프로토콜 색상 규칙, Value: on
++										158 button (disabled) 스트림 따라가기, Help: 스트림 번호가 있는 TCP/UDP 패킷을 선택하세요 (daemon eth.follow)
++										159 button (disabled) 내보내기, Help: 표시 범위를 pcapng로 내보내기 (eth.export) — 파일은 daemon(벤치) 머신에 생성, 완료 시 경로 표시
++										160 button 기록 지우기, Help: 이 패널의 보관 목록만 비움 — 저널·녹화 기록은 유지
++										161 toggle button (disabled) 소켓 테스트, Help: 소켓 테스트는 연결된 채널에서 — 먼저 [연결…], Value: off
++										162 button 단축키, Help: 단축키 (?)
++										163 text 채널 미선택 · 연결 전
++									164 container 캡처 채널
++										165 container 연결된 채널 없음 — 인터페이스 구성을 고르고 [연결]
++											166 text 채널 미선택 미연결
++											167 pop up button (collapsed) 인터페이스 구성, Help: 이 브라우저에 저장된 캡처 인터페이스 구성 (선택만으로 캡처하지 않음), Value: 새 구성…, Secondary Actions: Expand
++												168 menu Secondary Actions: Cancel
++											169 button 연결…, Help: 선택한 구성으로 캡처 시작 (eth.capture.start) — 확인 대화상자에서 [연결]을 눌러야 시작
++											170 button 구성 편집…, Help: 구성 편집 — 저장만 하면 캡처하지 않음
++											171 button (disabled) 삭제, Help: 저장된 구성 삭제 (로컬만 — daemon 채널·기록은 그대로)
++											172 text 인터페이스 구성을 고르거나 새로 만든 뒤 [연결…] — 이 탭을 여는 것만으로는 캡처·송신하지 않습니다
++										173 button 채널, Help: 채널 추가 — 새 채널 이름 + NIC로 캡처 시작
++									174 container 필터
++										175 text 범위
++										176 (settable, unknown) 표시 채널 범위
++											177 radio button 채널 미선택, Value: 1
++										178 text 캡처 필터 (없음)
++										179 pop up button (collapsed) 시간 기준, Help: Time 열 기준, Value: 캡처 시작 기준, Secondary Actions: Expand
++											180 menu Secondary Actions: Cancel
++										181 text 라이브 · 표시 1/1 · 기록 100 % 표시 필터
++										182 text field (settable) 표시 필터, Placeholder: 예: doip && doip.target_address == 0x1001 — Enter 적용, Esc 되돌리기 (Ctrl+/)
++										183 button 표시 필터 저장, Help: 이 필터를 저장
++										184 pop up button (collapsed) 저장·이력, Value: ▾, Secondary Actions: Expand
++											185 menu Secondary Actions: Cancel
++										186 button 적용, Help: 표시 필터 적용 (Enter) — 저장된 기록은 바뀌지 않음
++										187 button 표시 필터 지우기, Help: 표시 필터 지우기 — 전체 표시로 되돌림 (캡처 필터는 그대로)
++										188 text 필터 없음 · 전체 표시
++										189 text 표시 0 / 보관 0
++									190 container 패킷 캡처 작업 공간
++										191 row (selectable)
++											192 cell (settable)
++												193 text No.
++											194 cell (settable)
++												195 text Time
++											196 cell (settable)
++												197 text Source
++											198 cell (settable)
++												199 text Destination
++											200 cell (settable)
++												201 text Protocol
++											202 cell (settable)
++												203 text Length
++											204 cell (settable)
++												205 text Info
++											206 cell (settable)
++												207 text UDS
++											208 cell (settable)
++												209 text 출처
++										210 table (settable) 패킷 목록
++										211 splitter 패킷 목록 | 상세 경계, Help: 패킷 목록 | 상세 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 52
++										212 text 패킷 상세
++										213 button (disabled) 재전송, Help: 선택 프레임을 그대로 raw 송신 (eth.send)
++										214 button (disabled) 편집 후 송신…, Help: hex 편집 + daemon dry-run 미리보기 후 송신
++										215 button (disabled) 기준 행, Help: 선택 행을 시간 기준으로
++										216 button (disabled) REF 복사, Help: 선택 패킷 증거 REF 복사
++										217 button ＋, Help: 모두 펼치기
++										218 button －, Help: 모두 접기
++										219 container
++											220 outline (selectable)
++											221 splitter 상세 | 바이트 경계, Help: 상세 | 바이트 경계 — 끌기 또는 화살표, 더블클릭 기본값, Value: 55
++											222 text 바이트 행을 고르면 상세 트리와 바이트가 보입니다
++									223 text 패킷 선택 없음 — ↑/↓ 또는 F7/F8
++									224 text 라이브 표시 패킷 0 · 표시 필터 없음
++									225 text 보관 0행
+~				117 text Ethernet · 열린 0
++					226 container 20시 33분 51초.045 AGT qa-native-can-observer#59255 core core.meta 1 call(s) in the last second
+The focused UI element is 2 HTML content Description: Loom, URL: localhost:62968/ui/#/s/eth

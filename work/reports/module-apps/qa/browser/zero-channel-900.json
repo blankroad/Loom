@@ -1,0 +1,143 @@
+{
+  "modules": [
+    {
+      "route": "#/s/uart",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 355,
+      "navScrollWidth": 355,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/uart-900.png"
+    },
+    {
+      "route": "#/s/can",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 355,
+      "navScrollWidth": 355,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/can-900.png"
+    },
+    {
+      "route": "#/s/eth",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 355,
+      "navScrollWidth": 355,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/eth-900.png"
+    },
+    {
+      "route": "#/s/uds",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 355,
+      "navScrollWidth": 355,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/uds-900.png"
+    },
+    {
+      "route": "#/s/psu",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 355,
+      "navScrollWidth": 355,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/psu-900.png"
+    },
+    {
+      "route": "#/s/logic",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 354,
+      "navScrollWidth": 354,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/logic-900.png"
+    },
+    {
+      "route": "#/s/video",
+      "viewport": 900,
+      "overflow": false,
+      "navWidth": 354,
+      "navScrollWidth": 354,
+      "activeVisible": true,
+      "stopVisible": true,
+      "counts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "shot": "/Users/ctmctm/workspace/Loom/work/reports/module-apps/qa/browser/video-900.png"
+    }
+  ],
+  "integrated": {
+    "route": "#/l/m1-default",
+    "panels": 1,
+    "welcome": false,
+    "serviceTabs": 7
+  }
+}

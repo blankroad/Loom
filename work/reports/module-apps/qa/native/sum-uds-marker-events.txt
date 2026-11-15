@@ -1,0 +1,6 @@
+observer events 5
+2621 uds.tx agent w9 1794742562094884000 {"method": "uds.read_did", "write_state": "requested"}
+2622 uds.tx agent w9 1794742562095230959 {"method": "uds.read_did", "reason": "UDS 0x22 ReadDataByIdentifier", "write_state": "accepted"}
+2623 uds.tx agent w9 1794742562096101667 {"bytes": {"data": "22f190", "encoding": "hex"}, "functional": false, "ok_suppressed": false, "p2_ms": 50, "p2_star_ms": 5000, "pending_count": 0, "policy_action": "auto", "reason": "UDS 0x22 ReadDataByIdentifier", "risk": "R0", "service": "ReadDataByIdentifie
+2624 uds.rx device w9 1794742562099400084 {"bytes": {"data": "62f19051414e4154495645716e32303232303856494e", "encoding": "hex"}, "kind": "positive", "late": false, "t_rx_mono_ns": "10101079726291", "target": "qa-native-ecu"}
+2625 uds.result agent w9 1794742562099467917 {"bytes": {"data": "22f190", "encoding": "hex"}, "final": true, "first_rx_ms": 3.576, "functional": false, "ok_suppressed": false, "p2_ms": 50, "p2_star_ms": 5000, "pending_count": 0, "policy_action": "auto", "reason": "UDS 0x22 ReadDataByIdentifier", "resp_by

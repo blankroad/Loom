@@ -1,0 +1,242 @@
+{
+  "result": "SEVEN_MODULES_OPEN",
+  "build": "final ui db441bfb / bundled loomd 38219c57",
+  "nonce_prefix": "qa-final-710ca6",
+  "no_autoload_before_open": {
+    "cmd": "loom events --since seq:12 --peek --max 1000 --json",
+    "rc": 0,
+    "count": 5,
+    "range": {
+      "from": "12",
+      "to": "16"
+    },
+    "kinds": [
+      [
+        "core.activity",
+        "agent"
+      ],
+      [
+        "core.worker_state",
+        "device"
+      ]
+    ],
+    "write_open_connect_start": 0,
+    "status": "raw-preopen-status.json: viewers 1/1, connections 2, subscriptions 1, worker writes 0"
+  },
+  "opens": {
+    "uart1": {
+      "ok": true,
+      "err": null,
+      "request_id": "w1",
+      "state": "sent",
+      "alias": "qa3-pty1",
+      "extra": {
+        "path": "/dev/ttys000"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "uart2": {
+      "ok": true,
+      "err": null,
+      "request_id": "w2",
+      "state": "sent",
+      "alias": "qa3-pty2",
+      "extra": {
+        "path": "/dev/ttys008"
+      },
+      "others": {
+        "count": "0",
+        "from_cursor": "e1794731770:seq:23"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "can": {
+      "ok": true,
+      "err": null,
+      "request_id": "w3",
+      "state": "sent",
+      "alias": "qa3-can",
+      "extra": {
+        "nodes": [
+          "BCM"
+        ],
+        "backend": "sim"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "eth": {
+      "ok": true,
+      "err": null,
+      "request_id": "w4",
+      "state": "live",
+      "alias": "qa3-eth",
+      "extra": {
+        "backend": "sim"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "uds": {
+      "ok": true,
+      "err": null,
+      "request_id": null,
+      "state": {
+        "cause": "connected",
+        "state": "up"
+      },
+      "alias": "qa3-uds",
+      "extra": {
+        "entity": "127.0.0.1:60492"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "psu": {
+      "ok": true,
+      "err": null,
+      "request_id": "w5",
+      "state": "confirmed",
+      "alias": "qa3-psu",
+      "extra": {
+        "out": false,
+        "mode": "off",
+        "idn": "LOOM-TEST-FIXTURE,EXTPSU-1,09c0f03a993d,0.1",
+        "backend": "scpi-tcp"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    },
+    "video": {
+      "ok": true,
+      "err": null,
+      "request_id": "w6",
+      "state": "live",
+      "alias": "v8c894e4b02fc",
+      "extra": {
+        "capture_id": "v8c894e4b02fc"
+      },
+      "others": {
+        "count": "0"
+      },
+      "viewers": {
+        "subscribed": 1,
+        "visible": 1
+      }
+    }
+  },
+  "status_after": {
+    "raw": "raw-postopen-status.json",
+    "viewers": {
+      "subscribed": 1,
+      "visible": 1
+    },
+    "connections": 2,
+    "subscriptions": 8,
+    "stream_seq_hw": "292",
+    "workers": [
+      [
+        "can_sim",
+        "ready",
+        1
+      ],
+      [
+        "echo",
+        "ready",
+        0
+      ],
+      [
+        "eth.qa3-eth",
+        "ready",
+        0
+      ],
+      [
+        "logic",
+        "ready",
+        0
+      ],
+      [
+        "psu.qa3-psu",
+        "ready",
+        0
+      ],
+      [
+        "uart.qa3-pty1",
+        "ready",
+        1
+      ],
+      [
+        "uart.qa3-pty2",
+        "ready",
+        1
+      ],
+      [
+        "video",
+        "ready",
+        0
+      ]
+    ]
+  },
+  "not_done": "no UART/CAN send, no DID, no PSU set/out/meas, logic NOT started",
+  "recorded_utc": "2026-11-15T08:37:00Z",
+  "fixture_check": {
+    "psu_set_or_out_cmds": 0,
+    "psu_rx_kinds": {
+      "OUTP?": 100,
+      "MEAS:VOLT?": 99,
+      "MEAS:CURR?": 99,
+      "*IDN?": 1,
+      "VOLT?": 1,
+      "CURR?": 1
+    },
+    "doip": [
+      [
+        "accepted",
+        null,
+        null
+      ],
+      [
+        "0x0005",
+        "rx",
+        null
+      ],
+      [
+        "0x0006",
+        "tx",
+        "routing activation code 0x10"
+      ]
+    ],
+    "pty1_rx_bytes_from_loom": 0,
+    "pty2_rx_bytes_from_loom": 0
+  },
+  "note": "status subscriptions 1->8 after opens (viewer subscriptions at cap); worker writes 1 on can_sim/uart.qa3-pty1/uart.qa3-pty2 = the open commands themselves"
+}
