@@ -256,6 +256,9 @@ export interface LastValue {
   unit: string;
   origin: string;
   atMs: number;
+  /** provenance: the transaction whose daemon-decoded response set this value */
+  requestId: string;
+  wallMs: number;
 }
 
 export const MAX_LAST_VALUES = 256;
@@ -280,6 +283,8 @@ export function updateLastValues(map: Map<string, LastValue>, r: RowLike, nowMs:
       unit: s(o.unit) ?? '',
       origin: r.origin,
       atMs: nowMs,
+      requestId: r.requestId,
+      wallMs: r.firstWallMs,
     });
     if (map.size > MAX_LAST_VALUES) {
       const oldest = map.keys().next().value;
@@ -555,4 +560,162 @@ export function latestDtcs(rows: readonly RowLike[], target: string | null): Dtc
     };
   }
   return null;
+}
+
+
+// ---- Bench Light workbench helpers (selected web: work/reports/uds-read-did/app) ----
+// Everything below projects the daemon row only. Rows carry no per-0x78 timestamps and no
+// transport frames, so the response sequence is Tx · 0x78 ×N · final, and bytes are UDS PDUs.
+
+/** compact uppercase hex of a row byte field (canonical `{encoding,data}` or legacy string), null if not clean hex */
+export function rowHex(v: unknown): string | null {
+  const t = bytesText(v);
+  if (t === null) return null;
+  const h = t.replace(/\s+/g, '');
+  return /^([0-9A-F]{2})+$/.test(h) ? h : null;
+}
+
+export const spacedHex = (hex: string): string => hex.match(/../g)?.join(' ') ?? hex;
+
+export const reqHexOf = (r: RowLike): string | null => rowHex(r.payload.bytes) ?? rowHex(r.payload.req_hex);
+export const respHexOf = (r: RowLike): string | null => rowHex(r.payload.resp_bytes) ?? rowHex(r.payload.resp_hex);
+
+/** requested DID of a single-DID ReadDataByIdentifier (22 xxxx), else null */
+export function rowDid(r: RowLike): string | null {
+  const h = reqHexOf(r);
+  return h && /^22[0-9A-F]{4}$/.test(h) ? h.slice(2) : null;
+}
+
+/** "DID · SID" column: `F190 VIN` for a single-DID read, else `0x2E WriteDataByIdentifier`. */
+export function didSidText(r: RowLike, didName: (did: string) => string | null): string {
+  const did = rowDid(r);
+  const p = r.payload;
+  if (did) {
+    const dec = Array.isArray(p.decoded) ? (p.decoded as unknown[]).map(obj).find((d) => s(d.did) === did) : undefined;
+    const name = (dec && s(dec.name)) || didName(did) || '';
+    return `${did} ${name}`.trim();
+  }
+  const sid = p.sid === undefined || p.sid === null ? (reqHexOf(r)?.slice(0, 2) ?? null) : hexByte(p.sid);
+  return sid ? `0x${sid} ${s(p.service) ?? findTemplate(sid)?.name ?? ''}`.trim() : '—';
+}
+
+/** canonical history row class `s-<status>` */
+export function statusClass(r: RowLike): string {
+  const p = r.payload;
+  if (isDenied(p)) return 's-nrc';
+  if (!isFinal(r.state)) return (n(p.pending_count) ?? 0) > 0 ? 's-pending' : 's-waiting';
+  const res = resultSymbol(r).cls;
+  if (res === 'res-nrc' || res === 'res-fail') return 's-nrc';
+  if (res === 'res-timeout') return 's-timeout';
+  if (res === 'res-unknown') return 's-link-lost';
+  if (p.ok_suppressed === true) return 's-suppressed';
+  return 's-positive';
+}
+
+export interface SeqEvent {
+  kind: 'tx' | 'pending' | 'positive' | 'nrc' | 'timeout' | 'link' | 'cancel' | 'late' | 'wait';
+  dt: string;
+  dir: string;
+  label: string;
+  /** compact hex of the UDS PDU, null when nothing was transmitted/received */
+  hex: string | null;
+  note?: string;
+}
+
+/** 응답 순서: Tx, then 0x78 ×N (count only — no per-event time on the row), then the final event. */
+export function seqEvents(r: RowLike, nowMs: number): SeqEvent[] {
+  const p = r.payload;
+  const req = reqHexOf(r);
+  const sid = req?.slice(0, 2) ?? hexByte(p.sid);
+  const svc = s(p.service) ?? (sid ? (findTemplate(sid)?.name ?? `SID 0x${sid}`) : '요청');
+  const out: SeqEvent[] = [{ kind: 'tx', dt: '+0', dir: 'Tx', label: svc, hex: req }];
+  if (isDenied(p)) {
+    const b = obj(p.block);
+    out[0] = { ...out[0]!, note: '전송 안 됨' };
+    out.push({ kind: 'nrc', dt: '', dir: '⛔', label: '거부 — 정책/차단, ECU로 보내지 않음', hex: null, note: `${s(b.class) ?? s(p.policy_action) ?? ''} ${s(b.reason) ?? ''}`.trim() || undefined });
+    return out;
+  }
+  const pc = n(p.pending_count) ?? 0;
+  if (pc > 0) out.push({ kind: 'pending', dt: '…', dir: 'Rx', label: `0x78 responsePending ×${pc}`, hex: sid ? `7F${sid}78` : null, note: '개별 수신 시각은 행에 기록되지 않음 — 횟수만 표시' });
+  const rtt = n(p.rtt_ms);
+  const dt = rtt !== null ? `+${Math.round(rtt * 10) / 10}ms` : '';
+  const resp = respHexOf(r);
+  if (!isFinal(r.state)) {
+    out.push({ kind: 'wait', dt: `+${Math.max(0, Math.round(nowMs - r.firstSeenMs))}ms`, dir: '…', label: '최종 응답 대기 중', hex: null });
+  } else if (p.ok_suppressed === true) {
+    out.push({ kind: 'positive', dt, dir: '—', label: '응답 억제 (SPRMIB) — 긍정 응답 바이트 없음', hex: null });
+  } else if (resp && resp.startsWith('7F') && resp.slice(4, 6) !== '78') {
+    out.push({ kind: 'nrc', dt, dir: 'Rx', label: `NRC ${nrcText(p) ?? `0x${resp.slice(4, 6)}`}`, hex: resp });
+  } else if (resp) {
+    out.push({ kind: r.state === 'failed' ? 'nrc' : 'positive', dt, dir: 'Rx', label: `긍정 응답 0x${resp.slice(0, 2)}`, hex: resp });
+  } else if (p.timeout === true) {
+    const lim = n(p.p2_star_ms) ?? n(p.p2_ms);
+    out.push({ kind: 'timeout', dt: lim !== null ? `+${lim}ms` : '', dir: '⌛', label: '타임아웃 — 응답 바이트 없음', hex: null });
+  } else if (r.state === 'outcome_unknown') {
+    out.push({ kind: 'link', dt: '', dir: '⌛?', label: '불확정 — 전송 후 결과 확인 불가 (응답 없음)', hex: null, note: s(p.reason) ?? undefined });
+  } else if (r.state === 'failed') {
+    out.push({ kind: 'nrc', dt, dir: '✗', label: nrcText(p) ? `NRC ${nrcText(p)}` : `실패${s(p.reason) ? ` — ${s(p.reason)}` : ''}`, hex: null });
+  } else {
+    out.push({ kind: 'positive', dt, dir: '✓', label: '확정 — 응답 바이트 미보고', hex: null });
+  }
+  if (p.late === true) out.push({ kind: 'late', dt: '', dir: 'Rx', label: 'late — 종료 후 도착, 무시됨', hex: null });
+  return out;
+}
+
+export interface PduField {
+  name: string;
+  off: number;
+  len: number;
+  value: string;
+  note: string;
+  /** daemon-decoded value row (no byte range of its own) */
+  decoded?: boolean;
+  bad?: boolean;
+}
+
+/** Byte-level split of one UDS PDU. Request parameters follow the ISO 14229-1 template table;
+ *  response values come only from the daemon's `decoded` list (no UI-side decoding). */
+export function pduFields(hex: string, dir: 'tx' | 'rx', p: Readonly<Record<string, unknown>>): PduField[] {
+  const b = hex.match(/../g) ?? [];
+  if (!b.length) return [];
+  const span = (off: number, len: number) => b.slice(off, off + len).join(' ');
+  const out: PduField[] = [];
+  if (dir === 'rx' && b[0] === '7F') {
+    out.push({ name: 'negativeResponse', off: 0, len: 1, value: '0x7F', note: 'NRC 응답' });
+    if (b.length > 1) out.push({ name: 'requestServiceId', off: 1, len: 1, value: `0x${b[1]}`, note: findTemplate(b[1]!)?.name ?? '' });
+    if (b.length > 2) out.push({ name: 'negativeResponseCode', off: 2, len: 1, value: `0x${b[2]}`, note: b[2] === '78' ? 'responsePending' : (s(p.nrc_name) ?? ''), bad: b[2] !== '78' });
+    if (b.length > 3) out.push({ name: '추가 바이트', off: 3, len: b.length - 3, value: span(3, b.length - 3), note: '형식 밖', bad: true });
+    return out;
+  }
+  if (dir === 'rx') {
+    const reqSid = ((parseInt(b[0]!, 16) - 0x40) & 0xff).toString(16).toUpperCase().padStart(2, '0');
+    out.push({ name: 'responseServiceId', off: 0, len: 1, value: `0x${b[0]}`, note: `긍정 응답 (요청 SID 0x${reqSid} + 0x40)` });
+    if (b[0] === '62' && b.length >= 3) {
+      out.push({ name: 'dataIdentifier', off: 1, len: 2, value: b[1]! + b[2]!, note: '' });
+      if (b.length > 3) out.push({ name: 'dataRecord', off: 3, len: b.length - 3, value: span(3, b.length - 3), note: `${b.length - 3} B` });
+    } else if (b.length > 1) out.push({ name: 'responseParameters', off: 1, len: b.length - 1, value: span(1, b.length - 1), note: `${b.length - 1} B` });
+    if (Array.isArray(p.decoded)) {
+      for (const d of p.decoded) {
+        const o = obj(d);
+        const did = s(o.did);
+        if (!did) continue;
+        const v = o.value === undefined ? '' : typeof o.value === 'string' ? o.value : JSON.stringify(o.value);
+        out.push({ name: `${did} ${s(o.name) ?? ''}`.trim(), off: -1, len: 0, value: `${v}${s(o.unit) ? ` ${s(o.unit)}` : ''}`, note: 'daemon 해석', decoded: true });
+      }
+    }
+    return out;
+  }
+  const t = findTemplate(b[0]!);
+  out.push({ name: 'requestServiceId', off: 0, len: 1, value: `0x${b[0]}`, note: t?.name ?? '카탈로그 밖 SID' });
+  let off = 1;
+  for (const prm of t?.params ?? []) {
+    if (off >= b.length) break;
+    const len = prm.bytes === null ? b.length - off : Math.min(prm.bytes, b.length - off);
+    const v = span(off, len);
+    const choice = prm.choices?.find((c) => c.value === v.replace(/\s/g, ''));
+    out.push({ name: prm.name, off, len, value: v, note: choice?.label ?? '', bad: prm.bytes !== null && len < prm.bytes });
+    off += len;
+  }
+  if (off < b.length) out.push({ name: t ? '추가 바이트' : 'parameters', off, len: b.length - off, value: span(off, b.length - off), note: `${b.length - off} B` });
+  return out;
 }

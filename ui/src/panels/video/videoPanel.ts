@@ -56,6 +56,23 @@ interface Drawn {
   bytes: number;
 }
 
+/** video.capabilities → one truthful line: FFmpeg presence + implemented / unverified / unsupported sources */
+export function capabilityText(r: unknown): string {
+  const d = obj(obj(r).data ?? r);
+  const ff = obj(d.ffmpeg);
+  const engine = typeof ff.path === 'string' && ff.path
+    ? `FFmpeg ${ff.path}${typeof ff.version === 'string' && ff.version ? ` (${ff.version})` : ''}${typeof ff.error === 'string' && ff.error ? ` · 오류 ${ff.error}` : ''}`
+    : `FFmpeg 없음${typeof ff.error === 'string' && ff.error ? ` (${ff.error})` : ''} — 캡처 불가`;
+  const src = obj(d.sources);
+  const parts = Object.entries(src).map(([k, v]) => {
+    const o = obj(v);
+    if (o.implemented !== true) return `${k} 미지원${typeof o.reason === 'string' ? `(${o.reason})` : ''}`;
+    return o.device_verified === false ? `${k} 구현·실물 미검증` : `${k} 구현`;
+  });
+  const audio = obj(d.audio).available === true ? '오디오 가능' : '오디오 미지원';
+  return [engine, parts.join(', ') || '소스 정보 없음', audio].join(' · ');
+}
+
 export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
   const pinned = typeof ctx.props.channel === 'string' ? ctx.props.channel : null;
   const canOperate = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
@@ -76,6 +93,7 @@ export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
   let lastFetchedId = -1;
   let lastFetchedCapture = '';
   let finalFetchDone = '';
+  let openErr: string | null = null;
   const render = new RateMeter();
 
   // ---- DOM ----
@@ -112,7 +130,7 @@ export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
   tools.append(freezeBtn, snapBtn, recBtn);
   const recEl = tid(el('div', 'vd-record'), 'video-record');
   const snapsEl = tid(el('div', 'vd-snaps'), 'video-snapshots');
-  const audioEl = tid(el('div', 'vd-note', '오디오: 미지원 (video-only) · RTSP/DeckLink: 미지원 · 캡처보드/TCC: 미검증'), 'video-limits');
+  const audioEl = tid(el('div', 'vd-note', '오디오: 미지원 (video-only) · RTSP/DeckLink: 미지원 · 캡처보드/TCC: 미검증 · Windows: 캡처 미지원 (데몬이 video.open을 E_UNSUPPORTED로 거부)'), 'video-limits');
 
   // open form
   const cfgBox = tid(el('details', 'vd-config'), 'video-config');
@@ -158,9 +176,20 @@ export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
   const openBtn = tid(el('button', 'vd-open', '열기'), 'video-open');
   openBtn.type = 'button';
   const formErr = tid(el('div', 'vd-form-err'), 'video-form-error');
+  /** last video.open refusal from the daemon (e.g. E_UNSUPPORTED on Windows) — stays until the next open */
+  const openErrEl = tid(el('div', 'vd-form-err'), 'video-open-error');
+  openErrEl.setAttribute('role', 'status');
   const cli = tid(el('code', 'vd-cli'), 'video-cli');
+  const capRow = el('div', 'vd-caprow');
+  const capBtn = tid(el('button', undefined, '엔진 확인'), 'video-engine-check');
+  capBtn.type = 'button';
+  capBtn.title = 'video.capabilities (읽기 전용) — FFmpeg 경로/버전과 구현·검증된 소스를 확인합니다. 장치·카메라를 열지 않습니다.';
+  const capEl = tid(el('span', 'vd-note'), 'video-capability');
+  capRow.append(capBtn, capEl);
   grid.append(lab('소스', srcSel), urlL, nameL, devL, lab('크기', sizeSel), lab('fps', fpsSel), openBtn);
-  cfgBox.append(grid, formErr, cli);
+  cfgBox.append(grid, formErr, openErrEl, cli, capRow);
+  // module tab (no pinned capture): the explicit source form is visible before anything is opened (UI only)
+  if (!pinned) cfgBox.open = true;
 
   root.append(status, latchEl, errEl, stage, ident, tools, healthEl, recEl, snapsEl, audioEl, cfgBox);
 
@@ -306,7 +335,36 @@ export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
       return;
     }
     frozen = null;
-    void act('open', openParams(form), '캡처 열기');
+    openErr = null;
+    ctx
+      .act('open', openParams(form))
+      .then(() => ctx.ui.toast('캡처 열기 요청됨'))
+      .catch((e: unknown) => {
+        const code = (e as { dataCode?: string }).dataCode ?? (e as { code?: string }).code;
+        openErr = `열기 거부${code ? ` (${code})` : ''}: ${e instanceof Error ? e.message : String(e)}`;
+        ctx.ui.toast(`캡처 열기 실패: ${e instanceof Error ? e.message : String(e)}`);
+      })
+      .finally(() => ctx.scheduler.invalidate());
+  });
+  // explicit engine check (never on mount / tab open)
+  let capPending = false;
+  capBtn.addEventListener('click', () => {
+    if (capPending) return;
+    capPending = true;
+    capBtn.disabled = true;
+    capEl.textContent = '확인 중…';
+    ctx
+      .query<unknown>('video.capabilities', {})
+      .then((r) => {
+        if (!disposed) capEl.textContent = capabilityText(r);
+      })
+      .catch((e: unknown) => {
+        if (!disposed) capEl.textContent = `video.capabilities 실패: ${e instanceof Error ? e.message : String(e)}`;
+      })
+      .finally(() => {
+        capPending = false;
+        capBtn.disabled = false;
+      });
   });
 
   // ---- draw ----
@@ -407,6 +465,8 @@ export function createVideoWorkbench(ctx: PanelContext): PanelInstance {
     openBtn.disabled = !op || live;
     for (const [l, on] of [[urlL, form.source === 'http-mjpeg'], [nameL, form.source === 'replay'], [devL, form.source === 'avfoundation']] as const) l.hidden = !on;
     formErr.textContent = validateForm(form) ?? '';
+    openErrEl.textContent = openErr ?? '';
+    openErrEl.hidden = openErr === null;
     cli.textContent = cliLine(form);
     ctx.scheduler.reportWork(performance.now() - t0);
     return lastSeq < 0n ? 0n : lastSeq;

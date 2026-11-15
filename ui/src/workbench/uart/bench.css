@@ -1,0 +1,401 @@
+/* UART module — ported verbatim from the agreed REV6.1 web workbench
+   (work/reports/uart-workbench/opus/styles.css, sha in its HANDOFF), scoped to the module (.mod-uart) and its
+   dialogs/menus (.ub-layer). Only the custom split tree / drag ghost / toasts are not ported: the real
+   Dockview provides split/resize/tabs (styled to the same .pane/.tabstrip geometry in dock.css below) and the
+   shell owns toasts. Tokens come from the shell :root (same values as the prototype). */
+/* =================== UART MODULE =================== */
+.mod-uart {
+  min-height: 0; min-width: 0; display: grid;
+  grid-template-columns: 44px auto minmax(0, 1fr);
+  grid-template-rows: 46px minmax(0, 1fr);
+  grid-template-areas: "rail tbar tbar" "rail side work";
+  background: var(--sf);
+}
+/* module toolbar: icon-over-label (MobaXterm/CoolTerm convention, F2) */
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar { grid-area: tbar; display: flex; align-items: stretch; gap: 2px; padding: 0 8px; background: var(--sf); border-bottom: 1px solid var(--line); min-width: 0; overflow-x: auto; scrollbar-width: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar::-webkit-scrollbar { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tbtn {
+  border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-width: 54px; padding: 0 6px; margin: 4px 0; border-radius: 6px; font-size: 10.5px; color: var(--muted); white-space: nowrap; flex: none;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .tbtn:hover { background: var(--sf2); color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tbtn:disabled { opacity: .4; cursor: not-allowed; background: transparent; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tbtn[aria-pressed="true"] { background: var(--sel); color: var(--accent); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar .vdiv { width: 1px; background: var(--line); margin: 9px 5px; flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar .grow { flex: 1; min-width: 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar .ctx { display: flex; align-items: center; gap: 8px; font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; padding: 0 4px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar .ctx b { color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail { grid-area: rail; background: var(--sf); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 4px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button {
+  width: 36px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 0 6px;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button span { font-size: 9.5px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button:hover { color: var(--text); background: var(--sf2); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button[aria-pressed="true"] { color: var(--accent); background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button[aria-pressed="true"]::before { content: ""; position: absolute; left: -4px; top: 6px; bottom: 6px; width: 3px; border-radius: 2px; background: var(--svc-underline); }
+:where(.mod-uart, .ub-layer, .uart-panel) .side { grid-area: side; width: 264px; background: var(--bg); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.mod-uart.side-collapsed .side { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-head { display: flex; align-items: center; gap: 6px; padding: 9px 8px 6px 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-head h2 { margin: 0; font-size: 12px; font-weight: 600; flex: 1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-head .cnt { font: 600 11px/18px var(--mono); background: var(--sf2); border-radius: 9px; padding: 0 6px; color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-tools { display: flex; gap: 6px; padding: 0 10px 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-body { flex: 1; overflow: auto; padding: 0 0 10px; min-height: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .field-sm { height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--sf); padding: 0 8px; min-width: 0; flex: 1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .field-sm::placeholder { color: var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .group-h { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: none; color: var(--muted); padding: 7px 12px 3px; font-size: 11.5px; font-weight: 600; text-align: left; }
+:where(.mod-uart, .ub-layer, .uart-panel) .group-h svg { width: 12px; height: 12px; transition: transform .12s; }
+:where(.mod-uart, .ub-layer, .uart-panel) .group-h[aria-expanded="false"] svg { transform: rotate(-90deg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess {
+  display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 0 8px;
+  padding: 5px 6px 5px 12px; border-left: 3px solid transparent; cursor: default; user-select: none; touch-action: none;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .sess:hover, :where(.mod-uart, .ub-layer, .uart-panel) .sess:focus-within { background: var(--sf); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess.is-active { background: var(--sf); border-left-color: var(--svc-underline); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess .dot, :where(.mod-uart, .ub-layer, .uart-panel) .tab .dot, :where(.mod-uart, .ub-layer, .uart-panel) .ph-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tag, var(--muted)); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-name .open-tag { font: 600 10px/16px var(--mono); color: var(--ok); background: #dafbe1; border-radius: 8px; padding: 0 5px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-meta { grid-column: 2 / 4; color: var(--muted); font: 11px/1.35 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-acts { display: flex; gap: 0; opacity: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess:hover .sess-acts, :where(.mod-uart, .ub-layer, .uart-panel) .sess:focus-within .sess-acts { opacity: 1; }
+@media (hover: none) {
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-acts, :where(.mod-uart, .ub-layer, .uart-panel) .mac-acts { opacity: 1 !important; }
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .ibtn { width: 24px; height: 24px; display: inline-grid; place-items: center; border: 0; border-radius: 5px; background: transparent; color: var(--muted); padding: 0; flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ibtn:hover { background: var(--sf2); color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ibtn.danger:hover { color: var(--err); background: var(--err-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ibtn svg.i { width: 15px; height: 15px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ibtn[aria-pressed="true"] { color: var(--accent); background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-foot { border-top: 1px solid var(--line); padding: 8px 10px; display: flex; gap: 6px; flex-wrap: wrap; background: var(--sf); }
+:where(.mod-uart, .ub-layer, .uart-panel) .side-note { padding: 8px 12px; font-size: 11px; color: var(--muted); line-height: 1.45; border-top: 1px solid var(--line2); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac { padding: 6px 6px 6px 8px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 1px 6px; align-items: center; border-left: 3px solid transparent; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac .mac-stop { height: 22px; padding: 0 7px; font-size: 11px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac .mac-more { opacity: .75; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac .mac-more:hover { opacity: 1; }
+/* macro execution scope (macro panel) */
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope { margin: 0 10px 8px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--sf); display: flex; flex-direction: column; gap: 5px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-row { display: flex; align-items: center; gap: 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-l { font-size: 11.5px; font-weight: 600; color: var(--text); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope .seg { height: 24px; flex: 1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope .seg button { flex: 1; font: 600 11.5px var(--ui); padding: 0 6px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope .seg button[aria-checked="true"] { background: var(--sel); color: var(--accent); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-to { font: 11.5px/1.4 var(--mono); color: var(--text); word-break: break-word; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-to.multi { color: var(--accent); font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-pick { display: flex; flex-direction: column; gap: 3px; padding: 4px 0 0; border-top: 1px dashed var(--line); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-pick .chk small { color: var(--muted); font: 10.5px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-pick .chk.dis { color: var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mscope-note { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip.fixed { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-bd); font-weight: 700; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip.fixed.unresolved { background: var(--err-bg); color: var(--err); border-color: #ff8182; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac:hover, :where(.mod-uart, .ub-layer, .uart-panel) .mac:focus-within { background: var(--sf); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac.running { border-left-color: var(--warn-bd); background: var(--warn-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac-sub { grid-column: 2 / -1; color: var(--muted); font: 11px/1.35 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac-acts { display: flex; gap: 0; opacity: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mac-run { color: var(--ok) !important; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip { display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 6px; border-radius: 9px; background: var(--sf2); color: var(--muted); font: 10.5px/1 var(--mono); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip.kbd { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 4px; }
+/* ---------- workspace / split tree ---------- */
+:where(.mod-uart, .ub-layer, .uart-panel) .work { grid-area: work; position: relative; min-width: 0; min-height: 0; background: var(--sf); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane { container-type: inline-size; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); overflow: hidden; position: relative; }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane.active { border-color: var(--selbd); box-shadow: 0 0 0 1px var(--selbd); }
+/* maximize: hide every branch that does not contain the maxed pane + all dividers, so the maxed chain fills the tree (ratios untouched -> restore keeps them) */
+:where(.mod-uart, .ub-layer, .uart-panel) .tabstrip { display: flex; align-items: stretch; height: 32px; background: var(--sf); border-bottom: 1px solid var(--line); flex: none; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane-no { flex: none; width: 24px; display: grid; place-items: center; color: var(--faint); font: 600 11px var(--mono); border-right: 1px solid var(--line); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane.active .pane-no { color: var(--accent); background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tabs { display: flex; align-items: stretch; min-width: 0; flex: 1; overflow-x: auto; scrollbar-width: none; position: relative; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tabs::-webkit-scrollbar { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab {
+  display: flex; align-items: center; gap: 7px; padding: 0 4px 0 10px; max-width: 240px; min-width: 0;
+  border-right: 1px solid var(--line); color: var(--muted); user-select: none; touch-action: none; position: relative; flex: none; cursor: default;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .tab:hover { color: var(--text); background: var(--bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab.on { color: var(--text); background: var(--bg); margin-bottom: -1px; border-bottom: 1px solid var(--bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab.on::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--tag, var(--accent)); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .t-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .t-port { color: var(--faint); font: 10.5px var(--mono); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .dot.off { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .dot.lost { background: var(--err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .dot.waiting { background: var(--warn-bd); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .x { width: 20px; height: 20px; border: 0; background: transparent; color: var(--faint); border-radius: 4px; display: grid; place-items: center; padding: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .x:hover { background: var(--sf2); color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .x svg { width: 12px; height: 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab.drag-src { opacity: .4; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .run-badge { width: 6px; height: 6px; border-radius: 50%; background: var(--warn-bd); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab-add { flex: none; width: 30px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab-add:hover { color: var(--text); background: var(--bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane-acts { display: flex; align-items: center; gap: 0; padding: 0 3px; flex: none; border-left: 1px solid var(--line); }
+/* pane header: compact connection line (alias · port · frame · state · counters) */
+:where(.mod-uart, .ub-layer, .uart-panel) .phead { display: flex; align-items: center; gap: 8px; padding: 3px 6px 3px 10px; border-bottom: 1px solid var(--line); background: var(--bg); flex: none; min-width: 0; min-height: 30px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-target { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; overflow: hidden; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-alias { font-weight: 700; font-size: 13px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-port { font: 11.5px var(--mono); color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-frame { font: 11.5px var(--mono); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-state { font: 600 11px var(--mono); padding: 1px 7px; border-radius: 9px; background: var(--sf2); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-state.connected { color: var(--ok); background: #dafbe1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-state.lost, :where(.mod-uart, .ub-layer, .uart-panel) .ph-state.waiting { color: var(--warn); background: var(--warn-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-ctr { font: 11px var(--mono); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-ctr b { color: var(--text); font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-tools { display: flex; align-items: center; gap: 2px; flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; height: 22px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .seg button { border: 0; background: var(--bg); padding: 0 7px; font: 600 10.5px var(--mono); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .seg button + button { border-left: 1px solid var(--line); }
+:where(.mod-uart, .ub-layer, .uart-panel) .seg button[aria-pressed="true"] { background: var(--sel); color: var(--accent); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill { height: 22px; border: 1px solid var(--line); background: var(--bg); border-radius: 5px; padding: 0 7px; font: 600 10.5px var(--mono); color: var(--muted); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill:hover { border-color: var(--selbd); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill[aria-pressed="true"] { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-bd); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill.lvl-on { color: var(--ok); }
+:where(.mod-uart, .ub-layer, .uart-panel) .search { display: none; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--line); background: var(--sf); flex: none; flex-wrap: wrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .search.open { display: flex; }
+:where(.mod-uart, .ub-layer, .uart-panel) .search input[type=search] { height: 24px; flex: 1; min-width: 80px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); padding: 0 8px; font: 12px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .search .count { font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .search label { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); white-space: nowrap; font-size: 12px; }
+/* pane header tools never clip: secondary tools scroll inside the header */
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-target { flex: 1 1 60px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-tools { flex: 0 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-tools::-webkit-scrollbar { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .eol-sel { height: 22px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); padding: 0 2px; font: 600 10.5px var(--mono); color: var(--muted); flex: none; }
+@container (max-width: 420px) {
+:where(.mod-uart, .ub-layer, .uart-panel) .phead { gap: 6px; padding-left: 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-port { display: none; }
+}
+/* real terminal surface: one persistent xterm per tab, re-attached into this slot on every render */
+:where(.mod-uart, .ub-layer, .uart-panel) .term.xslot { position: relative; padding: 0; overflow: hidden; white-space: normal; word-break: normal; }
+:where(.mod-uart, .ub-layer, .uart-panel) .xhost { position: absolute; inset: 4px 0 2px 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .xhost .xterm { height: 100%; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term-wrap:focus-within { box-shadow: inset 0 0 0 1px var(--selbd); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .tlines { display: block; }
+/* receive-time gutter (host clock) beside xterm rows; VT bytes are never modified */
+:where(.mod-uart, .ub-layer, .uart-panel) .tsgutter { position: absolute; left: 0; top: 4px; bottom: 2px; width: 90px; overflow: hidden; font: 10.5px var(--mono); color: var(--t-dim); text-align: right; padding-right: 6px; user-select: none; pointer-events: none; border-right: 1px solid color-mix(in srgb, var(--t-dim) 35%, transparent); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tsr { white-space: nowrap; overflow: hidden; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term.xslot[data-ts="off"] .tsgutter { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term.xslot[data-ts="on"] .xhost { left: 98px; }
+/* send-target selector (toolbar) */
+:where(.mod-uart, .ub-layer, .uart-panel) .bc { display: flex; align-items: center; gap: 6px; padding: 0 4px; flex: none; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc-l { font-size: 11px; color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc .seg { height: 26px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc .seg button { font: 600 11.5px var(--ui); padding: 0 9px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc #bcAll[aria-pressed="true"] { background: var(--err); color: #fff; }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc-badge { display: inline-flex; align-items: center; gap: 6px; font: 11.5px var(--mono); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc-badge.on { color: var(--err); background: var(--err-bg); border: 1px solid #ff8182; border-radius: 12px; padding: 2px 4px 2px 9px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .bc-badge .bc-ex { color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip.bc-in { background: var(--err); color: #fff; font-weight: 700; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chip.bc-out { background: transparent; border: 1px dashed var(--line); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill.rec { color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill.rec-recording { color: #fff; background: var(--err); border-color: var(--err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill.rec-error { color: var(--err); border-color: var(--err); background: var(--err-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .pill.rec-picking, :where(.mod-uart, .ub-layer, .uart-panel) .pill.rec-stopping { color: var(--warn); border-color: var(--warn-bd); background: var(--warn-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .tab .rec-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--err); animation: pulse 1.2s infinite; }
+/* ---------- terminal surface: per-terminal theme ---------- */
+:where(.mod-uart, .ub-layer, .uart-panel) .term-wrap {
+  --t-bg: #0f1216; --t-fg: #d0d7de; --t-dim: #6e7781; --t-strong: #f0f3f6; --t-tx: #79c0ff; --t-tx-bg: transparent;
+  --t-warn: #e3b341; --t-err: #ff7b72; --t-ok: #56d364; --t-garb: #c69191; --t-mark: rgba(227,179,65,.45); --t-mark-cur: #e3b341; --t-sel: rgba(56,139,253,.4);
+  position: relative; flex: 1 1 auto; min-height: 0; display: flex; background: var(--t-bg);
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .term-wrap.t-light {
+  --t-bg: #ffffff; --t-fg: #1f2328; --t-dim: #8c959f; --t-strong: #1f2328; --t-tx: #633c01; --t-tx-bg: #fff8c5;
+  --t-warn: #9a6700; --t-err: #cf222e; --t-ok: #1a7f37; --t-garb: #a0656b; --t-mark: rgba(212,167,44,.4); --t-mark-cur: #d4a72c; --t-sel: #b6e3ff;
+  border-top: 0;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .term {
+  flex: 1; overflow: auto; padding: 6px 10px 8px; font: 12.5px/19px var(--mono); color: var(--t-fg);
+  white-space: pre-wrap; word-break: break-all; tab-size: 8; outline: none; scrollbar-color: var(--t-dim) transparent;
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .term ::selection { background: var(--t-sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .ln { display: block; min-height: 19px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .ts { color: var(--t-dim); margin-right: 8px; user-select: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .tx { color: var(--t-tx); background: var(--t-tx-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .tx::before { content: "› "; color: var(--t-dim); user-select: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .sys { color: var(--t-dim); font-style: italic; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .w { color: var(--t-warn); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .e { color: var(--t-err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .ok { color: var(--t-ok); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .prompt { color: var(--t-strong); font-weight: 700; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .garb { color: var(--t-garb); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term mark { background: var(--t-mark); color: inherit; border-radius: 2px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term mark.cur { background: var(--t-mark-cur); color: #111; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .hx { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .hx .dir { color: var(--t-dim); }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .hx.tx::before { content: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term .hx .asc { color: var(--t-dim); white-space: pre; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term-note {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 2; display: none; align-items: center; gap: 8px;
+  background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 14px; padding: 3px 10px; font-size: 12px; box-shadow: 0 4px 14px rgba(31,35,40,.18);
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .term-note.show { display: inline-flex; }
+:where(.mod-uart, .ub-layer, .uart-panel) .term-note button { border: 0; background: none; color: var(--accent); padding: 0; font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .conn-overlay {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--bg); color: var(--text); border: 1px solid var(--warn-bd); border-left: 4px solid var(--warn-bd); border-radius: 6px; padding: 7px 10px; font-size: 12.5px;
+  box-shadow: 0 4px 14px rgba(31,35,40,.15);
+}
+:where(.mod-uart, .ub-layer, .uart-panel) .conn-overlay .msg { flex: 1; min-width: 160px; }
+/* macro run strip (inside the target pane) */
+:where(.mod-uart, .ub-layer, .uart-panel) .runstrip { flex: none; border-top: 1px solid var(--warn-bd); background: var(--warn-bg); padding: 5px 8px; display: flex; flex-direction: column; gap: 4px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .runstrip.st-done { background: #dafbe1; border-top-color: #4ac26b; }
+:where(.mod-uart, .ub-layer, .uart-panel) .runstrip.st-failed, :where(.mod-uart, .ub-layer, .uart-panel) .runstrip.st-stopped { background: var(--err-bg); border-top-color: #ff8182; }
+:where(.mod-uart, .ub-layer, .uart-panel) .run-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .run-top .rname { font-weight: 700; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .run-top .rtarget { font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .run-top .rstat { margin-left: auto; font: 600 11.5px var(--mono); white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rstat.running { color: var(--warn); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rstat.done { color: var(--ok); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rstat.failed, :where(.mod-uart, .ub-layer, .uart-panel) .rstat.stopped { color: var(--err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .steps { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px; background: var(--bg); color: var(--muted); font: 10.5px var(--mono); border: 1px solid var(--line); max-width: 240px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step.run { color: var(--warn); border-color: var(--warn-bd); font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step.ok { color: var(--ok); }
+:where(.mod-uart, .ub-layer, .uart-panel) .step.fail { color: var(--err); border-color: #ff8182; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step.skip { opacity: .55; text-decoration: line-through; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn-stop { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--err); background: var(--err); color: #fff; font-weight: 600; flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn-stop:hover { filter: brightness(1.08); }
+/* input row */
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow { flex: none; display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-top: 1px solid var(--line); background: var(--sf); min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .to { font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .to b { color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .send-in { flex: 1 1 140px; min-width: 80px; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); padding: 0 9px; font: 12.5px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .send-in:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(9,105,218,.15); }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .send-in:disabled { background: var(--sf2); color: var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow select { height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); padding: 0 4px; font: 11px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn { height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border-radius: 6px; border: 1px solid var(--line); background: var(--sf); color: var(--text); font-weight: 600; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn:hover { background: var(--sf2); }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.primary { background: #1f883d; border-color: rgba(31,35,40,.15); color: #fff; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.primary:hover { background: #1a7f37; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.blue { background: var(--accent); border-color: var(--accent); color: #fff; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.danger { color: var(--err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.danger:hover { background: var(--err-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn:disabled { opacity: .5; cursor: not-allowed; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn.sm { height: 24px; padding: 0 8px; font-size: 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .btn svg.i { width: 14px; height: 14px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchips { display: flex; gap: 4px; flex: 0 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchips::-webkit-scrollbar { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchip { flex: none; height: 24px; padding: 0 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchip:hover { border-color: var(--selbd); background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchip svg.i { width: 11px; height: 11px; color: var(--ok); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mchip .k { color: var(--faint); font: 10px var(--mono); }
+/* empty pane picker (REV6.1 pickerHTML) — the UART work area before a terminal is placed */
+.dock-empty .picker { pointer-events: auto; width: min(560px, 100%); max-height: 100%; overflow: auto; text-align: left; color: var(--text); }
+.picker h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.picker p { margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+.picker .plist { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.picker .pitem { display: grid; grid-template-columns: 10px auto 1fr; align-items: center; gap: 8px; min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); text-align: left; }
+.picker .pitem:hover { border-color: var(--selbd); background: var(--sel); }
+.picker .pitem .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tag, var(--accent)); }
+.picker .pitem small { color: var(--muted); font: 11.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker .picker-acts { display: flex; gap: 6px; margin-bottom: 8px; }
+.picker .hint { font-size: 11.5px; color: var(--faint); }
+/* drag & drop */
+/* ---------- dialogs, menus, toasts ---------- */
+.ub-layer dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); padding: 0; width: min(580px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); box-shadow: 0 24px 60px rgba(31,35,40,.3); }
+.ub-layer dialog::backdrop { background: rgba(31, 35, 40, .35); }
+.ub-layer dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 26px); }
+:where(.mod-uart, .ub-layer, .uart-panel) .dlg-h { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--sf); border-radius: 12px 12px 0 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .dlg-h h2 { margin: 0; font-size: 14px; flex: 1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .dlg-b { padding: 12px 14px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .dlg-f { display: flex; gap: 8px; justify-content: flex-end; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .dlg-f .grow { flex: 1; }
+:where(.mod-uart, .ub-layer, .uart-panel) .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .fld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .fld > span { font-size: 12px; color: var(--muted); font-weight: 500; }
+:where(.mod-uart, .ub-layer, .uart-panel) .fld input:not([type=checkbox]), :where(.mod-uart, .ub-layer, .uart-panel) .fld select, :where(.mod-uart, .ub-layer, .uart-panel) .inp { height: 30px; border: 1px solid var(--line); border-radius: 6px; background: var(--sf); padding: 0 8px; min-width: 0; width: 100%; }
+:where(.mod-uart, .ub-layer, .uart-panel) .fld input:focus, :where(.mod-uart, .ub-layer, .uart-panel) .fld select:focus, :where(.mod-uart, .ub-layer, .uart-panel) .inp:focus { background: var(--bg); border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(9,105,218,.15); }
+:where(.mod-uart, .ub-layer, .uart-panel) .mono { font-family: var(--mono) !important; font-size: 12px !important; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chk { display: inline-flex; align-items: center; gap: 6px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .chk-row { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .hint { color: var(--muted); font-size: 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .err-text { color: var(--err); font-size: 12px; min-height: 1em; }
+:where(.mod-uart, .ub-layer, .uart-panel) fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 10px; margin: 0; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) legend { padding: 0 4px; font-size: 12px; color: var(--text); font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row { display: grid; grid-template-columns: 20px 92px minmax(0, 1fr) 100px auto; gap: 6px; align-items: center; padding: 4px 0; border-bottom: 1px dashed var(--line2); }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row:last-child { border-bottom: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row .n { color: var(--faint); font: 11px var(--mono); text-align: right; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row select, :where(.mod-uart, .ub-layer, .uart-panel) .step-row input { height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--sf); padding: 0 6px; min-width: 0; width: 100%; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row input.val { font: 12px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row .sacts { display: flex; gap: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .var-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto; gap: 6px; align-items: center; margin-top: 6px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .var-row input { height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--sf); padding: 0 6px; font: 12px var(--mono); min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .hotkey-btn { font-family: var(--mono); justify-content: flex-start; width: 100%; }
+:where(.mod-uart, .ub-layer, .uart-panel) .hotkey-btn.capturing { border-color: var(--accent); color: var(--accent); background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .target-card { display: grid; grid-template-columns: 8px 1fr auto; gap: 2px 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--selbd); border-radius: 8px; background: var(--sel); }
+:where(.mod-uart, .ub-layer, .uart-panel) .target-card .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tag); }
+:where(.mod-uart, .ub-layer, .uart-panel) .target-card b { font-size: 15px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .target-card small { grid-column: 2 / 4; font: 11.5px var(--mono); color: var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .target-card.bad { border-color: #ff8182; background: var(--err-bg); }
+:where(.mod-uart, .ub-layer, .uart-panel) .preview { font: 11.5px/1.55 var(--mono); background: var(--sf); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; white-space: pre-wrap; max-height: 160px; overflow: auto; margin: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu { position: fixed; z-index: 1100; min-width: 220px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 4px; box-shadow: 0 14px 34px rgba(31,35,40,.22); display: flex; flex-direction: column; }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu button { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 10px; border-radius: 6px; text-align: left; color: var(--text); }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu button:hover, :where(.mod-uart, .ub-layer, .uart-panel) .menu button:focus-visible { background: var(--sf2); outline: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu button:disabled { opacity: .45; cursor: not-allowed; background: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu .k { margin-left: auto; padding-left: 16px; color: var(--faint); font: 10.5px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu hr { border: 0; border-top: 1px solid var(--line2); margin: 4px 2px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .menu .mh { padding: 4px 10px 2px; font-size: 11px; color: var(--faint); font-weight: 600; }
+:where(.mod-uart, .ub-layer, .uart-panel) .keys-tbl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: baseline; }
+:where(.mod-uart, .ub-layer, .uart-panel) .keys-tbl kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; white-space: nowrap; background: var(--sf); }
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+:where(.mod-uart, .ub-layer, .uart-panel) .tbtn .tl-x { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-ctr { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar .ctx { display: none; }
+}
+@media (max-width: 900px) {
+.mod-uart { grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "rail tbar" "rail work"; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side { position: fixed; z-index: 50; top: 90px; bottom: 26px; left: 44px; width: min(300px, calc(100vw - 56px)); box-shadow: 12px 0 30px rgba(31,35,40,.18); }
+.mod-uart:not(.side-collapsed) .backdrop { display: block; position: fixed; inset: 90px 0 26px 44px; z-index: 40; background: rgba(31,35,40,.18); }
+:where(.mod-uart, .ub-layer, .uart-panel) .svcnav .planned, :where(.mod-uart, .ub-layer, .uart-panel) .svcnav .svc-t { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-frame { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .conn-chip .cc-x { display: none; }
+}
+@media (max-width: 640px) {
+:where(.mod-uart, .ub-layer, .uart-panel) .svcnav { order: 9; flex: 1 0 100%; height: 36px; margin: 0 -10px; padding: 0 4px; border-top: 1px solid var(--line2); }
+:where(.mod-uart, .ub-layer, .uart-panel) .conn-chip { display: none; }
+.mod-uart { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: "rail" "tbar" "work"; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail { flex-direction: row; padding: 4px 8px; border-right: 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; background: var(--sf); }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button { width: auto; flex-direction: row; gap: 6px; padding: 5px 10px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button span { font-size: 12px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .rail button[aria-pressed="true"]::before { left: 8px; right: 8px; top: auto; bottom: -5px; width: auto; height: 3px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .mtbar { height: 46px; position: sticky; top: 41px; z-index: 29; }
+:where(.mod-uart, .ub-layer, .uart-panel) .side { top: 0; left: 0; bottom: 0; width: min(340px, 90vw); }
+.mod-uart:not(.side-collapsed) .backdrop { inset: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .work { padding: 6px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .pane { min-height: 440px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .phead { flex-wrap: wrap; row-gap: 4px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-tools { width: 100%; flex-wrap: wrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow { flex-wrap: wrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .inrow .mchips { order: 3; flex-basis: 100%; }
+:where(.mod-uart, .ub-layer, .uart-panel) .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+:where(.mod-uart, .ub-layer, .uart-panel) .grid2 { grid-template-columns: minmax(0, 1fr); }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row { grid-template-columns: 18px 84px minmax(0, 1fr); }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row .ms { grid-column: 2; }
+:where(.mod-uart, .ub-layer, .uart-panel) .step-row .sacts { grid-column: 3; justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+:where(.mod-uart, .ub-layer, .uart-panel) * { animation: none !important; transition: none !important; }
+}
+
+/* The work area hosts the real Dockview (REV6.1 .work/.tree-root geometry: 6px inset). */
+.mod-uart > .work { grid-area: work; position: relative; display: flex; min-width: 0; min-height: 0; background: var(--sf); padding: 3px; } /* + 3px group gap = REV6.1 6px inset */
+.mod-uart > .side { grid-area: side; }
+.mod-uart > .rail { grid-area: rail; }
+.mod-uart > .mtbar { grid-area: tbar; }
+.mod-uart .tbtn svg.i { width: 16px; height: 16px; }
+.mod-uart .tbtn { min-height: 0; }
+.mod-uart .tbtn > span { pointer-events: none; }
+.ub-layer .menu { min-width: 220px; }
+
+/* Shared frame for non-UART routes (same grid, same chrome geometry). */
+.mod-uart { grid-template-rows: auto minmax(0, 1fr); }
+.mod-uart > .mtbar { height: 46px; }
+.mod-uart > .mtbar[hidden] { display: none; }
+/* ETH/UDS: the module renders its own toolbar inside the dock — no outer rail/side/toolbar (stay in the DOM,
+   hidden, so the Dockview element path never changes). */
+.mod-uart.mod-bare { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); grid-template-areas: "work"; }
+.mod-uart.mod-bare > .rail, .mod-uart.mod-bare > .side, .mod-uart.mod-bare > .mtbar { display: none !important; }
+.mod-uart.mod-generic .side .channel-bar { flex: 1; }
+.mod-uart > .work { flex-direction: column; }
+.mod-uart > .work > .workspace-surface { flex: 1; }
+.mod-uart > .work > .diagnostic-context { margin: -6px -6px 6px; }
+.mod-uart .mtbar .layout-bar, .mod-uart .mtbar .tab-settings { align-self: center; }
+.mod-uart .mtbar .preset-picker select, .mod-uart .mtbar .layout-bar input, .mod-uart .mtbar .layout-bar button { height: 26px; min-height: 0; font-size: 12px; }

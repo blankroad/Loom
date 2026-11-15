@@ -11,8 +11,8 @@ import { parseRoute, type Route } from '../routes';
 import { createShellServices } from '../services';
 import { ShellCtx } from '../ShellContext';
 import { DockLayout, LayoutBar } from './DockLayout';
-import type { DockHost } from './dockHost';
-import { leaves } from './layoutModel';
+import { splitGroup, type DockHost } from './dockHost';
+import { leaves, MAX_PANELS } from './layoutModel';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 (globalThis as { ResizeObserver?: unknown }).ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
@@ -48,12 +48,17 @@ describe('default workbench initialization', () => {
     act(() => services.shell.tick(2000));
     expect(dock().api.panels.map((p) => p.id)).toEqual(before);
     expect(dock().api.panels.some((p) => /dut|ch0|bcm/.test(JSON.stringify(p.params)))).toBe(false);
+    // a deep link from the integrated workspace is a single-target view in its own link dock…
+    const integrated = dock();
     render(parseRoute('#/p/uart/terminal?channel=alpha'));
+    expect(dock()).not.toBe(integrated);
     expect(dock().api.panels).toHaveLength(1);
+    // …so returning resumes the user's integrated workspace as it was (same instances incl. the opened trace)
     render(parseRoute('#/l/m1-default'));
-    expect(dock().api.panels).toHaveLength(2);
+    expect(dock()).toBe(integrated);
+    expect(dock().api.panels.map((p) => p.id)).toEqual(before);
     for (const channel of ['alpha', 'beta']) expect(services.showSlot({ panel: 'uart.terminal', props: { channel } })).toBe('shown');
-    expect(dock().api.panels).toHaveLength(2);
+    expect(dock().api.panels).toHaveLength(3);
   });
 
   it('reacts to silent snapshots, close/reopen and picker eligibility while preserving trace and input', () => {
@@ -206,5 +211,133 @@ describe('default workbench initialization', () => {
     cap('live', 2);
     expect(dock().api.panels.filter((p) => JSON.stringify(p.params).includes('eth.packets'))).toHaveLength(1);
     expect(net.calls.filter((c) => c.method === 'eth.send' || c.method === 'eth.capture.start')).toEqual([]);
+  });
+});
+
+describe('live service workspace across agent deep links', () => {
+  // group identity, size and tab order (which tab is active is the deep link's business)
+  const geometry = (d: DockHost) => d.api.groups.map((g) => ({ group: g.id, w: g.width, h: g.height, panels: g.panels.map((p) => p.id) }));
+  function splitUart() {
+    const m = mount();
+    for (const channel of ['dut', 'dut2']) act(() => m.net.emitControl(ev({ kind: 'uart.channel_state', channel, payload: { state: 'opened' } })));
+    m.render(parseRoute('#/s/uart'));
+    const d = m.dock();
+    expect(d.api.groups).toHaveLength(1);
+    const dut = d.find({ panel: 'uart.terminal', props: { channel: 'dut' } })!;
+    const dut2 = d.find({ panel: 'uart.terminal', props: { channel: 'dut2' } })!;
+    // the user splits dut | dut2 with the real pane action (moves the active tab into a new right pane)
+    act(() => dut2.api.setActive());
+    act(() => splitGroup(d.api, dut2.group, 'right'));
+    expect(d.api.groups).toHaveLength(2);
+    expect(dut.group).not.toBe(dut2.group);
+    // per-instance state a remount would lose (unsent input / broadcast/recording state live in the instance DOM)
+    const draft = document.createElement('input');
+    draft.value = 'unsent';
+    dut2.view.content.element.append(draft);
+    return { ...m, d, dut, dut2, draft, contents: [dut.view.content.element, dut2.view.content.element] };
+  }
+
+  it('an agent deep link focuses the session inside the user split and the return keeps panes, tabs and instances', () => {
+    const { render, d, dut, dut2, draft, contents } = splitUart();
+    const before = geometry(d);
+    const shown: string[] = [];
+    render(parseRoute('#/p/uart/terminal?channel=dut'));
+    shown.push(d.api.activePanel!.id);
+    render(parseRoute('#/s/uart'));
+    expect(geometry(d)).toEqual(before);
+    expect(shown).toEqual([dut.id]);
+    expect(d.api.getPanel(dut.id)).toBe(dut);
+    expect(d.api.getPanel(dut2.id)).toBe(dut2);
+    expect([dut.view.content.element, dut2.view.content.element]).toEqual(contents);
+    expect(contents.every((el) => el.isConnected)).toBe(true);
+    expect(draft.isConnected && draft.value).toBe('unsent');
+    // the same agent link with a reveal cursor, 100 round trips: no growth, no remount, same geometry
+    for (let i = 0; i < 100; i++) {
+      render(parseRoute(`#/p/uart/terminal?channel=dut2&at=seq%3A${i}`));
+      expect(d.api.activePanel).toBe(dut2);
+      render(parseRoute('#/s/uart'));
+    }
+    expect(geometry(d)).toEqual(before);
+    expect(d.api.panels).toHaveLength(2);
+    expect(draft.isConnected).toBe(true);
+  });
+
+  it('adds a missing in-module target as one tab, prunes it on return, and at MAX_PANELS refuses more without losing the split', () => {
+    const { render, d, dut, dut2, net, services, draft, contents } = splitUart();
+    const groups = d.api.groups.map((g) => g.id);
+    // a view of an open channel not yet shown becomes one tab, without touching the split
+    render(parseRoute('#/p/uart/trace?channel=dut'));
+    expect(d.api.panels).toHaveLength(3);
+    expect(d.api.activePanel?.params).toMatchObject({ panel: 'uart.trace', props: { channel: 'dut' } });
+    expect(d.api.groups.map((g) => g.id)).toEqual(groups);
+    // a history link to a channel the shell does not know is shown, then pruned when the service view resumes
+    render(parseRoute('#/p/uart/terminal?channel=ghost'));
+    expect(d.find({ panel: 'uart.terminal', props: { channel: 'ghost' } })).not.toBeNull();
+    render(parseRoute('#/s/uart'));
+    expect(d.find({ panel: 'uart.terminal', props: { channel: 'ghost' } })).toBeNull();
+    expect(d.find({ panel: 'uart.trace', props: { channel: 'dut' } })).not.toBeNull();
+    expect(d.api.groups.map((g) => g.id)).toEqual(groups);
+    expect([d.api.getPanel(dut.id), d.api.getPanel(dut2.id)]).toEqual([dut, dut2]);
+    // 100 distinct in-module hops: tabs are added up to MAX_PANELS, then refused with a toast — never a
+    // replacement, so the user's split and its live instances survive the cap
+    const draftValue = (draft.isConnected && draft.value);
+    let most = 0;
+    for (let i = 0; i < 100; i++) {
+      render(parseRoute(`#/p/uart/terminal?channel=hop-${i}`));
+      most = Math.max(most, d.api.panels.length);
+      expect(d.api.groups.map((g) => g.id)).toEqual(groups);
+      expect([d.api.getPanel(dut.id), d.api.getPanel(dut2.id)]).toEqual([dut, dut2]);
+    }
+    expect(most).toBe(MAX_PANELS);
+    expect(d.api.panels).toHaveLength(MAX_PANELS);
+    expect(d.find({ panel: 'uart.terminal', props: { channel: 'hop-28' } })).not.toBeNull();
+    expect(d.find({ panel: 'uart.terminal', props: { channel: 'hop-29' } })).toBeNull();
+    expect(services.toasts.items.some((t) => t.text.includes(`${MAX_PANELS}개로 가득 차`))).toBe(true);
+    // same content elements (background tabs are detached by Dockview, not remounted)
+    expect([dut.view.content.element, dut2.view.content.element]).toEqual(contents);
+    expect(draftValue).toBe('unsent');
+    expect(draft.parentElement).toBe(contents[1]);
+    // at the cap, an already-open session is still focused in place
+    render(parseRoute('#/p/uart/terminal?channel=dut'));
+    expect(d.api.activePanel).toBe(dut);
+    // back on the service: the unknown hop views are pruned, the original split and instances remain
+    render(parseRoute('#/s/uart'));
+    expect(d.api.panels).toHaveLength(3);
+    expect(d.api.groups.map((g) => g.id)).toEqual(groups);
+    expect([d.api.getPanel(dut.id), d.api.getPanel(dut2.id)]).toEqual([dut, dut2]);
+    expect([dut.view.content.element, dut2.view.content.element]).toEqual(contents);
+    expect(contents.every((el) => el.isConnected)).toBe(true);
+    expect(draft.isConnected && draft.value).toBe('unsent');
+    expect(net.calls).toEqual([]);
+  });
+
+  it('cross-module links open in a separate link dock; explicit saved layouts and #/l routes keep their apply contract', () => {
+    const { render, d, dut, dut2, services, net } = splitUart();
+    const geo = geometry(d);
+    const saved = d.snapshot('my-split');
+    expect(services.layouts.save(saved, new Set()).ok).toBe(true);
+    // an ETH link from the UART service is another module: a single-target view in the link dock; the UART
+    // workspace (split, instances) is retained untouched behind it
+    act(() => net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'lan', payload: { ch: 'lan', state: 'live' } })));
+    render(parseRoute('#/p/eth/packets?channel=lan'));
+    expect(services.dock.current).not.toBe(d);
+    expect((services.dock.current as DockHost).api.panels).toHaveLength(1);
+    expect(d.isShown).toBe(false);
+    render(parseRoute('#/s/uart'));
+    expect(services.dock.current).toBe(d);
+    expect(geometry(d)).toEqual(geo);
+    expect([d.api.getPanel(dut.id), d.api.getPanel(dut2.id)]).toEqual([dut, dut2]);
+    // explicit selection of the saved split applies it (in the integrated workspace)
+    render(parseRoute('#/l/my-split'));
+    const integrated = services.dock.current as DockHost;
+    expect(integrated.api.groups).toHaveLength(2);
+    expect(leaves(integrated.snapshot().root)).toEqual(leaves(saved.root));
+    // from a #/l layout a deep link is still a single-target view (UI-T10), and the stored layout is untouched
+    render(parseRoute('#/p/uart/terminal?channel=dut'));
+    expect((services.dock.current as DockHost).api.panels).toHaveLength(1);
+    expect(services.layouts.get('my-split').layout).toEqual(saved);
+    expect(integrated.api.groups).toHaveLength(2);
+    // switching workspaces opens/sends nothing (the ETH view's own reads are its business)
+    expect(net.calls.filter((c) => /\.(open|close|send|start|stop|write|input|connect)$|capture\.start/.test(c.method))).toEqual([]);
   });
 });

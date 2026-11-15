@@ -52,42 +52,62 @@ it('parses canonical service routes separately from legacy layouts and panel lin
   expect(parseRoute(slotHash({ panel: 'uart.terminal', props: { channel: 'a' } }))).toEqual({ kind: 'panel', slot: { panel: 'uart.terminal', props: { channel: 'a' } } });
 });
 
-it('lists only OPEN service domains and counts aliases without navigation RPCs', () => {
-  const { host, open, net, render } = mount();
-  const links = () => [...host.querySelectorAll<HTMLAnchorElement>('.service-nav a')].map((a) => [a.getAttribute('href'), a.textContent]);
-  expect(links()).toEqual([['#/l/m1-default', '통합 작업 공간']]);
-  open('uart', 'a'); open('uart', 'b'); open('can', 'bus'); open('eth', 'closed', 'closed');
-  expect(links()).toEqual([['#/l/m1-default', '통합 작업 공간'], ['#/s/uart', 'UART2'], ['#/s/can', 'CAN1']]);
+const NAV_ORDER = ['#/l/m1-default', '#/s/uart', '#/s/can', '#/s/eth', '#/s/uds', '#/s/psu', '#/s/logic', '#/s/video'];
+
+it('always shows the seven module tabs (user rule) with truthful open counts and no navigation RPCs', () => {
+  const { host, open, net, render, services } = mount();
+  const hrefs = () => [...host.querySelectorAll<HTMLAnchorElement>('.service-nav a')].map((a) => a.getAttribute('href'));
+  const count = (svc: string) => host.querySelector(`.service-nav a[href="#/s/${svc}"]`)?.getAttribute('data-count');
+  const badge = (svc: string) => host.querySelector(`.service-nav a[href="#/s/${svc}"] .service-count`)?.textContent ?? null;
+  // zero channels: every module tab is present (tab ≠ channel), no counts
+  expect(hrefs()).toEqual(NAV_ORDER);
+  expect(NAV_ORDER.slice(1).map((h) => count(h.slice(4)))).toEqual(['0', '0', '0', '0', '0', '0', '0']);
+  expect(services.shell.channels.size).toBe(0);
+  open('uart', 'a');
+  open('uart', 'b'); open('can', 'bus'); open('eth', 'closed', 'closed');
+  expect(hrefs()).toEqual(NAV_ORDER);
+  expect([badge('uart'), badge('can'), badge('eth'), badge('uds')]).toEqual(['2', '1', null, null]); // closed ≠ open
+  expect(host.querySelector('a[href="#/s/uart"]')?.getAttribute('aria-label')).toBe('UART, 열린 2개');
   render('#/s/uart');
   expect(host.querySelector('a[href="#/s/uart"]')?.getAttribute('aria-current')).toBe('page');
   expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['uart/a', 'uart/b']);
   open('uart', 'a', 'closed');
-  expect(host.querySelector('a[href="#/s/uart"]')?.textContent).toBe('UART1');
+  expect(badge('uart')).toBe('1');
+  // visiting every module tab is navigation only: no RPC, no channel appears
+  for (const h of NAV_ORDER) render(h);
+  expect(hrefs()).toEqual(NAV_ORDER);
+  expect([...services.shell.channels.keys()].sort()).toEqual(['can/bus', 'eth/closed', 'uart/a', 'uart/b']);
   expect(net.calls).toEqual([]);
 });
 
-it('lists the logic analyzer service only while a capture is active and routes /s/logic to its captures', () => {
+it('keeps the logic analyzer tab permanent and routes /s/logic to its captures, seeding the unbound analyzer otherwise', () => {
   const { host, render, net, dock } = mount();
   const logicLink = () => host.querySelector<HTMLAnchorElement>('.service-nav a[href="#/s/logic"]');
   const cap = (id: string, state: string) => act(() => net.emitControl(ev({ kind: 'logic.capture_state', domain: 'logic', channel: id, payload: { capture_id: id, state } })));
-  expect(logicLink()).toBeNull(); // logic unused → no service entry
+  expect(logicLink()?.getAttribute('data-count')).toBe('0'); // logic unused → tab still there, no count
   cap('lc-old', 'stopped');
-  expect(logicLink()).toBeNull(); // only a finished capture → still hidden
+  expect(logicLink()?.getAttribute('data-count')).toBe('0'); // only a finished capture → nothing open
   cap('lc-1', 'running');
-  expect(logicLink()?.textContent).toBe('로직 분석기1');
+  expect(logicLink()?.querySelector('.service-count')?.textContent).toBe('1');
   render('#/s/logic');
   expect(logicLink()?.getAttribute('aria-current')).toBe('page');
   expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['logic/lc-1']);
   expect(leaves(dock().snapshot().root)).toEqual([{ panel: 'logic.analyzer', props: { channel: 'lc-1' } }]);
   cap('lc-1', 'stopped');
-  expect(logicLink()).toBeNull();
+  expect(logicLink()?.getAttribute('data-count')).toBe('0');
+  // the stopped capture keeps its read-only history view; the unbound analyzer comes back for a new capture
+  expect(leaves(dock().snapshot().root)).toEqual([{ panel: 'logic.analyzer', props: { channel: 'lc-1' } }, { panel: 'logic.analyzer', props: {} }]);
+  render('#/l/m1-default');
+  expect(logicLink()).not.toBeNull();
   expect(net.calls).toEqual([]);
 });
 
 it('keeps multiple UART aliases in one service tab group through foreign arrivals and returns to integration', () => {
   const { net, host, render, open, dock, services, navs } = mount();
   render('#/s/uart');
-  expect(host.querySelector('[data-testid="dock-empty"]')?.textContent).toContain('활성 UART 인터페이스가 없습니다');
+  // the UART application (saved-session pane picker), not a generic "no active interface" card
+  expect(host.querySelector('[data-testid="dock-empty"] [data-testid="uart-empty-pane"]')).not.toBeNull();
+  expect(host.querySelector('[data-testid="dock-empty"]')?.textContent).not.toContain('인터페이스가 없습니다');
   open('uart', 'a'); open('uart', 'b');
   expect(leaves(dock().snapshot().root)).toEqual(['a', 'b'].map((channel) => ({ panel: 'uart.terminal', props: { channel } })));
   expect(dock().api.groups).toHaveLength(1);
@@ -112,9 +132,12 @@ it('keeps a foreign agent focus out of the service dock and keeps the closed vie
   expect(dock().api.panels.map((panel) => (panel.params as { panel: string }).panel)).toEqual(['uart.terminal']);
   render('#/s/uart');
   open('uart', 'a', 'closed');
-  // the open UART view stays as read-only history (retained-history policy); the service list stays active-only
+  // the open UART view stays as read-only history (retained-history policy); the tab stays, with no open count
   expect(dock().api.panels.map((panel) => (panel.params as { panel: string }).panel)).toEqual(['uart.terminal']);
-  expect(host.querySelector('a[href="#/s/uart"]')).toBeNull();
+  expect(host.querySelector('a[href="#/s/uart"]')?.getAttribute('data-count')).toBe('0');
+  expect(host.querySelector('a[href="#/s/uart"] .service-count')).toBeNull();
+  render('#/s/can');
+  expect(host.querySelector('a[href="#/s/uart"]')).not.toBeNull(); // permanent module tab
   expect(net.calls).toEqual([]);
 });
 
@@ -124,16 +147,13 @@ it('groups active UDS under diagnostics and shows all open CAN and Ethernet obse
   open('can', 'bus-a'); open('can', 'bus-b');
   open('eth', 'nic-a'); open('eth', 'nic-b');
   open('uart', 'serial-a');
+  const counts = () => [...host.querySelectorAll<HTMLAnchorElement>('.service-nav a[data-service]')].map((x) => [x.dataset.service, x.dataset.count]);
+  // UDS counts real UDS connections only; CAN/Ethernet observations are not diagnostics
+  expect(counts()).toEqual([['uart', '1'], ['can', '2'], ['eth', '2'], ['uds', '1'], ['psu', '0'], ['logic', '0'], ['video', '0']]);
   render('#/s/can');
-  expect(host.querySelector('.service-relations a[href="#/s/uds"]')).not.toBeNull();
-  render('#/s/eth');
-  expect(host.querySelector('.service-relations a[href="#/s/uds"]')).not.toBeNull();
+  expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['can/bus-a', 'can/bus-b']);
   render('#/s/uds');
-  expect(host.querySelector('.service-nav-label:last-of-type')?.textContent).toBe('진단');
-  expect(host.querySelector('a[href="#/s/uds"]')?.textContent).toBe('UDS 진단1');
-  expect(host.querySelector('.service-relations a[href="#/s/can"]')).not.toBeNull();
-  expect(host.querySelector('.service-relations a[href="#/s/eth"]')).not.toBeNull();
-  expect([...host.querySelectorAll('[data-chan]')].map((e) => e.getAttribute('data-chan'))).toEqual(['can/bus-a', 'can/bus-b', 'uds/ecu-a', 'eth/nic-a', 'eth/nic-b']);
+  expect(host.querySelector('a[href="#/s/uds"]')?.getAttribute('aria-current')).toBe('page');
   expect(leaves(dock().snapshot().root)).toEqual([
     { panel: 'uds.console', props: { targets: 'ecu-a' } },
     { panel: 'can.trace', props: { channel: 'bus-a' } },

@@ -1,6 +1,7 @@
 // Wires one NetClient into the shell stores. Created once per tab in main.tsx.
 
 import type { NetClient } from '../net/api';
+import type { LoomEvent, SubscribeFilter } from '../proto/provisional';
 import { ActionGate } from '../sdk/actionGate';
 import { parseEvidenceRef, type EvidenceRef } from '../sdk/evidenceRef';
 import { SimpleCursorBus, type ShellUiHooks } from '../sdk/context';
@@ -22,6 +23,8 @@ import { LocalLayoutStore, type LayoutBackend } from './dock/layoutStore';
 import { parseRoute, sameSlot, serviceAllowsDomain, slotHash, type Slot } from './routes';
 
 export const TICK_MS = 250;
+/** The shell's single data subscription: Activity (domain core) + test sessions. Panels may share it narrowly. */
+export const SHELL_STREAM_FILTER: SubscribeFilter = { domains: ['core', 'test'] };
 const MAX_TOASTS = 5; // ring: oldest removed
 export const TOAST_MS = 4_000;
 const MAX_EXTRA_SLOTS = 4; // auto/explicitly opened panels beside the layout; oldest dropped
@@ -63,6 +66,12 @@ export class ToastStore extends Emitter {
 export class UiStateStore extends Emitter {
   approvalsOpen = false;
   helpOpen = false;
+  /** bumps when the visible dock (per-module workspace) changes, so chrome reading `dock.current` re-renders */
+  dockEpoch = 0;
+  noteDockChange(): void {
+    this.dockEpoch++;
+    this.changed();
+  }
   /** no-dock fallback only (tests, embedding without a dock): panels opened beside the layout.
    * With the dock mounted, showSlot opens dock tabs instead (DockHost.open). */
   extraSlots: Slot[] = [];
@@ -345,35 +354,33 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
       window.addEventListener('keydown', onKey, true);
       offs.push(() => window.removeEventListener('keydown', onKey, true));
     }
-    // Activity is not a control kind: the shell holds one subscription for it.
+    // ONE shell data stream (TASK-CAN-LIVE: the connection has 8 server subscriptions; the shell keeps 1 so the
+    // integrated workspace fits all seven modules). `core` carries Activity (core.activity is not a control kind;
+    // the daemon publishes it as domain core) and test.* adds the late-join snapshot (reducer state + backlog;
+    // test.* are priority events, so live ones also arrive on the control path — duplicates are dropped by seq in
+    // the store). Panels may ride on this stream narrowly (e.g. CAN's agent-read activity topic).
+    const applyShellEvent = (e: LoomEvent) => {
+      if (e.kind === 'core.activity' || e.kind === 'core.agent_cursor') activity.applyEvent(e);
+    };
     const sub = net.subscribe(
-      { kinds: ['core.activity'] },
-      { snapshot: true },
+      SHELL_STREAM_FILTER,
+      { snapshot: true, pinned: true }, // never suspended or folded by the mux (STOP/Activity/test monitoring)
       {
         onSnapshotPart: (p) => {
           shell.noteSnapshotItems(p.items ?? []);
-          p.events?.forEach((e) => activity.applyEvent(e));
+          for (const it of p.items ?? []) if (it.domain === 'test') testSession.applySnapshotState(it.state);
+          const evs = p.events ?? [];
+          evs.forEach(applyShellEvent);
+          testSession.applyMany(evs.filter((e) => e.domain === 'test'));
         },
         onBatch: (b) => {
-          b.events.forEach((e) => activity.applyEvent(e));
+          b.events.forEach(applyShellEvent);
+          const t = b.events.filter((e) => e.domain === 'test');
+          if (t.length) testSession.applyMany(t);
         },
       },
     );
     offs.push(() => sub.close());
-    // test.* are priority events (control path); this subscription adds the late-join
-    // snapshot (reducer state + backlog). Duplicates are dropped by seq in the store.
-    const testSub = net.subscribe(
-      { domains: ['test'] },
-      { snapshot: true },
-      {
-        onSnapshotPart: (p) => {
-          for (const it of p.items ?? []) if (it.domain === 'test') testSession.applySnapshotState(it.state);
-          testSession.applyMany(p.events ?? []);
-        },
-        onBatch: (b) => testSession.applyMany(b.events),
-      },
-    );
-    offs.push(() => testSub.close());
     offs.push(scheduler.onDegradedChange(() => shell.tick(now())));
     if (opts.autoTick !== false) {
       const h = setInterval(() => {

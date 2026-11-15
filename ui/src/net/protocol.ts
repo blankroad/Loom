@@ -14,6 +14,8 @@ export type CoreIn =
   | { t: 'cancel'; id: number }
   | { t: 'sub'; hid: number; filter: SubscribeFilter; opts: SubscribeOptions }
   | { t: 'unsub'; hid: number }
+  /** visibility lease of one subscription handle (mux.setActive) */
+  | { t: 'active'; hid: number; active: boolean }
   /** main thread is ready for the next delivery (sent at most once per frame) */
   | { t: 'pull' }
   | { t: 'visible'; visible: boolean; extra?: PresenceExtra }

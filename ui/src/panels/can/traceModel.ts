@@ -653,10 +653,15 @@ export class CanTraceModel {
     const a = r ? (numOf(r.from) ?? numOf(r.seq_a)) : null;
     const b = r ? (numOf(r.to) ?? numOf(r.seq_b)) : null;
     if (a === null || b === null) return false;
-    this.agentRanges.push({ a: Math.min(a, b), b: Math.max(a, b), actor: str(p.actor) ?? str(p.client_id) ?? ev.client_id ?? 'agent', atMs: nowMs });
+    this.addAgentRange(a, b, str(p.actor) ?? str(p.client_id) ?? ev.client_id ?? 'agent', nowMs);
+    return true;
+  }
+
+  /** one agent-read range (live core.activity, or seeded from the shell's Activity ring); keeps the newest AGENT_RANGES */
+  addAgentRange(a: number, b: number, actor: string, nowMs: number): void {
+    this.agentRanges.push({ a: Math.min(a, b), b: Math.max(a, b), actor, atMs: nowMs });
     if (this.agentRanges.length > AGENT_RANGES) this.agentRanges.shift();
     this.version++;
-    return true;
   }
 
   agentReadAt(seq: number): AgentRange | null {

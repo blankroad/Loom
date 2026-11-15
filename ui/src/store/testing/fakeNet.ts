@@ -40,7 +40,7 @@ export class FakeNet implements NetClient {
   calls: RecordedCall[] = [];
   httpStops = 0;
   visible: boolean[] = [];
-  subs: { id: string; filter: SubscribeFilter; opts: SubscribeOptions; h: SubscriptionHandlers; closed: boolean }[] = [];
+  subs: { id: string; filter: SubscribeFilter; opts: SubscribeOptions; h: SubscriptionHandlers; closed: boolean; active: boolean[] }[] = [];
   /** method → result (or throw) */
   responders = new Map<string, (params: unknown) => unknown>();
   private stateCbs = new Set<(s: ConnState) => void>();
@@ -84,12 +84,15 @@ export class FakeNet implements NetClient {
     return (r ? r(params) : {}) as R;
   }
   subscribe(filter: SubscribeFilter, opts: SubscribeOptions, h: SubscriptionHandlers): Subscription {
-    const rec = { id: `sub-${this.nextSub++}`, filter, opts, h, closed: false };
+    const rec = { id: `sub-${this.nextSub++}`, filter, opts, h, closed: false, active: [] as boolean[] };
     this.subs.push(rec);
     return {
       id: rec.id,
       close: () => {
         rec.closed = true;
+      },
+      setActive: (a: boolean) => {
+        rec.active.push(a);
       },
     };
   }

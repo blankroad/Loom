@@ -84,3 +84,10 @@
 .psu-tile .psu-out.stale { font-style: italic; }
 .psu-tile .psu-out.on.stale { color: var(--warn, #c88a12); }
 .psu-tile.psu-disconnected .psu-head { outline: 1px dashed var(--warn, #c88a12); }
+/* unbound module application: connect section (psuConnect.ts) */
+.psu-connect { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.psu-connect-grid { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.psu-connect-grid .psu-field { display: flex; flex-direction: column; gap: 2px; }
+.psu-connect-grid input { width: 10em; font-family: ui-monospace, monospace; }
+.psu-connect-cli, .psu-connect-note { font-size: 11px; overflow-wrap: anywhere; }
+.psu-connect .psu-pending:empty { display: none; }

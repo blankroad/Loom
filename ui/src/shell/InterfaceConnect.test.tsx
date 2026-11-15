@@ -54,11 +54,11 @@ describe('interface connection requests', () => {
       Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
     }
   });
-  it('module launcher opens the video workbench read-only: no RPC, works for watch, no fake channel', () => {
+  it('module launchers are the seven permanent module tabs: navigation only, no RPC, works for watch, no fake channel', () => {
     const net = new FakeNet();
     const services = createShellServices(net, { autoTick: false, automation: false });
     const calls = vi.spyOn(net, 'call');
-    const shown = vi.spyOn(services, 'showSlot').mockReturnValue('added');
+    const shown = vi.spyOn(services, 'showSlot');
     const host = document.createElement('div');
     document.body.append(host);
     const root = createRoot(host);
@@ -67,16 +67,19 @@ describe('interface connection requests', () => {
     try {
       act(() => root.render(<ShellCtx.Provider value={services}><InterfaceConnect /></ShellCtx.Provider>));
       act(() => host.querySelector('button')?.click());
+      expect([...document.querySelectorAll<HTMLButtonElement>('[data-testid^=launch-]')].map((b) => b.dataset.testid)).toEqual(['launch-uart', 'launch-can', 'launch-eth', 'launch-uds', 'launch-psu', 'launch-logic', 'launch-video']);
       const launcher = document.querySelector<HTMLButtonElement>('[data-testid=launch-video]');
       expect(launcher?.textContent).toContain('비디오 캡처');
-      expect(launcher?.disabled).toBe(false); // watch session (no operate) can still open the observation panel
+      expect(launcher?.disabled).toBe(false); // watch session (no operate) can still open the module page
       act(() => launcher?.click());
-      expect(shown).toHaveBeenCalledWith({ panel: 'video.workbench', props: {} });
+      expect(location.hash).toBe('#/s/video');
+      expect(shown).not.toHaveBeenCalled();
       expect(calls).not.toHaveBeenCalled();
       expect([...services.shell.channels.keys()].some((k) => k.startsWith('video/'))).toBe(false);
     } finally {
       act(() => root.unmount());
       host.remove();
+      location.hash = '';
       Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
       Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
     }

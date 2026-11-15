@@ -266,8 +266,17 @@ export function createLogicAnalyzer(ctx: PanelContext): PanelInstance {
   cli.setAttribute('data-testid', 'logic-cli');
   const capLine = el('p', 'lg-hint lg-capline');
   capLine.setAttribute('data-testid', 'logic-capability');
+  const capBtn = el('button', 'lg-capcheck', '엔진 확인');
+  capBtn.type = 'button';
+  capBtn.setAttribute('data-testid', 'logic-engine-check');
+  capBtn.title = 'logic.status (읽기 전용) — 설치된 sigrok-cli와 Loom 지원 소스/디코더를 확인합니다. 장치를 열거나 USB를 스캔하지 않습니다.';
+  const capRow = el('div', 'lg-caprow');
+  capRow.append(capBtn, capLine);
   cfgFoot.append(startBtn, cfgProblems);
-  cfgBox.append(cfgSum, acqNote, cfgGrid, deviceNote, cfgFoot, el('span', 'lg-field-label', '같은 캡처를 CLI로'), cli, capLine);
+  cfgBox.append(cfgSum, acqNote, cfgGrid, deviceNote, cfgFoot, el('span', 'lg-field-label', '같은 캡처를 CLI로'), cli, capRow);
+  // module tab (no pinned capture): the source/config controls are visible before anything runs.
+  // Opening it this way is UI only — the engine check below is never triggered by it.
+  if (!pinned) cfgBox.open = true;
 
   // view toolbar
   const viewBar = el('div', 'lg-viewbar');
@@ -474,6 +483,7 @@ export function createLogicAnalyzer(ctx: PanelContext): PanelInstance {
   cfgBox.addEventListener('change', readForm);
   cfgBox.addEventListener('input', readForm);
 
+  let capPending = false;
   const refreshCapability = () => {
     ctx
       .query<unknown>('logic.status', {})
@@ -485,11 +495,24 @@ export function createLogicAnalyzer(ctx: PanelContext): PanelInstance {
       .catch((e: unknown) => {
         capErr = e instanceof Error ? e.message : String(e);
         ctx.scheduler.invalidate();
+      })
+      .finally(() => {
+        capPending = false;
+        capBtn.disabled = false;
       });
   };
-  cfgBox.addEventListener('toggle', () => {
-    if (cfgBox.open && !capability) refreshCapability();
+  // only a user gesture asks the engine: clicking the summary to open it, or [엔진 확인].
+  // (A `toggle` listener would also fire for the default-open above → an RPC on tab open.)
+  const checkEngine = () => {
+    if (capPending) return;
+    capPending = true;
+    capBtn.disabled = true;
+    refreshCapability();
+  };
+  cfgSum.addEventListener('click', () => {
+    if (!cfgBox.open && !capability) checkEngine(); // about to open
   });
+  capBtn.addEventListener('click', checkEngine);
 
   // ---- actions ----
   startBtn.addEventListener('click', () => {
@@ -845,7 +868,7 @@ export function createLogicAnalyzer(ctx: PanelContext): PanelInstance {
       ? `logic.status 실패: ${capErr}`
       : capability
         ? `sigrok-cli ${capability.enginePath ? `${capability.enginePath}${capability.engineVersion ? ` (${capability.engineVersion.split('\n')[0]})` : ''}` : `없음${capability.engineError ? ` (${capability.engineError})` : ''} — synthetic 외 소스 불가`} · 구현 소스 ${capability.sources.join(', ') || '—'} · 디코더 ${capability.decoders.join(', ') || '—'} · 장비 ${capability.deviceDrivers.join(', ') || '—'} ${capability.deviceVerified ? '(검증됨)' : '(실물 미검증)'}${capability.compiledDrivers.length ? ` · 설치된 sigrok 컴파일 드라이버 ${capability.compiledDrivers.length}개(지원 의미 아님)` : ''}`
-        : '설정을 열면 logic.status로 엔진 상태를 확인합니다';
+        : '[엔진 확인]을 누르면 logic.status로 sigrok-cli·지원 소스를 확인합니다 (장치 열기/스캔 없음)';
 
     // view
     const w = Math.max(100, (waveHost.clientWidth || 900) - GUTTER);

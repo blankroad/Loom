@@ -17,12 +17,19 @@
 //                 Channel-scoped. Global STOP never calls it (STOP keeps outputs: badge).
 //   [출력 ON/OFF] psu.out — R3 badge (F1: policy default auto, badge always shown)
 //   [적용]        psu.set{v?, i?} — R2 badge
+//   [연결 해제]   psu.disconnect{ch} — closes the link only; the output is held as-is (operate)
 // Not offered (no backend): OVP/OCP/range/priority-mode writes, All On, logging/export, Arb list.
+//
+// Unbound (no `channel` prop = PSU module tab before any supply is chosen): the same tile with empty
+// values plus the psu.connect section (psuConnect.ts). No subscription, no psu.status poll, and no
+// psu.out / psu.set at all — there is no implicit "bench" target. Emergency OFF only exists for an
+// explicitly bound alias, where it stays enabled even when the link state is lost/unknown.
 
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { CHANNEL_PROP, registerPanel, type LoomEvent, type PanelContext, type PanelInstance } from '../../sdk';
 import './psu.css';
+import { createPsuConnect } from './psuConnect';
 import {
   EMPTY_MEAS,
   eng,
@@ -64,11 +71,19 @@ const LANE_H = 88;
 let syncSeq = 0;
 
 export function createPsuGauge(ctx: PanelContext): PanelInstance {
-  const ch = typeof ctx.props.channel === 'string' ? ctx.props.channel : 'bench';
-  const mirror = ctx.store('psu');
-  // emergency OFF stays enabled regardless (safety direction)
-  const canOperate = () => (ctx.rights.has('operate') || ctx.rights.has('approve')) && !ctx.writeLocked;
+  const bound = typeof ctx.props.channel === 'string' && ctx.props.channel ? ctx.props.channel : null;
+  /** display / param alias — only ever sent when `bound` (every write path checks it) */
+  const ch = bound ?? '';
+  // unbound: never-fed mirror, no subscription (ctx.store is lazy)
+  const mirror: Pick<ReturnType<PanelContext['store']>, 'after' | 'onAppend' | 'headSeq'> = bound
+    ? ctx.store('psu')
+    : { after: () => [], onAppend: () => () => {}, headSeq: 0n };
+  // emergency OFF stays enabled regardless (safety direction) — for a bound alias
+  const hasRight = () => ctx.rights.has('operate') || ctx.rights.has('approve');
+  const canOperate = () => bound !== null && hasRight() && !ctx.writeLocked;
   let state: PsuState = { setV: null, setI: null, out: null, prot: null, mode: null };
+  /** a device-reported state (psu.state or psu.status) arrived for this alias — set/output need it */
+  let confirmed = false;
   /** seq of the newest psu.state applied (control path and backlog share it: older never overwrite) */
   let stateSeq = -1n;
   const applyState = (ev: LoomEvent): boolean => {
@@ -82,6 +97,7 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
     if (seq <= stateSeq) return false;
     stateSeq = seq;
     state = reduceState(state, ev);
+    confirmed = true;
     return true;
   };
   let meas: Meas = { ...EMPTY_MEAS };
@@ -98,7 +114,8 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   const syncKey = `psu-${ch}-${++syncSeq}`;
 
   const act = (id: string, params: object) =>
-    ctx.act(id, params).catch((e: unknown) => {
+    // defence in depth: no alias → no device command, whatever triggered it
+    (bound === null ? Promise.reject(new Error('PSU 별칭 미선택')) : ctx.act(id, params)).catch((e: unknown) => {
       ctx.ui.toast(`${id} 실패: ${e instanceof Error ? e.message : String(e)}`);
       return null;
     });
@@ -108,8 +125,8 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   root.tabIndex = 0;
   const head = tid(el('div', 'psu-head'), 'psu-head');
   const ident = el('span', 'psu-ident');
-  const badge = tid(el('span', 'psu-badge', ch), 'psu-badge');
-  badge.title = `PSU 별칭 ${ch}`;
+  const badge = tid(el('span', 'psu-badge', bound ?? '별칭 미선택'), 'psu-badge');
+  badge.title = bound ? `PSU 별칭 ${bound}` : 'PSU 별칭이 선택되지 않았습니다 — 아래에서 연결하거나 열린 별칭을 보세요';
   const envChip = tid(el('span', 'psu-env', `환경 ${(ctx.env ?? '?').toUpperCase()}`), 'psu-env');
   envChip.title = '데몬 환경 배지 (백엔드/장치 종류가 아님)';
   const srcChip = tid(el('span', 'psu-src'), 'psu-source');
@@ -125,12 +142,18 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   stopBadge.hidden = true;
   const emergency = tid(el('button', 'danger psu-emergency', '! 비상 OFF'), 'psu-emergency');
   emergency.type = 'button';
-  emergency.title = `${ch} 채널만 확인 없이 즉시 출력 OFF (보기 자격도 가능, 인터록은 경고만)`;
+  emergency.title = bound
+    ? `${bound} 채널만 확인 없이 즉시 출력 OFF (보기 자격도 가능, 인터록은 경고만)`
+    : '별칭 미선택 — 끌 대상이 없습니다 (연결된 별칭의 게이지에서 항상 사용 가능)';
   const outBtn = tid(el('button', 'psu-switch', '출력 ON'), 'psu-output-toggle');
   outBtn.type = 'button';
   const r3 = el('span', 'risk risk-R3', 'R3');
+  const disconnectBtn = tid(el('button', 'psu-disconnect', '연결 해제'), 'psu-disconnect');
+  disconnectBtn.type = 'button';
+  disconnectBtn.title = 'psu.disconnect — 링크만 닫습니다. 출력은 그대로 유지됩니다 (끄려면 비상 OFF/출력 OFF)';
+  disconnectBtn.hidden = bound === null;
   const acts = el('span', 'psu-head-act');
-  acts.append(stopBadge, emergency, outBtn, r3);
+  acts.append(stopBadge, emergency, outBtn, r3, disconnectBtn);
   head.append(ident, outWord, modeChip, protChip, acts);
 
   // ---- DOM: meter (measured) + setpoints (targets) ----
@@ -219,14 +242,21 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   plotHost.append(plotMsg);
   trend.append(trendHead, plotHost);
   const foot = tid(el('div', 'psu-foot muted'), 'psu-foot');
-  root.append(head, vals, ctl, trend, foot);
+  const connect = bound ? null : createPsuConnect(ctx);
+  root.dataset.bound = String(bound !== null);
+  root.append(...(connect ? [connect.root] : []), head, vals, ctl, trend, foot);
 
   // ---- behaviour ----
-  const emergencyOff = () => void act('emergencyOff', { channel: ch, state: 'off' });
+  const emergencyOff = () => {
+    if (bound !== null) void act('emergencyOff', { channel: bound, state: 'off' });
+  };
   emergency.addEventListener('click', emergencyOff);
   outBtn.addEventListener('click', () => {
-    if (state.out === null) return; // unknown state: never guess a direction
-    void act('output', { channel: ch, state: state.out ? 'off' : 'on' });
+    if (bound === null || state.out === null) return; // no alias / unknown state: never guess a target or direction
+    void act('output', { channel: bound, state: state.out ? 'off' : 'on' });
+  });
+  disconnectBtn.addEventListener('click', () => {
+    if (bound !== null) void act('disconnect', { ch: bound });
   });
   const updatePending = () => {
     const v = parseSetpoint(vIn.value);
@@ -246,13 +276,15 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   vIn.addEventListener('input', updatePending);
   iIn.addEventListener('input', updatePending);
   setBtn.addEventListener('click', () => {
+    if (bound === null || !confirmed) return;
     const v = parseSetpoint(vIn.value);
     const i = parseSetpoint(iIn.value);
     if (!v.ok || !i.ok || (v.value === null && i.value === null)) {
       ctx.ui.toast('설정값을 확인하세요');
       return;
     }
-    void act('set', { channel: ch, ...(v.value !== null ? { v: v.value } : {}), ...(i.value !== null ? { i: i.value } : {}) }).then((r) => {
+    if (bound === null) return;
+    void act('set', { channel: bound, ...(v.value !== null ? { v: v.value } : {}), ...(i.value !== null ? { i: i.value } : {}) }).then((r) => {
       if (r === null) return; // failure toasted; keep the typed values for correction
       vIn.value = '';
       iIn.value = '';
@@ -354,7 +386,10 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
     outBtn.title = state.connected === false
       ? '장치 연결 끊김 — 쓰기 불가 (마지막 확인 상태만 표시)'
       : state.out === null ? '출력 상태 미확인 — 토글 불가' : `출력 ${state.out ? '끄기' : '켜기'} (operate 권한, 쓰기 잠금 적용)`;
-    emergency.disabled = false; // safety direction: always available
+    // safety direction: always available for a bound alias — even when the link is lost/unknown
+    emergency.disabled = bound === null;
+    disconnectBtn.disabled = !canOperate();
+    connect?.update(hasRight() && !ctx.writeLocked, hasRight());
     root.classList.toggle('psu-is-on', state.out === true);
     // meter
     setRead(rV, meas.v, 'V');
@@ -371,7 +406,9 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
     sI.textContent = fmt(state.setI, 'A', 2);
     vIn.placeholder = state.setV === null ? 'V' : state.setV.toFixed(2);
     iIn.placeholder = state.setI === null ? 'A' : state.setI.toFixed(2);
-    setBtn.disabled = !op;
+    // setpoints go only to a bound alias whose state the device has reported (never a blind write)
+    setBtn.disabled = !op || !confirmed;
+    setBtn.title = bound === null ? '별칭 미선택 — 연결 후 설정' : !confirmed ? '장치 상태 미확인 — 상태 보고 후 적용 가능' : '입력한 값만 장치에 보냅니다. 입력 중에는 아무것도 보내지 않습니다.';
     vIn.disabled = !op;
     iIn.disabled = !op;
     updatePending();
@@ -388,20 +425,21 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
   const offFrame = ctx.scheduler.onFrame(draw);
   const offAppend = mirror.onAppend(() => ctx.scheduler.invalidate());
   // psu.state is a priority kind: live changes (incl. disconnect) arrive on the control path
-  const offControl = ctx.onControl((ev) => {
-    if ((ev.channel ?? (ev.payload as { ch?: unknown } | null)?.ch) !== ch) return;
+  const offControl = bound === null ? () => {} : ctx.onControl((ev) => {
+    if ((ev.channel ?? (ev.payload as { ch?: unknown } | null)?.ch) !== bound) return;
     if (applyState(ev)) ctx.scheduler.invalidate();
   });
   // The native simulator advances measurements when polled. Authoritative status also
   // reconciles setpoints/output after writes; never infer them from the user's draft.
   const refreshStatus = () => {
-    if (statusPending || statusAbort.signal.aborted) return;
+    if (bound === null || statusPending || statusAbort.signal.aborted) return;
     statusPending = true;
-    void ctx.query('psu.status', { ch }, statusAbort.signal).then((result) => {
+    void ctx.query('psu.status', { ch: bound }, statusAbort.signal).then((result) => {
       if (statusAbort.signal.aborted) return;
       const envelope = result as Record<string, unknown>;
       const payload = envelope.data && typeof envelope.data === 'object' ? envelope.data : envelope;
       state = reduceState(state, { kind: 'psu.state', payload } as Parameters<typeof reduceState>[1]);
+      confirmed = true;
       ctx.scheduler.invalidate();
     }).catch(() => { /* keep observed state; unavailable status is never converted to zero */ })
       .finally(() => { statusPending = false; });
@@ -421,6 +459,7 @@ export function createPsuGauge(ctx: PanelContext): PanelInstance {
     dispose() {
       clearInterval(tick);
       statusAbort.abort();
+      connect?.dispose();
       offFrame();
       offAppend();
       offControl();
@@ -441,7 +480,8 @@ registerPanel(
     topics: [
       {
         key: 'psu',
-        filter: (p) => ({ domains: ['psu'], channels: [typeof p.channel === 'string' ? p.channel : 'bench'] }),
+        // unbound panels never open this topic; '' would match no channel (no implicit "bench")
+        filter: (p) => ({ domains: ['psu'], channels: [typeof p.channel === 'string' ? p.channel : ''] }),
         snapshot: 'required',
         mirrorRows: 1_000,
       },
@@ -452,6 +492,9 @@ registerPanel(
       { id: 'emergencyOff', rpc: 'psu.out', class: 'request', right: 'watch', confirm: 'none', safetyDirection: 'reduce', label: '비상 OFF' },
       { id: 'output', rpc: 'psu.out', class: 'request', right: 'operate', confirm: 'none', label: '출력 토글' },
       { id: 'set', rpc: 'psu.set', class: 'request', right: 'operate', confirm: 'none', label: '설정' },
+      // module application: explicit connect (unbound) / disconnect (bound; output held). Never on navigation.
+      { id: 'connect', rpc: 'psu.connect', class: 'request', right: 'operate', confirm: 'none', label: 'PSU 연결' },
+      { id: 'disconnect', rpc: 'psu.disconnect', class: 'request', right: 'operate', confirm: 'none', label: 'PSU 연결 해제' },
     ],
     memory: { maxBytes: 2 * 1024 * 1024 },
     render: { maxHz: 10, budgetMs: 4, lagTargetMs: 100 },

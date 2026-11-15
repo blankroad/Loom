@@ -49,6 +49,8 @@ export interface PktRow {
   color: string;
   link: PktLink | null;
   txRequestId: string | null;
+  /** daemon conversation index (record payload `stream`) — key for eth.follow */
+  stream: number | null;
   gap: { kind: string; count: number | bigint | 'unknown'; cause: string; firstSeq: bigint | null; lastSeq: bigint | null } | null;
   /** rough retained size for the 4 MiB panel budget */
   bytesEst: number;
@@ -120,6 +122,7 @@ export function readPkt(row: Record<string, unknown>, channel: string): PktRow |
     color: colorOf(proto, layers),
     link: readLink(row.link),
     txRequestId: s(row.tx_request_id),
+    stream: n(row.stream) ?? null,
     gap: null,
     bytesEst: 200 + 2 * (src.length + dst.length + proto.length + info.length),
   };
@@ -151,6 +154,7 @@ export function gapRow(kind: string, count: number | bigint | 'unknown', cause: 
     color: 'c-gap',
     link: null,
     txRequestId: null,
+    stream: null,
     gap: { kind, count, cause, firstSeq, lastSeq },
     bytesEst: 160,
   };
@@ -361,6 +365,13 @@ export class PacketStore {
     this.bytes += r.bytesEst;
     if (r.kind === 'pkt') this.bySeq.set(String(r.seq), r);
     if (this.rows.length > MAX_ROWS || this.bytes > MAX_BYTES) this.evict();
+  }
+
+  /** drop the panel's retained rows (view only — the journal/recording keeps everything) */
+  clear(): void {
+    this.rows = [];
+    this.bytes = 0;
+    this.bySeq.clear();
   }
 
   get(seq: bigint): PktRow | undefined {

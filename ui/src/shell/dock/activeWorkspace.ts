@@ -1,6 +1,6 @@
 // Live projection only. Never mutate the saved source or its vendor serialization.
 import { EXPLORER_DOMAINS } from '../../store/channels';
-import type { Slot, WorkspaceChannel } from '../routes';
+import { isUnboundModuleSlot, type Slot, type WorkspaceChannel } from '../routes';
 import { isSplit, isTabs, type LayoutNode, type LoomLayout } from './layoutModel';
 
 /** Domains whose closed channels keep queryable history (ETH capture stop retains packets for query/show;
@@ -15,10 +15,10 @@ export function availableSlot(slot: Slot, channels: Iterable<WorkspaceChannel>, 
   if (slot.panel === 'shell.test') return hasTestSession ? slot : null;
   const domain = slot.panel.split('.')[0] ?? '';
   if (!(EXPLORER_DOMAINS as readonly string[]).includes(domain)) return slot;
-  // the standalone analyzer (no capture pinned) is a workbench, not a device view: always usable
-  if (slot.panel === 'logic.analyzer' && slot.props.channel === undefined) return slot;
-  // the standalone video workbench (no capture pinned) opens no device: always usable
-  if (slot.panel === 'video.workbench' && slot.props.channel === undefined) return slot;
+  // An unbound module application (eth.packets {}, uds.console {}, can.trace {}, psu.gauge {}, logic.analyzer {},
+  // video.workbench {}) names no device and opens none: it is always usable, whatever is connected. Projections decide
+  // where it is seeded (service tabs only); this only keeps an existing one from being pruned as a "closed channel".
+  if (isUnboundModuleSlot(slot)) return slot;
   const keep = (c: WorkspaceChannel) => c.state === 'open' || (c.state === 'closed' && HISTORY_AFTER_CLOSE.has(domain));
   const active = new Set([...channels].filter((c) => c.domain === domain && keep(c)).map((c) => c.channel));
   if (domain === 'uds') {

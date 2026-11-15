@@ -68,7 +68,7 @@ describe('eth.packets', () => {
     expect(chips.map((c) => c.className)).toEqual(['vt-td chip chip-exact', 'vt-td chip chip-probable']);
     chips[0]!.click();
     expect(h.reveals).toEqual(['uds:bcm@req:t-000418']);
-    expect(h.host.querySelector('[data-testid="eth-status"]')!.textContent).toContain('LIVE [SIM tap]');
+    expect(h.host.querySelector('[data-testid="eth-status"]')!.textContent).toMatch(/LIVE\s*SIM tap/);
   });
 
   it('filter: error → underline at pos + message; valid → pushdown resubscribe + complete query', async () => {
@@ -185,7 +185,7 @@ describe('eth.packets', () => {
     const btn = (t: string) => [...h!.host.querySelectorAll('button')].find((b) => b.textContent === t)!;
     expect(btn('재전송').disabled).toBe(true);
     expect(btn('캡처 시작…').disabled).toBe(true);
-    btn('■ 캡처 정지').click();
+    btn('캡처 정지').click();
     await flush(h);
     expect(h.net.calls.map((c) => c.method)).toContain('eth.capture.stop');
     expect(h.net.calls.map((c) => c.method)).not.toContain('eth.send');
@@ -209,6 +209,108 @@ describe('eth.packets', () => {
     [...dlg.querySelectorAll('button')].find((b) => b.textContent === '보내기')!.click();
     await vi.advanceTimersByTimeAsync(5);
     expect(h.net.calls.filter((c) => c.method === 'eth.send' && !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(1);
+  });
+});
+
+// eth.export as the gateway answers it: daemon envelope whose data is handlers.rs `Export`'s result.
+const daemonEnv = (cmd: string, body: { data?: unknown; error?: unknown }) => ({
+  schema_version: 1,
+  ok: body.error === undefined,
+  cmd,
+  ...body,
+  meta: { truncated: false, record_health: 'ok', latch: false, viewers: { subscribed: 1, visible: 1 }, stream_epoch: '1' },
+  others_since_last: { count: '0' },
+});
+
+describe('eth.packets — export result and failed TX reason', () => {
+  const exportBtn = (hh: Harness) => hh.host.querySelector<HTMLButtonElement>('[data-cmd="export"]')!;
+  const dialog = (hh: Harness) => hh.host.querySelector<HTMLElement>('[data-testid="eth-export-result"]');
+  const stubClipboard = () => {
+    const writeText = vi.fn((text: string) => Promise.resolve(text).then(() => undefined));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    return writeText;
+  };
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'clipboard');
+  });
+
+  it('completed export shows the daemon path, counts and a copy action; busy only while the RPC runs; never claims Activity progress', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    const path = '/var/folders/x/T/loom-eth-lan1-1763190000000000000.pcapng';
+    let resolve!: (v: unknown) => void;
+    h.net.responders.set('eth.export', () => new Promise((r) => (resolve = r)));
+    expect(exportBtn(h).title).not.toContain('Activity');
+    exportBtn(h).click();
+    await flush(h);
+    // in flight: a second click is not a second export, no result shown yet
+    expect(exportBtn(h).disabled).toBe(true);
+    exportBtn(h).click();
+    expect(h.net.calls.filter((c) => c.method === 'eth.export')).toHaveLength(1);
+    expect(dialog(h)).toBeNull();
+    resolve(daemonEnv('eth.export', { data: { path, packets: 17, bytes: 1234, truncated: false, comments_dropped: 0, gaps: [] } }));
+    await flush(h);
+    expect(exportBtn(h).disabled).toBe(false);
+    const d = dialog(h)!;
+    expect(d.querySelector('[data-testid="eth-export-path"]')!.textContent).toBe(path);
+    expect(d.textContent).toContain('17');
+    expect(d.textContent).toContain('1234 B');
+    expect(d.textContent).toContain('daemon');
+    expect(d.textContent).toContain('브라우저 다운로드가 아닙니다');
+    expect(d.textContent).not.toContain('잘림');
+    expect(d.textContent).not.toContain('손실');
+    expect(h.toasts.join('\n')).not.toContain('Activity');
+    expect(h.toasts.at(-1)).toContain(path);
+    const writeText = stubClipboard();
+    d.querySelector<HTMLButtonElement>('[data-testid="eth-export-copy"]')!.click();
+    await flush(h);
+    expect(writeText).toHaveBeenCalledWith(path);
+    // a second export shows its own (new) result, one dialog at a time
+    const path2 = path.replace('.pcapng', '-1.pcapng');
+    h.net.responders.set('eth.export', () => daemonEnv('eth.export', { data: { path: path2, packets: 3, bytes: 99, truncated: true, comments_dropped: 2, gaps: [{ kind: 'source.gap' }] } }));
+    exportBtn(h).click();
+    await flush(h);
+    expect(h.host.querySelectorAll('[data-testid="eth-export-result"]')).toHaveLength(1);
+    const d2 = dialog(h)!;
+    expect(d2.querySelector('[data-testid="eth-export-path"]')!.textContent).toBe(path2);
+    expect(d2.textContent).toContain('잘림');
+    expect(d2.textContent).toContain('손실 구간1건');
+    expect(d2.textContent).toContain('주석 생략2개');
+    d2.querySelector<HTMLElement>('button')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(dialog(h)).toBeNull();
+  });
+
+  it('a failed export stays an error: daemon message toasted, no result dialog, button usable again', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.export', () =>
+      daemonEnv('eth.export', { error: { code: 'internal', message: 'cannot create /ro/x.pcapng: Permission denied (os error 13)', retryable: false } }),
+    );
+    exportBtn(h).click();
+    await flush(h);
+    expect(dialog(h)).toBeNull();
+    expect(h.toasts.at(-1)).toContain('export 실패');
+    expect(h.toasts.at(-1)).toContain('Permission denied');
+    expect(h.toasts.some((t) => t.includes('완료'))).toBe(false);
+    expect(exportBtn(h).disabled).toBe(false);
+  });
+
+  it('failed TX row shows the daemon reason (E_LOCKED) visibly; lifecycle class and NIC honesty unchanged', () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    // daemon `fail()` row: {write_state, method, final, error{code,message}, detail} — no summary/to
+    const reason = 'locked: lease on lan1 held by another viewer';
+    h.batch([writeEv('tx9', 'requested', { seq: 20, kind: 'eth.tx', payload: { method: 'eth.send' } })]);
+    h.batch([writeEv('tx9', 'failed', { seq: 21, kind: 'eth.tx', payload: { method: 'eth.send', final: true, error: { code: 'E_LOCKED', message: reason }, detail: {} } })]);
+    // worker failed row with a summary but no daemon error → no invented reason
+    h.batch([writeEv('tx8', 'failed', { seq: 22, kind: 'eth.tx', payload: { kind: 'raw', summary: 'DoIP diag 10 03' } })]);
+    h.frame();
+    const row = (id: string) => h!.host.querySelector<HTMLElement>(`.eth-tx-host .vt-row[data-request-id="${id}"]`)!;
+    expect(row('tx9').dataset.state).toBe('failed');
+    expect(row('tx9').className).toContain('st-row-failed');
+    expect(row('tx9').textContent).toContain(`E_LOCKED: ${reason}`);
+    expect(row('tx9').querySelector<HTMLElement>('.eth-tx-why')!.title).toContain('E_LOCKED');
+    expect(row('tx9').textContent).toContain('NIC 관찰 —');
+    expect(row('tx9').textContent).not.toContain('NIC 관찰 ✓');
+    expect(row('tx8').textContent).toContain('DoIP diag 10 03');
+    expect(row('tx8').querySelector('.eth-tx-why')).toBeNull();
   });
 });
 
@@ -251,7 +353,7 @@ describe('eth.packets — canonical capture_state / stats payloads', () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
     h.batch([fixtureRecord('eth.capture_state', 1, canonCapture()), fixtureRecord('eth.stats', 2, canonStats())]);
     const t = statusText(h);
-    expect(t).toContain('LIVE [SIM tap]');
+    expect(t).toMatch(/LIVE\s*SIM tap/);
     expect(t).toContain('pps 1,234');
     expect(t).toContain('bps 9.8M');
     expect(t).toContain('커널 드롭 3');
@@ -263,7 +365,7 @@ describe('eth.packets — canonical capture_state / stats payloads', () => {
   it('backend live → no SIM tag even if a legacy sim flag were absent', () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
     h.batch([fixtureRecord('eth.capture_state', 1, canonCapture({ backend: 'live' }))]);
-    expect(statusText(h)).toContain('● LIVE');
+    expect(statusText(h)).toContain('LIVE');
     expect(statusText(h)).not.toContain('SIM');
   });
 
@@ -424,45 +526,55 @@ describe('eth.packets fidelity layout & interaction', () => {
       others_since_last: { count: '0' },
     }));
 
-  it('vertical order: capture strip → filter → mode → [list ═ details ═ bytes] → status bar → send drawer', () => {
+  it('Bench Light order: toolbar → channel card → filter bar (scope/mode + display filter) → [list ═ (details | bytes)] + socket drawer → status line', () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
     const root = q('.eth-panel');
     const order = [...root.children].map((c) => c.getAttribute('data-testid') ?? c.className);
-    const at = (k: string) => order.findIndex((o) => o.includes(k));
-    expect(at('eth-status')).toBeLessThan(at('eth-filter'));
-    expect(at('eth-filter')).toBeLessThan(at('eth-mode'));
-    expect(at('eth-mode')).toBeLessThan(at('eth-panes'));
-    expect(at('eth-panes')).toBeLessThan(at('eth-statusbar'));
-    expect(at('eth-statusbar')).toBeLessThan(at('eth-tx'));
+    expect(order.slice(0, 5)).toEqual(['eth-toolbar', 'eth-chbar', 'eth-fbar', 'eth-wsp', 'eth-statusbar']);
+    // toolbar order and labels = selected web toolbar
+    const labels = [...q('.wb-mtbar').querySelectorAll('.wb-tbtn')].map((b) => b.textContent);
+    expect(labels).toEqual(['채널 추가', '캡처 시작…', '캡처 정지', '표시 일시정지', '자동 스크롤', '색상', '스트림 따라가기', '내보내기', '기록 지우기', '소켓 테스트', '단축키']);
+    expect(q('.eth-chbar [data-testid="eth-status"]')).toBeTruthy();
+    expect(q('.eth-fbar [data-testid="eth-mode"]')).toBeTruthy();
+    expect(q('.eth-fbar [data-testid="eth-filter-input"]')).toBeTruthy();
     const panes = q('[data-testid="eth-panes"]');
-    const seq = [...panes.querySelectorAll('.eth-list, .eth-split, .eth-detail-bar, .th-tree, .th-right')].map((e) =>
+    const seq = [...panes.querySelectorAll('.eth-list, .eth-split, .eth-detail-bar, .th-tree, .eth-bytes-h, .th-right')].map((e) =>
       e.classList.contains('eth-split') ? (e.classList.contains('eth-split-a') ? 'split-a' : 'split-b') : e.className.split(' ')[0],
     );
-    expect(seq).toEqual(['eth-list', 'split-a', 'eth-detail-bar', 'th-tree', 'split-b', 'th-right']);
-    // tree and bytes are separate grid rows of the stack (TreeHex root is display:contents via eth.css)
-    expect(q('.eth-treehex').parentElement).toBe(panes);
+    expect(seq).toEqual(['eth-list', 'split-a', 'eth-detail-bar', 'th-tree', 'split-b', 'eth-bytes-h', 'th-right']);
+    expect(q('.eth-treehex').parentElement).toBe(q('.eth-lower'));
+    // socket drawer: closed by default, Alt+S toggles, TX log lives in it
+    const sock = q<HTMLElement>('[data-testid="eth-sock"]');
+    expect(sock.hidden).toBe(true);
+    expect(sock.querySelector('[data-testid="eth-tx"]')).toBeTruthy();
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', altKey: true, bubbles: true }));
+    expect(sock.hidden).toBe(false);
+    expect(q('[data-cmd="toggle-socket"]').getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('pane boundaries are keyboard separators: clamp, persist, reset; corrupt storage → defaults', () => {
-    localStorage.setItem('loom.eth.panes', '{bad');
+  it('pane boundaries: list height / details width, keyboard ±4 %, persist, reset; corrupt storage → defaults', () => {
+    localStorage.setItem('loom.eth.layout.v2', '{bad');
     h = mountPanel('eth.packets', { channel: 'lan1' });
     const panes = q('[data-testid="eth-panes"]');
+    const lower = q('.eth-lower');
     const a = q('[data-testid="eth-split-list"]');
     const b = q('[data-testid="eth-split-bytes"]');
     expect(a.getAttribute('role')).toBe('separator');
+    expect(b.getAttribute('aria-orientation')).toBe('vertical');
     expect(a.tabIndex).toBe(0);
-    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('45fr');
+    expect(panes.style.getPropertyValue('--eth-list-h')).toBe('52%');
+    expect(lower.style.getPropertyValue('--eth-dtl-w')).toBe('55%');
     a.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('50fr');
-    expect(panes.style.getPropertyValue('--eth-fr-tree')).toBe('30fr');
-    expect(a.getAttribute('aria-valuenow')).toBe('50');
-    b.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
-    expect(panes.style.getPropertyValue('--eth-fr-tree')).toBe('10fr'); // Home: boundary up, tree clamped to min, bytes grow
-    expect(panes.style.getPropertyValue('--eth-fr-bytes')).toBe('40fr');
-    expect(JSON.parse(localStorage.getItem('loom.eth.panes')!)).toEqual([50, 10, 40]);
+    expect(panes.style.getPropertyValue('--eth-list-h')).toBe('56%');
+    b.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(lower.style.getPropertyValue('--eth-dtl-w')).toBe('51%');
+    expect(JSON.parse(localStorage.getItem('loom.eth.layout.v2')!)).toEqual({ panes: [56, 51], colorize: true });
     a.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-    expect(panes.style.getPropertyValue('--eth-fr-list')).toBe('45fr');
-    localStorage.removeItem('loom.eth.panes');
+    expect(panes.style.getPropertyValue('--eth-list-h')).toBe('52%');
+    q('[data-cmd="colorize"]').click();
+    expect(q('.eth-panel').classList.contains('colorize')).toBe(false);
+    expect(JSON.parse(localStorage.getItem('loom.eth.layout.v2')!).colorize).toBe(false);
+    localStorage.removeItem('loom.eth.layout.v2');
   });
 
   it('filter field validity (green/red), applied vs edited, Esc revert, ✕ clear re-applies "no filter"', async () => {
@@ -592,7 +704,7 @@ describe('eth.packets fidelity layout & interaction', () => {
     expect(queries().at(-1)).toMatchObject({ filter: 'arp', range: { to: `seq:${head}` } });
     // export in complete mode: both ends as seq cursors
     await flush(h);
-    button('pcapng').click();
+    button('내보내기').click();
     await vi.advanceTimersByTimeAsync(10);
     const ex = h.net.calls.find((c) => c.method === 'eth.export')!.params as { range?: { from?: string; to?: string } };
     expect(ex).toMatchObject({ ch: 'lan1', format: 'pcapng', filter: 'arp', range: { from: 'seq:50000', to: 'seq:50002' } });
@@ -631,27 +743,261 @@ describe('eth.packets fidelity layout & interaction', () => {
     const before = listeners();
     h.net.emitControl(ctl(10, 'live'));
     h.frame();
-    expect(status().textContent).toContain('● LIVE');
+    expect(status().textContent).toContain('LIVE');
     expect(stopBtn().disabled).toBe(false);
     h.net.emitControl(ctl(20, 'stopped'));
     h.frame();
-    expect(status().textContent).toContain('● STOPPED');
+    expect(status().textContent).toContain('STOPPED');
     expect((status() as HTMLElement).dataset.state).toBe('stopped');
     expect(stopBtn().disabled).toBe(true);
     // an older state (e.g. a late duplicate) and another channel never override it
     h.net.emitControl(ctl(15, 'live'));
     h.net.emitControl(ctl(30, 'live', 'other'));
     h.frame();
-    expect(status().textContent).toContain('● STOPPED');
+    expect(status().textContent).toContain('STOPPED');
     // gen2 restart on the same channel goes live again (no extra frame needed)
     h.net.emitControl(ctl(40, 'live', 'lan1', 2));
     h.frame();
-    expect(status().textContent).toContain('● LIVE');
+    expect(status().textContent).toContain('LIVE');
     expect(stopBtn().disabled).toBe(false);
     expect(h.net.subs[0]!.closed).toBe(false);
-    expect(h.net.calls.filter((c) => c.method.startsWith('eth.capture') || c.method === 'eth.send')).toEqual([]);
+    expect(h.net.calls.filter((c) => c.method === 'eth.capture.start' || c.method === 'eth.capture.stop' || c.method === 'eth.send')).toEqual([]);
     h.dispose();
     expect(listeners()).toBe(before - 1);
     h = null;
+  });
+});
+
+describe('eth.packets socket test drawer (real eth.send)', () => {
+  const q = <T extends HTMLElement = HTMLElement>(s: string) => h!.host.querySelector<T>(s)!;
+  afterEach(() => {
+    localStorage.removeItem('loom.eth.sock.draft.v1');
+    localStorage.removeItem('loom.eth.sock.templates.v1');
+  });
+
+  it('restores the draft without sending; one explicit Send = one eth.send (udp, to, from_port, hex); dry-run is a query', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('loom.eth.sock.draft.v1', JSON.stringify({ proto: 'udp', host: '127.0.0.1', port: '13400', fromPort: '', fmt: 'hex', data: '02 fd 00 05' }));
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.frame();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(h.net.calls.filter((c) => c.method === 'eth.send' && (c.params as { dry_run?: boolean }).dry_run !== true)).toEqual([]);
+    q('[data-cmd="toggle-socket"]').click();
+    const send = q<HTMLButtonElement>('[data-testid="eth-sock-send"]');
+    expect(send.disabled).toBe(false);
+    send.click();
+    await vi.advanceTimersByTimeAsync(10);
+    const sends = h.net.calls.filter((c) => c.method === 'eth.send' && (c.params as { dry_run?: boolean }).dry_run !== true);
+    expect(sends.map((c) => c.params)).toEqual([expect.objectContaining({ kind: 'udp', ch: 'lan1', to: '127.0.0.1:13400', hex: '02fd0005' })]);
+    expect(q('[data-testid="eth-sock-preview"]').textContent).toContain('4 B');
+  });
+
+  const realSends = () => h!.net.calls.filter((c) => c.method === 'eth.send' && (c.params as { dry_run?: boolean }).dry_run !== true);
+
+  it('single in-flight guard: repeated Ctrl/⌘+Enter, Send and template ▶ while a send is pending → exactly one eth.send', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('loom.eth.sock.draft.v1', JSON.stringify({ proto: 'udp', host: '127.0.0.1', port: '13400', fromPort: '', fmt: 'hex', data: '01 02' }));
+    localStorage.setItem('loom.eth.sock.templates.v1', JSON.stringify([{ name: 'T1', proto: 'tcp', host: '10.0.0.9', port: '7000', fromPort: '', fmt: 'text', data: 'STAT?' }]));
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    let release: (v: unknown) => void = () => {};
+    h.net.responders.set('eth.send', (p) => ((p as { dry_run?: boolean }).dry_run ? {} : new Promise((r) => (release = r))));
+    h.frame();
+    q('[data-cmd="toggle-socket"]').click();
+    const data = q<HTMLTextAreaElement>('[data-testid="eth-sock-data"]');
+    const ctrlEnter = () => data.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
+    ctrlEnter();
+    ctrlEnter();
+    ctrlEnter();
+    const send = q<HTMLButtonElement>('[data-testid="eth-sock-send"]');
+    expect(send.disabled).toBe(true);
+    send.click(); // disabled button: no event; and the guard holds even if called
+    const play = q<HTMLButtonElement>('.eth-sock .sk-tpl [aria-label="T1 보내기"]');
+    expect(play.disabled).toBe(true);
+    play.dispatchEvent(new MouseEvent('click', { bubbles: true })); // forced click on a disabled ▶
+    await vi.advanceTimersByTimeAsync(10);
+    expect(realSends()).toHaveLength(1);
+    expect(data.value).toBe('01 02'); // the composer was not swapped by the template under the in-flight send
+    release({ request_id: 'tx-1' });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(send.disabled).toBe(false);
+    q<HTMLButtonElement>('.eth-sock .sk-tpl [aria-label="T1 보내기"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(realSends()).toHaveLength(2);
+    expect(realSends()[1]!.params).toEqual({ kind: 'tcp', ch: 'lan1', to: '10.0.0.9:7000', hex: '53544154 3f'.replace(' ', '') });
+    release({ request_id: 'tx-2' });
+  });
+
+  it('from_port: empty → daemon picks; valid → sent; invalid (0, 65536, 12a, " 5", 1e3, -1) → error, no send and no dry-run', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('loom.eth.sock.draft.v1', JSON.stringify({ proto: 'udp', host: '127.0.0.1', port: '13400', fromPort: '', fmt: 'hex', data: 'aa' }));
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.frame();
+    q('[data-cmd="toggle-socket"]').click();
+    const fp = q<HTMLInputElement>('.eth-sock input[aria-label="출발 포트"]');
+    const send = q<HTMLButtonElement>('[data-testid="eth-sock-send"]');
+    for (const bad of ['0', '65536', '12a', ' 5', '1e3', '-1', '99999']) {
+      fp.value = bad;
+      fp.dispatchEvent(new Event('input'));
+      await vi.advanceTimersByTimeAsync(300);
+      expect(send.disabled, bad).toBe(true);
+      expect(fp.classList.contains('invalid'), bad).toBe(true);
+      expect(q('.eth-sock .sk-err').textContent, bad).toContain('출발 포트');
+      send.click();
+      q<HTMLTextAreaElement>('[data-testid="eth-sock-data"]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', metaKey: true, bubbles: true }));
+    }
+    expect(h.net.calls.filter((c) => c.method === 'eth.send')).toEqual([]); // neither send nor dry-run preview
+    fp.value = '50001';
+    fp.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(q('.eth-sock .sk-err').textContent).toBe('');
+    send.click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(realSends().map((c) => c.params)).toEqual([{ kind: 'udp', ch: 'lan1', to: '127.0.0.1:13400', from_port: 50001, hex: 'aa' }]);
+    fp.value = '';
+    fp.dispatchEvent(new Event('input'));
+    await vi.advanceTimersByTimeAsync(300);
+    send.click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(realSends()[1]!.params).toEqual({ kind: 'udp', ch: 'lan1', to: '127.0.0.1:13400', hex: 'aa' });
+  });
+
+  it('invalid hex → error, Send disabled, nothing sent; text escapes encode exactly', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.frame();
+    q('[data-cmd="toggle-socket"]').click();
+    const data = q<HTMLTextAreaElement>('[data-testid="eth-sock-data"]');
+    const host = q<HTMLInputElement>('.eth-sock input[aria-label="피어 IP/호스트"]');
+    host.value = '10.0.0.2';
+    host.dispatchEvent(new Event('input'));
+    data.value = 'zz';
+    data.dispatchEvent(new Event('input'));
+    expect(q<HTMLButtonElement>('[data-testid="eth-sock-send"]').disabled).toBe(true);
+    expect(q('.eth-sock .sk-err').textContent).toContain('hex 형식 오류');
+    const { parseTextPayload } = await import('./socketDrawer');
+    expect(parseTextPayload('A😀한\\r\\n\\x00')).toBe('41f09f9880ed959c0d0a00');
+    expect(parseTextPayload('bad\\q')).toBeNull();
+    expect(h.net.calls.some((c) => c.method === 'eth.send' && (c.params as { dry_run?: boolean }).dry_run !== true)).toBe(false);
+  });
+});
+
+describe('eth.packets channel add vs current-channel capture start (real eth.capture.start)', () => {
+  const q = <T extends HTMLElement = HTMLElement>(s: string) => h!.host.querySelector<T>(s)!;
+  const setv = (sel: string, v: string) => {
+    const e = q<HTMLInputElement | HTMLSelectElement>(sel);
+    e.value = v;
+    e.dispatchEvent(new Event('input'));
+    e.dispatchEvent(new Event('change'));
+  };
+  const starts = () => h!.net.calls.filter((c) => c.method === 'eth.capture.start').map((c) => c.params);
+
+  it('채널 추가: new alias + NIC → status check → eth.capture.start{ch:new, backend} → opens that channel (toast); never touches this channel', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.capture.status', () => ({ channels: [{ ch: 'lan1', state: 'live' }, { ch: 'lan3', state: 'stopped' }] }));
+    h.net.responders.set('eth.ifaces', () => ({ ifaces: [{ name: 'sim' }, { name: 'en5' }, { name: 'replay' }] }));
+    h.frame();
+    q('[data-cmd="add-channel"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    const dlg = q('[data-testid="eth-add-channel-dialog"]');
+    expect([...dlg.querySelectorAll('datalist option')].map((o) => (o as HTMLOptionElement).value)).toEqual(['sim', 'en5']);
+    const go = () => q<HTMLButtonElement>('[data-testid="eth-add-channel-start"]').click();
+    // duplicates of this channel or any existing channel are refused (no restart/overwrite)
+    for (const dup of ['lan1', 'lan3']) {
+      setv('[data-testid="eth-add-channel-dialog"] input[aria-label="새 채널 이름"]', dup);
+      setv('[data-testid="eth-add-channel-dialog"] input[aria-label="NIC"]', 'sim');
+      go();
+      await vi.advanceTimersByTimeAsync(10);
+      expect(q('[data-testid="eth-capture-msg"]').textContent).toContain(`이미 있는 채널 "${dup}"`);
+    }
+    setv('[data-testid="eth-add-channel-dialog"] input[aria-label="새 채널 이름"]', 'bad name');
+    go();
+    expect(q('[data-testid="eth-capture-msg"]').textContent).toContain('채널 이름');
+    expect(starts()).toEqual([]);
+    setv('[data-testid="eth-add-channel-dialog"] input[aria-label="새 채널 이름"]', 'lan2');
+    go();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(starts()).toEqual([{ iface: 'sim', ch: 'lan2', backend: 'sim', snaplen: 262144, promisc: false, buffer_mib: 64 }]);
+    expect(h.host.querySelector('[data-testid="eth-add-channel-dialog"]')).toBeNull();
+    expect(h.toasts.some((t) => t.includes('채널 lan2 캡처 시작'))).toBe(true);
+  });
+
+  it('캡처 시작… keeps this panel channel fixed and sends the required backend (live + BPF; BPF dropped for sim)', async () => {
+    vi.useFakeTimers();
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.frame();
+    const statusCalls = () => h!.net.calls.filter((c) => c.method === 'eth.capture.status').length;
+    const statusBefore = statusCalls();
+    q('[data-cmd="start-all"]').click();
+    const dlg = '[data-testid="eth-capture-dialog"]';
+    expect(q(dlg).querySelector('input[aria-label="새 채널 이름"]')).toBeNull();
+    setv(`${dlg} input[aria-label="NIC"]`, 'en5');
+    setv(`${dlg} input.bpf`, 'port 13400');
+    q<HTMLButtonElement>('[data-testid="eth-capture-start"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(starts()).toEqual([{ iface: 'en5', ch: 'lan1', backend: 'live', bpf: 'port 13400', snaplen: 262144, promisc: false, buffer_mib: 64 }]);
+    expect(statusCalls()).toBe(statusBefore); // current-channel start never consults/creates another channel
+    q('[data-cmd="start-all"]').click();
+    setv(`${dlg} input[aria-label="NIC"]`, 'sim');
+    setv(`${dlg} input.bpf`, 'arp');
+    expect(q<HTMLInputElement>(`${dlg} input.bpf`).disabled).toBe(true);
+    q<HTMLButtonElement>('[data-testid="eth-capture-start"]').click();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(starts()[1]).toEqual({ iface: 'sim', ch: 'lan1', backend: 'sim', snaplen: 262144, promisc: false, buffer_mib: 64 });
+  });
+
+  it('스트림 따라가기 uses the daemon eth.follow query with the packet stream index (allowed query)', async () => {
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.show', (p) => fixtureDetail((p as { ref: string }).ref));
+    h.net.responders.set('eth.follow', () => ({ segments: [{ dir: 'c2s', data: '53544154 3f'.replace(' ', ''), seq: '1' }, { dir: 's2c', data: '4f4b', seq: '2' }], bytes: '7' }));
+    h.batch([fixtureRecord('eth.pkt', 50, { proto: 'TCP', info: 'x', len: 60, stream: 4 })]);
+    pktRows(h)[0]!.querySelector<HTMLElement>('.vt-td')!.click();
+    await flush(h);
+    const follow = q<HTMLButtonElement>('[data-cmd="follow"]');
+    expect(follow.disabled).toBe(false);
+    follow.click();
+    await flush(h);
+    expect(h.net.calls.find((c) => c.method === 'eth.follow')!.params).toEqual({ ch: 'lan1', proto: 'tcp', stream: 4 });
+    const body = q('[data-testid="eth-follow-body"]');
+    expect([...body.children].map((c) => [c.className, c.textContent])).toEqual([['c', 'STAT?'], ['s', 'OK']]);
+  });
+});
+
+describe('eth.packets multi-channel strip (real eth.capture.status + control events)', () => {
+  const q = <T extends HTMLElement = HTMLElement>(s: string) => h!.host.querySelector<T>(s)!;
+  it('shows every other daemon channel as its own card (state/backend/iface only), this channel stays active, periodic refresh, + tile', async () => {
+    vi.useFakeTimers();
+    let channels: Record<string, unknown>[] = [{ ch: 'lan1', state: 'live', backend: 'sim', iface: 'sim' }];
+    h = mountPanel('eth.packets', { channel: 'lan1' });
+    h.net.responders.set('eth.capture.status', () => ({ channels }));
+    const cards = () => [...h!.host.querySelectorAll<HTMLElement>('.eth-chbar .eth-chcard')].map((c) => c.querySelector('.alias')!.textContent);
+    channels = [
+      { ch: 'lan1', state: 'live', backend: 'sim', iface: 'sim' },
+      { ch: 'lan2', state: 'stopped', backend: 'live', iface: 'en5' },
+      { ch: 'dut', state: 'live', backend: 'sim', iface: 'sim' },
+    ];
+    await vi.advanceTimersByTimeAsync(5_000);
+    h.frame();
+    expect(cards()).toEqual(['lan1', 'dut', 'lan2']); // this channel first (active), others sorted
+    expect(q('.eth-chbar .eth-chcard.active').getAttribute('data-testid')).toBe('eth-status');
+    const lan2 = q('.eth-chcard.other[data-channel="lan2"]');
+    expect(lan2.dataset.state).toBe('stopped');
+    expect(lan2.querySelector('.ch-meta')!.textContent).toBe('en5 · live · 통계는 그 채널 패널에서');
+    expect(lan2.textContent).not.toContain('pps'); // no invented stats for other channels
+    expect(q('.eth-chcard.other[data-channel="dut"]').textContent).toContain('SIM');
+    channels = [{ ch: 'lan1', state: 'live' }, { ch: 'lan2', state: 'live', backend: 'live', iface: 'en5' }];
+    await vi.advanceTimersByTimeAsync(5_000);
+    h.frame();
+    expect(cards()).toEqual(['lan1', 'lan2']);
+    expect(q('.eth-chcard.other[data-channel="lan2"]').dataset.state).toBe('live');
+    q('[data-cmd="add-channel-tile"]').click();
+    expect(q('[data-testid="eth-add-channel-dialog"]')).toBeTruthy();
+    expect(h.net.calls.filter((c) => c.method === 'eth.capture.start')).toEqual([]);
+    const n = h.net.calls.filter((c) => c.method === 'eth.capture.status').length;
+    h.dispose();
+    h = null;
+    await vi.advanceTimersByTimeAsync(20_000);
+    // disposed: no more refreshes (checked through a fresh count on the same net is not possible after dispose → only ensure no throw)
+    expect(n).toBeGreaterThanOrEqual(2);
   });
 });

@@ -26,13 +26,13 @@
 .ct-bar.agent-read { background: var(--agt); }
 .ct-tx { color: var(--usr); }
 .ct-rx { color: var(--muted); }
-.ct-gaprow { background: #1e1e14; }
+.ct-gaprow { background: var(--warn-bg, #fff8c5); }
 .ct-gaprow .gap-text { grid-column: 2 / -1; color: var(--warn); overflow: visible; }
-.ct-loss { background: #3a1416; }
+.ct-loss { background: var(--err-bg, #ffebe9); }
 .ct-loss .gap-text { color: var(--err); font-weight: 700; }
 .ct-gap-resync { color: var(--muted) !important; }
 .ct-topnote { padding: 0 6px; border-bottom: 1px dashed var(--line); }
-.ct-newrows { position: absolute; right: 16px; bottom: 8px; background: var(--usr); color: #000; border: 0; border-radius: 3px; padding: 2px 8px; }
+.ct-newrows { position: absolute; right: 16px; bottom: 8px; background: var(--usr); color: var(--fg, #1f2328); border: 0; border-radius: 3px; padding: 2px 8px; }
 .ct-risk { padding: 0 3px; border: 1px solid var(--line); border-radius: 2px; }
 
 /* view tabs + Receive/Transmit view (rxtxView.ts) — panel-scoped, shell tokens only */
@@ -78,3 +78,18 @@
 .crx-byteidx { font-size: 10px; }
 .crx-types { display: flex; gap: 8px; flex-wrap: wrap; border: 1px solid var(--line); padding: 0 6px 2px; }
 .crx-ederr { flex: 1; min-width: 10em; font-family: ui-monospace, monospace; }
+/* unbound module application: interface / connect section (canConnect.ts) */
+.ct-connect { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.ct-connect-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ct-unbound { color: var(--muted); }
+.ct-connect-grid { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.ct-field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ct-field input { width: 12em; font-family: ui-monospace, monospace; }
+.ct-field input[aria-invalid='true'] { outline: 1px solid var(--err); }
+.ct-connect-err { color: var(--err); min-height: 1em; }
+.ct-connect-err:empty { display: none; }
+.ct-connect-cli { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.ct-connect-note { font-size: 11px; }
+.ct-open-list { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ct-open-items { display: inline-flex; gap: 4px; flex-wrap: wrap; color: var(--muted); }
+.ct-open-item { font-family: ui-monospace, monospace; }

@@ -39,6 +39,8 @@ export interface WorkspaceChannel {
 
 export const SERVICE_DOMAINS = ['uart', 'can', 'eth', 'psu', 'uds', 'logic', 'video'] as const;
 export type ServiceDomain = typeof SERVICE_DOMAINS[number];
+/** the permanent top-tab order (UART, CAN, Ethernet, UDS, PSU, logic, video) */
+export const SERVICE_TAB_ORDER: readonly ServiceDomain[] = ['uart', 'can', 'eth', 'uds', 'psu', 'logic', 'video'];
 export const SERVICE_LABELS: Record<ServiceDomain, string> = { uart: 'UART', can: 'CAN', eth: 'Ethernet', uds: 'UDS', psu: 'PSU', logic: '로직 분석기', video: '비디오 캡처' };
 export const DIAGNOSTIC_OBSERVATION_DOMAINS = ['uds', 'can', 'eth'] as const;
 export function serviceAllowsDomain(service: ServiceDomain, domain: string): boolean {
@@ -63,21 +65,46 @@ export function presetForChannels(name: string, channels: Iterable<WorkspaceChan
   return { ...definition, slots };
 }
 
-/** UDS service projection adds raw observations without inferring an ECU/transport binding. */
+/** The module application each service tab embeds before (or without) a connection: the existing rich panel with
+ * NO channel/targets prop. Unbound means "module application, nothing selected" — never an implicit default alias.
+ * UART has no unbound panel: its module chrome (saved sessions, macros, panes) is the application. */
+export const UNBOUND_MODULE_PANEL: Readonly<Partial<Record<ServiceDomain, string>>> = {
+  can: 'can.trace', eth: 'eth.packets', uds: 'uds.console', psu: 'psu.gauge', logic: 'logic.analyzer', video: 'video.workbench',
+};
+const BINDING_PROPS = ['channel', 'ch', 'targets'] as const;
+/** true for a module panel that names no channel/capture/target (the unbound module application) */
+export function isUnboundModuleSlot(slot: Slot): boolean {
+  return Object.values(UNBOUND_MODULE_PANEL).includes(slot.panel) && BINDING_PROPS.every((k) => slot.props[k] === undefined || slot.props[k] === '');
+}
+/** the unbound module application slot of a service (a fresh object), or null for UART */
+export function unboundModuleSlot(service: ServiceDomain): Slot | null {
+  const panel = UNBOUND_MODULE_PANEL[service];
+  return panel ? { panel, props: {} } : null;
+}
+
+/** Service tab projection: the service's OPEN channels (UDS adds raw CAN/Ethernet observations without inferring an
+ * ECU/transport binding). When the service itself has no open channel, the unbound module application is seeded
+ * first so the tab is a usable application with its own Connect/configuration — never a phantom channel. */
 export function servicePresetForChannels(service: ServiceDomain, channels: Iterable<WorkspaceChannel>): Preset {
   const name = SERVICE_PRESET[service];
+  const known = [...channels];
+  let preset: Preset;
   if (service === 'can') {
-    const preset = presetForChannels(name, channels);
-    return { ...preset, slots: preset.slots.map((slot) => ({ ...slot, props: { ...slot.props, view: 'rxtx' } })) };
+    const base = presetForChannels(name, known);
+    preset = { ...base, slots: base.slots.map((slot) => ({ ...slot, props: { ...slot.props, view: 'rxtx' } })) };
+  } else if (service !== 'uds') preset = presetForChannels(name, known);
+  else {
+    const definition = PRESETS.find((p) => p.name === name)!;
+    const active = known.filter((c) => c.state === 'open');
+    const slots = DIAGNOSTIC_OBSERVATION_DOMAINS.flatMap((domain) => active.filter((c) => c.domain === domain).flatMap((c) => {
+      const slot = defaultPanelFor(c.domain, c.channel);
+      return slot ? [slot] : [];
+    }));
+    preset = { ...definition, slots };
   }
-  if (service !== 'uds') return presetForChannels(name, channels);
-  const definition = PRESETS.find((p) => p.name === name)!;
-  const active = [...channels].filter((c) => c.state === 'open');
-  const slots = DIAGNOSTIC_OBSERVATION_DOMAINS.flatMap((domain) => active.filter((c) => c.domain === domain).flatMap((c) => {
-    const slot = defaultPanelFor(c.domain, c.channel);
-    return slot ? [slot] : [];
-  }));
-  return { ...definition, slots };
+  const seed = unboundModuleSlot(service);
+  const ownOpen = known.some((c) => c.state === 'open' && c.domain === service);
+  return seed && !ownOpen ? { ...preset, slots: [seed, ...preset.slots] } : preset;
 }
 
 /** Only complete, currently usable choices appear in the picker. */
@@ -147,4 +174,15 @@ export function slotKey(slot: Slot): string {
 /** same view and configuration, ignoring a reveal cursor and equivalent aliases */
 export function sameSlot(a: Slot, b: Slot): boolean {
   return slotKey(a) === slotKey(b);
+}
+
+/** The service module a route belongs to: `#/s/<svc>` and deep links `#/p/<domain>/…` keep their module chrome
+ * (an agent's `#/p/uart/terminal?channel=x` link opens inside the UART workbench, not a generic frame). */
+export function routeModule(r: Route): ServiceDomain | null {
+  if (r.kind === 'layout') return r.service ?? null;
+  if (r.kind === 'panel') {
+    const d = r.slot.panel.split('.')[0] ?? '';
+    return (SERVICE_DOMAINS as readonly string[]).includes(d) ? (d as ServiceDomain) : null;
+  }
+  return null;
 }

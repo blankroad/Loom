@@ -5,6 +5,7 @@ import type { NetClient, Subscription } from '../net/api';
 import type { Env, LoomEvent, Right, WriteState } from '../proto/provisional';
 import { daemonNowNs, LagTracker, RenderMetrics } from '../store/renderMetrics';
 import type { RenderScheduler, PanelHandle } from '../store/renderScheduler';
+import type { ActivityEntry } from '../store/adapter';
 import type { RowStore } from '../store/rowStore';
 import type { ShellControlStore } from '../store/shellControl';
 import type { ActionGate } from './actionGate';
@@ -27,6 +28,9 @@ export class UndeclaredError extends Error {
 export interface WriteHandle {
   /** null when the RPC result carried no request_id */
   readonly requestId: string | null;
+  /** The action's successful RPC result: a success envelope's `data`, or the bare result. Optional so
+   * fake handles stay valid; `undefined` = no result reported. Failures never get here (act() throws). */
+  readonly result?: unknown;
   state(): WriteState | null;
   onChange(cb: (s: WriteState) => void): Unsubscribe;
 }
@@ -71,6 +75,13 @@ export interface PanelContext {
   rows(filter: RowFilter): RowView;
   /** highest seq any agent has acknowledged (core.agent_cursor); null = none yet */
   agentCursor: { seq(): bigint | null; on(cb: () => void): Unsubscribe };
+  /**
+   * Agent read ranges (`core.activity` with a range) of this panel's domain that the shell's bounded
+   * Activity ring already holds: the newest `limit`, oldest first; with `channel`, only reads of that
+   * channel or domain-wide ones. Lets a panel restore read marks for reads made before it mounted (or
+   * before a reload's snapshot). Read-only: no subscription, no call; empty when the shell has none.
+   */
+  agentReads(limit: number, channel?: string): readonly AgentRead[];
   query<R = unknown>(rpc: string, params: object, signal?: AbortSignal): Promise<R>;
   /** Read-only same-origin GET of a declared media path (`manifest.media.prefixes`); credentials same-origin,
    * `cache: no-store`, redirects are errors. Throws UndeclaredError / MediaPathError before any request. */
@@ -96,6 +107,17 @@ export interface PanelContext {
   };
 }
 
+/** One agent read range from the shell's Activity ring (see PanelContext.agentReads). */
+export interface AgentRead {
+  /** seq of the core.activity event (dedup against the panel's live activity topic) */
+  readonly seq: bigint;
+  /** the read's channel; null = domain-wide */
+  readonly channel: string | null;
+  readonly seqA: bigint;
+  readonly seqB: bigint;
+  readonly actor: string;
+}
+
 export interface LatchInfo {
   readonly on: boolean;
   readonly by: string | null;
@@ -113,7 +135,12 @@ export interface ContextDeps {
   cursor: CursorBus;
   ui: ShellUiHooks;
   /** ActivityStore (agent cursor). Optional for tests. */
-  agentCursor?: { readonly agentCursor: bigint; subscribe(cb: () => void): Unsubscribe };
+  agentCursor?: {
+    readonly agentCursor: bigint;
+    subscribe(cb: () => void): Unsubscribe;
+    /** newest first, at most n entries (ActivityStore.recent: its bounded ring) */
+    recent?(n: number): readonly ActivityEntry[];
+  };
   /** tab-wide lag/render metrics (shell); a private one is used when absent (tests) */
   metrics?: RenderMetrics;
   /** monotonic ms (performance.now) */
@@ -187,6 +214,8 @@ export function createPanelContext(
 ): PanelContextHandle {
   const mirrors = new Map<string, EventMirror>();
   const subByKey = new Map<string, Subscription>();
+  /** last visibility given to setVisible (new panels are opened to be seen) */
+  let leaseVisible = true;
   const unsubs: Unsubscribe[] = [];
   let frameCb: ((budgetMs: number) => bigint | void) | null = null;
   const now = deps.now ?? (() => performance.now());
@@ -255,6 +284,9 @@ export function createPanelContext(
         ...(spec.maxBatchMs !== undefined ? { maxBatchMs: spec.maxBatchMs } : {}),
         ...(spec.encoding !== undefined ? { encoding: spec.encoding } : {}),
         ...(spec.coalesceBy !== undefined ? { coalesceBy: spec.coalesceBy } : {}),
+        // opened lazily while hidden: the lease travels with the subscribe, so the mux never relieves
+        // pressure (suspend/merge visible streams) for a panel nobody is looking at
+        ...(leaseVisible ? {} : { active: false }),
       },
       {
         onSnapshotPart: (p) => {
@@ -354,6 +386,18 @@ export function createPanelContext(
       on: (cb) => deps.agentCursor?.subscribe(cb) ?? (() => {}),
     },
 
+    agentReads(limit, channel) {
+      const out: AgentRead[] = [];
+      const ring = deps.agentCursor?.recent?.(Number.MAX_SAFE_INTEGER) ?? []; // newest first, ≤ ring capacity
+      for (const e of ring) {
+        if (out.length >= limit) break;
+        if (!e.range || e.domain !== m.domain) continue;
+        if (channel !== undefined && e.channel !== null && e.channel !== channel) continue;
+        out.push({ seq: e.seq, channel: e.channel, seqA: e.range.seqA, seqB: e.range.seqB, actor: e.actor });
+      }
+      return out.reverse();
+    },
+
     store(topicKey) {
       return mirrors.get(topicKey) ?? open(topicKey, null);
     },
@@ -414,7 +458,7 @@ export function createPanelContext(
       // bare result or D5 envelope {data:{request_id, write_state, …}} (CAN schema v1 §3)
       const rid = result?.request_id ?? result?.data?.request_id;
       const requestId = typeof rid === 'string' ? rid : null;
-      return writeHandle(deps.rows, requestId);
+      return writeHandle(deps.rows, requestId, unwrapDomainResult<unknown>(spec.rpc, result));
     },
 
     scheduler: {
@@ -473,6 +517,11 @@ export function createPanelContext(
     ctx,
     setVisible(v) {
       handle.setVisible(v);
+      // visibility lease (net mux): a hidden panel lends its server subscription slot to a visible one
+      // only when one is needed; it keeps its instance, drafts and mirror, and is re-snapshotted when shown
+      if (leaseVisible === v) return;
+      leaseVisible = v;
+      for (const s of subByKey.values()) s.setActive?.(v);
     },
     dispose() {
       for (const s of subByKey.values()) s.close();
@@ -487,9 +536,10 @@ export function createPanelContext(
   };
 }
 
-function writeHandle(rows: RowStore, requestId: string | null): WriteHandle {
+function writeHandle(rows: RowStore, requestId: string | null, result: unknown): WriteHandle {
   return {
     requestId,
+    result,
     state: () => (requestId ? (rows.get(requestId)?.state ?? null) : null),
     onChange(cb) {
       if (!requestId) return () => {};

@@ -13,18 +13,22 @@ afterEach(() => {
   h?.dispose();
   h = null;
   vi.useRealTimers();
+  localStorage.clear(); // per-viewer prefs (mode, presets, commands) must not leak between tests
 });
 
-/** the canonical hex command line (the catalog search box is also an <input>) */
-const pduInput = (host: HTMLElement) => host.querySelector<HTMLInputElement>('[aria-label="UDS 요청 (hex)"]')!;
+/** the Raw UDS PDU editor (switches the composer to Raw like a user would; DID mode has its own field) */
+const pduInput = (host: HTMLElement) => {
+  host.querySelector<HTMLButtonElement>('.mode-seg [data-v="raw"]')!.click();
+  return host.querySelector<HTMLTextAreaElement>('[aria-label="UDS 요청 (hex)"]')!;
+};
+/** Raw editor: Enter is a newline, Ctrl/⌘+Enter sends (reference rule) */
+const ctrlEnter = () => new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true });
 /** logical-link grid: each row's title is the canonical one-line targetLine(), plus the cell text */
 const linkText = (host: HTMLElement) => {
   const b = host.querySelector<HTMLElement>('[data-testid="uds-targets"]')!;
   return `${[...b.querySelectorAll<HTMLElement>('[data-target]')].map((r) => r.title).join('\n')}\n${b.textContent}`;
 };
 const didRow = (host: HTMLElement, key: string) => host.querySelector<HTMLElement>(`[data-testid="uds-last-values"] [data-did="${key}"]`)?.textContent ?? '';
-const didCells = (host: HTMLElement, key: string) =>
-  [...(host.querySelector<HTMLElement>(`[data-testid="uds-last-values"] [data-did="${key}"]`)?.children ?? [])].map((c) => c.textContent);
 const rowsIn = (host: HTMLElement) => [...host.querySelectorAll<HTMLElement>('.vt-row[data-request-id]')].filter((e) => !e.hidden);
 
 describe('uds.console', () => {
@@ -69,7 +73,10 @@ describe('uds.console', () => {
     expect(bar).toContain('sess=extended✓');
     expect(bar).toContain('TP ✓×4');
     expect(bar).toContain('제어: AGT claude-1');
-    expect(didCells(h.host, 'bcm:F190').slice(0, 5)).toEqual(['bcm', 'F190', 'VIN', 'WVW123', '']); // target · DID · name · value · unit
+    const cv = h.host.querySelector<HTMLElement>('[data-testid="uds-last-values"] [data-did="bcm:F190"]')!;
+    expect(cv.querySelector('.cv-h')!.textContent).toBe('F190VIN');
+    expect(cv.querySelector('.cv-v')!.textContent).toBe('WVW123');
+    expect(cv.querySelector('.cv-p a')!.getAttribute('data-goto')).toBe('r1'); // provenance → source transaction
   });
 
   it('dry-run preview is debounced (150 ms) and Enter sends uds.request', async () => {
@@ -93,7 +100,7 @@ describe('uds.console', () => {
     expect(previews[0]!.params).toEqual({ target: 'bcm', bytes_hex: '22F190', dry_run: true });
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('VIN');
 
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    input.dispatchEvent(ctrlEnter());
     await vi.advanceTimersByTimeAsync(10);
     const sends = h.net.calls.filter((c) => c.method === 'uds.request' && !(c.params as { dry_run?: boolean }).dry_run);
     expect(sends).toEqual([{ method: 'uds.request', params: { target: 'bcm', bytes_hex: '22F190' } }]);
@@ -108,7 +115,7 @@ describe('uds.console', () => {
     input.value = '2E 0101 02';
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
-    const enter = () => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    const enter = () => input.dispatchEvent(ctrlEnter());
     enter();
     expect(h.net.calls.filter((c) => !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
@@ -195,7 +202,7 @@ const detailOf = (hh: Harness, id: string): Record<string, string> => {
   rowEl(hh.host, id).click();
   hh.frame();
   const out: Record<string, string> = {};
-  for (const d of hh.host.querySelectorAll('.vt-detail .disp-row')) out[d.querySelector('dt')!.textContent!] = d.querySelector('dd')!.textContent!;
+  for (const d of hh.host.querySelectorAll('[data-testid="uds-fields"] .fsnap .disp-row')) out[d.querySelector('dt')!.textContent!] = d.querySelector('dd')!.textContent!;
   rowEl(hh.host, id).click(); // deselect
   hh.frame();
   return out;
@@ -267,7 +274,7 @@ describe('uds.console — canonical row events (fixtures/*.json)', () => {
     expect(res('r-5')).toContain('⌛? 불확정');
     expect(res('r-7')).toContain('⛔ 거부');
     for (const id of ['r-3', 'r-4', 'r-5', 'r-7']) expect(res(id)).not.toMatch(/✓/);
-    expect(res('r-1')).toContain('ReadDataByIdentifier');
+    expect(res('r-1')).toContain('F190 VIN'); // DID · SID column (single-DID read)
     expect(didRow(hh.host, 'ecu1:F190')).toContain('VINLOOMSIM0000000001');
   });
 
@@ -324,7 +331,7 @@ describe('uds.console — canonical dry-run preview (fixtures/dry_run.json)', ()
     input.dispatchEvent(new Event('input'));
     await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('WriteDataByIdentifier · R2');
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    input.dispatchEvent(ctrlEnter());
     expect(h.net.calls.filter((c) => !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
@@ -373,7 +380,8 @@ describe('uds.console native late-join state', () => {
     const bar = linkText(h.host);
     expect(bar).toContain('ecu1 ○ down');
     expect(bar).not.toContain('ecu2');
-    expect(h.net.calls).toEqual([]);
+    // only the one-shot read-only hydration of a bound panel (udsStateHydrate.test.ts); nothing else
+    expect(h.net.calls).toEqual([{ method: 'uds.status', params: {} }]);
   });
 });
 
@@ -495,7 +503,14 @@ describe('fidelity: logical-link grid (TesterPresent ≠ CAN-TP, honest confiden
     const tpHead = [...h.host.querySelectorAll<HTMLElement>('[role="columnheader"]')].find((c) => c.textContent === 'TesterPresent')!;
     expect(tpHead.title).toContain('ISO-TP/CAN-TP 전송 상태가 아님');
     const all = h.host.textContent!;
-    for (const no of ['cantp', 'CAN-TP 연결', 'EthDiag', 'canoe']) expect(all).not.toContain(no);
+    for (const no of ['cantp', 'CAN-TP 연결', 'canoe']) expect(all).not.toContain(no);
+    // unsupported transports are visible but disabled and never shown connected
+    for (const v of ['cantp', 'ethdiag']) {
+      const b = h.host.querySelector<HTMLButtonElement>(`.route-seg [data-v="${v}"]`)!;
+      expect(b.disabled).toBe(true);
+      expect(b.title).toContain('백엔드 미지원');
+      expect(b.getAttribute('aria-checked')).toBe('false');
+    }
   });
 
   it('unreported link is never painted as up', () => {
@@ -525,8 +540,10 @@ describe('fidelity: transaction block + DTC pane from canonical fixtures', () =>
     h.batch([envelope(fixture('state')[0]!), ...ALL.flatMap((n) => fixture(n)).map(envelope)]);
     rowEl(h.host, 'r-3').click();
     h.frame();
-    const keys = [...h.host.querySelectorAll('.vt-detail .disp-row dt')].map((d) => d.textContent);
+    const keys = [...h.host.querySelectorAll('[data-testid="uds-fields"] .fsnap dt')].map((d) => d.textContent);
     expect(keys.slice(0, 7)).toEqual(['테스터', '서비스', '요청', '논리 링크', '응답 상태', '응답', 'NRC']);
+    rowEl(h.host, 'r-3').click(); // deselect (detailOf selects itself)
+    h.frame();
     const d = detailOf(h, 'r-3');
     expect(d['서비스']).toBe('ReadDataByIdentifier — ✗ 0x31 requestOutOfRange');
     expect(d['논리 링크']).toBe('ecu1 · sim DoIP 0x1001');
@@ -560,7 +577,7 @@ describe('fidelity: transaction block + DTC pane from canonical fixtures', () =>
     expect(pduInput(h.host).value).toBe('14 FF FF FF');
     await vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS + 1);
     expect(sends(h)).toHaveLength(0);
-    pduInput(h.host).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    pduInput(h.host).dispatchEvent(ctrlEnter());
     expect(sends(h)).toHaveLength(0); // R2 dry-run: second Enter still required
     expect(h.host.querySelector('[data-testid="uds-preview"]')!.textContent).toContain('Enter 한 번 더');
   });
@@ -584,7 +601,7 @@ describe('uds.console — D-D1 link loss: live control state, read-only history'
     h.snapshotEnd(String(BigInt(up.seq)));
     expect(pduInput(h.host).disabled).toBe(true);
     // nothing was sent while the link was down
-    pduInput(h.host).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    pduInput(h.host).dispatchEvent(ctrlEnter());
     expect(h.net.calls.filter((c) => c.method === 'uds.request' && !(c.params as { dry_run?: boolean }).dry_run)).toHaveLength(0);
     // a newer link up re-enables input
     h.net.emitControl(ev({ kind: 'uds.state', channel: 'ext_doip', payload: { target: 'ext_doip', link: { state: 'up' } } }));

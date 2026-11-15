@@ -96,3 +96,6 @@
 /* Selected annotation row: light blue with dark text (readable in this light panel surface). */
 .lg-panel .vt-row[aria-selected='true'] { background: #d6e6ff; color: #10213a; }
 .lg-panel .vt-row[aria-selected='true'] > *, .lg-panel .vt-row[aria-selected='true'] .lg-anntext { color: #10213a; }
+/* module tab: explicit engine check next to the capability line */
+.lg-caprow { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.lg-caprow .lg-capline { flex: 1; min-width: 12em; margin: 0; }

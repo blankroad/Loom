@@ -1,94 +1,188 @@
-/* eth.packets — panel-scoped styles (fidelity: docs/impl/main/research/fidelity/eth.md).
-   Every selector starts with .eth-panel; shell globals (shell.css) are left untouched. */
-
-/* ---- filter toolbar: validity lives on the field frame (Wireshark Fig 3.15) ---- */
-.eth-panel .eth-filter-row { display: flex; gap: 8px; align-items: center; }
-.eth-panel .eth-filter-row > label { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.eth-panel .eth-filter-frame {
-  flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px;
-  border: 1px solid var(--line); border-radius: 4px; background: var(--bg); padding: 0 2px;
-}
-.eth-panel .eth-filter-frame:focus-within { border-color: var(--accent); }
-.eth-panel .eth-filter-frame input {
-  flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--fg);
-  font: 12px ui-monospace, monospace; padding: 4px 4px;
-}
-.eth-panel .eth-filter-frame[data-validity='ok'] { background: #12301d; border-color: var(--ok); }
-.eth-panel .eth-filter-frame[data-validity='err'] { background: #3a1416; border-color: var(--err); }
-.eth-panel .eth-filter-frame[data-validity='fail'] { background: #33280f; border-color: var(--warn); }
-.eth-panel .eth-filter-frame[data-validity='checking'] { border-style: dashed; }
-.eth-panel .eth-filter-frame[data-dirty='true'] { box-shadow: inset 3px 0 0 var(--usr); }
-.eth-panel .eth-filter-frame button,
-.eth-panel .eth-filter-frame select {
-  border: 0; background: transparent; color: var(--muted); padding: 2px 6px; font-size: 12px; cursor: pointer;
-}
-.eth-panel .eth-filter-frame button:hover,
-.eth-panel .eth-filter-frame select:hover { color: var(--fg); background: var(--raised); }
-.eth-panel .eth-filter-frame .eth-filter-apply { color: var(--accent); font-weight: 700; }
-.eth-panel .eth-filter-frame .eth-filter-status { font-size: 11px; white-space: nowrap; }
-.eth-panel .eth-filter-applied { font-size: 11px; color: var(--muted); white-space: nowrap; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
-.eth-panel .eth-filter-applied[data-active='true'] { color: var(--ok); }
-
-/* ---- pane stack: list ═ details ═ bytes (Wireshark Fig 3.1) ---- */
-.eth-panel .eth-panes {
-  flex: 1; min-height: 0; display: grid;
+/* eth.packets — Bench Light Ethernet workbench (selected web: work/reports/ethernet-workbench/opus/styles.css).
+   Every selector starts with .eth-panel. Tokens via the --wb-* aliases (ui/src/workbench/eth/bench.css). */
+.eth-panel[data-module="eth"] {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  height: 100%;
+  min-height: 0;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows:
-    minmax(48px, var(--eth-fr-list, 45fr)) 7px auto
-    minmax(32px, var(--eth-fr-tree, 35fr)) 7px
-    minmax(28px, var(--eth-fr-bytes, 20fr));
+  grid-template-rows: 46px max-content max-content minmax(0, 1fr) max-content;
+  overflow: hidden;
+  /* packet colouring: light adaptation of the Wireshark default colouring rules (reference --pc-*) */
+  --pc-tcp: #ebe9ff; --pc-udp: #e2f1ff; --pc-arp: #fbf5dc; --pc-synfin: #e3e3e3; --pc-rst: #ffd8d3;
+  --pc-doip: #e4f6e8; --pc-someip: #f3eafd; --pc-nrc: #ffd8d3; --pc-gap: #fff1e5;
 }
-.eth-panel .eth-panes > .eth-list { grid-row: 1; min-height: 0; flex: none; }
-.eth-panel .eth-panes > .eth-split-a { grid-row: 2; }
-.eth-panel .eth-panes > .eth-detail-bar { grid-row: 3; border-bottom: 1px solid var(--line); }
-.eth-panel .eth-treehex { display: contents; }
-.eth-panel .eth-treehex > .th-tree { grid-row: 4; min-height: 0; overflow: auto; }
-.eth-panel .eth-treehex > .eth-split-b { grid-row: 5; }
-.eth-panel .eth-treehex > .th-right { grid-row: 6; min-height: 0; overflow: auto; }
+.eth-panel > * { min-width: 0; }
+.eth-panel:focus-visible { outline: none; }
 
-.eth-panel .eth-split {
-  background: var(--chrome); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-  cursor: row-resize; touch-action: none; position: relative;
-}
-.eth-panel .eth-split::after {
-  content: ''; position: absolute; left: 50%; top: 2px; width: 28px; height: 1px; margin-left: -14px;
-  border-top: 1px dotted var(--muted);
-}
-.eth-panel .eth-split:hover, .eth-panel .eth-split.dragging, .eth-panel .eth-split:focus-visible {
-  background: var(--accent); outline: none;
-}
+/* ---------- channel strip (.chbar / .chcard) ---------- */
+.eth-panel .eth-chbar { display: flex; gap: 6px; padding: 6px 8px; overflow-x: auto; border-bottom: 1px solid var(--wb-line); background: var(--wb-sf); align-items: stretch; scrollbar-width: thin; }
+.eth-panel .eth-chcard { --tag: var(--wb-accent); flex: none; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 1px 8px; align-items: center; min-width: 262px; max-width: min(720px, 100%); padding: 5px 6px 5px 10px; background: var(--wb-bg); border: 1px solid var(--wb-selbd); box-shadow: 0 0 0 1px var(--wb-selbd); border-left: 3px solid var(--tag); border-radius: var(--wb-radius); }
+.eth-panel .eth-chcard[data-state="stopped"], .eth-panel .eth-chcard[data-state="?"] { --tag: var(--wb-faint); }
+.eth-panel .eth-chcard[data-state="error"], .eth-panel .eth-chcard[data-state="PERMISSION"] { --tag: var(--wb-err); }
+.eth-panel .eth-chcard .ch-dot { grid-row: 1 / 3; width: 8px; height: 8px; border-radius: 50%; background: var(--tag); }
+.eth-panel .eth-chcard .ch-name { font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; min-width: 0; }
+.eth-panel .eth-chcard .ch-meta { grid-column: 2 / 3; font: 11px/1.35 var(--wb-mono); color: var(--wb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .eth-chcard .ch-meta .drop { color: var(--wb-warn); }
+.eth-panel .eth-chcard .ch-acts { grid-row: 1 / 3; grid-column: 3; display: flex; gap: 4px; align-items: center; }
+.eth-panel .eth-chcard.has-drop .ch-meta { color: var(--wb-warn); }
+.eth-panel .eth-chothers { display: contents; }
+.eth-panel .eth-chcard.other { box-shadow: none; border-color: var(--wb-line); cursor: pointer; max-width: 340px; }
+.eth-panel .eth-chcard.other:hover { border-color: var(--wb-selbd); }
+.eth-panel .eth-chcard.other:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
+.eth-panel .eth-chcard.other[data-state="live"] { --tag: var(--wb-ok); }
+.eth-panel .eth-ch-add { flex: none; border: 1px dashed var(--wb-line); background: transparent; border-radius: var(--wb-radius); padding: 0 12px; color: var(--wb-muted); display: flex; align-items: center; gap: 6px; font-size: 12px; min-height: 44px; cursor: pointer; }
+.eth-panel .eth-ch-add:hover:not(:disabled) { color: var(--wb-accent); border-color: var(--wb-selbd); background: var(--wb-bg); }
+.eth-panel .eth-ch-add:disabled { opacity: .5; cursor: not-allowed; }
+.eth-panel .eth-ch-note { align-self: center; color: var(--wb-muted); font-size: 12px; padding: 0 6px; }
+.eth-panel .eth-perm { align-self: center; color: var(--wb-err); background: var(--wb-err-bg); border: 1px solid #ff8182; border-radius: 6px; padding: 4px 10px; font-size: 12px; }
+.eth-panel .eth-perm[hidden] { display: none; }
 
-/* ---- packet list: dense rows, right-aligned length, unmistakable selection ---- */
+/* ---------- filter bar (.fbar) ---------- */
+.eth-panel .eth-fbar { background: var(--wb-bg); border-bottom: 1px solid var(--wb-line); padding: 5px 8px 4px; display: flex; flex-direction: column; gap: 4px; }
+.eth-panel .eth-frow { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+.eth-panel .eth-flab { font-size: 11.5px; font-weight: 600; color: var(--wb-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; min-width: 64px; }
+.eth-panel .eth-flab .wb-i { width: 13px; height: 13px; }
+.eth-panel .eth-capf { font: 11px var(--wb-mono); color: var(--wb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-left: 6px; }
+.eth-panel .eth-capf b { color: var(--wb-text); font-weight: 600; }
+.eth-panel .eth-mode-badge { font: 11.5px var(--wb-mono); color: var(--wb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--wb-line); background: var(--wb-sf); }
+.eth-panel .eth-mode-badge[data-mode="complete"] { color: var(--wb-accent); border-color: var(--wb-selbd); background: var(--wb-sel); }
+.eth-panel .eth-filter-host { flex: 1; min-width: 0; }
+.eth-panel .eth-filter { padding: 0; border: 0; }
+.eth-panel .eth-filter-row { display: flex; gap: 6px; align-items: center; }
+.eth-panel .eth-filter-row > label { font-size: 11.5px; font-weight: 600; color: var(--wb-muted); white-space: nowrap; min-width: 64px; }
+.eth-panel .eth-filter-frame { flex: 1; min-width: 120px; display: flex; align-items: center; gap: 2px; height: 26px; border: 1px solid var(--wb-line); border-radius: 6px; background: var(--wb-bg); padding: 0 2px 0 0; }
+.eth-panel .eth-filter-frame:focus-within { border-color: var(--wb-accent); box-shadow: 0 0 0 1px var(--wb-accent); }
+.eth-panel .eth-filter-frame input { flex: 1; min-width: 0; height: 24px; border: 0; outline: none; background: transparent; color: var(--wb-text); font: 12.5px var(--wb-mono); padding: 0 8px; }
+.eth-panel .eth-filter-frame[data-validity='ok'] { background: #e9f9ee; border-color: #4ac26b; }
+.eth-panel .eth-filter-frame[data-validity='err'] { background: var(--wb-err-bg); border-color: #ff8182; }
+.eth-panel .eth-filter-frame[data-validity='fail'] { background: var(--wb-warn-bg); border-color: var(--wb-warn-bd); }
+.eth-panel .eth-filter-frame[data-validity='checking'] { border-style: dashed; }
+.eth-panel .eth-filter-frame[data-dirty='true'] { box-shadow: inset 3px 0 0 var(--wb-warn-bd); }
+.eth-panel .eth-filter-frame button, .eth-panel .eth-filter-frame select { height: 22px; border: 0; border-radius: 4px; background: transparent; color: var(--wb-muted); padding: 0 7px; font-size: 12px; cursor: pointer; }
+.eth-panel .eth-filter-frame button:hover:not(:disabled), .eth-panel .eth-filter-frame select:hover { color: var(--wb-text); background: var(--wb-sf2); }
+.eth-panel .eth-filter-frame .eth-filter-apply { color: var(--wb-accent); font-weight: 600; border: 1px solid var(--wb-line); background: var(--wb-bg); }
+.eth-panel .eth-filter-frame .eth-filter-status { font-size: 11px; white-space: nowrap; color: var(--wb-muted); }
+.eth-panel .eth-filter-applied { font: 11.5px var(--wb-mono); color: var(--wb-muted); white-space: nowrap; max-width: 40%; min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .eth-filter-applied[data-active='true'] { color: var(--wb-ok); }
+.eth-panel .eth-dfcount { font: 11.5px var(--wb-mono); color: var(--wb-muted); white-space: nowrap; flex: none; }
+.eth-panel .eth-dfcount b { color: var(--wb-text); }
+.eth-panel .eth-filter-err { font-size: 11.5px; color: var(--wb-err); padding-left: 70px; }
+.eth-panel .eth-filter-err:empty { display: none; }
+.eth-panel .eth-filter-err u.err { text-decoration: wavy underline var(--wb-err); }
+
+/* ---------- workspace: capture panes + socket drawer ---------- */
+.eth-panel .eth-wsp { min-height: 0; min-width: 0; display: flex; position: relative; }
+.eth-panel .eth-panes { flex: 1; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(60px, var(--eth-list-h, 52%)) 6px minmax(80px, 1fr); padding: 6px; }
+.eth-panel .eth-panes > * { min-width: 0; }
+.eth-panel .eth-list { background: var(--wb-bg); border: 1px solid var(--wb-line); border-radius: var(--wb-radius); min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.eth-panel .eth-list .vt { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.eth-panel .eth-list .vt-head { gap: 0; padding: 0; }
+.eth-panel .eth-list .vt-head > *, .eth-panel .eth-list .vt-td { padding: 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--wb-line2); }
+.eth-panel .eth-list .vt-head > :last-child, .eth-panel .eth-list .vt-td:last-child { border-right: 0; }
+.eth-panel .eth-list .vt-row { gap: 0; padding: 0; height: 20px; line-height: 20px; background: var(--wb-bg); cursor: default; }
+.eth-panel .eth-list .vt-head > :nth-child(2), .eth-panel .eth-list .vt-row > :nth-child(2),
 .eth-panel .eth-list .vt-head > :nth-child(7), .eth-panel .eth-list .vt-td.eth-num { text-align: right; font-variant-numeric: tabular-nums; }
-.eth-panel .eth-list .vt-row.selected,
-.eth-panel .eth-list .vt-row.selected[class*='c-'] {
-  background: #1f4f7a; color: #fff; box-shadow: inset 3px 0 0 var(--accent);
-}
-.eth-panel .eth-list .vt-row.selected .muted { color: #d6e4f2; }
+.eth-panel.colorize .eth-list .vt-row.c-doip { background: var(--pc-doip); }
+.eth-panel.colorize .eth-list .vt-row.c-sd { background: var(--pc-someip); }
+.eth-panel.colorize .eth-list .vt-row.c-arp { background: var(--pc-arp); }
+.eth-panel.colorize .eth-list .vt-row.c-tcpwarn { background: var(--pc-rst); }
+.eth-panel.colorize .eth-list .vt-row.c-nrc { background: var(--pc-nrc); color: #82071e; }
+.eth-panel:not(.colorize) .eth-list .vt-row:not(.c-gap) { background: var(--wb-bg); color: var(--wb-text); }
+.eth-panel .eth-list .vt-row.c-gap { background: var(--pc-gap); color: var(--wb-warn); }
+.eth-panel .eth-list .vt-row .gap-text { color: var(--wb-warn); font-weight: 600; }
+.eth-panel .eth-list .vt-row.selected, .eth-panel.colorize .eth-list .vt-row.selected[class*='c-'] { background: var(--wb-accent); color: #fff; filter: none; }
+.eth-panel .eth-list .vt-row.selected .org, .eth-panel .eth-list .vt-row.selected .chip { color: #fff; border-color: #fff; background: transparent; }
 .eth-panel .eth-rel { text-align: center; font-weight: 700; }
-.eth-panel .eth-rel-exact { color: var(--accent); }
-.eth-panel .eth-rel-probable { color: var(--warn); }
+.eth-panel .eth-rel-exact { color: var(--wb-accent); }
+.eth-panel .eth-rel-probable { color: var(--wb-warn); }
 .eth-panel .eth-list .vt-row.selected .eth-rel { color: #fff; }
+.eth-panel .eth-list .chip { font: 600 10.5px/16px var(--wb-mono); padding: 0 4px; border-radius: 4px; border: 1px solid var(--wb-selbd); color: var(--wb-accent); background: var(--wb-sel); cursor: pointer; }
+.eth-panel .eth-list .chip-probable { border-color: var(--wb-warn-bd); color: var(--wb-warn); background: var(--wb-warn-bg); }
+.eth-panel .eth-list .org { font: 700 10px/16px var(--wb-mono); padding: 0 4px; border-radius: 4px; }
+.eth-panel .eth-list .org-agt { color: #8250df; background: #fbefff; }
+.eth-panel .eth-list .org-usr { color: #9a6700; background: #fff8c5; }
+.eth-panel .eth-list .org-dev { color: var(--wb-muted); background: var(--wb-sf2); }
+.eth-panel .eth-list .org-scr { color: #1b7c83; background: #e0f4f5; }
+.eth-panel .eth-split-a { margin: 0; }
 
-/* ---- details tree + bytes ---- */
-.eth-panel .th-tree { font: 12px ui-monospace, monospace; padding: 2px 6px; }
-.eth-panel .th-node { line-height: 18px; }
-.eth-panel .th-node.selected { background: #1f4f7a; color: #fff; }
-.eth-panel .th-right { font: 12px ui-monospace, monospace; padding: 2px 6px; background: var(--bg); }
-/* 8|8 split like a canonical hexdump: child 1 = offset, children 2..17 = bytes */
-.eth-panel .th-line > .th-b:nth-child(10) { margin-left: 8px; }
-.eth-panel .th-b.hl, .eth-panel .th-char.hl { background: #4a90d9; color: #fff; }
-.eth-panel .th-char { cursor: pointer; }
+/* lower: details | bytes, each a pane with the 26px header */
+.eth-panel .eth-lower { min-height: 0; min-width: 0; display: grid; grid-template-columns: minmax(120px, var(--eth-dtl-w, 55%)) 6px minmax(120px, 1fr); grid-template-rows: 26px minmax(0, 1fr); }
+.eth-panel .eth-treehex { display: contents; }
+.eth-panel .eth-detail-bar { grid-row: 1; grid-column: 1; }
+.eth-panel .eth-treehex > .th-tree { grid-row: 2; grid-column: 1; }
+.eth-panel .eth-treehex > .eth-split-b { grid-row: 1 / 3; grid-column: 2; }
+.eth-panel .eth-treehex > .eth-bytes-h { grid-row: 1; grid-column: 3; }
+.eth-panel .eth-treehex > .th-right { grid-row: 2; grid-column: 3; }
+.eth-panel :is(.eth-detail-bar, .eth-bytes-h) { display: flex; align-items: center; gap: 4px; padding: 0 4px 0 10px; height: 26px; background: var(--wb-sf); border: 1px solid var(--wb-line); border-radius: var(--wb-radius) var(--wb-radius) 0 0; flex-wrap: nowrap; font-size: 11.5px; font-weight: 600; color: var(--wb-muted); white-space: nowrap; overflow: hidden; min-width: 0; }
+.eth-panel .eth-detail-bar .wb-btn, .eth-panel .eth-bytes-h .wb-btn { height: 20px; font-size: 11px; padding: 0 7px; font-weight: 400; }
+.eth-panel :is(.eth-detail-bar, .eth-bytes-h) .eth-info { font: 400 11px var(--wb-mono); color: var(--wb-text); overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.eth-panel .eth-treehex > :is(.th-tree, .th-right) { min-height: 0; overflow: auto; background: var(--wb-bg); border: 1px solid var(--wb-line); border-top: 0; border-radius: 0 0 var(--wb-radius) var(--wb-radius); }
+.eth-panel .th-tree { font: 12px/19px var(--wb-mono); padding: 3px 0; color: var(--wb-text); }
+.eth-panel .th-node { line-height: 19px; padding-right: 8px; white-space: pre; }
+.eth-panel .th-node:hover { background: var(--wb-sf); }
+.eth-panel .th-node.selected { background: var(--wb-sel); color: var(--wb-text); box-shadow: inset 2px 0 0 var(--wb-accent); }
+.eth-panel .th-node:focus-visible { outline: 1px solid var(--wb-accent); outline-offset: -1px; }
+.eth-panel .th-tog { color: var(--wb-muted); }
+.eth-panel .th-right { font: 12px/19px var(--wb-mono); padding: 4px 8px; color: var(--wb-text); }
+.eth-panel .th-off { color: var(--wb-faint); margin-right: 14px; user-select: none; }
+.eth-panel .th-b { padding: 0 3px; }
+.eth-panel .th-line > .th-b:nth-child(10) { margin-left: 6px; }
+.eth-panel .th-ascii { border-left: 1px solid var(--wb-line2); padding-left: 10px; margin-left: 14px; color: var(--wb-text); }
 .eth-panel .th-ascii > .th-char:nth-child(9) { margin-left: 6px; }
-.eth-panel .th-node:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+.eth-panel :is(.th-b, .th-char).hl { background: var(--wb-hl); color: var(--wb-text); }
+.eth-panel :is(.th-b, .th-char):hover { outline: 1px solid var(--wb-selbd); }
+.eth-panel .th-note { font-family: var(--wb-ui); color: var(--wb-muted); padding: 6px 4px; }
+.eth-panel .th-note a { color: var(--wb-accent); }
 
-/* ---- bottom status bar (Wireshark Fig 3.22/3.24) ---- */
-.eth-panel .eth-statusbar {
-  display: flex; gap: 0; align-items: center; min-height: 22px; font-size: 12px;
-  border-top: 1px solid var(--line); background: var(--chrome); color: var(--muted);
-}
-.eth-panel .eth-statusbar > span { padding: 2px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.eth-panel .eth-statusbar > span + span { border-left: 1px solid var(--line); }
+/* ---------- socket test drawer (.sock) ---------- */
+.eth-panel .eth-sock { width: 396px; flex: none; background: var(--wb-bg); border-left: 1px solid var(--wb-line); min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.eth-panel .eth-sock[hidden] { display: none; }
+.eth-panel .sk-h { display: flex; align-items: center; gap: 6px; padding: 8px 8px 6px 12px; border-bottom: 1px solid var(--wb-line2); }
+.eth-panel .sk-h h2 { margin: 0; font-size: 12.5px; font-weight: 600; flex: 1; }
+.eth-panel .sk-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+.eth-panel .sk-sec { padding: 8px 12px; border-bottom: 1px solid var(--wb-line2); display: flex; flex-direction: column; gap: 6px; }
+.eth-panel .sk-sec h3 { margin: 0; font-size: 11.5px; color: var(--wb-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.eth-panel .sk-row { display: flex; gap: 6px; align-items: center; min-width: 0; flex-wrap: wrap; }
+.eth-panel .sk-row > label { font-size: 11.5px; color: var(--wb-muted); min-width: 46px; }
+.eth-panel .sk-note { font-size: 11px; color: var(--wb-muted); line-height: 1.45; }
+.eth-panel .sk-err { font-size: 11.5px; color: var(--wb-err); }
+.eth-panel .sk-err:empty { display: none; }
+.eth-panel .sk-prev { font: 11px var(--wb-mono); color: var(--wb-muted); word-break: break-all; }
+.eth-panel .sk-tpls { display: flex; flex-direction: column; gap: 4px; }
+.eth-panel .sk-tpl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 6px; align-items: center; padding: 4px 6px 4px 8px; border: 1px solid var(--wb-line2); border-radius: 6px; }
+.eth-panel .sk-tpl:hover { background: var(--wb-sf); }
+.eth-panel .sk-tpl.editing { border-color: var(--wb-warn-bd); background: var(--wb-warn-bg); }
+.eth-panel .sk-tpl .tn-name { font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eth-panel .sk-tpl .tn-sub { grid-column: 1; font: 11px var(--wb-mono); color: var(--wb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .sk-tpl .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 2px; align-items: center; }
+.eth-panel .eth-tx { flex: 1; min-height: 150px; display: flex; flex-direction: column; margin: 0 12px 8px; }
+.eth-panel .eth-tx > summary { font-size: 11.5px; color: var(--wb-muted); font-weight: 600; padding: 6px 0; cursor: pointer; }
+.eth-panel .eth-tx-host { flex: 1; height: auto; min-height: 120px; display: flex; flex-direction: column; border: 1px solid var(--wb-line); border-radius: 6px; overflow-x: auto; overflow-y: hidden; }
+.eth-panel .eth-tx-host > .vt { min-width: 540px; }
+.eth-panel .eth-tx-host .vt-head > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- bottom status line ---------- */
+.eth-panel .eth-statusbar { display: flex; align-items: center; min-height: 22px; font: 11px var(--wb-mono); border-top: 1px solid var(--wb-line); background: var(--wb-sf); color: var(--wb-muted); white-space: nowrap; overflow: hidden; }
+.eth-panel .eth-statusbar > span { padding: 0 10px; overflow: hidden; text-overflow: ellipsis; }
+.eth-panel .eth-statusbar > span + span { border-left: 1px solid var(--wb-line); }
 .eth-panel .eth-statusbar .eth-sb-field { flex: 1; min-width: 0; }
-.eth-panel .eth-statusbar[data-selected='packet'] .eth-sb-field { color: var(--fg); }
-.eth-panel .eth-tx { border-top: 1px solid var(--line); }
+.eth-panel .eth-statusbar[data-selected='packet'] .eth-sb-field { color: var(--wb-text); }
+
+/* ---------- responsive (container: dock panel width) ---------- */
+@container (max-width: 1180px) {
+  .eth-panel .eth-sock { position: absolute; right: 0; top: 0; bottom: 0; z-index: 40; box-shadow: -10px 0 30px rgba(31, 35, 40, .18); max-width: 100%; }
+}
+@container (max-width: 860px) {
+  .eth-panel .eth-lower { grid-template-columns: minmax(0, 1fr); grid-template-rows: 26px minmax(40px, 1fr) 26px minmax(40px, 1fr); }
+  .eth-panel .eth-treehex > .eth-split-b { display: none; }
+  .eth-panel .eth-treehex > .eth-bytes-h { grid-row: 3; grid-column: 1; margin-top: 6px; }
+  .eth-panel .eth-treehex > .th-right { grid-row: 4; grid-column: 1; }
+  .eth-panel .wb-ctx { display: none; }
+}
+@container (max-width: 560px) {
+  .eth-panel .eth-sock { width: 100%; }
+  .eth-panel .eth-flab, .eth-panel .eth-filter-row > label { min-width: 0; }
+}
+.eth-panel .eth-export-path { font: 12px var(--wb-mono); overflow-wrap: anywhere; user-select: all; }

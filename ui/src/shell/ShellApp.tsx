@@ -1,26 +1,27 @@
 // Shell root (plan §5.1.1). Hash routes: `#/l/<preset>`, `#/p/<domain>/<panel>`,
 // `#/need-auth`.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStoreVersion } from '../store/hooks';
 import { ActivityStrip } from './ActivityStrip';
 import { ApprovalQueue } from './Approvals';
 import { AriaAnnouncer, Banners, Toasts } from './Banners';
 import { ChannelBar, HeartbeatClock } from './ChannelBar';
-import { NEED_AUTH_TEXT, RETURN_KEY } from './bootstrap';
+import { DEFAULT_ROUTE_KEY, NEED_AUTH_TEXT, RETURN_KEY } from './bootstrap';
 import { ConfirmLayer } from './ConfirmLayer';
 import { FocusPrompt, TabSettingsControls } from './FocusPrompt';
 import { DockLayout, LayoutBar } from './dock/DockLayout';
 import { retainsHistoryAfterClose } from './dock/activeWorkspace';
 import { viewsForChannel } from '../store/channels';
-import { parseRoute } from './routes';
+import { parseRoute, routeModule } from './routes';
 import { installPrefixKeys } from './prefixKeys';
 import type { ShellServices } from './services';
 import { ShellCtx, useServices } from './ShellContext';
 import { StopPanel } from './StopPanel';
-import { ServiceNav } from './ServiceNav';
 import { DIAGNOSTIC_OBSERVATION_DOMAINS, SERVICE_LABELS } from './routes';
 import { TopBar } from './TopBar';
+import { UartRail, UartStatus, useUartModule } from '../workbench/uart/UartWorkbench';
+import { uartBench } from '../workbench/uart/workbench';
 import { WorkbenchWelcome } from './WorkbenchWelcome';
 import { StepBand } from './test/TestScreen';
 import './shell.css';
@@ -97,16 +98,100 @@ function useHashRoute() {
   return parseRoute(hash);
 }
 
+const GENERIC_RAIL_ICON = 'M2 3h12v10H2zM5 6h6M5 8.5h6M5 11h3';
+
+/** Startup only: a bootstrap/default route (not an explicit user route) with UART as the sole live service
+ * lands on the agreed UART workbench. Explicit routes, saved layouts and later navigation are never overridden.
+ *
+ * Eligibility is captured ONCE per mount by a pure read (no storage writes during render, so StrictMode's double
+ * initializer call and effect mount → unmount → remount see the same answer). The bootstrap marker is consumed
+ * only at a completion boundary (routed, decided otherwise, navigated away, timed out, page hidden), idempotently. */
+function useStartupModuleRoute(): void {
+  const { shell } = useServices();
+  const [startHash] = useState(autoDefaultStartHash);
+  const pending = useRef<boolean>(startHash !== null);
+  useEffect(() => {
+    if (startHash === null || !pending.current) return;
+    const unchanged = () => currentHash() === startHash;
+    let off: (() => void) | null = null;
+    let giveUp: ReturnType<typeof setTimeout> | null = null;
+    // StrictMode/real unmount only detaches: the marker stays for the remount, which reuses `pending`/`startHash`
+    const detach = () => {
+      off?.();
+      off = null;
+      if (giveUp !== null) clearTimeout(giveUp);
+      giveUp = null;
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('pagehide', settle);
+    };
+    const settle = () => {
+      pending.current = false;
+      detach();
+      consumeDefaultRouteMarker();
+    };
+    // only a real navigation (a different route) cancels; the bootstrap's own hash write may dispatch late
+    const onHash = () => { if (pending.current && !unchanged()) settle(); };
+    const check = () => {
+      if (!pending.current) return;
+      if (!unchanged()) { settle(); return; }
+      const open = [...shell.channels.values()].filter((c) => c.state === 'open');
+      if (!open.length) return;
+      settle();
+      if (open.every((c) => c.domain === 'uart')) location.replace('#/s/uart');
+    };
+    window.addEventListener('hashchange', onHash);
+    window.addEventListener('pagehide', settle);
+    giveUp = setTimeout(settle, 6_000);
+    off = shell.subscribe(check);
+    check();
+    return detach;
+  }, [shell, startHash]);
+}
+function currentHash(): string {
+  const h = typeof location === 'undefined' ? '' : location.hash;
+  return h === '#' ? '' : h;
+}
+/** PURE: the start hash when this start is a bootstrap/default route, else null. Never mutates storage. */
+function autoDefaultStartHash(): string | null {
+  const h = currentHash();
+  if (h === '' || h === '#/') return h;
+  if (h !== '#/l/m1-default') return null;
+  try {
+    return sessionStorage.getItem(DEFAULT_ROUTE_KEY) === '1' ? h : null;
+  } catch {
+    return null;
+  }
+}
+/** Idempotent completion cleanup of the bootstrap marker. */
+function consumeDefaultRouteMarker(): void {
+  try {
+    sessionStorage.removeItem(DEFAULT_ROUTE_KEY);
+  } catch {
+    /* storage blocked: nothing to clean */
+  }
+}
+
 function ShellBody() {
   const s = useServices();
   const { shell, stop, uiState, net, gate, toasts } = s;
   useStoreVersion(shell);
+  useStoreVersion(uiState); // visible per-module dock changed (s.dock.current) → chrome re-reads it
   const route = useHashRoute();
+  const module = routeModule(route);
+  const isUart = module === 'uart';
+  const ownsToolbar = module === 'eth' || module === 'uds'; // B's panels render their own 46px module toolbar
+  const uart = useUartModule(isUart);
+  const [genericSide, setGenericSide] = useState<Record<string, boolean>>({});
+  const genericKey = module ?? 'integrated';
+  const genericSideOpen = genericSide[genericKey] ?? (module === null);
+  const sideOpen = isUart ? uart.sideOpen : genericSideOpen;
+  useStartupModuleRoute();
+  useEffect(() => uartBench.attach(s), [s]);
   // A stopped ETH capture view that is still docked (retained or explicitly reopened history) is real content:
   // closing the last live interface must not cover it with the empty welcome. Closed UART/CAN views are pruned anyway.
   const retainedHistory = [...shell.channels.values()].some((c) => c.state === 'closed' && retainsHistoryAfterClose(c.domain)
     && viewsForChannel(c.domain, c.channel).some((v) => s.dock.current?.find({ panel: v.panel, props: v.props })));
-  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && !retainedHistory && route.kind === 'layout' && route.name === 'm1-default' && !s.layouts.list().includes(route.name);
+  const welcome = ![...shell.channels.values()].some((channel) => channel.state === 'open') && !retainedHistory && route.kind === 'layout' && route.name === 'm1-default' && !route.service && !s.layouts.list().includes(route.name);
 
   useEffect(
     () =>
@@ -142,47 +227,53 @@ function ShellBody() {
   }, [net, shell.version, route.kind]);
 
   if (route.kind === 'need-auth') return <NeedAuth reason={route.reason} />;
+  const toggleGeneric = () => setGenericSide({ ...genericSide, [genericKey]: !genericSideOpen });
+  const sideDomains = route.kind === 'layout' && route.service ? route.service === 'uds' ? DIAGNOSTIC_OBSERVATION_DOMAINS : [route.service] : route.kind === 'panel' ? [route.slot.panel.split('.')[0]!] : undefined;
   return (
-    <div className="shell" data-testid="loom-shell" data-env={shell.env ?? 'unknown'} data-locked={shell.status.writeLocked}>
-      <TopBar />
+    <div className="shell" data-testid="loom-shell" data-theme="light" data-module={module ?? 'integrated'} data-env={shell.env ?? 'unknown'} data-locked={shell.status.writeLocked}>
+      <TopBar route={route} />
       <Banners />
       <StopPanel />
-      <div className="workbench-body">
-        <aside className="workbench-sidebar" aria-label="인터페이스 탐색기">
-          <ServiceNav route={route} />
-          <ChannelBar domains={route.kind === 'layout' && route.service ? route.service === 'uds' ? DIAGNOSTIC_OBSERVATION_DOMAINS : [route.service] : route.kind === 'panel' ? [route.slot.panel.split('.')[0]!] : undefined} />
-          <div className="sidebar-guide">
-            <span className="eyebrow">탐색 안내</span>
-            <p>인터페이스를 선택해 작업 패널을 여세요.</p>
-            <span>패널을 열어도 장치에 연결하거나 데이터를 보내지 않습니다.</span>
+      <div className="bl-body">
+        {/* One frame for every route (REV6.1 .mod-uart grid: rail | toolbar / side | work). The element path to the
+            Dockview never changes, so switching services keeps every live panel instance. */}
+        <main className={`mod-uart${isUart ? '' : ' mod-generic'}${sideOpen ? '' : ' side-collapsed'}${ownsToolbar ? ' mod-bare' : ''}`} id="modUart" data-module={module ?? 'integrated'}>
+          <nav className="rail" aria-label={isUart ? 'UART 패널' : '작업 공간 패널'} hidden={ownsToolbar}>
+            {isUart ? <UartRail /> : <button type="button" data-side="interfaces" aria-pressed={sideOpen} aria-controls="side" title="인터페이스 목록 — 다시 누르면 접기" onClick={toggleGeneric}><svg className="i" viewBox="0 0 16 16" aria-hidden="true"><path d={GENERIC_RAIL_ICON} /></svg><span>인터페이스</span></button>}
+          </nav>
+          <div className="mtbar" role="toolbar" aria-label={isUart ? 'UART 작업 공간' : '작업 공간'} hidden={ownsToolbar}>
+            {isUart ? uart.toolbar : <>
+              <button type="button" className="tbtn" aria-pressed={sideOpen} aria-controls="side" title="인터페이스 목록 접기/펼치기" onClick={toggleGeneric}><svg className="i" viewBox="0 0 16 16" aria-hidden="true"><path d={GENERIC_RAIL_ICON} /></svg><span>{sideOpen ? '목록 접기' : '목록 펼치기'}</span></button>
+              <span className="vdiv" />
+              {module === null && <LayoutBar route={route} />}
+              <span className="grow" />
+              <TabSettingsControls />
+              <button type="button" className="tbtn" title="키보드 단축키 (Ctrl-] ?)" onClick={() => uiState.setHelpOpen(true)}><svg className="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8.5" rx="1.5" /><path d="M4 7h.01M6.5 7h.01M9 7h.01M11.5 7h.01M5 10h6" /></svg>단축키</button>
+            </>}
           </div>
-        </aside>
-        <div className="workbench-main">
-          <div className="workspace-heading">
-            <div><span className="eyebrow">{route.kind === 'layout' && route.service ? route.service === 'uds' ? 'DIAGNOSTICS' : 'SERVICE' : 'WORKSPACE'}</span><h1>{route.kind === 'layout' && route.service ? route.service === 'uds' ? 'UDS 진단' : `${SERVICE_LABELS[route.service]} 서비스` : '통합 작업 공간'}</h1></div>
-            <button type="button" className="help-button" onClick={() => uiState.setHelpOpen(true)} title="키보드 단축키 (Ctrl-] ?)">단축키 <kbd>?</kbd></button>
-          </div>
-          <div className="sub-bar" role="region" aria-label="워크스페이스 도구">
-            {!(route.kind === 'layout' && route.service) && <LayoutBar route={route} />}
-            <TabSettingsControls />
-          </div>
-          {route.kind === 'layout' && route.service === 'uds' && <div className="diagnostic-context" role="note">현재 연결 지원: DoIP·시뮬레이터. CAN·Ethernet 관찰 패널은 선택 ECU와의 대응 관계를 의미하지 않습니다.</div>}
-          <div className={`workspace-surface${welcome ? ' has-welcome' : ''}`}>
-            <div className="workspace-dock" inert={welcome || undefined} aria-hidden={welcome || undefined}>
-              <DockLayout route={route} />
+          <aside className="side" id="side" aria-label={isUart ? '세션과 매크로' : '인터페이스 탐색기'} hidden={ownsToolbar}>
+            {isUart ? uart.side : ownsToolbar ? null : <ChannelBar domains={sideDomains} />}
+          </aside>
+          <section className="work" aria-label="작업 공간">
+            {route.kind === 'layout' && route.service === 'uds' && <div className="diagnostic-context" role="note">현재 연결 지원: DoIP·시뮬레이터. CAN·Ethernet 관찰 패널은 선택 ECU와의 대응 관계를 의미하지 않습니다.</div>}
+            <div className={`workspace-surface${welcome ? ' has-welcome' : ''}`}>
+              <div className="workspace-dock" inert={welcome || undefined} aria-hidden={welcome || undefined}>
+                <DockLayout route={route} />
+              </div>
+              {welcome && <WorkbenchWelcome />}
             </div>
-            {welcome && <WorkbenchWelcome />}
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
-      <footer className="foot">
+      <footer className="shell-status foot" data-shell="status">
+        {isUart ? <UartStatus /> : <span className="st-target">{module ? `${SERVICE_LABELS[module]} · 열린 ${[...shell.channels.values()].filter((c) => c.state === 'open' && c.domain === module).length}` : `통합 작업 공간 · 열린 인터페이스 ${[...shell.channels.values()].filter((c) => c.state === 'open').length}`}</span>}
+        <span className="grow" />
         <StepBand />
         <ActivityStrip />
-        <div className="keys">
-          <span className="shortcut-hint"><kbd>Ctrl-]</kbd> <kbd>x</kbd> STOP <span>·</span> <kbd>m</kbd> 마커 <span>·</span> <kbd>?</kbd> 도움말</span>
-          <span className="footer-status"><span>LOOM / {shell.env ?? 'unknown'}</span><HeartbeatClock /></span>
-        </div>
+        <span className="keys"><span className="shortcut-hint"><kbd>Ctrl-]</kbd> <kbd>x</kbd> STOP</span>
+          <span className="footer-status"><span>LOOM / {shell.env ?? 'unknown'}</span><HeartbeatClock /><button type="button" title="단축키 (Ctrl-] ?)" onClick={() => uiState.setHelpOpen(true)}>?</button></span></span>
       </footer>
+      {uart.layer}
       <ApprovalQueue />
       <ConfirmLayer />
       <HelpOverlay />

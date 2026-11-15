@@ -32,10 +32,14 @@ import {
   type PanelContext,
   type PanelInstance,
   type PanelManifest,
+  type RowView,
+  type StoreMirror,
 } from '../../sdk';
 import './can.css';
+import { createCanConnect, type CanConnectSection } from './canConnect';
 import { formatFrame, parseSendLine } from './sendLine';
 import {
+  AGENT_RANGES,
   bytesForRows,
   CanTraceModel,
   DISPLAY_BUDGET_ROWS_PER_S,
@@ -111,9 +115,34 @@ const setText = (e: HTMLElement, t: string) => {
 };
 const fmtN = (n: number) => n.toLocaleString('ko-KR');
 
-export function channelOf(props: Readonly<Record<string, unknown>>): string {
+/** bound channel (`channel`, legacy `ch`); null = unbound module application (no implicit ch0) */
+export function channelOf(props: Readonly<Record<string, unknown>>): string | null {
   const c = props.channel ?? props.ch;
-  return typeof c === 'string' && c ? c : 'ch0';
+  return typeof c === 'string' && c ? c : null;
+}
+
+/** Never-fed mirror for the unbound module: no subscription is opened (ctx.store is lazy). */
+const idleMirror = (): StoreMirror<LoomEvent> => ({
+  snapshot: null,
+  snapshotDone: true,
+  headSeq: 0n,
+  gaps: [],
+  tail: () => [],
+  after: () => [],
+  overwritten: 0,
+  project: async () => ({ rows: [], fromSeq: null, toSeq: null, truncated: false }),
+  onAppend: () => () => {},
+});
+const IDLE_ROWS: RowView = { list: () => [], get: () => undefined, onChange: () => () => {}, evicted: 0, rejected: 0 };
+
+/**
+ * Bound stream state from the mirror: 'waiting' while the newest mark is the net layer's
+ * subscription-cap park and no snapshot has arrived; 'live' otherwise; 'unbound' without a channel.
+ */
+export function subWaitOf(mirror: Pick<StoreMirror<LoomEvent>, 'gaps' | 'snapshotDone'>, bound: boolean): 'unbound' | 'waiting' | 'live' {
+  if (!bound) return 'unbound';
+  const g = mirror.gaps[mirror.gaps.length - 1];
+  return !mirror.snapshotDone && g?.kind === 'resync' && g.cause.startsWith('subscription_cap') ? 'waiting' : 'live';
 }
 
 export type CanView = 'rxtx' | 'trace';
@@ -148,12 +177,14 @@ export function parseIdFilter(s: string): Set<number> | null {
 }
 
 export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): PanelInstance {
-  const channel = channelOf(ctx.props);
+  const bound = channelOf(ctx.props);
+  /** unbound: the full application with empty data; alias-dependent operations stay disabled */
+  const channel = bound ?? '';
   const now = opts.now ?? (() => performance.now());
   const model = new CanTraceModel({ capacity: rowsOf(ctx.props), now, recordOk: () => ctx.recordHealth === 'ok' });
-  const mirror = ctx.store('can');
-  const actMirror = ctx.store('activity');
-  const rowView = ctx.rows({ domain: 'can', channel });
+  const mirror = bound ? ctx.store('can') : idleMirror();
+  const actMirror = bound ? ctx.store('activity') : idleMirror();
+  const rowView = bound ? ctx.rows({ domain: 'can', channel: bound }) : IDLE_ROWS;
   const mine = new Set<string>(); // FIFO ≤ MY_REQ_MAX
   const isMine = (rid: string) => mine.has(rid);
 
@@ -161,8 +192,9 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   const root = el('div', 'can-trace');
   root.dataset.testid = 'can-trace';
   root.dataset.channel = channel;
+  root.dataset.bound = String(bound !== null);
   const top = el('div', 'ct-bar-top');
-  const chLabel = el('span', 'mono', `CAN ${channel}`);
+  const chLabel = el('span', 'mono', bound ? `CAN ${bound}` : 'CAN · 채널 미선택');
   const envBadge = el('span', 'muted');
   const live = el('span', 'ct-live');
   live.dataset.testid = 'can-live';
@@ -271,7 +303,9 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   tabRxTx.addEventListener('click', () => setView('rxtx'));
   tabTrace.addEventListener('click', () => setView('trace'));
 
-  root.append(createLatchLine(ctx), top, tableHost, rxtx.root, send, status);
+  // unbound module: interface/connect section above the (empty) tools
+  const connect: CanConnectSection | null = bound ? null : createCanConnect(ctx, () => curView);
+  root.append(createLatchLine(ctx), ...(connect ? [connect.root] : []), top, tableHost, rxtx.root, send, status);
   setView(curView);
 
   // ---------------- ingest ----------------
@@ -357,6 +391,15 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   };
 
   let lastActSeq = -1n;
+  // agent reads made before this panel mounted (or before a reload's shell snapshot): the live-only
+  // activity topic has no replay, so seed once from the shell's bounded Activity ring (read-only, no
+  // subscription/call). lastActSeq dedups the live topic against the seeded seqs.
+  if (bound) {
+    for (const r of ctx.agentReads(AGENT_RANGES, channel)) {
+      if (r.seq > lastActSeq) lastActSeq = r.seq;
+      model.addAgentRange(Number(r.seqA), Number(r.seqB), r.actor, now());
+    }
+  }
   const consumeActivity = () => {
     let changed = false;
     for (const ev of actMirror.after(lastActSeq)) {
@@ -431,6 +474,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
     msg.classList.toggle('err', err);
   };
   const doSend = () => {
+    if (!bound) return; // unbound: nothing to send to (input is disabled too)
     const r = parseSendLine(input.value, channel);
     if (!r.ok) {
       input.setAttribute('aria-invalid', 'true');
@@ -471,7 +515,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   };
   const sendEntry = (uid: number) => {
     const e = txList.get(uid);
-    if (!e) return;
+    if (!e || !bound) return;
     rxtx.say(`▶ ${e.text} …`);
     sendParams({ ...e.params }, e.text, (rid, err) => {
       if (err === null) {
@@ -515,7 +559,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
     previewAbort?.abort();
     previewAbort = null;
     const gen = ++previewGen;
-    if (!params) {
+    if (!params || !bound) {
       setRisk('R?', `입력하면 등급을 미리 봅니다 — ${RISK_HINT}`, 'idle');
       return;
     }
@@ -542,7 +586,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
   };
 
   input.addEventListener('input', () => {
-    if (!input.value.trim()) {
+    if (!input.value.trim() || !bound) {
       input.removeAttribute('aria-invalid');
       schedulePreview(null);
       return;
@@ -647,11 +691,15 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
     }
     // U-3: same lock as the shell's ActionGate (STALLED / disconnected) — disabled, not "refused on Enter"
     const hasRight = ctx.rights.has('operate') || ctx.rights.has('approve');
-    const writable = hasRight && !ctx.writeLocked;
+    connect?.update(hasRight && !ctx.writeLocked, hasRight);
+    // unbound: no alias to send to — every send path stays disabled until a channel is bound
+    const writable = bound !== null && hasRight && !ctx.writeLocked;
     if (input.disabled === writable) {
       input.disabled = !writable;
       sendBtn.disabled = !writable;
-      input.placeholder = writable ? '0x300#00 · 18DAF110#02 10 03 · fd 0x123#…' : hasRight ? '연결 STALLED — 쓰기 잠김' : '송신은 operate 권한 필요';
+      input.placeholder = writable
+        ? '0x300#00 · 18DAF110#02 10 03 · fd 0x123#…'
+        : !bound ? '채널을 연결하거나 선택하면 송신할 수 있습니다' : hasRight ? '연결 STALLED — 쓰기 잠김' : '송신은 operate 권한 필요';
     }
     rxtx.setWritable(writable);
     // Receive list redraw: every frame while cheap; once a draw costs > RXTX_SLOW_MS (large id
@@ -682,6 +730,14 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
       `보이는 ${fmtN(view.listCount)} / 링 ${fmtN(model.count)} (상한 ${fmtN(model.capacity)})`,
       `수신 ${fmtN(Math.round(fpsIn))} fps · 화면 ${fmtN(Math.round(dispRate))} 행/s`,
     ];
+    // genuine capacity: the bound stream is waiting for a server subscription slot (net mux parked it)
+    const wait = subWaitOf(mirror, bound !== null);
+    if (root.dataset.subscription !== wait) root.dataset.subscription = wait;
+    if (wait === 'waiting') {
+      parts.unshift('구독 대기 — 이 연결의 서버 구독 8개를 보이는 패널이 모두 쓰는 중 (다른 보기를 숨기거나 닫으면 자동 연결)');
+      setText(live, '구독 대기');
+      if (live.className !== 'ct-live degraded') live.className = 'ct-live degraded';
+    }
     if (model.omitted) parts.push(`화면 생략 누적 ${fmtN(model.omitted)}`);
     if (model.evicted) parts.push(`보관 범위 밖 ${fmtN(model.evicted)} → 질의`);
     setText(status, parts.join(' · '));
@@ -717,6 +773,7 @@ export function createCanTrace(ctx: PanelContext, opts: CanTraceOptions = {}): P
     },
     dispose() {
       clearInterval(tick);
+      connect?.dispose();
       if (previewTimer !== null) cancel(previewTimer);
       previewAbort?.abort();
       offFrame();
@@ -740,21 +797,28 @@ export const CAN_TRACE_MANIFEST: PanelManifest = {
   topics: [
     {
       key: 'can',
-      filter: (p) => ({ domains: ['can'], channels: [channelOf(p)] }),
+      // unbound panels never open this topic (ctx.store is not called); '' would match no channel anyway
+      filter: (p) => ({ domains: ['can'], channels: [channelOf(p) ?? ''] }),
       snapshot: 'required',
       mirrorRows: MIRROR_ROWS,
     },
     {
-      // identical (filter, options) to the shell's Activity subscription → the net layer
-      // shares ONE server subscription (contract v1: ≤ 8 per viewer connection)
+      // agent-read ranges: live core.activity (the daemon publishes it as domain core). Contained in the
+      // shell's single stream {domains:[core,test]} and live-only, so the net layer serves it from that
+      // stream (narrow) and it never costs one of the connection's 8 server subscriptions.
       key: 'activity',
-      filter: () => ({ kinds: ['core.activity'] }),
-      snapshot: 'required',
+      filter: () => ({ domains: ['core'], kinds: ['core.activity'] }),
+      snapshot: 'none',
     },
   ],
   // can.send is also a query, but only with dry_run:true (risk preview; SDK enforces it)
-  queries: ['can.trace.query', 'can.send'],
-  actions: [{ id: 'send', rpc: 'can.send', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 1회 송신' }],
+  // can.status: unbound module lists already-open channels (explicit button, read-only)
+  queries: ['can.trace.query', 'can.send', 'can.status'],
+  actions: [
+    { id: 'send', rpc: 'can.send', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 1회 송신' },
+    // unbound module: explicit open of the selected backend (can_sim only); navigation never calls it
+    { id: 'open', rpc: 'can.open', class: 'request', right: 'operate', confirm: 'none', label: 'CAN 채널 열기' },
+  ],
   // ring at the 2M upper bound + mirror; default 100k rows uses ~1/20 of this
   memory: { maxBytes: Math.ceil(bytesForRows(ROWS_MAX) + 16 * 1024 * 1024) },
   render: { maxHz: 60, budgetMs: 8, lagTargetMs: 150 },

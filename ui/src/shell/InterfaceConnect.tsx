@@ -4,6 +4,7 @@ import { unwrapDomainResult } from '../sdk/rpcEnvelope';
 import { defaultPanelFor } from '../store/channels';
 import { useStoreVersion } from '../store/hooks';
 import { useServices } from './ShellContext';
+import { SERVICE_LABELS, SERVICE_TAB_ORDER, type ServiceDomain } from './routes';
 import './interfaceConnect.css';
 
 type Domain = 'uart' | 'can' | 'uds' | 'eth';
@@ -37,16 +38,17 @@ export function connectionRequest(draft: ConnectionDraft): { rpc: string; params
   }
 }
 
-/** Workbench modules that open as a panel without opening a device; the source is chosen inside the panel. */
-export const MODULE_LAUNCHERS = [
-  { id: 'video', label: '비디오 캡처 작업대', note: '장치·카메라를 열지 않습니다. 소스는 작업대에서 명시적으로 선택합니다(열기는 operate 권한).', slot: { panel: 'video.workbench', props: {} } },
-] as const;
+/** The seven permanent module applications (top tabs). Launching is NAVIGATION ONLY: the module page opens no
+ * device; its own Connect/configuration (saved UART sessions, ETH capture source, UDS ECU presets, …) is explicit. */
+export const MODULE_LAUNCHERS: readonly { id: ServiceDomain; label: string; route: string }[] = SERVICE_TAB_ORDER.map((id) => ({
+  id, label: `${id === 'uds' ? 'UDS 진단' : SERVICE_LABELS[id]} 작업대`, route: `#/s/${id}`,
+}));
 
 const LABEL: Record<Domain, string> = { uart: 'UART · 시리얼', can: 'CAN · 버스', uds: 'UDS · DoIP', eth: 'Ethernet · 캡처' };
 const ADDRESS: Record<Domain, string> = { uart: '/dev/ttyUSB0 또는 COM3', can: '', uds: '192.168.0.10', eth: 'en0 또는 eth0' };
 
 export function InterfaceConnect() {
-  const { shell, net, gate, showSlot, toasts } = useServices();
+  const { shell, net, gate, showSlot, toasts, dock } = useServices();
   useStoreVersion(shell);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ConnectionDraft>({ domain: 'uart', name: '', simulated: true, address: '', baud: '115200' });
@@ -60,12 +62,11 @@ export function InterfaceConnect() {
   const title = useId();
   const portList = useId();
   const allowed = shell.can('operate') && !shell.status.writeLocked;
-  const launch = (slot: (typeof MODULE_LAUNCHERS)[number]['slot']) => {
+  const launch = (m: (typeof MODULE_LAUNCHERS)[number]) => {
     if (pending) return;
-    // observation-only: shows the panel; no RPC, no device, no fake active channel
-    showSlot({ panel: slot.panel, props: { ...slot.props } });
+    // navigation only: the module page opens devices explicitly (no RPC, no channel)
+    window.location.assign(m.route);
     setOpen(false);
-    trigger.current?.focus();
   };
 
   useEffect(() => {
@@ -102,9 +103,11 @@ export function InterfaceConnect() {
       const name = draft.name.trim();
       if (shell.channels.get(`${draft.domain}/${name}`)?.state === 'open') throw new Error('같은 이름의 인터페이스가 이미 연결되어 있습니다. 다른 이름을 사용하세요.');
       setPending(true);
+      const origin = dock.current;
       await gate.run({ id: 'interface.connect', rpc: request.rpc, class: 'request', right: 'operate', confirm: 'none', label: `${LABEL[draft.domain]} 연결` }, request.params);
       const slot = defaultPanelFor(draft.domain, name);
-      if (slot) showSlot(slot);
+      // a completion after the visible workspace changed never injects into the new front dock (no navigation either)
+      if (slot && dock.current === origin) showSlot(slot);
       toasts.push(`${name} 연결 요청을 보냈습니다. 실제 상태는 인터페이스 목록에서 확인하세요.`);
       setOpen(false);
       trigger.current?.focus();
@@ -133,7 +136,8 @@ export function InterfaceConnect() {
           {error && <p className="interface-error" role="alert">{error}</p>}
           <section className="interface-modules" aria-label="작업대 모듈">
             <span className="interface-eyebrow">MODULES</span>
-            {MODULE_LAUNCHERS.map((m) => <div key={m.id} className="interface-module"><button type="button" data-testid={`launch-${m.id}`} disabled={pending} onClick={() => launch(m.slot)}>{m.label} 열기</button><p className="muted">{m.note}</p></div>)}
+            <p className="muted">상단 탭과 같은 모듈 작업대입니다. 여는 것만으로 장치를 열거나 송신하지 않습니다.</p>
+            {MODULE_LAUNCHERS.map((m) => <div key={m.id} className="interface-module"><button type="button" data-testid={`launch-${m.id}`} disabled={pending} onClick={() => launch(m)}>{m.label} 열기</button></div>)}
           </section>
           <footer><button type="button" disabled={pending} onClick={close}>취소</button><button type="submit" className="interface-primary" disabled={pending || !allowed}>{pending ? '연결 중…' : '연결'}</button></footer>
         </form>

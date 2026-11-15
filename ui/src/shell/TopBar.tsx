@@ -7,6 +7,8 @@ import { useStoreVersion } from '../store/hooks';
 import type { StopPhase } from '../store/stopController';
 import { useServices } from './ShellContext';
 import { TestBadge } from './test/TestScreen';
+import { ServiceNav } from './ServiceNav';
+import type { Route } from './routes';
 
 const ENV_LABEL: Record<Env, string> = { sim: 'SIM', bench: 'BENCH', vehicle: 'VEHICLE' };
 
@@ -96,30 +98,41 @@ function agoText(wallMs: number): string {
   return `${s}s 전`;
 }
 
-export function TopBar() {
+/**
+ * Bench Light header (44px): brand · service tabs · env chip · connection chip · compact live/REC/viewers/agent ·
+ * approvals · rights · STOP. STOP stays in the same place on every route.
+ */
+export function TopBar({ route }: { route?: Route }) {
   const { shell, activity, uiState } = useServices();
   useStoreVersion(shell);
   useStoreVersion(activity);
   const latestAgent = activity.recent(50).find((e) => e.origin === 'agent' || e.origin === 'script');
   const approvals = shell.approvals.size;
+  const open = [...shell.channels.values()].filter((c) => c.state === 'open');
+  const uartOpen = open.filter((c) => c.domain === 'uart').length;
   return (
-    <header className="top-bar" role="banner" data-env={shell.env ?? 'unknown'}>
-      <span className="brand"><span className="brand-mark" aria-hidden="true">L</span>Loom<span className="brand-caption">Workbench</span></span>
+    <header className="shell-hdr top-bar" role="banner" data-shell="header" data-env={shell.env ?? 'unknown'}>
+      <a className="brand" href="#/l/m1-default" title="Loom 통합 작업 공간"><span className="brand-mark" aria-hidden="true">L</span><span className="brand-label">Loom</span></a>
+      {route && <ServiceNav route={route} />}
+      <span className="grow" />
       <EnvBadge env={shell.env} />
-      <span className={`connection connection-${shell.conn.status}`} data-testid="connection-status" title={shell.conn.status === 'closed' ? shell.conn.reason : 'Loom 서버 연결'}>
-        <span className="connection-dot" aria-hidden="true" />
-        {shell.conn.status === 'open' ? '연결됨' : shell.conn.status === 'closed' ? '연결 끊김' : '연결 중'}
+      <span className="conn-chip" title={`열린 인터페이스 ${open.length}개 (UART ${uartOpen})`}>
+        <span className={`connection connection-${shell.conn.status}`} data-testid="connection-status" title={shell.conn.status === 'closed' ? shell.conn.reason : 'Loom 서버 연결'}>
+          <span className="connection-dot" aria-hidden="true" />
+          {shell.conn.status === 'open' ? '연결됨' : shell.conn.status === 'closed' ? '연결 끊김' : '연결 중'}
+        </span>
+        <span className="conn-count"><span aria-hidden="true">· </span>인터페이스 <b>{open.length}</b></span>
       </span>
       <LiveBadge />
       <span className={`rec rec-${shell.recordHealth}`} data-prio="4">
         REC {shell.recordHealth}
       </span>
       <span className="viewers" data-prio="5">
-        보는 중: {shell.viewers ? `${shell.viewers.visible}/${shell.viewers.subscribed}` : '?'}
+        보는 중 {shell.viewers ? `${shell.viewers.visible}/${shell.viewers.subscribed}` : '?'}
       </span>
       {latestAgent && (
-        <span className="agent-activity" data-prio="6" data-origin={latestAgent.origin}>
-          에이전트 {latestAgent.actor} {latestAgent.verb} {agoText(latestAgent.wallMs)}
+        <span className="agent-activity" data-prio="6" data-origin={latestAgent.origin} title={`에이전트 ${latestAgent.actor} ${latestAgent.verb}`}>
+          AGT {latestAgent.actor} {latestAgent.verb} {agoText(latestAgent.wallMs)}
         </span>
       )}
       {/* F1: approvals exist only when the policy enables them */}
@@ -129,8 +142,8 @@ export function TopBar() {
         </button>
       )}
       <TestBadge />
-      <span className="spacer" />
-      <span className="rights" data-testid="rights">자격: {shell.hello?.rights ?? '—'}{shell.automationCapped ? ' → watch (자동화 브라우저)' : ''}</span>
+      <span className="hdr-sep" aria-hidden="true" />
+      <span className="rights" data-testid="rights" title="이 브라우저의 자격">자격: {shell.hello?.rights ?? '—'}{shell.automationCapped ? ' → watch (자동화 브라우저)' : ''}</span>
       <StopButton />
     </header>
   );

@@ -32,6 +32,17 @@ export interface SubscribeOptions {
   maxBatchMs?: number;
   encoding?: 'json' | 'binary';
   coalesceBy?: 'id';
+  /**
+   * Shell-owned stream (Activity, test, STOP-adjacent monitoring): never suspended or folded into
+   * a union by the mux, so its handlers never see a lease resync. Not part of the subscription key.
+   */
+  pinned?: boolean;
+  /**
+   * Initial visibility lease (default true). `false` = the handle is opened hidden: it never makes the
+   * mux relieve pressure (suspend/merge) before the caller could say so. Pinned handles are always
+   * active. Not part of the subscription key and never sent to the daemon.
+   */
+  active?: boolean;
 }
 
 /** Worker-side receive/decode times of a delivery (performance.timeOrigin+now, ms). */
@@ -59,6 +70,12 @@ export interface SubscriptionHandlers {
 export interface Subscription {
   readonly id: string;
   close(): void;
+  /**
+   * Visibility lease (default active). A hidden handle keeps its server subscription until an
+   * ACTIVE handle needs the slot; then it is suspended (onResync("suspended_hidden")) and
+   * re-placed with a fresh snapshot when it becomes active again. Optional so fakes stay valid.
+   */
+  setActive?(active: boolean): void;
 }
 
 export interface NetClient {

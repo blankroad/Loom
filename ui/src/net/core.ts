@@ -153,6 +153,11 @@ export class NetCore {
         return;
       case 'unsub':
         this.mux.unsubscribe(m.hid);
+        this.maybeDeliver();
+        return;
+      case 'active':
+        this.mux.setActive(m.hid, m.active);
+        this.maybeDeliver();
         return;
       case 'pull':
         this.pullWaiting = true;

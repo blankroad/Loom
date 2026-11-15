@@ -1,3 +1,4 @@
+import { icon } from '../../workbench/eth/bench';
 // Display-filter bar (eth-ui, eth/plan §4.1). M1: every check is the server's
 // `eth.filter.check{expr}` (≤ 100 ms target) — the UI does not parse the language.
 // Error → underline at `pos` + message; OK → [적용] pushes the filter down.
@@ -66,11 +67,12 @@ export class FilterBar {
     this.el = document.createElement('div');
     this.el.className = 'eth-filter';
     const label = document.createElement('label');
-    label.textContent = '표시 필터';
+    label.className = 'eth-flab';
+    label.append(icon('filter'), '표시 필터');
     this.input = document.createElement('input');
     this.input.id = `eth-filter-${Math.random().toString(36).slice(2, 8)}`;
     label.htmlFor = this.input.id;
-    this.input.placeholder = '표시 필터 (Loom 문법) 예: doip && doip.target_address == 0x1001 — Ctrl+/';
+    this.input.placeholder = '예: doip && doip.target_address == 0x1001 — Enter 적용, Esc 되돌리기 (Ctrl+/)';
     this.input.spellcheck = false;
     this.input.setAttribute('aria-label', '표시 필터');
     this.input.setAttribute('data-testid', 'eth-filter-input');
@@ -106,13 +108,18 @@ export class FilterBar {
     this.frame = document.createElement('div');
     this.frame.className = 'eth-filter-frame';
     this.frame.setAttribute('data-testid', 'eth-filter-frame');
-    this.frame.append(saveBtn, this.input, this.status, clearBtn, applyBtn, this.listEl);
+    this.frame.append(this.input, this.status, saveBtn, this.listEl);
+    // Bench Light filter row (selected web .dfrow): [▽ 표시 필터] [field] [적용] [지우기] [count]
+    applyBtn.className = 'eth-filter-apply wb-btn';
+    clearBtn.className = 'eth-filter-clear wb-btn ghost';
+    applyBtn.textContent = '적용';
+    clearBtn.textContent = '지우기';
     this.appliedEl = document.createElement('span');
     this.appliedEl.className = 'eth-filter-applied';
     this.appliedEl.setAttribute('data-testid', 'eth-filter-applied');
     const row = document.createElement('div');
     row.className = 'eth-filter-row';
-    row.append(label, this.frame, this.appliedEl);
+    row.append(label, this.frame, applyBtn, clearBtn, this.appliedEl);
     this.el.append(row, this.errEl);
     this.setValidity('idle');
     host.append(this.el);
@@ -165,6 +172,14 @@ export class FilterBar {
     this.setValidity('idle');
     if (this.applied !== '') await this.applyNow();
     else this.syncDirty();
+  }
+
+  /** put an expression into the field (validated by the server like typing); applying stays explicit */
+  setExpr(expr: string): void {
+    this.input.value = expr;
+    this.setValidity('checking');
+    this.schedule(0);
+    this.input.focus();
   }
 
   focus(): void {

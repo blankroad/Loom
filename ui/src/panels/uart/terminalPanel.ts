@@ -1,6 +1,9 @@
 // uart.terminal (M1) — uart-ui §1–4, plan §5.1.2; CoolTerm-fidelity layout
 // (docs/impl/main/research/fidelity/uart.md).
-// Toolbar: View [터미널|HEX] · Send String · 화면 지우기 · 일시정지 ⟷ input-lease chip + lease actions · 키 ▾.
+// Pane = the agreed REV6.1 web pane (work/reports/uart-workbench/opus): .phead (alias · port · frame · state ·
+// RX/TX + TERM|HEX · 일시정지 · 지우기 · 시각 · REC · EOL · 매크로 · 검색 · Send String · 테마 · 포트 · 설정 · ⋯),
+// receive-time gutter (journal host time, UI metadata only), per-terminal theme, macro run strip.
+// Existing contracts kept: input lease/HOLD/palette (⋯ row), Send String drawer, HEX byte view, agent line.
 // Body:   TerminalView (device bytes as-is through the 3-layer defense) OR the byte (HEX) view of
 //         the original uart.data bytes. Keys are sent only from the terminal view.
 // Drawer: Send String (Text/HEX + explicit line ending) → existing uart.input / inputLarge path.
@@ -27,6 +30,11 @@ import {
 import './uart.css';
 import { ByteLog, rowAscii, rowHex, rowsToHex, type ByteRow } from './byteLog';
 import { createSendString, routeFor } from './sendString';
+// The UART workbench (shell-side) never gives this panel daemon access: the panel registers a handle whose sends
+// go through its own ctx.act('input') path; the workbench only supplies local prefs, scopes and run state.
+import { EOLS, uartBench, type EolKey } from '../../workbench/uart/workbench';
+import { icon } from '../../workbench/uart/icons';
+import { DEFAULT_REC_PREFS, fmtTs, hasFilePicker, Recorder, type RecFormat, type RecPrefs } from '../../workbench/uart/recorder';
 import {
   expectText,
   frameText,
@@ -53,7 +61,6 @@ const PALETTE: { label: string; byte?: number; signal?: string; title: string }[
 ];
 
 const RX_WINDOW_MS = 1_000;
-const LED_MS = 180;
 
 const hms = (ms: number): string => {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -68,6 +75,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return e;
 }
 
+const XTHEME = {
+  dark: { background: '#0f1216', foreground: '#d0d7de', cursor: '#d0d7de', cursorAccent: '#0f1216', selectionBackground: 'rgba(56,139,253,0.45)', black: '#484f58', red: '#ff7b72', green: '#56d364', yellow: '#e3b341', blue: '#79c0ff', magenta: '#d2a8ff', cyan: '#76e3ea', white: '#d0d7de', brightBlack: '#6e7781', brightRed: '#ffa198', brightGreen: '#7ee787', brightYellow: '#f2cc60', brightBlue: '#a5d6ff', brightMagenta: '#e2c5ff', brightCyan: '#b3f0ff', brightWhite: '#ffffff' },
+  light: { background: '#ffffff', foreground: '#1f2328', cursor: '#1f2328', cursorAccent: '#ffffff', selectionBackground: '#b6e3ff', black: '#1f2328', red: '#cf222e', green: '#1a7f37', yellow: '#9a6700', blue: '#0969da', magenta: '#8250df', cyan: '#1b7c83', white: '#6e7781', brightBlack: '#8c959f', brightRed: '#a40e26', brightGreen: '#116329', brightYellow: '#7d4e00', brightBlue: '#0550ae', brightMagenta: '#6639ba', brightCyan: '#1b7c83', brightWhite: '#424a53' },
+};
+const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} kB` : `${(n / 1048576).toFixed(2)} MB`);
+const CONN_LABEL: Record<string, string> = { open: '연결됨', closed: '닫힘', disconnected: '장치 없음', reconnecting: '재연결 대기', '?': '상태 확인 중' };
+const connClass = (status: string) => (isOpenStatus(status) ? 'connected' : /disconn|lost/i.test(status) ? 'lost' : /reconn|wait/i.test(status) ? 'waiting' : status === '?' ? 'unknown' : 'disconnected');
+const PAUSE_CAP = 2 * 1024 * 1024;
+
 export function createUartTerminal(ctx: PanelContext): PanelInstance {
   const channel = typeof ctx.props.channel === 'string' ? ctx.props.channel : 'dut';
   const now = () => performance.now();
@@ -75,11 +91,17 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   const hasWriteRight = () => ctx.rights.has('operate') || ctx.rights.has('approve');
   /** U-3: STALLED / disconnected → read-only like the shell's write lock. A port that is not OPEN (closed,
    * disconnected, unknown — e.g. a retained history view after STOP/disconnect) is read-only too. */
-  const canWrite = () => hasWriteRight() && !ctx.writeLocked && isOpenStatus(port.status);
+  // Both read the engine-fed port model (syncPort), never the last DRAWN state: a background dock tab is not
+  // drawn (RenderScheduler skips hidden panels) but must still know whether its port is open.
+  const canWrite = () => (syncPort(), hasWriteRight() && !ctx.writeLocked && isOpenStatus(port.status));
+  const blockedReason = (): string | null => (syncPort(), !hasWriteRight() ? '읽기 전용' : ctx.writeLocked ? '쓰기 잠김' : !isOpenStatus(port.status) ? (CONN_LABEL[port.status] ?? port.status) : null);
 
   let input: UartInputState = INITIAL_INPUT;
   let port: UartPortState = { status: '?', baud: null, generation: null };
   let lastSeq = -1n;
+  /** model-only cursors of syncPort (independent of the draw cursors lastSeq/snapshotVersion) */
+  let portSnapVersion = 0;
+  let portScanSeq = -1n;
   /** seq of the newest port state applied (live control, backlog or snapshot high-water): older never overwrite */
   let portSeq = -1n;
   let lastOverwritten = 0;
@@ -92,15 +114,15 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   let inputSeq = 0;
   let lastErrToast = 0;
   let view: 'terminal' | 'hex' = 'terminal';
-  let size: { w: number; h: number } | null = null;
   // observed in this panel's local window only (not device/daemon totals)
   let txObserved = 0;
   let rxObserved = 0;
   let countsPartial = false;
-  let txLedAt = Number.NEGATIVE_INFINITY;
-  let rxLedAt = Number.NEGATIVE_INFINITY;
-  let ledTimer: ReturnType<typeof setTimeout> | null = null;
   let openSinceWallMs: number | null = null;
+  let leaseOpen = false;
+  let rec: Recorder | null = null;
+  let recPicking = false;
+  let recDialog: HTMLDialogElement | null = null;
   const bytes = new ByteLog();
   const wallOf = (ev: LoomEvent): number => {
     try {
@@ -110,23 +132,35 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     }
   };
 
-  const send = (bytes: Uint8Array) => {
-    if (!canWrite()) return; // never emit input for a port that is not open (panel-level, before the gate)
+  const send = (b: Uint8Array): boolean => {
+    if (!canWrite()) return false; // never emit input for a port that is not open (panel-level, before the gate)
     ctx
-      .act('input', { channel, data_hex: bytesToHex(bytes), input_seq: ++inputSeq })
+      .act('input', { channel, data_hex: bytesToHex(b), input_seq: ++inputSeq })
       .catch((e: unknown) => {
         if (now() - lastErrToast > 5_000) {
           lastErrToast = now();
           ctx.ui.toast(`UART 입력 실패: ${e instanceof Error ? e.message : String(e)}`);
         }
       });
+    return true;
+  };
+  /** typed keys: Enter → this tab's EOL; 키 입력 대상 = 연결된 모두 routes to every frozen recipient */
+  const keyInput = (b: Uint8Array) => {
+    if (uartBench.routeKeys(channel, b, (ch, x) => uartBench.mapEnter(ch, x))) return;
+    send(uartBench.mapEnter(channel, b));
   };
 
   const term = new TerminalView({
     readonly: !canWrite(),
-    onInput: send,
+    onInput: keyInput,
     onLargePaste: (text) => sendLarge(new TextEncoder().encode(text), '붙여넣기 취소'),
   });
+  // REV6.1 terminal metrics and per-terminal theme (outer shell stays light)
+  term.term.options.fontFamily = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace';
+  term.term.options.fontSize = 12.5;
+  term.term.options.lineHeight = 1.2;
+  let theme: 'dark' | 'light' = uartBench.tabPrefs(channel).theme;
+  term.term.options.theme = XTHEME[theme];
   /** > 4 KiB goes through a confirm card (ActionGate 'card') — paste and Send String alike */
   function sendLarge(b: Uint8Array, failText: string): void {
     ctx
@@ -134,84 +168,209 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       .catch((e: unknown) => ctx.ui.toast(`${failText}: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  // ---- DOM ----
+  // ---- DOM (REV6.1 pane: .phead · .search · .term-wrap · run strip) ----
   const root = el('div', 'uart-panel');
-  const head = el('div', 'uart-head uart-tools');
-  head.setAttribute('role', 'toolbar');
-  head.setAttribute('aria-label', `UART ${channel} 도구 막대`);
-  const portEl = el('span', 'uart-port');
-  const chipEl = el('span', 'uart-chip');
-  chipEl.setAttribute('data-testid', 'input-chip');
-  const btn = (label: string, title: string, on: () => void) => {
-    const b = el('button', 'uart-btn', label);
-    b.type = 'button';
-    b.title = title;
-    b.addEventListener('click', on);
-    return b;
-  };
-  /** CoolTerm-style tool button: icon above a short label (icon only on narrow panels) */
-  const tool = (icon: string, label: string, title: string, testid: string, on: () => void) => {
-    const b = el('button', 'uart-btn uart-tool');
-    b.type = 'button';
-    b.title = title;
-    b.setAttribute('aria-label', label);
-    b.setAttribute('data-testid', testid);
-    b.append(el('span', 'uart-tool-ico', icon), el('span', 'uart-tool-lbl', label));
-    b.addEventListener('click', on);
-    return b;
-  };
+  root.dataset.channel = channel;
   const act = (id: string, params: object) =>
     ctx.act(id, params).catch((e: unknown) => ctx.ui.toast(`${id} 실패: ${e instanceof Error ? e.message : String(e)}`));
-  const yieldBtn = btn('반환', '입력권을 에이전트에게 반환 (Ctrl-] y)', () => void act('yield', { channel }));
-  // server-side dirty input line (uart.input.clear) — NOT the local screen clear below
-  const clearBtn = btn('미완결 줄 지우기', '장치로 보낸 미완결 입력 줄을 서버에서 지움 (uart.input.clear, Ctrl-] c) — 화면 지우기 아님', () => void act('clear', { channel }));
-  clearBtn.setAttribute('data-testid', 'uart-input-clear');
-  const takeBtn = btn('가져오기', '입력권 가져오기 (Ctrl-] o)', () => void act('takeover', { channel }));
-  const holdBtn = btn('HOLD', '에이전트 쓰기 보류 (Ctrl-] h)', () => void act(input.hold ? 'unhold' : 'hold', { channel }));
+  const btn = (label: string, title: string, on: () => void, cls = 'uart-btn') => {
+    const b = el('button', cls, label);
+    b.type = 'button';
+    b.title = title;
+    b.addEventListener('click', on);
+    return b;
+  };
+  const ibtn = (actName: string, ico: string, title: string, on: (b: HTMLButtonElement) => void, testid?: string) => {
+    const b = el('button', 'ibtn');
+    b.type = 'button';
+    b.dataset.act = actName;
+    b.title = title;
+    b.setAttribute('aria-label', title.split(' (')[0]!);
+    b.innerHTML = icon(ico);
+    if (testid) b.setAttribute('data-testid', testid);
+    b.addEventListener('click', () => on(b));
+    return b;
+  };
+  const pill = (actName: string, label: string, title: string, on: () => void, testid?: string) => {
+    const b = el('button', 'pill', label);
+    b.type = 'button';
+    b.dataset.act = actName;
+    b.title = title;
+    if (testid) b.setAttribute('data-testid', testid);
+    b.addEventListener('click', on);
+    return b;
+  };
 
-  // View: terminal (xterm VT) | HEX (original bytes) — CoolTerm View Plain/Hex
-  const viewGroup = el('span', 'uart-viewsw');
+  const head = el('div', 'phead');
+  head.dataset.tab = channel;
+  const target = el('div', 'ph-target');
+  target.title = '이 pane의 실제 대상';
+  const dot = el('span', 'ph-dot');
+  const aliasEl = el('span', 'ph-alias', channel);
+  const pathEl = el('span', 'ph-port');
+  const frameEl = el('span', 'ph-frame');
+  const bcChip = el('span', 'chip');
+  const stateEl = el('span', 'ph-state');
+  stateEl.dataset.role = 'state';
+  const countEl = el('span', 'ph-ctr');
+  countEl.dataset.role = 'ctr';
+  countEl.setAttribute('data-testid', 'uart-counts');
+  const portEl = el('span', 'uart-port sr-only'); // accessible one-line summary (status · baud · generation · env)
+  const chipEl = el('button', 'pill uart-chip');
+  chipEl.type = 'button';
+  chipEl.setAttribute('data-testid', 'input-chip');
+  chipEl.title = '입력권 상태 — 눌러서 입력권·특수 키 도구 열기';
+  chipEl.addEventListener('click', () => { leaseOpen = !leaseOpen; ctx.scheduler.invalidate(); });
+  target.append(dot, aliasEl, pathEl, frameEl, bcChip, stateEl, countEl, portEl);
+
+  const tools = el('div', 'ph-tools uart-tools');
+  tools.setAttribute('role', 'toolbar');
+  tools.setAttribute('aria-label', `UART ${channel} 도구 막대`);
+  const viewGroup = el('span', 'seg uart-viewsw');
   viewGroup.setAttribute('role', 'group');
-  viewGroup.setAttribute('aria-label', '보기');
-  const termViewBtn = tool('▤', '터미널', '터미널 보기 — xterm VT, 키 입력이 장치로 즉시 전송됨', 'uart-view-terminal', () => setView('terminal'));
-  const hexViewBtn = tool('0x', 'HEX', 'HEX 보기 — 수신/송신 원본 바이트 (키 입력 안 보냄)', 'uart-view-hex', () => setView('hex'));
+  viewGroup.setAttribute('aria-label', '보기 형식');
+  const termViewBtn = el('button', undefined, 'TERM');
+  termViewBtn.type = 'button';
+  termViewBtn.dataset.act = 'mode';
+  termViewBtn.dataset.mode = 'text';
+  termViewBtn.title = '실제 터미널 (xterm) — 키 입력이 장치로 즉시 전송됨';
+  termViewBtn.setAttribute('data-testid', 'uart-view-terminal');
+  termViewBtn.addEventListener('click', () => setView('terminal'));
+  const hexViewBtn = el('button', undefined, 'HEX');
+  hexViewBtn.type = 'button';
+  hexViewBtn.dataset.act = 'mode';
+  hexViewBtn.dataset.mode = 'hex';
+  hexViewBtn.title = '송수신 원본 바이트 HEX 보기 (키 입력 안 보냄)';
+  hexViewBtn.setAttribute('data-testid', 'uart-view-hex');
+  hexViewBtn.addEventListener('click', () => setView('hex'));
   viewGroup.append(termViewBtn, hexViewBtn);
-  const sendStrBtn = tool('⇪', 'Send String', 'Text/HEX 문자열과 줄 끝을 지정해 전송 (입력권 경로 uart.input)', 'uart-send-string-toggle', () =>
-    setDrawer(!drawer.isOpen),
-  );
-  const clearViewBtn = tool('✕', '화면 지우기', '이 패널의 화면과 HEX 보기만 비움 — 장치·데몬 저널·서버 입력 줄에는 영향 없음', 'uart-clear-view', () => {
+  const pauseBtn = pill('pause', '일시정지', '화면 갱신 일시정지 (수신은 계속 기록)', () => setPaused(!paused), 'uart-pause');
+  const clearViewBtn = pill('clear', '지우기', '화면만 지우기 — 장치·데몬 저널·서버 입력 줄에는 영향 없음 (로그·카운터 보존)', () => {
     try {
       term.term.clear();
     } catch {
       /* not opened yet */
     }
+    for (const m of tsMarks) m.mk.dispose();
+    tsMarks = [];
+    lastMark = null;
     bytes.clear();
+    gutterSoon();
     ctx.scheduler.invalidate();
+  }, 'uart-clear-view');
+  const tsBtn = pill('ts-toggle', '시각', '행 앞 수신 시각 표시/숨기기 — 데몬 저널의 호스트 수신 시각 HH:mm:ss.SSS · 장치 바이트는 바뀌지 않음', () => {
+    uartBench.setTabPref(channel, { ts: !uartBench.tabPrefs(channel).ts });
   });
-  const pauseBtn = tool('⏸', '일시정지', '화면 일시정지 (수신·기록은 계속)', 'uart-pause', () => {
-    paused = !paused;
-    term.setPaused(paused);
-    ctx.scheduler.invalidate();
+  const recBtn = pill('rec', 'REC', 'UART 기록 (이 탭의 원본 수신/송신을 .log 또는 .jsonl로)', () => openRecDialog());
+  recBtn.classList.add('rec');
+  const eolSel = el('select', 'eol-sel');
+  eolSel.dataset.act = 'eol';
+  eolSel.title = 'Enter 시 보낼 줄 끝 (이 탭)';
+  eolSel.setAttribute('aria-label', '줄 끝');
+  for (const k of Object.keys(EOLS)) eolSel.append(new Option(k, k));
+  eolSel.addEventListener('change', () => uartBench.setTabPref(channel, { eol: eolSel.value as EolKey }));
+  const macroBtn = ibtn('macros-menu', 'macro', `매크로 실행 → ${channel}`, (b) => {
+    const r = b.getBoundingClientRect();
+    uartBench.noteActive(channel);
+    window.dispatchEvent(new CustomEvent('loom:uart-macro-menu', { detail: { channel, x: r.right - 240, y: r.bottom + 4 } }));
   });
-  const palette = el('details', 'uart-palette');
-  const sum = el('summary', undefined, '키 ▾');
-  palette.append(sum);
+  const searchBtn = ibtn('search', 'search', '검색 (터미널 스크롤백)', () => setSearch(!searchOpen));
+  const sendStrBtn = ibtn('send-string', 'send', 'Send String — Text/HEX와 줄 끝을 지정해 전송 (uart.input)', () => setDrawer(!drawer.isOpen), 'uart-send-string-toggle');
+  const themeBtn = ibtn('theme', 'sun', '이 터미널만 밝게', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    uartBench.setTabPref(channel, { theme });
+    applyTheme();
+  });
+  const plugBtn = ibtn('disconnect', 'unplug', '포트 닫기', () => {
+    if (isOpenStatus(port.status)) {
+      void uartBench.closeChannel(channel).catch((e: unknown) => ctx.ui.toast(`포트 닫기 실패: ${e instanceof Error ? e.message : String(e)}`));
+    } else window.dispatchEvent(new CustomEvent('loom:uart-reopen', { detail: { channel } }));
+  });
+  const gearBtn = ibtn('settings', 'gear', `${channel} 세션 설정`, () => window.dispatchEvent(new CustomEvent('loom:uart-edit-session', { detail: { channel } })));
+  const moreBtn = ibtn('more', 'more', '더보기: 입력권·특수 키, 로그 저장', () => { leaseOpen = !leaseOpen; ctx.scheduler.invalidate(); });
+  tools.append(viewGroup, pauseBtn, clearViewBtn, tsBtn, recBtn, eolSel, macroBtn, searchBtn, sendStrBtn, themeBtn, plugBtn, gearBtn, moreBtn);
+  head.append(target, chipEl, tools);
+
+  // input lease / special keys (existing product controls; shown on demand or when the lease needs attention)
+  const lease = el('div', 'uart-lease');
+  lease.setAttribute('role', 'group');
+  lease.setAttribute('aria-label', '입력권');
+  const yieldBtn = btn('반환', '입력권을 에이전트에게 반환 (Ctrl-] y)', () => void act('yield', { channel }), 'pill');
+  // server-side dirty input line (uart.input.clear) — NOT the local screen clear above
+  const clearBtn = btn('미완결 줄 지우기', '장치로 보낸 미완결 입력 줄을 서버에서 지움 (uart.input.clear, Ctrl-] c) — 화면 지우기 아님', () => void act('clear', { channel }), 'pill');
+  clearBtn.setAttribute('data-testid', 'uart-input-clear');
+  const takeBtn = btn('가져오기', '입력권 가져오기 (Ctrl-] o)', () => void act('takeover', { channel }), 'pill');
+  const holdBtn = btn('HOLD', '에이전트 쓰기 보류 (Ctrl-] h)', () => void act(input.hold ? 'unhold' : 'hold', { channel }), 'pill');
+  const leaseLbl = el('span', 'uart-lease-l', '입력권');
+  const keysLbl = el('span', 'uart-lease-l', '특수 키');
+  const palette = el('span', 'uart-palette');
   for (const k of PALETTE) {
     palette.append(
       btn(k.label, k.title, () => {
         if (k.byte !== undefined) term.sendBytes(new Uint8Array([k.byte]));
         else if (k.signal) void act('signal', { channel, kind: k.signal });
         if (view === 'terminal') term.focus();
-      }),
+      }, 'pill'),
     );
   }
-  const leaseGroup = el('span', 'uart-lease');
-  leaseGroup.setAttribute('role', 'group');
-  leaseGroup.setAttribute('aria-label', '입력권');
-  leaseGroup.append(chipEl, takeBtn, yieldBtn, clearBtn, holdBtn, palette);
-  head.append(viewGroup, sendStrBtn, clearViewBtn, pauseBtn, el('span', 'uart-flex'), leaseGroup);
+  lease.append(leaseLbl, takeBtn, yieldBtn, clearBtn, holdBtn, keysLbl, palette);
 
-  const body = el('div', 'uart-body');
+  // search (xterm scrollback; Enter next, Shift+Enter previous)
+  let searchOpen = false;
+  let hits: { y: number; x: number }[] = [];
+  let hitAt = -1;
+  const search = el('div', 'search');
+  search.dataset.tab = channel;
+  const sq = el('input');
+  sq.type = 'search';
+  sq.dataset.act = 'search-q';
+  sq.placeholder = '스크롤백 검색 (Enter 다음, Shift+Enter 이전)';
+  sq.setAttribute('aria-label', '터미널 검색');
+  const scount = el('span', 'count');
+  scount.dataset.role = 'count';
+  const sclose = ibtn('search-close', 'x', '검색 닫기', () => setSearch(false));
+  search.append(sq, scount, sclose);
+  const runSearch = (dir: 1 | -1) => {
+    const q = sq.value;
+    const buf = term.term.buffer.active;
+    hits = [];
+    if (q) for (let y = 0; y < buf.length; y++) {
+      const line = buf.getLine(y)?.translateToString(true) ?? '';
+      let i = line.indexOf(q);
+      while (i >= 0) { hits.push({ y, x: i }); i = line.indexOf(q, i + Math.max(1, q.length)); }
+    }
+    if (!hits.length) { hitAt = -1; scount.textContent = q ? '0건' : ''; term.term.clearSelection(); return; }
+    hitAt = hitAt < 0 ? (dir > 0 ? 0 : hits.length - 1) : (hitAt + dir + hits.length) % hits.length;
+    const h = hits[hitAt]!;
+    term.term.select(h.x, h.y, q.length);
+    term.term.scrollToLine(Math.max(0, h.y - Math.floor(term.term.rows / 2)));
+    scount.textContent = `${hitAt + 1}/${hits.length}`;
+  };
+  sq.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); runSearch(e.shiftKey ? -1 : 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); setSearch(false); }
+  });
+  sq.addEventListener('input', () => { hitAt = -1; runSearch(1); });
+  function setSearch(open: boolean): void {
+    searchOpen = open;
+    search.classList.toggle('open', open);
+    searchBtn.setAttribute('aria-pressed', String(open));
+    if (open) sq.focus();
+    else { term.term.clearSelection(); if (view === 'terminal') term.focus(); }
+  }
+
+  // terminal surface: .term-wrap > .term.xslot > (.tsgutter + .xhost) ; HEX view; connection overlay
+  const wrap = el('div', 'term-wrap');
+  wrap.dataset.tab = channel;
+  const slot = el('div', 'term xslot');
+  slot.dataset.view = 'xterm';
+  slot.dataset.tab = channel;
+  slot.setAttribute('aria-label', `${channel} 터미널`);
+  const gutter = el('div', 'tsgutter');
+  gutter.setAttribute('aria-hidden', 'true');
+  gutter.title = '호스트 수신 시각 HH:mm:ss.SSS (데몬 저널 시각, 장치 출력 아님)';
+  const body = el('div', 'xhost uart-body');
+  slot.append(gutter, body);
   const bytesHost = el('div', 'uart-bytes');
   bytesHost.hidden = true;
   bytesHost.setAttribute('data-testid', 'uart-bytes');
@@ -225,12 +384,22 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       () => ctx.ui.toast(`HEX 복사: ${text}`),
       () => ctx.ui.toast('클립보드 쓰기 실패'),
     );
-  });
+  }, 'pill');
   bytesCopy.disabled = true;
   const bytesMeta = el('span', 'uart-bytes-meta');
   bytesInfo.append(bytesMeta, bytesCopy);
   const tableHost = el('div', 'uart-bytes-table');
   bytesHost.append(bytesInfo, tableHost);
+  const overlay = el('div', 'conn-overlay');
+  overlay.hidden = true;
+  const overlayMsg = el('span', 'msg');
+  const overlayBtn = el('button', 'btn sm blue');
+  overlayBtn.type = 'button';
+  overlayBtn.dataset.act = 'connect';
+  overlayBtn.innerHTML = `${icon('plug')}다시 연결`;
+  overlayBtn.addEventListener('click', () => window.dispatchEvent(new CustomEvent('loom:uart-reopen', { detail: { channel } })));
+  overlay.append(overlayMsg, overlayBtn);
+  wrap.append(slot, bytesHost, overlay);
   const table = new VirtualTable<ByteRow>(tableHost, {
     columns: [
       { key: 't', header: '시각', width: '8.5em', cell: (r) => (r.wallMs ? fmtWall(r.wallMs) : '') },
@@ -270,29 +439,78 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     onClose: () => setDrawer(false),
   });
 
+  // macro run strip (REV6.1 .runstrip inside the target pane)
+  const runStrip = el('div', 'runstrip');
+  runStrip.hidden = true;
+  let runKey = '';
+  const renderRun = () => {
+    const r = uartBench.runs.get(channel);
+    const key = r ? `${r.id}:${r.status}:${r.i}:${r.steps.map((x) => x.st).join('')}:${r.reason ?? ''}:${r.err ?? ''}` : '';
+    if (key === runKey) return;
+    runKey = key;
+    runStrip.hidden = !r;
+    if (!r) { runStrip.replaceChildren(); return; }
+    runStrip.className = `runstrip st-${r.status}`;
+    runStrip.dataset.status = r.status;
+    runStrip.dataset.run = r.id;
+    const stTxt = { running: `실행 중 · ${r.i + 1}/${r.steps.length}`, done: '완료', failed: `실패 · ${r.err ?? ''}`, stopped: `${r.reason ?? '중지됨'} · step ${r.i + 1}에서` }[r.status];
+    const top = el('div', 'run-top');
+    const name = el('span', 'rname');
+    name.innerHTML = icon('macro');
+    name.append(` ${r.name}`);
+    const tgt = el('span', 'rtarget', `→ ${channel}${port.path ? ` · ${port.path}` : ''}`);
+    const st = el('span', `rstat ${r.status}`, stTxt);
+    st.dataset.role = 'rstat';
+    top.append(name, tgt, st);
+    if (r.status === 'running') {
+      const b = el('button', 'btn-stop');
+      b.type = 'button';
+      b.dataset.act = 'stop-macro';
+      b.title = '이 대상의 매크로 중지: 이후 step은 송신하지 않음 (이미 보낸 바이트는 장치에 남음)';
+      b.innerHTML = `${icon('stop')}중지`;
+      b.addEventListener('click', () => uartBench.stopRun(channel));
+      top.append(b);
+    } else {
+      const b = ibtn('dismiss-run', 'x', '실행 결과 닫기', () => uartBench.dismissRun(channel));
+      top.append(b);
+    }
+    const steps = el('div', 'steps');
+    r.steps.forEach((x, i) => {
+      const sp = el('span', `step ${x.st === 'pending' ? '' : x.st}`);
+      sp.dataset.step = String(i);
+      sp.title = `${x.text}${x.note ? ` — ${x.note}` : ''}`;
+      sp.append(el('span', undefined, `${i + 1}. ${x.text}`));
+      if (x.note) sp.append(el('span', undefined, x.note));
+      steps.append(sp);
+    });
+    // replace, never append: the strip shows exactly the channel's latest run (a stale '실행 중' row must not
+    // survive the run's own failed/stopped/done re-render)
+    runStrip.replaceChildren(top, steps);
+  };
+
+  // agent activity line (existing contract: last agent/script send + stage, expect wait — the user sees the agent)
   const status = el('div', 'uart-statusbar');
-  const line1 = el('div', 'uart-portline');
-  const cfgEl = el('span', 'uart-cfg');
-  const connEl = el('span', 'uart-conn');
-  const countEl = el('span', 'uart-counts');
-  countEl.setAttribute('data-testid', 'uart-counts');
-  const leds = el('span', 'uart-leds');
-  leds.title = '이 패널이 받은 uart.data 이벤트 기준 활동 표시 — 모뎀 신호선 상태 아님';
-  const txLed = el('span', 'uart-led');
-  const rxLed = el('span', 'uart-led');
-  leds.append(txLed, el('span', 'uart-led-lbl', 'TX'), rxLed, el('span', 'uart-led-lbl', 'RX'));
-  line1.append(portEl, cfgEl, connEl, countEl, el('span', 'uart-flex'), leds);
   const foot = el('div', 'uart-foot');
   foot.setAttribute('data-testid', 'uart-status');
-  status.append(line1, foot);
-  root.append(createLatchLine(ctx), head, body, bytesHost, drawer.root, status);
+  status.append(foot);
+  root.append(createLatchLine(ctx), head, lease, search, wrap, drawer.root, runStrip, status);
+
+  function applyTheme(): void {
+    wrap.className = `term-wrap t-${theme}`;
+    wrap.dataset.theme = theme;
+    term.term.options.theme = XTHEME[theme];
+    themeBtn.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon');
+    themeBtn.title = `이 터미널만 ${theme === 'dark' ? '밝게' : '어둡게'}`;
+    themeBtn.setAttribute('aria-label', `터미널 테마 전환 (현재 ${theme === 'dark' ? '어두움' : '밝음'})`);
+  }
+  applyTheme();
 
   function setView(v: 'terminal' | 'hex'): void {
     if (view === v) return;
     view = v;
     const toHex = v === 'hex';
-    if (toHex && document.activeElement instanceof HTMLElement && body.contains(document.activeElement)) document.activeElement.blur();
-    body.hidden = toHex;
+    if (toHex && document.activeElement instanceof HTMLElement && wrap.contains(document.activeElement)) document.activeElement.blur();
+    slot.hidden = toHex;
     bytesHost.hidden = !toHex;
     if (!toHex) {
       fitBody();
@@ -304,31 +522,215 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     drawer.setOpen(open);
     fitBody();
     sendStrBtn.setAttribute('aria-expanded', String(open));
+    sendStrBtn.setAttribute('aria-pressed', String(open));
     if (!open && view === 'terminal') term.focus();
     ctx.scheduler.invalidate();
   }
-  // The toolbar, composer and footer can wrap independently of the dock dimensions.
+
+  // ---- display pause (the panel holds chunks with their journal time; recording/counters continue) ----
+  let held: { b: Uint8Array; t: number }[] = [];
+  let heldBytes = 0;
+  let heldDropped = 0;
+  function setPaused(p: boolean): void {
+    paused = p;
+    term.setPaused(p); // input semantics (keys not sent except 0x03)
+    if (!p) {
+      const q = held;
+      held = [];
+      heldBytes = 0;
+      for (const c of q) writeChunk(c.b, c.t);
+      if (heldDropped) { term.markGap(`· 표시 누락 ${heldDropped} B (일시정지 버퍼 초과 — 기록·저널은 온전)`); heldDropped = 0; }
+    }
+    ctx.scheduler.invalidate();
+  }
+
+  // ---- receive-time gutter (REV4): xterm markers per row, stamped with the journal host time ----
+  let tsMarks: { mk: { line: number; isDisposed: boolean; dispose(): void }; t: number }[] = [];
+  let lastMark: { line: number; isDisposed: boolean } | null = null;
+  let gRaf = 0;
+  const markRows = (t: number, nl: number) => {
+    const xt = term.term;
+    const b = xt.buffer.active;
+    const cur = b.baseY + b.cursorY;
+    const start = lastMark && !lastMark.isDisposed ? lastMark.line + 1 : Math.max(0, cur - nl);
+    const end = b.cursorX > 0 ? cur : cur - 1; // an empty cursor row is stamped when its first byte arrives
+    for (let y = start; y <= end; y++) {
+      let mk: { line: number; isDisposed: boolean; dispose(): void } | undefined;
+      try {
+        mk = xt.registerMarker(y - cur);
+      } catch {
+        mk = undefined;
+      }
+      if (!mk) continue;
+      tsMarks.push({ mk, t });
+      lastMark = mk;
+    }
+    if (tsMarks.length > 12_000) tsMarks = tsMarks.filter((m) => !m.mk.isDisposed);
+    gutterSoon();
+  };
+  const cell = (): { width: number; height: number } => {
+    try {
+      const c = (term.term as unknown as { _core: { _renderService: { dimensions: { css: { cell: { width: number; height: number } } } } } })._core._renderService.dimensions.css.cell;
+      if (c && c.width > 0 && c.height > 0) return c;
+    } catch {
+      /* private API changed: estimate */
+    }
+    return { width: 7.6, height: Math.ceil(12.5 * 1.2 * 1.18) };
+  };
+  function gutterSoon(): void {
+    if (gRaf || typeof requestAnimationFrame === 'undefined') return;
+    gRaf = requestAnimationFrame(() => { gRaf = 0; renderGutter(); });
+  }
+  function renderGutter(): void {
+    const on = uartBench.tabPrefs(channel).ts;
+    slot.dataset.ts = on ? 'on' : 'off';
+    if (!on || view !== 'terminal') return;
+    const xt = term.term;
+    const b = xt.buffer.active;
+    const ch = cell().height;
+    const map = new Map<number, number>();
+    for (const m of tsMarks) if (!m.mk.isDisposed) map.set(m.mk.line, m.t);
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < xt.rows; i++) {
+      const y = b.viewportY + i;
+      const l = b.getLine(y);
+      const tt = l && !l.isWrapped ? map.get(y) : undefined;
+      const r = el('div', 'tsr', tt ? fmtTs(tt) : l?.isWrapped ? '↳' : '');
+      r.style.height = `${ch}px`;
+      r.style.lineHeight = `${ch}px`;
+      frag.append(r);
+    }
+    gutter.replaceChildren(frag);
+    gutter.dataset.rows = String(xt.rows);
+  }
+  term.term.onScroll(() => gutterSoon());
+  /** device bytes → xterm unchanged; the gutter stamp is UI metadata applied after the chunk is parsed */
+  function writeChunk(b: Uint8Array, t: number): void {
+    term.write(b);
+    let nl = 0;
+    for (const x of b) if (x === 0x0a) nl++;
+    try {
+      term.term.write('', () => markRows(t, nl));
+    } catch {
+      /* terminal not open (tests) */
+    }
+  }
+
   // Fit the actual remaining body so xterm's canvas cannot cover sibling controls.
   const fitBody = () => {
     if (view !== 'terminal') return;
-    const w = body.clientWidth || size?.w || 0;
+    // only the real host box counts (the gutter and header reduce it); never the dock size
+    const w = body.clientWidth;
     const h = body.clientHeight;
-    if (w > 0 && h > 0) term.fit(Math.floor((w - 8) / 7.8), Math.floor(h / 17));
+    const c = cell();
+    if (w > 0 && h > 0) term.fit(Math.max(20, Math.floor((w - 12) / c.width)), Math.max(3, Math.floor(h / c.height)));
+    gutterSoon();
+  };
+  const fitSoon = () => {
+    if (typeof requestAnimationFrame === 'undefined') return fitBody();
+    requestAnimationFrame(() => fitBody());
   };
   const bodyObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fitBody);
-  const pulse = () => {
-    if (ledTimer !== null) return;
-    ledTimer = setTimeout(() => {
-      ledTimer = null;
-      ctx.scheduler.invalidate();
-    }, LED_MS + 20);
-  };
 
-  const offAppend = mirror.onAppend(() => ctx.scheduler.invalidate());
+  const offAppend = mirror.onAppend(() => {
+    // the port model follows the engine even while this tab is hidden; recipients/scope labels re-resolve
+    if (syncPort()) uartBench.bump();
+    ctx.scheduler.invalidate();
+  });
   const tick = setInterval(() => ctx.scheduler.invalidate(), 1_000); // counters keep moving
+  const offBench = uartBench.subscribe(() => ctx.scheduler.invalidate());
+
+  // ---- REC (portable live-save) ----
+  const recState = (): string => (recPicking ? 'picking' : rec ? rec.state : 'idle');
+  const recChanged = () => { ctx.scheduler.invalidate(); if (recDialog?.open) fillRecDialog(); };
+  async function startRec(sink: 'file' | 'buffer', prefs: RecPrefs): Promise<void> {
+    uartBench.recPrefs[channel] = prefs;
+    uartBench.bump(true);
+    if (sink === 'buffer') { rec = Recorder.buffer(channel, prefs, recChanged); recChanged(); return; }
+    recPicking = true;
+    recChanged();
+    try {
+      const r = await Recorder.file(channel, prefs, recChanged);
+      if (r) rec = r;
+      else ctx.ui.toast('파일 선택 취소 — 기록하지 않음');
+    } catch (e) {
+      ctx.ui.toast(`기록 시작 실패: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      recPicking = false;
+      recChanged();
+    }
+  }
+  function fillRecDialog(): void {
+    const d = recDialog;
+    if (!d) return;
+    const prefs: RecPrefs = { ...DEFAULT_REC_PREFS, ...uartBench.recPrefs[channel] };
+    const st = recState();
+    const running = st === 'recording' || st === 'picking' || st === 'stopping';
+    d.innerHTML = `<form method="dialog" novalidate>
+      <div class="dlg-h">${icon('file')}<h2>UART 기록 — ${channel}</h2><span class="pill rec rec-${st}" data-role="recstat">${({ idle: '대기', picking: '파일 선택 중', recording: rec?.sink === 'file' ? '● 파일 기록 중' : '● 버퍼 기록 중', stopping: '저장 중…', closed: '종료됨', error: '오류' } as Record<string, string>)[st]}</span></div>
+      <div class="dlg-b">
+        <fieldset ${running ? 'disabled' : ''}><legend>형식</legend><div class="chk-row">
+          <label class="chk"><input type="radio" name="format" value="log" ${prefs.format === 'log' ? 'checked' : ''}> 읽기 쉬운 텍스트 · 줄 단위 (.log)</label>
+          <label class="chk"><input type="radio" name="format" value="jsonl" ${prefs.format === 'jsonl' ? 'checked' : ''}> 원문 · 조각 그대로 즉시 (.jsonl)</label></div>
+          <div class="chk-row" style="margin-top:6px">
+          <label class="chk"><input type="checkbox" name="rx" ${prefs.rx ? 'checked' : ''}> 수신 RX</label>
+          <label class="chk"><input type="checkbox" name="tx" ${prefs.tx ? 'checked' : ''}> 송신 TX</label>
+          <label class="chk"><input type="checkbox" name="fileTs" ${prefs.fileTs || prefs.format === 'jsonl' ? 'checked' : ''} ${prefs.format === 'jsonl' ? 'disabled' : ''}> 줄마다 시각 (.log)</label></div></fieldset>
+        <div class="hint" data-role="recbytes"></div>
+        <pre class="preview" data-role="rectail"></pre>
+        <div class="err-text" data-role="err"></div>
+        <p class="hint">데몬 저널은 이 기록과 별개로 항상 남습니다(헤더 REC). 파일 기록은 이 브라우저가 파일 저장 선택기를 제공할 때만 가능하며${hasFilePicker() ? '' : ' — <b>이 환경에는 없어 버퍼 기록 후 내보내기를 씁니다</b>'}. 새로 고침해도 기록은 자동으로 다시 시작하지 않습니다.</p>
+      </div>
+      <div class="dlg-f">
+        ${rec && rec.sink === 'buffer' && rec.state !== 'recording' && rec.state !== 'stopping' ? '<button type="button" class="btn" data-act="rec-export">' + icon('down') + '내보내기</button>' : ''}
+        <span class="grow"></span>
+        <button type="button" class="btn" data-act="rec-close">닫기</button>
+        ${running ? '<button type="button" class="btn danger" data-act="rec-stop">' + icon('stop') + '기록 중지</button>'
+          : `<button type="button" class="btn" data-act="rec-buffer" title="파일이 아님 — 메모리 5 MiB, 끝난 뒤 내보내기">버퍼에 기록</button><button type="button" class="btn primary" data-act="rec-file" ${hasFilePicker() ? '' : 'disabled title="이 환경에는 파일 저장 선택기가 없습니다"'}>파일에 기록…</button>`}
+      </div></form>`;
+    const form = d.querySelector('form')!;
+    const fmt = () => (form.querySelector<HTMLInputElement>('input[name=format]:checked')?.value === 'jsonl' ? 'jsonl' : 'log') as RecFormat;
+    const read = (): RecPrefs => ({ format: fmt(), rx: !!form.querySelector<HTMLInputElement>('input[name=rx]')?.checked, tx: !!form.querySelector<HTMLInputElement>('input[name=tx]')?.checked, fileTs: !!form.querySelector<HTMLInputElement>('input[name=fileTs]')?.checked });
+    form.querySelectorAll<HTMLInputElement>('input[name=format]').forEach((i) => i.addEventListener('change', () => { uartBench.recPrefs[channel] = read(); fillRecDialog(); }));
+    const bytesEl = form.querySelector<HTMLElement>('[data-role=recbytes]')!;
+    const tailEl = form.querySelector<HTMLElement>('[data-role=rectail]')!;
+    const errEl = form.querySelector<HTMLElement>('[data-role=err]')!;
+    if (rec) {
+      bytesEl.textContent = `${rec.name} · RX ${fmtBytes(rec.rxBytes)} · TX ${fmtBytes(rec.txBytes)} · ${rec.sink === 'file' ? `저장됨 ${fmtBytes(rec.committed)} · 쓰는 중 ${fmtBytes(rec.pending)}${rec.lastSavedAt ? ` · 마지막 저장 ${fmtTs(rec.lastSavedAt)}` : ''}` : `버퍼 ${fmtBytes(rec.committed)}`}${rec.reason ? ` · ${rec.reason}` : ''}`;
+      tailEl.textContent = rec.tail.join('\n') || '(아직 줄 없음)';
+      errEl.textContent = rec.error ?? '';
+    } else tailEl.hidden = true;
+    d.querySelector('[data-act=rec-close]')?.addEventListener('click', () => d.close());
+    d.querySelector('[data-act=rec-buffer]')?.addEventListener('click', () => void startRec('buffer', read()));
+    d.querySelector('[data-act=rec-file]')?.addEventListener('click', () => void startRec('file', read()));
+    d.querySelector('[data-act=rec-stop]')?.addEventListener('click', () => void rec?.stop('사용자 중지'));
+    d.querySelector('[data-act=rec-export]')?.addEventListener('click', () => {
+      if (!rec) return;
+      const r = rec.exportBuffer();
+      ctx.ui.toast(r.requested ? `다운로드 요청: ${r.name} (${fmtBytes(r.bytes)}) — 저장 완료 여부는 브라우저/앱의 다운로드에서 확인하세요` : `다운로드를 요청할 수 없습니다 (${r.name}) — 이 환경은 다운로드를 지원하지 않습니다`);
+    });
+  }
+  function openRecDialog(): void {
+    if (!recDialog) {
+      const layer = document.createElement('div');
+      layer.className = 'ub-layer';
+      recDialog = document.createElement('dialog');
+      recDialog.setAttribute('aria-label', 'UART 기록');
+      recDialog.id = `dlgRec-${channel}`;
+      layer.append(recDialog);
+      document.body.append(layer);
+    }
+    fillRecDialog();
+    try {
+      recDialog.showModal();
+    } catch {
+      recDialog.setAttribute('open', '');
+    }
+  }
 
   const consume = (): void => {
     const t = now();
+    syncPort(); // port state first (model), then the drawn views
     const snapshot = mirror.snapshot;
     if (snapshot && snapshot.version !== snapshotVersion) {
       snapshotVersion = snapshot.version;
@@ -336,13 +738,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
         if (item.domain !== 'uart' || item.kind !== 'uart.snapshot') continue;
         const state = item.state as Record<string, unknown> | null;
         if (!state || (item.channel ?? state.channel) !== channel) continue;
-        const restored = restoreUartState(state, t);
-        input = restored.input;
-        // the snapshot is as of throughSeq: a newer live port state (e.g. disconnected) already applied wins
-        if (snapshot.throughSeq >= portSeq) {
-          port = restored.port;
-          portSeq = snapshot.throughSeq;
-        }
+        input = restoreUartState(state, t).input;
       }
     }
     if (mirror.overwritten !== lastOverwritten) {
@@ -362,6 +758,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       if (g) {
         term.markGap(gapText(g));
         bytes.gap(gapText(g));
+        rec?.note(`데몬 보고 누락: ${gapText(g)}`);
         countsPartial = true;
       }
     }
@@ -378,15 +775,11 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       if (!data) return;
       // byte view + observed counters use the ORIGINAL payload bytes (never the symbolized text)
       const dir = ev.dir === 'tx' ? 'tx' : 'rx';
-      bytes.append(dir, ev.origin, wallOf(ev), data);
-      if (dir === 'tx') {
-        txObserved += data.length;
-        txLedAt = t;
-      } else {
-        rxObserved += data.length;
-        rxLedAt = t;
-      }
-      pulse();
+      const wall = wallOf(ev);
+      bytes.append(dir, ev.origin, wall, data);
+      if (separatorDone) rec?.feed(dir, data, wall || Date.now()); // live chunks only — the backlog predates REC
+      if (dir === 'tx') txObserved += data.length;
+      else rxObserved += data.length;
       if (ev.dir === 'tx') {
         if (ev.origin !== 'device') {
           // the tx bytes of the send already shown keep its stage (control and data paths
@@ -405,7 +798,10 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
         }
         return; // the device echo arrives as rx — never draw tx bytes ourselves
       }
-      term.write(data);
+      if (paused) {
+        if (heldBytes + data.length > PAUSE_CAP) heldDropped += data.length;
+        else { held.push({ b: data, t: wall || Date.now() }); heldBytes += data.length; }
+      } else writeChunk(data, wall || Date.now());
       rx.push({ atMs: t, n: data.length });
       return;
     }
@@ -427,6 +823,35 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     applyPort(ev);
     input = reduceInput(input, ev, t);
   };
+  /**
+   * Model-only port sync: applies the snapshot's port state and every uart.state / uart.config row the mirror
+   * holds, whether or not this panel is drawn (a hidden dock tab is never drawn, yet the workbench asks it for
+   * writability). Incremental and idempotent (own cursors + applyPort's seq guard); renders nothing. Unknown stays
+   * unknown until the engine reports — it is never treated as open.
+   */
+  function syncPort(): boolean {
+    const before = port.status;
+    const snapshot = mirror.snapshot;
+    if (snapshot && snapshot.version !== portSnapVersion) {
+      portSnapVersion = snapshot.version;
+      for (const item of snapshot.items) {
+        if (item.domain !== 'uart' || item.kind !== 'uart.snapshot') continue;
+        const state = item.state as Record<string, unknown> | null;
+        if (!state || (item.channel ?? state.channel) !== channel) continue;
+        // the snapshot is as of throughSeq: a newer live port state (e.g. disconnected) already applied wins
+        if (snapshot.throughSeq >= portSeq) {
+          port = restoreUartState(state, now()).port;
+          portSeq = snapshot.throughSeq;
+        }
+      }
+    }
+    for (const ev of mirror.after(portScanSeq)) {
+      portScanSeq = BigInt(ev.seq);
+      if (snapshot && portScanSeq <= snapshot.throughSeq) continue; // already folded into the snapshot
+      applyPort(ev);
+    }
+    return port.status !== before;
+  }
   /** uart.state / uart.config with a per-port seq guard (control path and data/backlog path share it) */
   function applyPort(ev: LoomEvent): boolean {
     if (ev.kind !== 'uart.state' && ev.kind !== 'uart.config') return false;
@@ -440,27 +865,87 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     portSeq = seq;
     const before = port.status;
     port = reducePort(port, ev);
-    if (ev.kind === 'uart.state' && port.status !== before) openSinceWallMs = isOpenStatus(port.status) ? wallOf(ev) || null : null;
+    if (ev.kind === 'uart.state' && port.status !== before) {
+      openSinceWallMs = isOpenStatus(port.status) ? wallOf(ev) || null : null;
+      if (before !== '?' && !isOpenStatus(port.status)) {
+        // REV4: disconnect/unplug stops and closes REC with the reason; reconnect never resumes it
+        if (rec && rec.state === 'recording') void rec.stop(/disconn|lost/i.test(port.status) ? '장치 분리로 기록 종료' : '포트 닫힘으로 기록 종료');
+        uartBench.stopRun(channel, /disconn|lost/i.test(port.status) ? '장치 분리로 중단' : '포트 닫힘으로 중단');
+      }
+    }
     return true;
   }
   // Live port state is a priority kind: it reaches data subscriptions only via snapshot/backlog, so apply it from
   // the control path too (same seq guard; an older backlog row or snapshot never overrides it).
   const offControl = ctx.onControl((ev) => {
     if ((ev.channel ?? (ev.payload as { channel?: unknown } | null)?.channel) !== channel) return;
-    if (applyPort(ev)) ctx.scheduler.invalidate();
+    const before = port.status;
+    if (!applyPort(ev)) return;
+    if (port.status !== before) uartBench.bump(); // recipients re-resolve even when this tab is hidden
+    ctx.scheduler.invalidate();
   });
+
+  const groupEl = () => root.closest<HTMLElement>('.dv-groupview');
+  const offRegister = uartBench.registerTerminal({
+    channel,
+    blocked: blockedReason,
+    sendRaw: (b) => send(b),
+    path: () => port.path ?? null,
+    frame: () => (port.baud ? `${port.baud} ${(frameText(port) ?? '').replace(/-/g, '')}`.trim() : ''),
+    status: () => port.status,
+    counters: () => ({ rx: rxObserved, tx: txObserved }),
+    focus: () => term.focus(),
+    activate: () => { root.closest('.dv-groupview')?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); term.focus(); },
+    paneId: () => groupEl()?.dataset.paneNo ?? null,
+    isActive: () => !!groupEl()?.classList.contains('dv-active-group') && root.offsetParent !== null,
+    visible: () => root.isConnected && root.offsetParent !== null,
+    invalidate: () => ctx.scheduler.invalidate(),
+  });
+  const noteActive = () => uartBench.noteActive(channel);
+  root.addEventListener('focusin', noteActive);
+  root.addEventListener('pointerdown', noteActive);
 
   const draw = (): bigint => {
     consume();
     const t = now();
     const writable = canWrite();
     if (term.readonly === writable) term.setReadonly(!writable);
+    const sess = uartBench.sessionFor(channel);
+    const prefs = uartBench.tabPrefs(channel);
+    if (prefs.theme !== theme) { theme = prefs.theme; applyTheme(); }
+    root.style.setProperty('--tag', sess?.color ?? 'var(--accent)');
+    dot.style.setProperty('--tag', sess?.color ?? 'var(--muted)');
     portEl.textContent = `UART ${channel} ● ${port.status}${port.baud ? ` ${port.baud}` : ''}${
       port.generation !== null ? ` gen${port.generation}` : ''
     } [${(ctx.env ?? '?').toUpperCase()}]`;
+    pathEl.textContent = port.path ?? sess?.port ?? '';
+    const frame = frameText(port);
+    frameEl.textContent = [port.baud ? `${port.baud} ${frame ? frame.replace(/-/g, '') : ''}`.trim() : '', port.flow ?? '', prefs.eol].filter(Boolean).join(' · ');
+    frameEl.title = `${port.path ?? ''}${frame ? ` / ${frame}` : ''}${openSinceWallMs !== null && isOpenStatus(port.status) ? ` · 연결 ${hms(Date.now() - openSinceWallMs)}` : ''}${port.generation !== null ? ` · gen${port.generation}` : ''}`;
+    const cc = connClass(port.status);
+    stateEl.className = `ph-state ${cc}`;
+    stateEl.textContent = CONN_LABEL[port.status] ?? port.status;
+    const bc = uartBench.bc;
+    bcChip.hidden = !bc.on;
+    if (bc.on) {
+      const inn = bc.ids.includes(channel);
+      bcChip.className = `chip ${inn ? 'bc-in' : 'bc-out'}`;
+      bcChip.textContent = inn ? 'ALL' : 'ALL 제외';
+      bcChip.title = inn ? '연결된 모두 송신 수신자' : '연결된 모두 송신에서 제외됨';
+    }
+    countEl.innerHTML = '';
+    countEl.append('RX ', el('b', undefined, fmtBytes(rxObserved)), ' · TX ', el('b', undefined, fmtBytes(txObserved)));
+    if (countsPartial) countEl.append(' (누락 구간 있음)');
+    countEl.title = `이 패널이 받은 이벤트(백로그 포함) 기준 — 장치·데몬 누계 아님 · 관측 TX ${txObserved.toLocaleString('ko-KR')} B / RX ${rxObserved.toLocaleString('ko-KR')} B`;
     const chip = inputChip(input, ctx.connId, paused, t);
     chipEl.textContent = chip.text;
     chipEl.dataset.kind = chip.kind;
+    // the lease row appears when the user opens it or the lease needs attention (agent lock/deferred/HOLD/dirty/other)
+    const attention = chip.kind === 'hold' || chip.kind === 'lock' || chip.kind === 'deferred' || chip.kind === 'dirty' || chip.kind === 'other';
+    chipEl.hidden = !(attention || chip.kind === 'paused');
+    lease.hidden = !leaseOpen;
+    moreBtn.setAttribute('aria-pressed', String(leaseOpen));
+    moreBtn.setAttribute('aria-expanded', String(leaseOpen));
     yieldBtn.disabled = !writable || !chip.canYield;
     clearBtn.disabled = !writable || !chip.canClear;
     takeBtn.disabled = !writable || !chip.canTakeover;
@@ -468,24 +953,36 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     holdBtn.textContent = input.hold ? 'HOLD 해제' : 'HOLD';
     holdBtn.setAttribute('aria-pressed', String(input.hold));
     pauseBtn.setAttribute('aria-pressed', String(paused));
+    pauseBtn.textContent = paused ? `재개 +${fmtBytes(heldBytes)}` : '일시정지';
+    tsBtn.setAttribute('aria-pressed', String(prefs.ts));
+    if (eolSel.value !== prefs.eol) eolSel.value = prefs.eol;
     termViewBtn.setAttribute('aria-pressed', String(view === 'terminal'));
     hexViewBtn.setAttribute('aria-pressed', String(view === 'hex'));
     sendStrBtn.setAttribute('aria-expanded', String(drawer.isOpen));
+    const open = isOpenStatus(port.status);
+    plugBtn.dataset.act = open ? 'disconnect' : 'connect';
+    plugBtn.innerHTML = icon(open ? 'unplug' : 'plug');
+    plugBtn.title = open ? '포트 닫기' : '포트 열기 (저장된 세션 설정으로)';
+    plugBtn.setAttribute('aria-label', plugBtn.title);
+    plugBtn.disabled = !hasWriteRight();
+    const rs = recState();
+    recBtn.dataset.recState = rs;
+    recBtn.className = `pill rec rec-${rs}`;
+    recBtn.textContent = rs === 'recording' && rec ? (rec.sink === 'file' ? `● 저장 ${fmtBytes(rec.committed)}` : `● 버퍼 ${fmtBytes(rec.committed)}`) : rs === 'error' ? 'REC 오류' : 'REC';
     drawer.update();
-
-    // status bar line 1 (CoolTerm: "port / 115200 8-N-1", "Connected hh:mm:ss, n / n bytes")
-    const frame = frameText(port);
-    const cfg = [port.path, frame].filter(Boolean).join(' / ');
-    cfgEl.textContent = [cfg, port.flow ? `흐름 ${port.flow}` : ''].filter(Boolean).join(' · ');
-    cfgEl.hidden = cfgEl.textContent === '';
-    if (openSinceWallMs !== null && isOpenStatus(port.status)) {
-      connEl.textContent = `연결 ${hms(Date.now() - openSinceWallMs)}`;
-      connEl.hidden = false;
-    } else connEl.hidden = true;
-    countEl.textContent = `관측 TX ${txObserved.toLocaleString('ko-KR')} B / RX ${rxObserved.toLocaleString('ko-KR')} B${countsPartial ? ' (누락 구간 있음)' : ''}`;
-    countEl.title = '이 패널이 받은 이벤트(백로그 포함) 기준 — 장치·데몬 누계 아님';
-    txLed.dataset.on = String(t - txLedAt < LED_MS);
-    rxLed.dataset.on = String(t - rxLedAt < LED_MS);
+    // connection overlay (REV6.1): a closed/lost port keeps its log, reconnect is explicit
+    const showOverlay = port.status !== '?' && !open;
+    overlay.hidden = !showOverlay;
+    overlay.dataset.conn = cc;
+    if (showOverlay) {
+      overlayMsg.innerHTML = '';
+      const bmsg = el('b', undefined, `${port.path ?? channel} ${CONN_LABEL[port.status] ?? port.status}.`);
+      overlayMsg.append(bmsg, ' 로그는 남아 있습니다.');
+      overlayBtn.hidden = !hasWriteRight();
+    }
+    renderRun();
+    const tsAttr = prefs.ts ? 'on' : 'off';
+    if (slot.dataset.ts !== tsAttr) { slot.dataset.ts = tsAttr; fitSoon(); } // the gutter changes the host width
 
     if (view === 'hex' && !paused) {
       table.setItems(bytes.rows);
@@ -507,9 +1004,9 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     const ex = expectText(input, t);
     if (ex) parts.push(ex);
     parts.push(`rx ${rate < 1024 ? `${rate} B/s` : `${(rate / 1024).toFixed(1)} KB/s`}`);
-    parts.push(`차단 질의×${st.blockedQueries} 자동응답×${st.blockedAutoInput}`);
+    if (st.blockedQueries || st.blockedAutoInput) parts.push(`차단 질의×${st.blockedQueries} 자동응답×${st.blockedAutoInput}`);
     if (st.droppedBytes) parts.push(`화면 생략 ${st.droppedBytes} B`);
-    parts.push(`REC ${ctx.recordHealth}`);
+    if (ctx.recordHealth !== 'ok') parts.push(`REC ${ctx.recordHealth}`);
     if (!hasWriteRight()) parts.push('보기 전용(watch)');
     else if (!writable) parts.push('쓰기 잠김(STALLED)');
     foot.textContent = parts.join(' │ ');
@@ -533,22 +1030,30 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       host.append(root);
       term.open(body);
       bodyObserver?.observe(body);
+      fitSoon();
       ctx.scheduler.invalidate();
     },
-    resize(w, h) {
-      size = { w, h };
-      // no fit addon installed (P1): estimate from a 13 px monospace cell
-      fitBody();
+    resize() {
+      fitSoon();
       ctx.scheduler.invalidate();
     },
     dispose() {
       clearInterval(tick);
+      if (gRaf && typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(gRaf);
       bodyObserver?.disconnect();
-      if (ledTimer !== null) clearTimeout(ledTimer);
       table.dispose();
       offAppend();
       offControl();
       offFrame();
+      offBench();
+      offRegister();
+      if (rec && rec.state === 'recording') {
+        void rec.stop('탭 닫힘으로 기록 종료');
+        ctx.ui.toast(`${channel}: 탭을 닫아 기록을 종료했습니다`);
+      }
+      recDialog?.parentElement?.remove();
+      root.removeEventListener('focusin', noteActive);
+      root.removeEventListener('pointerdown', noteActive);
       term.dispose();
       root.remove();
     },

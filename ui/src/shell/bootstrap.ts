@@ -28,7 +28,7 @@ export interface BootDeps {
   history: { replaceState(data: unknown, unused: string, url?: string): void };
   fetch(url: string, init: RequestInit): Promise<{ ok: boolean; status: number }>;
   /** sessionStorage-like; remembered deep link from before #/need-auth */
-  session?: { getItem(k: string): string | null; removeItem(k: string): void } | null;
+  session?: { getItem(k: string): string | null; removeItem(k: string): void; setItem?(k: string, v: string): void } | null;
 }
 
 /** `#boot=...&next=...` → parts (null when the fragment is not a bootstrap) */
@@ -72,7 +72,20 @@ export async function runBootstrap(d: BootDeps): Promise<BootResult> {
     return { kind: 'failed', reason: 'network' };
   }
   if (!res.ok) return { kind: 'failed', reason: res.status >= 500 ? 'network' : 'expired' };
-  return { kind: 'ok', next: frag.next ?? takeReturnTo(d) ?? '/l/m1-default' };
+  const next = frag.next ?? takeReturnTo(d);
+  if (!next) markDefaultRoute(d.session);
+  return { kind: 'ok', next: next ?? '/l/m1-default' };
+}
+
+/** The bootstrap fell back to the default route (no `next`, no remembered link): the shell may pick the
+ * workbench that matches the live interfaces (e.g. UART-only → #/s/uart) instead of the generic workspace. */
+export const DEFAULT_ROUTE_KEY = 'loom.route.defaulted';
+function markDefaultRoute(session: BootDeps['session']): void {
+  try {
+    (session as { setItem?: (k: string, v: string) => void } | null | undefined)?.setItem?.(DEFAULT_ROUTE_KEY, '1');
+  } catch {
+    /* storage blocked: the generic default stays */
+  }
 }
 
 /** apply the result to the hash route (the caller then starts the connection) */

@@ -35,7 +35,8 @@ export interface Harness {
 export function mountPanel(
   id: string,
   props: Props = {},
-  opts: { hello?: Partial<HelloResult>; now?: () => number } = {},
+  /** activity: core.activity / core.agent_cursor events the shell's ActivityStore already holds when the panel mounts */
+  opts: { hello?: Partial<HelloResult>; now?: () => number; activity?: LoomEvent[] } = {},
 ): Harness {
   const reg = getPanel(id);
   if (!reg) throw new Error(`panel ${id} not registered (import its module first)`);
@@ -48,6 +49,7 @@ export function mountPanel(
   shell.setConn(net.state, 0);
   const rows = new RowStore({ now });
   const activity = new ActivityStore();
+  for (const e of opts.activity ?? []) activity.applyEvent(e);
   let pending: (() => void) | null = null;
   const scheduler = new RenderScheduler({
     raf: (cb) => {

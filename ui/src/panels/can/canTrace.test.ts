@@ -27,12 +27,32 @@ const tx = (rid: string, state: Parameters<typeof writeEv>[1], origin: 'agent' |
 });
 
 describe('can.trace panel', () => {
-  it('subscribes to can/<channel> and shares the activity topic shape with the shell', () => {
+  it('subscribes to can/<channel>; the activity topic is live-only and contained in the shell stream', () => {
     h = mountPanel('can.trace', { channel: 'ch1' });
     expect(h.net.subs[CAN]!.filter).toEqual({ domains: ['can'], channels: ['ch1'] });
     expect(h.net.subs[CAN]!.opts.snapshot).toBe(true);
-    expect(h.net.subs[ACT]!.filter).toEqual({ kinds: ['core.activity'] });
-    expect(h.net.subs[ACT]!.opts).toEqual({ snapshot: true });
+    expect(h.net.subs[ACT]!.filter).toEqual({ domains: ['core'], kinds: ['core.activity'] });
+    expect(h.net.subs[ACT]!.opts).toEqual({ snapshot: false });
+    // containment in the shell stream (no server slot) is proven end-to-end in sdk/capacityLive.test.ts
+  });
+
+  it('genuine capacity is visible: a parked bound stream shows "구독 대기", then live once placed', () => {
+    h = mountPanel('can.trace', { channel: 'qa-can' });
+    const root = h.host.querySelector<HTMLElement>('[data-testid="can-trace"]')!;
+    h.net.subs[CAN]!.h.onResync?.('subscription_cap'); // net mux: no server slot for this visible view
+    h.frame();
+    expect(root.dataset.subscription).toBe('waiting');
+    expect(h.host.querySelector('[data-testid="can-live"]')!.textContent).toBe('구독 대기');
+    expect(h.host.querySelector('[data-testid="can-status"]')!.textContent).toContain('구독 대기');
+    h.snapshotEnd('1966'); // placed: snapshot arrives
+    h.batch([frame(0x301, 'c47a7a2663de839a', { channel: 'qa-can' })]);
+    expect(root.dataset.subscription).toBe('live');
+    expect(h.host.querySelector('[data-testid="can-live"]')!.textContent).toBe('LIVE');
+    expect(rows(h.host).some((r) => r.dataset.id === '0x301')).toBe(true);
+    // a lease resync (hidden dock lent its slot) is not a capacity wait
+    h.net.subs[CAN]!.h.onResync?.('suspended_hidden');
+    h.frame();
+    expect(root.dataset.subscription).toBe('live');
   });
 
   it('E-UI-3 rows: AGT tx row with request_id and stage, DEV rx 0x301', () => {
@@ -135,6 +155,40 @@ describe('can.trace panel', () => {
     const marked = rows(h.host).map((e) => e.dataset.agentRead === '1');
     expect(marked).toEqual([true, true, false]);
     expect(h.host.querySelector('[data-testid="can-agent-read"]')!.textContent).toContain(`seq ${fs[0]!.seq}–${fs[1]!.seq}`);
+  });
+
+  it('F2: a read made before the panel mounted (bind / reload) is marked from the shell Activity ring — no extra subscription, no replay', () => {
+    const fs = [frame(0x100, '00'), frame(0x101, '00'), frame(0x102, '00')];
+    const read = (a: string, b: string, channel: string) =>
+      ev({ kind: 'core.activity', domain: 'core', origin: 'agent', payload: { actor: 'claude-1', verb: 'read', domain: 'can', channel, range: { seq_a: a, seq_b: b }, summary: 'trace' } });
+    const mine = read(fs[0]!.seq, fs[1]!.seq, 'ch0');
+    const other = read(fs[2]!.seq, fs[2]!.seq, 'ch9'); // another channel's read: not ours
+    // the shell's ActivityStore already holds both (live before mount, or the shell snapshot after a reload)
+    h = mountPanel('can.trace', { channel: 'ch0' }, { activity: [mine, other] });
+    expect(h.net.subs).toHaveLength(2); // can + the live-only activity topic: nothing extra
+    expect(h.net.subs[ACT]!.opts.snapshot).toBe(false);
+    expect(h.net.calls).toEqual([]); // no query / read / send
+    // the frames come from the CAN snapshot after mount
+    h.net.subs[CAN]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, events: fs, items: [] } as never);
+    h.snapshotEnd(fs[2]!.seq, CAN);
+    expect(rows(h.host).map((e) => e.dataset.agentRead === '1')).toEqual([true, true, false]);
+    expect(h.host.querySelector('[data-testid="can-agent-read"]')!.textContent).toContain(`seq ${fs[0]!.seq}–${fs[1]!.seq}`);
+    const ranges = () => (globalThis as unknown as { __loomCan: Record<string, { model: { agentRanges: unknown[] } }> }).__loomCan['can.trace']!.model.agentRanges.length;
+    expect(ranges()).toBe(1);
+    // seq dedup: the same activity event arriving on the live topic (e.g. a shell re-snapshot) adds nothing
+    h.batch([mine], ACT);
+    expect(ranges()).toBe(1);
+    // a newer live read still applies on top
+    h.batch([read(fs[2]!.seq, fs[2]!.seq, 'ch0')], ACT);
+    expect(ranges()).toBe(2);
+    expect(rows(h.host).map((e) => e.dataset.agentRead === '1')).toEqual([true, true, true]);
+  });
+
+  it('F2: an unbound CAN panel reads no Activity ring and marks nothing', () => {
+    h = mountPanel('can.trace', {}, { activity: [ev({ kind: 'core.activity', domain: 'core', origin: 'agent', payload: { domain: 'can', channel: 'ch0', range: { seq_a: '1', seq_b: '9' } } })] });
+    expect(h.net.subs).toHaveLength(0);
+    expect(h.net.calls).toEqual([]);
+    expect(h.host.querySelector('[data-testid="can-agent-read"]')?.textContent ?? '').not.toContain('seq 1');
   });
 
   it('client filter by id', () => {

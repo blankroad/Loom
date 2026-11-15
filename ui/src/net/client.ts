@@ -8,7 +8,7 @@
 // therefore stops pulling and the core's decode budget (budget.ts) takes over.
 // Control path: `control` messages are dispatched the moment they arrive.
 
-import type { EventsBatch, LoomEvent, SubscribeFilter } from '../proto/provisional';
+import type { EventsBatch, LoomEvent, SnapshotPart, SubscribeFilter } from '../proto/provisional';
 import type { ClockEstimate, ConnState, NetClient, Subscription, SubscribeOptions, SubscriptionHandlers } from './api';
 import type { DeliveryItem } from './budget';
 import { UNSYNCED } from './clock';
@@ -132,6 +132,9 @@ export class MainNetClient implements NetClient {
         for (const s of this.bound.values()) s.delete(hid);
         if (!this.closed) this.port.post({ t: 'unsub', hid });
       },
+      setActive: (active: boolean) => {
+        if (open && !this.closed) this.port.post({ t: 'active', hid, active });
+      },
     };
   }
 
@@ -208,6 +211,12 @@ export class MainNetClient implements NetClient {
       const hd = this.handlers.get(item.hid);
       if (!hd) return;
       hd.narrow = item.narrow;
+      // a handle is bound to one entry at a time (suspend/merge rebinds it): drop older bindings
+      for (const [eid, set] of this.bound) {
+        if (eid === item.eid) continue;
+        set.delete(item.hid);
+        if (set.size === 0) this.bound.delete(eid);
+      }
       let s = this.bound.get(item.eid);
       if (!s) this.bound.set(item.eid, (s = new Set()));
       s.add(item.hid);
@@ -220,7 +229,7 @@ export class MainNetClient implements NetClient {
       const { h, filter, narrow } = hd;
       switch (item.k) {
         case 'part':
-          safe(() => h.onSnapshotPart?.(narrow ? withPartEvents(item.part, partEvents(item.part).filter((e) => matchesFilter(filter, e))) : item.part));
+          safe(() => h.onSnapshotPart?.(narrow ? narrowPart(item.part, filter) : item.part));
           break;
         case 'end':
           safe(() => h.onSnapshotEnd?.(item.h));
@@ -234,8 +243,8 @@ export class MainNetClient implements NetClient {
             safe(() => onBatch(item.batch, timing));
             break;
           }
-          // gaps of the shared stream stay visible to every narrow handle
-          const evs = item.batch.events.filter((e) => matchesFilter(filter, e) || e.kind.endsWith('.gap'));
+          // a loss event reaches a narrow handle only when it concerns that handle's stream (kinds ignored)
+          const evs = item.batch.events.filter((e) => matchesFilter(filter, e) || gapConcerns(filter, e));
           if (evs.length || item.batch.display_gap) safe(() => onBatch(rebatch(item.batch, evs), timing));
           break;
         }
@@ -255,6 +264,38 @@ export class MainNetClient implements NetClient {
     }
     this.calls.clear();
   }
+}
+
+/**
+ * A narrow handle's view of a shared snapshot part: its own events, and only reducer items of
+ * its domains/channels (an item without a channel is domain-wide and kept).
+ */
+function narrowPart(part: SnapshotPart, f: SubscribeFilter): SnapshotPart {
+  const p = withPartEvents(part, partEvents(part).filter((e) => matchesFilter(f, e)));
+  if (!part.items) return p;
+  const items = part.items.filter((it) => (!f.domains || f.domains.includes(it.domain)) && (!f.channels || it.channel == null || f.channels.includes(it.channel)));
+  return { ...p, items };
+}
+
+/**
+ * Domains that name no affected stream: a gap published under them (the hub's own `display.gap`
+ * for a subscription start/overload, the daemon's `record.gap`, a local `display.gap` of a
+ * cross-domain union) is a loss of the shared subscription itself.
+ */
+const STREAMLESS_GAP_DOMAINS: ReadonlySet<string> = new Set(['core', 'display', 'record', 'source']);
+
+/**
+ * Does a `*.gap` event concern a narrow handle? Contract 02: a gap's domain/channel name the
+ * AFFECTED stream. Scope it to the handle's domains/channels only, ignoring kinds (a CAN topic
+ * filtered to can.frame still loses frames on a can source.gap) and origins (loss rows are
+ * attributed to the device stream). No channel = the whole domain; a streamless domain = the
+ * whole subscription, shared by every handle bound to it.
+ */
+function gapConcerns(f: SubscribeFilter, e: LoomEvent): boolean {
+  if (!e.kind.endsWith('.gap')) return false;
+  if (STREAMLESS_GAP_DOMAINS.has(e.domain)) return true;
+  if (f.domains && !f.domains.includes(e.domain)) return false;
+  return e.channel == null || !f.channels || f.channels.includes(e.channel);
 }
 
 /** One throwing listener must not starve the others. */

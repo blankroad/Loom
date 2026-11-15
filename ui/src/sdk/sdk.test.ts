@@ -316,6 +316,42 @@ describe('PanelContext', () => {
     expect(g.net.calls).toHaveLength(2);
   });
 
+  it('act exposes the successful result: envelope → its data, bare → as is; request_id tracking unchanged', async () => {
+    const { ctx, net, rows } = make();
+    // Real daemon reply of a non-write job action (eth.export): success envelope, data without request_id.
+    const data = { path: '/var/tmp/loom-eth-lan1-1731650000000000000.pcapng', packets: 17, bytes: 1234, truncated: false, comments_dropped: 0, gaps: [] };
+    net.responders.set('can.send', () => envOk('can.send', data));
+    const h1 = await ctx.act('send', {});
+    expect(h1.result).toEqual(data);
+    expect(h1.result).not.toHaveProperty('schema_version');
+    expect(h1.requestId).toBeNull();
+    expect(h1.state()).toBeNull();
+    expect(typeof h1.onChange(() => {})).toBe('function');
+
+    // Write action: enveloped data with request_id — both the result and the row tracking work.
+    net.responders.set('can.send', () => envOk('can.send', { request_id: 'r8', state: 'sent' }));
+    const h2 = await ctx.act('send', {});
+    expect(h2.result).toEqual({ request_id: 'r8', state: 'sent' });
+    rows.apply(writeEv('r8', 'confirmed'));
+    expect(h2.state()).toBe('confirmed');
+
+    // Bare result (core / mock) and a bare business ok:false payload pass through unchanged.
+    const bare = { request_id: 'r9', note: 'bare' };
+    net.responders.set('can.send', () => bare);
+    const h3 = await ctx.act('send', {});
+    expect([h3.requestId, h3.result]).toEqual(['r9', bare]);
+    const biz = { ok: false, pos: 3 };
+    net.responders.set('can.send', () => biz);
+    expect((await ctx.act('send', {})).result).toEqual(biz);
+    // success envelope with null data → null, never the envelope
+    net.responders.set('can.send', () => envOk('can.send', null));
+    expect((await ctx.act('send', {})).result).toBeNull();
+
+    // A failure envelope stays an error: no handle, no result.
+    net.responders.set('can.send', () => envFail('can.send', { code: 'E_LOCKED', message: 'locked: lease held by user' }));
+    await expect(ctx.act('send', {})).rejects.toMatchObject({ name: 'DomainRpcError', code: 'E_LOCKED' });
+  });
+
   it('rows() is limited to the panel domain', () => {
     const { ctx } = make();
     expect(() => ctx.rows({ domain: 'uds' })).toThrow(UndeclaredError);
