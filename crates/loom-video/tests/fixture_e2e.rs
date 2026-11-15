@@ -1,6 +1,8 @@
 //! Worker + gateway-side media reader against the independent Python MJPEG fixture and the real
 //! FFmpeg. Homes are short `/tmp/loom-video-*` dirs (media socket path bound). Skipped with a
 //! message when ffmpeg, python3 or Pillow is unavailable. No camera/device is ever touched.
+//! Unix only: the media plane is a Unix domain socket (Windows: `platform_unsupported.rs`).
+#![cfg(unix)]
 #![allow(clippy::unwrap_used)]
 
 use std::io::{BufRead, BufReader, Read, Write};

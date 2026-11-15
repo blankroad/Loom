@@ -3,6 +3,7 @@
 //! Real-engine tests are skipped (with a message) when sigrok-cli is not installed.
 #![allow(clippy::unwrap_used)]
 
+#[cfg(unix)]
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -314,6 +315,8 @@ fn missing_engine_is_an_error_not_a_fallback() {
     assert_eq!(final_state(&r.events)["state"], "failed");
 }
 
+/// `#!/bin/sh` stand-in for sigrok-cli (Unix only: shebang + exec bit).
+#[cfg(unix)]
 fn fake_engine(name: &str, body: &str) -> PathBuf {
     use std::os::unix::fs::PermissionsExt as _;
     let dir = std::env::temp_dir().join(format!("loom-logic-fake-{}-{name}", std::process::id()));
@@ -324,6 +327,7 @@ fn fake_engine(name: &str, body: &str) -> PathBuf {
     p
 }
 
+#[cfg(unix)]
 #[test]
 fn acquisition_failure_is_reported_with_stderr() {
     let p = fake_engine("exit3", "echo boom-from-engine >&2; exit 3");
@@ -342,6 +346,7 @@ fn acquisition_failure_is_reported_with_stderr() {
     assert_eq!(fin["exit"]["acquisition"]["code"], 3);
 }
 
+#[cfg(unix)]
 #[test]
 fn descendants_holding_pipes_are_group_killed() {
     // The fake decoder ignores stdin EOF and leaves a background child holding stdout/stderr.
@@ -402,6 +407,7 @@ fn busy_latch_and_drop_cleanup() {
     assert!(t0.elapsed() < Duration::from_secs(6));
 }
 
+#[cfg(unix)]
 #[test]
 fn decoder_closing_input_early_is_a_failure() {
     // Consumes 1000 bytes, then exits 0 — fewer samples decoded than captured.

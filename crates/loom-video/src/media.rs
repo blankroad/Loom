@@ -8,9 +8,13 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use serde_json::{Value, json};
-use tokio::io::{AsyncBufReadExt as _, AsyncReadExt as _, AsyncWriteExt as _, BufReader};
+use tokio::io::AsyncReadExt as _;
+#[cfg(unix)]
+use tokio::io::{AsyncBufReadExt as _, AsyncWriteExt as _, BufReader};
 
-use crate::model::{self, ArtifactKind, MAX_FRAME_BYTES};
+#[cfg(unix)]
+use crate::model::MAX_FRAME_BYTES;
+use crate::model::{self, ArtifactKind};
 
 /// Whole media request bound.
 pub const MEDIA_TIMEOUT: Duration = Duration::from_secs(3);
@@ -70,6 +74,7 @@ pub fn parse_frame_query(q: Option<&str>) -> Result<Option<u64>, &'static str> {
     v.parse::<u64>().ok().filter(|n| *n > 0).map(Some).ok_or("bad_query")
 }
 
+#[cfg(unix)]
 async fn ask(sock: &Path, req: &str) -> Result<(Value, Vec<u8>), Reply> {
     let mut s = match tokio::net::UnixStream::connect(sock).await {
         Ok(s) => s,
@@ -98,6 +103,14 @@ async fn ask(sock: &Path, req: &str) -> Result<(Value, Vec<u8>), Reply> {
         .await
         .map_err(|_| error(503, "media_unavailable"))?;
     Ok((head, body))
+}
+
+/// Not Unix (Windows): the worker's media plane is a Unix domain socket and no portable
+/// transport exists yet, so every live frame/metadata request is refused explicitly with
+/// `503 media_unavailable` (never a fabricated frame). Finished artifacts are unaffected.
+#[cfg(not(unix))]
+async fn ask(_sock: &Path, _req: &str) -> Result<(Value, Vec<u8>), Reply> {
+    Err(error(503, "media_unavailable"))
 }
 
 fn socket(home: &Path, capture_id: &str) -> Result<PathBuf, Reply> {

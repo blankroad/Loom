@@ -6,6 +6,7 @@
 
 use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, Read, Write};
+#[cfg(unix)]
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, ExitStatus, Stdio};
@@ -109,6 +110,7 @@ fn ms(d: Duration) -> u64 {
 // Process groups (same discipline as loom-logic): every child leads its own group; signals go
 // to the whole group via kill(1) with a fixed argv — no shell, no unsafe.
 
+#[cfg(unix)]
 fn signal_group(pgid: u32, sig: &str) {
     let _ = Command::new("/bin/kill")
         .args([sig, "--", &format!("-{pgid}")])
@@ -117,6 +119,12 @@ fn signal_group(pgid: u32, sig: &str) {
         .stderr(Stdio::null())
         .status();
 }
+
+/// Not Unix: there are no process-group signals. Callers already fall back to
+/// [`kill_reap`] (`Child::kill`, leader only) after their grace period, so graceful
+/// SIGINT finalization does not exist on this platform.
+#[cfg(not(unix))]
+fn signal_group(_pgid: u32, _sig: &str) {}
 
 fn wait_until(child: &mut Child, until: Instant) -> Option<ExitStatus> {
     loop {
@@ -141,6 +149,7 @@ fn spawn_group(program: &Path, args: &[String], stdin: Stdio) -> std::io::Result
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .env("LC_ALL", "C");
+    #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt as _;
         c.process_group(0);
@@ -466,8 +475,24 @@ fn file_hash(p: &Path) -> Option<(u64, String)> {
 
 fn ensure_private_dir(d: &Path) -> std::io::Result<()> {
     std::fs::create_dir_all(d)?;
-    use std::os::unix::fs::PermissionsExt as _;
-    std::fs::set_permissions(d, std::fs::Permissions::from_mode(0o700))
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(d, std::fs::Permissions::from_mode(0o700))?;
+    }
+    Ok(())
+}
+
+/// `create_new` + owner-only (0600 on Unix; on other platforms the per-user home ACL applies).
+fn create_private_new(path: &Path) -> std::io::Result<std::fs::File> {
+    let mut o = std::fs::OpenOptions::new();
+    o.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt as _;
+        o.mode(0o600);
+    }
+    o.open(path)
 }
 
 #[derive(Debug, Default)]
@@ -721,12 +746,7 @@ impl Shared {
         ensure_private_dir(&dir).map_err(|e| err(ErrorCode::Internal, format!("artifact dir: {e}")))?;
         let path = dir.join(format!("{aid}.jpg"));
         {
-            use std::os::unix::fs::OpenOptionsExt as _;
-            let mut file = std::fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .mode(0o600)
-                .open(&path)
+            let mut file = create_private_new(&path)
                 .map_err(|e| err(ErrorCode::Internal, format!("snapshot write: {e}")))?;
             file.write_all(&f.data)
                 .and_then(|()| file.sync_all())
@@ -765,15 +785,7 @@ impl Shared {
         let final_path = dir.join(format!("{aid}.mkv"));
         let part_path = model::partial_path(&final_path);
         let marker = model::recording_marker(&final_path);
-        {
-            use std::os::unix::fs::OpenOptionsExt as _;
-            std::fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .mode(0o600)
-                .open(&marker)
-                .map_err(|e| err(ErrorCode::Internal, format!("recording marker: {e}")))?;
-        }
+        create_private_new(&marker).map_err(|e| err(ErrorCode::Internal, format!("recording marker: {e}")))?;
         let args = model::recorder_args(self.cfg.fps, &part_path);
         let mut child = match spawn_group(ffmpeg, &args, Stdio::piped()) {
             Ok(c) => c,
@@ -893,6 +905,7 @@ impl Drop for MediaServer {
     }
 }
 
+#[cfg(unix)]
 fn remove_stale_socket(p: &Path) -> std::io::Result<()> {
     use std::os::unix::fs::FileTypeExt as _;
     match std::fs::symlink_metadata(p) {
@@ -902,6 +915,7 @@ fn remove_stale_socket(p: &Path) -> std::io::Result<()> {
     }
 }
 
+#[cfg(unix)]
 fn start_media(path: PathBuf, shared: Arc<Shared>) -> Result<MediaServer, String> {
     if let Some(d) = path.parent() {
         ensure_private_dir(d).map_err(|e| format!("media dir: {e}"))?;
@@ -953,6 +967,26 @@ fn start_media(path: PathBuf, shared: Arc<Shared>) -> Result<MediaServer, String
     })
 }
 
+/// Not Unix (Windows): the read-only media plane is a Unix domain socket and no portable
+/// transport exists yet. Opening a capture is refused with `E_UNSUPPORTED` (see
+/// [`MEDIA_START_ERROR`]) instead of running a capture whose live frames nobody can read.
+#[cfg(not(unix))]
+fn start_media(_path: PathBuf, _shared: Arc<Shared>) -> Result<MediaServer, String> {
+    // Unreachable in practice: `open` refuses first. Kept so no path can run a capture here.
+    Err(UNSUPPORTED_PLATFORM.into())
+}
+
+/// Refusal text for video capture on platforms without the Unix-socket media plane.
+const UNSUPPORTED_PLATFORM: &str = "video capture is not available on this platform yet: the live media \
+     transport is a Unix domain socket (Windows port pending)";
+
+/// Error code for a failed [`start_media`]: an internal failure on Unix, a platform limitation elsewhere.
+#[cfg(unix)]
+const MEDIA_START_ERROR: ErrorCode = ErrorCode::Internal;
+#[cfg(not(unix))]
+const MEDIA_START_ERROR: ErrorCode = ErrorCode::Unsupported;
+
+#[cfg(unix)]
 fn serve_conn(mut s: UnixStream, sh: &Shared) {
     let _ = s.set_nonblocking(false);
     let _ = s.set_read_timeout(Some(MEDIA_READ_TIMEOUT));
@@ -1291,6 +1325,11 @@ impl VideoWorker {
             if cx.latch().is_on() {
                 return Err(err(ErrorCode::Stopped, "STOP latched: open refused"));
             }
+            // Not Unix (Windows): the live media plane can never start, so refuse before any
+            // config, storage, ffmpeg or socket-path work (no capture without its media plane).
+            if !cfg!(unix) {
+                return Err(err(ErrorCode::Unsupported, UNSUPPORTED_PLATFORM));
+            }
             if let Some(r) = &self.cur
                 && r.sh.running()
             {
@@ -1372,7 +1411,7 @@ impl VideoWorker {
         });
         let media = match start_media(sock, sh.clone()) {
             Ok(m) => m,
-            Err(e) => return ready(Err(err(ErrorCode::Internal, e))),
+            Err(e) => return ready(Err(err(MEDIA_START_ERROR, e))),
         };
         let sh2 = sh.clone();
         let join = std::thread::Builder::new()
