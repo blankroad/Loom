@@ -1,6 +1,6 @@
 [package]
 name = "loom-desktop"
-description = "Native macOS shell hosting the Loom UI served by loomd"
+description = "Native desktop shell (macOS, Windows, Linux) hosting the Loom UI served by loomd"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -20,6 +20,11 @@ loom-desktop-host = { path = "../host" }
 # Test-only in-app W3C WebDriver server (127.0.0.1, unauthenticated). Optional: never in default,
 # dist or release bundles; enabled only by `--features e2e` on debug builds (ROOT-approved).
 tauri-plugin-wdio-webdriver = { version = "=1.5.1", optional = true }
+
+# Windows only: ShellExecuteW for explicit external links (nav::open_external). Same crate/version
+# Tauri already pulls in for Windows targets (no new download).
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
 
 [features]
 # `cargo build` (dev) loads frontend/ from disk; bundles enable custom-protocol (tauri-cli does this).

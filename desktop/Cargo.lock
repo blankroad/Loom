@@ -1928,6 +1928,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-wdio-webdriver",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

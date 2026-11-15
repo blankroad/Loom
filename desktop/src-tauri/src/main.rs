@@ -1,4 +1,5 @@
-//! Loom desktop: a native macOS window hosting the real Loom UI served by `loomd`.
+//! Loom desktop: a native window (macOS WKWebView, Windows WebView2, Linux WebKitGTK) hosting the
+//! real Loom UI served by `loomd`.
 //!
 //! Flow: the main window opens on a local launch page (bundled `frontend/`). A worker thread runs
 //! `loom_desktop_host::connect` — reuse the daemon of the selected `LOOM_HOME`, or start the
@@ -6,7 +7,8 @@
 //! viewer URL on the canonical `http://localhost:<port>` origin. On failure the launch page shows
 //! the redacted, actionable error and a Retry button. Closing the window or quitting the app never
 //! stops the daemon (the host crate spawns it detached; nothing here kills it). If the daemon
-//! restarts later, Connection > Reconnect (⇧⌘R) returns to the launch page and connects afresh.
+//! restarts later, Connection > Reconnect (⇧⌘R / Ctrl+Shift+R) returns to the launch page and
+//! connects afresh.
 //!
 //! Security: the viewer URL / token are never logged or shown; only the local launch page has IPC
 //! (capabilities/launch.json, no remote URLs); navigation is limited to the app assets and the
@@ -17,8 +19,13 @@
 #[cfg(all(feature = "e2e", not(debug_assertions)))]
 compile_error!("feature `e2e` (in-app WebDriver server) is test-only; never build it in release");
 
+// Linux-only at run time; also compiled into Unix test builds so macOS runs its unit tests.
+#[cfg(any(target_os = "linux", all(unix, test)))]
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+mod appimage;
 mod config;
 mod nav;
+mod ui_identity;
 
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
@@ -128,12 +135,38 @@ fn start_attempt<R: Runtime>(app: &AppHandle<R>, launch: Arc<Launch>) {
         .expect("spawn connect thread");
 }
 
+/// Owned form of [`loom_desktop_host::PrepareDaemon`].
+type PrepareBox = Box<dyn Fn(&std::path::Path) -> std::io::Result<std::path::PathBuf>>;
+
 fn connect_and_open<R: Runtime>(
     app: &AppHandle<R>,
     launch: &Launch,
     config: &LaunchConfig,
 ) -> Result<(), String> {
-    let session = loom_desktop_host::connect(&config.connect_options()).map_err(|e| e.to_string())?;
+    #[allow(unused_mut)]
+    let mut options = config.connect_options();
+    #[allow(unused_mut)]
+    let mut prepare: PrepareBox = Box::new(|p| Ok(p.to_path_buf()));
+    // Linux AppImage: never start the long-lived daemon from the app's FUSE mount (see appimage).
+    // The copy happens only if this connect actually starts the daemon; reuse needs no write.
+    #[cfg(target_os = "linux")]
+    if let Some(appdir) = appimage::appdir(|k| std::env::var_os(k)) {
+        options.daemon_env = appimage::env_fixups(std::env::vars_os(), &appdir);
+        let home = options.home.clone();
+        prepare = Box::new(move |bin: &std::path::Path| {
+            appimage::stable_daemon(bin, &appdir, &home).map_err(|e| {
+                std::io::Error::new(
+                    e.kind(),
+                    format!(
+                        "could not copy it out of the AppImage into {}: {e}; check that the Loom home \
+                         is writable and owned by you, or install the .deb package",
+                        home.join("desktop").join("bin").display()
+                    ),
+                )
+            })
+        });
+    }
+    let session = loom_desktop_host::connect_with(&options, &*prepare).map_err(|e| e.to_string())?;
     let url = Url::parse(session.viewer_url())
         .map_err(|_| "The daemon returned an invalid viewer URL; retry.".to_string())?;
     if !nav::is_daemon_origin(&url, Some(session.port())) {
@@ -141,6 +174,47 @@ fn connect_and_open<R: Runtime>(
             "The daemon viewer URL is not on the expected origin http://localhost:{}; retry.",
             session.port()
         ));
+    }
+    // Never show a UI build other than the one this app ships (a reused older daemon serves its own).
+    let served = loom_desktop_host::daemon_ui_index(session.port(), std::time::Duration::from_secs(5));
+    match ui_identity::verdict(ui_identity::EXPECTED_INDEX, served.as_deref().ok()) {
+        ui_identity::Verdict::Match => {}
+        ui_identity::Verdict::Unknown if cfg!(debug_assertions) => {
+            eprintln!("loom-desktop: WARNING unstaged dev build; daemon UI identity not checked")
+        }
+        ui_identity::Verdict::Unknown => return Err(ui_identity::unknown_message()),
+        ui_identity::Verdict::Mismatch => {
+            eprintln!(
+                "loom-desktop: UI build mismatch on reused daemon pid {} port {}: {}",
+                session.pid(),
+                session.port(),
+                match &served {
+                    Ok(b) => format!(
+                        "/ui/ {} B differs from expected {} B",
+                        b.len(),
+                        ui_identity::EXPECTED_INDEX.len()
+                    ),
+                    Err(e) => format!("/ui/ unreadable: {e}"),
+                }
+            );
+            return Err(match &served {
+                Ok(b) => ui_identity::mismatch_message(
+                    session.pid(),
+                    session.port(),
+                    &config.home.display().to_string(),
+                    &format!(
+                        "/ui/ {} B, 앱 기대값 {} B (내용 다름)",
+                        b.len(),
+                        ui_identity::EXPECTED_INDEX.len()
+                    ),
+                ),
+                Err(e) => ui_identity::unreadable_message(
+                    session.pid(),
+                    session.port(),
+                    &format!("/ui/ 읽기 실패: {e}"),
+                ),
+            });
+        }
     }
     *launch.port.lock().unwrap_or_else(|p| p.into_inner()) = Some(session.port());
     eprintln!(
@@ -173,7 +247,40 @@ fn with_policy<'a, R: Runtime, M: Manager<R>>(
     port: Arc<Mutex<Option<u16>>>,
 ) -> WebviewWindowBuilder<'a, R, M> {
     let nav_port = port.clone();
+    let dl_port = port.clone();
     builder
+        // REC/export files: blob/data/attachment downloads from the daemon page only. Saved in the
+        // user's Downloads folder with a non-overwriting name (WebKit/WebView2 default; wry appends
+        // " (n)" on WebKitGTK). Only the file name is logged.
+        .on_download(move |_webview, event| match event {
+            tauri::webview::DownloadEvent::Requested { url, destination } => {
+                let p = *dl_port.lock().unwrap_or_else(|e| e.into_inner());
+                if !nav::download_allowed(&url, p) {
+                    eprintln!("loom-desktop: denied download (scheme {:?})", url.scheme());
+                    return false;
+                }
+                // Test builds only: keep QA downloads inside the isolated QA home.
+                #[cfg(all(feature = "e2e", debug_assertions))]
+                if let Some(dir) = std::env::var_os("LOOM_DESKTOP_QA_DOWNLOAD_DIR")
+                    && let Some(name) = destination.file_name().map(|n| n.to_owned())
+                {
+                    *destination = std::path::PathBuf::from(dir).join(name);
+                }
+                eprintln!(
+                    "loom-desktop: download accepted: {:?}",
+                    destination.file_name().unwrap_or_default()
+                );
+                true
+            }
+            tauri::webview::DownloadEvent::Finished { path, success, .. } => {
+                eprintln!(
+                    "loom-desktop: download finished success={success} file={:?}",
+                    path.as_ref().and_then(|p| p.file_name())
+                );
+                true
+            }
+            _ => true,
+        })
         .on_navigation(move |url| {
             let p = *nav_port.lock().unwrap_or_else(|e| e.into_inner());
             match nav::navigation_action(url, p) {
@@ -192,7 +299,7 @@ fn with_policy<'a, R: Runtime, M: Manager<R>>(
             let p = *port.lock().unwrap_or_else(|e| e.into_inner());
             match nav::new_window_action(&url, p) {
                 // Same-origin pop-ups (e.g. daemon artifact links) open in another app window that
-                // shares the WKWebView configuration (and thus the viewer cookie) and this policy.
+                // shares the webview context (and thus the viewer cookie) and this policy.
                 Action::OpenChild => match open_child(&app, port.clone(), url, features) {
                     Some(window) => NewWindowResponse::Create { window },
                     None => NewWindowResponse::Deny,
@@ -216,7 +323,11 @@ fn create_main<R: Runtime, M: Manager<R>>(
         .title("Loom")
         .inner_size(1440.0, 900.0)
         .min_inner_size(900.0, 600.0)
-        .background_color(tauri::window::Color(0x0f, 0x11, 0x15, 0xff));
+        // Bench Light: this window only (macOS NSAppearance aqua, Windows light title bar, GTK
+        // prefer-light), never the OS-wide appearance setting.
+        .theme(Some(tauri::Theme::Light))
+        // Bench Light --bg: no dark flash before the shared UI paints.
+        .background_color(tauri::window::Color(0xff, 0xff, 0xff, 0xff));
     // Test-only (e2e debug builds): keep the window above others so macOS occlusion does not hide
     // the page (WebKit stops requestAnimationFrame for a fully covered window). Opt-in per run.
     #[cfg(all(feature = "e2e", debug_assertions))]

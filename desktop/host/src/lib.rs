@@ -7,8 +7,9 @@
 //! Lifecycle guarantees:
 //! - an existing daemon is always reused; a daemon is started only when the home's instance lock
 //!   (`run/loomd.lock`) is free, serialized with the CLI through `run/start.lock`;
-//! - a started daemon runs in its own process group with stdin `/dev/null` and stdout/stderr
-//!   appended to `<home>/run/loomd.log` (0600) — no pipes, so closing or killing the app never
+//! - a started daemon runs in its own process group (Windows: detached, no console, out of the
+//!   app's job object when allowed) with stdin null and stdout/stderr appended to
+//!   `<home>/run/loomd.log` (0600 on Unix) — no pipes, so closing or killing the app never
 //!   blocks on, signals or reaps-into-death the daemon;
 //! - nothing here ever stops a daemon: [`DesktopSession`] has no `Drop` behaviour;
 //! - the token, the bootstrap code and the viewer URL never appear in `Debug`/`Display` output or
@@ -46,6 +47,10 @@ pub struct ConnectOptions {
     pub ui_dir: Option<PathBuf>,
     /// Bound on the whole [`connect`] call.
     pub startup_timeout: Duration,
+    /// Environment changes for a daemon this call starts (`None` removes the variable), applied
+    /// before `LOOM_HOME`, which is always set to [`ConnectOptions::home`]. Used e.g. to keep a
+    /// Linux AppImage's mount-relative variables out of the long-lived daemon. Empty = inherit.
+    pub daemon_env: Vec<(std::ffi::OsString, Option<std::ffi::OsString>)>,
 }
 
 impl ConnectOptions {
@@ -53,7 +58,8 @@ impl ConnectOptions {
     pub const DEFAULT_STARTUP_TIMEOUT: Duration = Duration::from_secs(15);
 }
 
-/// Loom home exactly as the CLI resolves it: `LOOM_HOME`, else `~/.loom`.
+/// Loom home as the CLI and `loomd` resolve it: `LOOM_HOME`, else `$HOME/.loom`, else
+/// `%USERPROFILE%\.loom` (empty values count as unset here).
 pub fn default_home() -> Option<PathBuf> {
     if let Some(h) = std::env::var_os("LOOM_HOME").filter(|h| !h.is_empty()) {
         return Some(PathBuf::from(h));
@@ -106,6 +112,19 @@ impl DesktopSession {
     pub fn origin(&self) -> String {
         format!("http://localhost:{}", self.port)
     }
+}
+
+/// Bytes of the UI page `/ui/` served by the daemon on `port` (public static asset, no token):
+/// the exact document the desktop window loads (`http://localhost:<port>/ui/#boot=…`). Fetched on
+/// the canonical `localhost` host; any non-200 (including a 308 redirect) is an error, never followed.
+/// The desktop shell compares them with the UI build it was packaged with: a reused, older
+/// daemon keeps serving its own embedded UI, which must never be shown silently.
+pub fn daemon_ui_index(port: u16, timeout: Duration) -> io::Result<Vec<u8>> {
+    let r = http::get_public(port, "/ui/", timeout)?;
+    if r.status != 200 {
+        return Err(io::Error::other(format!("GET /ui/ returned HTTP {}", r.status)));
+    }
+    Ok(r.body)
 }
 
 impl std::fmt::Debug for DesktopSession {
@@ -277,11 +296,27 @@ fn is_executable(p: &Path) -> bool {
     }
 }
 
-fn spawn_daemon(o: &ConnectOptions, run: &Path, ui_dir: Option<&Path>) -> Result<Child, HostError> {
+/// Maps the configured [`ConnectOptions::daemon_bin`] to the file actually started (see
+/// [`connect_with`]).
+pub type PrepareDaemon<'a> = &'a dyn Fn(&Path) -> io::Result<PathBuf>;
+
+fn spawn_daemon(
+    o: &ConnectOptions,
+    run: &Path,
+    ui_dir: Option<&Path>,
+    prepare: PrepareDaemon<'_>,
+) -> Result<Child, HostError> {
     if !is_executable(&o.daemon_bin) {
         return Err(HostError::DaemonBinaryMissing {
             path: o.daemon_bin.clone(),
         });
+    }
+    let bin = prepare(&o.daemon_bin).map_err(|source| HostError::Spawn {
+        path: o.daemon_bin.clone(),
+        source,
+    })?;
+    if !is_executable(&bin) {
+        return Err(HostError::DaemonBinaryMissing { path: bin });
     }
     let log_path = run.join("loomd.log");
     let mut lo = OpenOptions::new();
@@ -299,41 +334,54 @@ fn spawn_daemon(o: &ConnectOptions, run: &Path, ui_dir: Option<&Path>) -> Result
     let _ = writeln!(
         log,
         "loom-desktop-host: starting {} (unix time {now}, desktop pid {})",
-        o.daemon_bin.display(),
+        bin.display(),
         std::process::id()
     );
     let err_log = log.try_clone().map_err(home_err(&log_path))?;
-    let mut cmd = Command::new(&o.daemon_bin);
+    let mut cmd = Command::new(&bin);
     cmd.arg("run");
     if let Some(dir) = ui_dir {
         cmd.arg("--ui-dir").arg(dir);
+    }
+    for (k, v) in &o.daemon_env {
+        match v {
+            Some(v) => cmd.env(k, v),
+            None => cmd.env_remove(k),
+        };
     }
     cmd.env("LOOM_HOME", &o.home)
         .current_dir(&o.home)
         .stdin(Stdio::null())
         .stdout(log)
         .stderr(err_log);
-    detach(&mut cmd);
-    cmd.spawn().map_err(|source| HostError::Spawn {
-        path: o.daemon_bin.clone(),
-        source,
-    })
+    spawn_detached(&mut cmd).map_err(|source| HostError::Spawn { path: bin, source })
 }
 
 #[cfg(unix)]
-fn detach(cmd: &mut Command) {
+fn spawn_detached(cmd: &mut Command) -> io::Result<Child> {
     use std::os::unix::process::CommandExt as _;
     // Own process group: signals to the app's group (terminal Ctrl-C, group kill) skip the daemon.
     cmd.process_group(0);
+    cmd.spawn()
 }
 
+/// Same flags as `loom`'s `spawn_daemon`: no console, own process group, and out of the app's job
+/// object when the job allows breakaway (a launcher job with kill-on-close would otherwise take
+/// the daemon down with the app). A job that forbids breakaway fails the first spawn (access
+/// denied); the daemon is then started inside it, exactly as the CLI does.
 #[cfg(windows)]
-fn detach(cmd: &mut Command) {
+fn spawn_detached(cmd: &mut Command) -> io::Result<Child> {
     use std::os::windows::process::CommandExt as _;
     const DETACHED_PROCESS: u32 = 0x0000_0008;
     const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-    cmd.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW);
+    const CREATE_BREAKAWAY_FROM_JOB: u32 = 0x0100_0000;
+    const ERROR_ACCESS_DENIED: i32 = 5;
+    let base = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW;
+    match cmd.creation_flags(base | CREATE_BREAKAWAY_FROM_JOB).spawn() {
+        Err(e) if e.raw_os_error() == Some(ERROR_ACCESS_DENIED) => cmd.creation_flags(base).spawn(),
+        r => r,
+    }
 }
 
 /// Reap a daemon we started on a background thread so it never lingers as a zombie while the app
@@ -374,6 +422,18 @@ fn validate(o: &ConnectOptions) -> Result<Option<PathBuf>, HostError> {
 /// Reuse the daemon that owns `options.home`, or start `options.daemon_bin` if none does, then mint
 /// a fresh viewer bootstrap URL. Bounded by `options.startup_timeout`. Never stops a daemon.
 pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
+    connect_with(options, &|p| Ok(p.to_path_buf()))
+}
+
+/// [`connect`], with `prepare` turning the configured daemon binary into the file to start. It is
+/// called only when this call is about to start a daemon (holding `run/start.lock`, after the
+/// configured binary was found executable), never when an existing daemon is reused — e.g. the
+/// Linux AppImage build copies its bundled daemon out of the app's mount here. An error is a
+/// [`HostError::Spawn`] for the configured path, and nothing is started.
+pub fn connect_with(
+    options: &ConnectOptions,
+    prepare: PrepareDaemon<'_>,
+) -> Result<DesktopSession, HostError> {
     let ui_dir = validate(options)?;
     let home = options.home.as_path();
     let t0 = Instant::now();
@@ -399,7 +459,7 @@ pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
         live_owner = daemon_lock_held(&run)?;
         if !live_owner {
             // Stale or absent discovery: the home has no daemon. Start ours.
-            child = Some(spawn_daemon(options, &run, ui_dir.as_deref())?);
+            child = Some(spawn_daemon(options, &run, ui_dir.as_deref(), prepare)?);
         }
     }
 
@@ -452,4 +512,63 @@ pub fn connect(options: &ConnectOptions) -> Result<DesktopSession, HostError> {
             HostError::Unresponsive { waited, log }
         }
     })
+}
+
+#[cfg(test)]
+mod ui_index_tests {
+    use super::*;
+    use std::io::{BufRead as _, BufReader};
+    use std::net::TcpListener;
+
+    /// One-shot local server: records the request head, answers with `reply`.
+    fn serve(reply: &'static [u8]) -> (u16, std::thread::JoinHandle<String>) {
+        let l = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = l.local_addr().unwrap().port();
+        let h = std::thread::spawn(move || {
+            let (mut s, _) = l.accept().unwrap();
+            let mut head = String::new();
+            let mut r = BufReader::new(s.try_clone().unwrap());
+            loop {
+                let mut line = String::new();
+                if r.read_line(&mut line).unwrap() == 0 || line == "\r\n" {
+                    break;
+                }
+                head.push_str(&line);
+            }
+            s.write_all(reply).unwrap();
+            head
+        });
+        (port, h)
+    }
+
+    #[test]
+    fn fetches_index_without_credentials() {
+        let (port, h) = serve(b"HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\n<!doctype html>");
+        let body = daemon_ui_index(port, Duration::from_secs(2)).unwrap();
+        assert_eq!(body, b"<!doctype html>");
+        let head = h.join().unwrap();
+        assert!(head.starts_with("GET /ui/ HTTP/1.1\r\n"));
+        assert!(!head.to_ascii_lowercase().contains("authorization"));
+    }
+
+    /// Regression (final QA, 2026-11-15): loomd redirects (308) any `Host: 127.0.0.1` GET outside
+    /// /rpc and /api/ to its canonical `localhost` origin; the identity fetch must not be redirected.
+    #[test]
+    fn uses_canonical_localhost_host() {
+        let (port, h) = serve(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
+        daemon_ui_index(port, Duration::from_secs(2)).unwrap();
+        let head = h.join().unwrap();
+        assert!(
+            head.contains(&format!("\r\nHost: localhost:{port}\r\n")),
+            "{head}"
+        );
+    }
+
+    #[test]
+    fn non_200_is_an_error() {
+        let (port, h) = serve(b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n");
+        let e = daemon_ui_index(port, Duration::from_secs(2)).unwrap_err();
+        assert!(e.to_string().contains("404"));
+        h.join().unwrap();
+    }
 }

@@ -11,6 +11,12 @@
 //     launch-failed             launch page shows the Failed view + Retry (error path)
 //     retry                     click Retry on the launch page
 //     shot <name>               WKWebView snapshot → <out>/<name>.png
+//     geom ["sel|sel…"]        no navigation: viewport, tokens, full-width bands (h/top/bg), counts of given selectors + shot
+//     goto <route>              set location.hash (agent deep-link entry), then use geom/shot
+//     click <css>               WebDriver element click on the first match (real WK click, no JS .click())
+//     fill <css> <text>         WebDriver clear + send keys into an input/textarea/select; logs the resulting value
+//     text <css>                innerText of the first match (≤400 chars) — for UI-vs-CLI cross checks
+//     digests                   SHA-256 of every loaded /ui asset (same probe as Ego: e2e/probes.mjs)
 //
 // Credential hygiene: never requests the page URL, title, source or cookies; JS returns only
 // booleans/counters/visible panel text. location.hash is checked for `#boot=` as a boolean.
@@ -18,6 +24,7 @@
 // real WKWebView (honest label: WK DOM input, not OS-level keystrokes).
 import { mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ASSET_DIGESTS } from './probes.mjs';
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); if (i < 0) return d; const v = argv[i + 1]; argv.splice(i, 2); return v; };
@@ -25,7 +32,7 @@ const flag = (k) => { const i = argv.indexOf(k); if (i < 0) return false; argv.s
 const wd = Number(opt('--wd', process.env.LOOM_DESKTOP_QA_WEBDRIVER_PORT ?? '0'));
 const out = opt('--out', '.');
 const tab = flag('--tab');
-const [cmd, arg] = argv;
+const [cmd, arg, arg2] = argv;
 if (!wd || !cmd) { console.error('usage: wk.mjs --wd <port> --out <dir> <command> [arg]'); process.exit(2); }
 mkdirSync(out, { recursive: true });
 const base = `http://127.0.0.1:${wd}`;
@@ -53,7 +60,11 @@ async function session() {
 }
 const S = await session();
 const js = (script, args = []) => call('POST', `/session/${S}/execute/sync`, { script, args });
-const find = (css) => call('POST', `/session/${S}/element`, { using: 'css selector', value: css }).then((v) => Object.values(v)[0]);
+// `css @N` = the N-th (0-based) match via WebDriver find-elements; plain `css` = first match
+const find = (css) => { const m = /^(.*\S)\s+@(\d+)$/.exec(css);
+  if (!m) return call('POST', `/session/${S}/element`, { using: 'css selector', value: css }).then((v) => Object.values(v)[0]);
+  return call('POST', `/session/${S}/elements`, { using: 'css selector', value: m[1] }).then((l) => (l[Number(m[2])] ? Object.values(l[Number(m[2])])[0] : null)); };
+const pick = (css) => { const m = /^(.*\S)\s+@(\d+)$/.exec(css); return m ? [m[1], Number(m[2])] : [css, 0]; };
 async function shot(name) {
   const b64 = await call('GET', `/session/${S}/screenshot`, undefined, 30000);
   writeFileSync(join(out, `${name}.png`), Buffer.from(b64, 'base64'));
@@ -145,7 +156,77 @@ try {
       log('diag ' + JSON.stringify(d));
       break;
     }
+    case 'geom': { // layout geometry WITHOUT navigating (fresh entry or current route): full-width bands, tokens,
+      // presence of service-workbench parts. Compared against the canonical Ego measurements (44/46/26, 13px).
+      const g = await js(`const bands = [...document.querySelectorAll('body *')].filter((e) => { const b = e.getBoundingClientRect();
+          return b.width >= innerWidth * 0.6 && b.height > 0 && b.height < 60 && getComputedStyle(e).display !== 'none'; })
+        .slice(0, 12).map((e) => ({ el: e.tagName.toLowerCase() + (e.dataset.shell ? '[data-shell=' + e.dataset.shell + ']' : '') +
+          (typeof e.className === 'string' && e.className ? '.' + e.className.trim().split(/\\s+/).slice(0, 2).join('.') : ''),
+          top: Math.round(e.getBoundingClientRect().top), h: Math.round(e.getBoundingClientRect().height * 10) / 10,
+          bg: getComputedStyle(e).backgroundColor }));
+        const root = getComputedStyle(document.documentElement); const tok = {};
+        for (const k of ['--bg','--sf','--line','--text','--fg','--muted','--accent','--svc-underline']) tok[k] = root.getPropertyValue(k).trim();
+        const has = (s) => { try { return document.querySelectorAll(s).length; } catch { return -1; } };
+        return { inner: [innerWidth, innerHeight], dpr: devicePixelRatio, route: location.hash.startsWith('#boot=') ? '<boot>' : location.hash.slice(0, 80),
+          bodyFont: getComputedStyle(document.body).fontSize, bodyBg: getComputedStyle(document.body).backgroundColor, tok, bands,
+          parts: Object.fromEntries((arguments[0] || []).map((s) => [s, has(s)])) }`, [arg ? arg.split('|') : []]);
+      log('geom ' + JSON.stringify(g));
+      await shot(`geom-${(g.route || 'entry').replace(/[^a-z0-9]+/gi, '_').slice(0, 40) || 'entry'}`);
+      break;
+    }
+    case 'goto': { await goto(arg); await sleep(1200); log(`navigated to ${arg}`); break; } // agent deep-link entry
     case 'shot': await shot(arg ?? 'shot'); break;
+    case 'click': {
+      const el = await until(`element ${arg}`, () => find(arg), 15);
+      await call('POST', `/session/${S}/element/${el}/click`, {});
+      await sleep(400); log(`clicked ${arg}`);
+      break;
+    }
+    case 'fill': {
+      const el = await until(`element ${arg}`, () => find(arg), 15);
+      await call('POST', `/session/${S}/element/${el}/clear`, {}).catch(() => {});
+      await call('POST', `/session/${S}/element/${el}/value`, { text: arg2 ?? '' });
+      const v = await js(`const e = document.querySelectorAll(arguments[0])[arguments[1]]; return e ? String(e.value ?? '') : null`, pick(arg));
+      if (v !== (arg2 ?? '')) throw new Error(`value after send keys = ${JSON.stringify(v)} (driver may drop printable keys)`);
+      log(`filled ${arg} = ${JSON.stringify(v)}`);
+      break;
+    }
+    case 'select': { // WK DOM-event input: <select> value via the native setter + input/change (the plugin's option click fires no change)
+      const v = await until(`select ${arg}`, () => js(`const e = document.querySelector(arguments[0]); if (!e) return false;
+        if (![...e.options].some((o) => o.value === arguments[1])) return 'no-option';
+        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(e, arguments[1]);
+        e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); return e.value`, [arg, arg2]), 15);
+      if (v !== arg2) throw new Error(`select ${arg} → ${v}`);
+      await sleep(300); log(`selected ${arg} = ${JSON.stringify(v)} (DOM change event)`);
+      break;
+    }
+    case 'keys': { // WebDriver keys to an element WITHOUT navigating (\n in arg = Enter, \t = Tab); WK DOM input, not OS keys
+      const el = await until(`element ${arg}`, () => find(arg), 15);
+      const k = (arg2 ?? '').replace(/\\n/g, '').replace(/\\t/g, '');
+      await call('POST', `/session/${S}/element/${el}/value`, { text: k });
+      await sleep(500); log(`keys → ${arg}: ${JSON.stringify(arg2 ?? '')} (WK DOM input)`);
+      break;
+    }
+    case 'text': {
+      const t = await until(`element ${arg}`, () => js(`const e = document.querySelector(arguments[0]); return e ? e.innerText : null`, [arg]).then((x) => x ?? false), 15);
+      log(`text ${arg} = ${JSON.stringify(String(t).slice(0, 400))}`);
+      break;
+    }
+    case 'query': { // read-only control discovery: tag/class/text/aria/title/data-role/disabled of ≤60 matches (no input values)
+      const q = await js(`return [...document.querySelectorAll(arguments[0])].slice(0, 60).map((e, i) => ({ i, tag: e.tagName.toLowerCase(),
+        cls: typeof e.className === 'string' ? e.className.slice(0, 50) : '', text: (e.innerText || '').trim().replace(/\\s+/g, ' ').slice(0, 50),
+        aria: e.getAttribute('aria-label') || '', title: (e.getAttribute('title') || '').slice(0, 60), role: e.dataset.role || e.dataset.act || '',
+        dis: !!e.disabled, vis: e.getClientRects().length > 0, ...(e.tagName === 'OPTION' ? { val: e.value } : {}) }))`, [arg]);
+      log(`query ${arg} → ${q.length}\n` + q.map((x) => JSON.stringify(x)).join('\n'));
+      break;
+    }
+    case 'digests': {
+      const d = await call('POST', `/session/${S}/execute/async`, { script: ASSET_DIGESTS, args: [] }, 30000);
+      if (!d?.ok) throw new Error(`digest probe: ${d?.error}`);
+      writeFileSync(join(out, 'wk-asset-digests.json'), JSON.stringify(d, null, 1));
+      log(`digests ${Object.keys(d.assets).length} assets inner=${d.inner} dpr=${d.dpr} → wk-asset-digests.json`);
+      break;
+    }
     default: throw new Error(`unknown command ${cmd}`);
   }
 } catch (e) { ok = false; log(`FAIL ${e.message}`); try { await shot(`fail-${cmd}`); } catch { /* window may be gone */ } }

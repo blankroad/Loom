@@ -1,9 +1,13 @@
 //! Launch configuration: which Loom home, which daemon binary, optional UI dir.
 //!
 //! Resolution is pure (env lookup + executable path injected) so it is unit-testable.
-//! - home: `LOOM_HOME`, else `$HOME/.loom` (same rule as `loom` CLI and `loomd`).
-//! - daemon binary: `LOOM_DESKTOP_DAEMON_BIN` (exact, absolute), else `loomd` next to the app
-//!   executable (`Loom.app/Contents/MacOS/loomd`, where packaging places the bundled daemon).
+//! - home: `LOOM_HOME`, else `$HOME/.loom`, else `%USERPROFILE%\.loom` (same order as the `loom`
+//!   CLI and `loomd`; a Windows app started from Explorer/Start normally has no `HOME`). Empty
+//!   values count as unset.
+//! - daemon binary: `LOOM_DESKTOP_DAEMON_BIN` (exact, absolute), else `loomd` (`loomd.exe` on
+//!   Windows) next to the app executable, where Tauri's `externalBin` places the bundled daemon:
+//!   `Loom.app/Contents/MacOS/loomd`, `<install dir>\loomd.exe`, `/usr/bin/loomd`,
+//!   `$APPDIR/usr/bin/loomd` (AppImage; see `appimage`). Never searched on `PATH`.
 //! - UI dir: `LOOM_DESKTOP_UI_DIR` (absolute) is passed to `loomd --ui-dir` only when this app
 //!   starts the daemon; default `None` = the daemon's embedded UI.
 //! - startup timeout: `LOOM_DESKTOP_STARTUP_TIMEOUT_MS`, clamped to 1..=120 s, default 20 s.
@@ -16,7 +20,8 @@ pub const ENV_DAEMON_BIN: &str = "LOOM_DESKTOP_DAEMON_BIN";
 pub const ENV_UI_DIR: &str = "LOOM_DESKTOP_UI_DIR";
 pub const ENV_TIMEOUT_MS: &str = "LOOM_DESKTOP_STARTUP_TIMEOUT_MS";
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(20);
-pub const DAEMON_FILE_NAME: &str = "loomd";
+/// Bundled daemon file name for the platform this app was built for.
+pub const DAEMON_FILE_NAME: &str = if cfg!(windows) { "loomd.exe" } else { "loomd" };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LaunchConfig {
@@ -33,6 +38,7 @@ impl LaunchConfig {
             daemon_bin: self.daemon_bin.clone(),
             ui_dir: self.ui_dir.clone(),
             startup_timeout: self.startup_timeout,
+            daemon_env: Vec::new(),
         }
     }
 }
@@ -56,9 +62,9 @@ pub fn resolve(
 ) -> Result<LaunchConfig, String> {
     let home = match non_empty(env("LOOM_HOME")) {
         Some(h) => PathBuf::from(h),
-        None => match non_empty(env("HOME")) {
+        None => match non_empty(env("HOME")).or_else(|| non_empty(env("USERPROFILE"))) {
             Some(h) => PathBuf::from(h).join(".loom"),
-            None => return Err("neither LOOM_HOME nor HOME is set".into()),
+            None => return Err("none of LOOM_HOME, HOME or USERPROFILE is set".into()),
         },
     };
     let daemon_bin = match non_empty(env(ENV_DAEMON_BIN)) {
@@ -112,28 +118,34 @@ mod tests {
         assert_eq!(c.home, PathBuf::from("/Users/u/.loom"));
         assert_eq!(
             c.daemon_bin,
-            PathBuf::from("/Applications/Loom.app/Contents/MacOS/loomd")
+            Path::new("/Applications/Loom.app/Contents/MacOS").join(DAEMON_FILE_NAME)
         );
         assert_eq!(c.ui_dir, None);
         assert_eq!(c.startup_timeout, DEFAULT_TIMEOUT);
     }
 
+    /// An absolute path on the platform running the test (`C:` drive prefix on Windows).
+    fn abs(p: &str) -> String {
+        if cfg!(windows) { format!("C:{p}") } else { p.to_string() }
+    }
+
     #[test]
     fn loom_home_and_explicit_binary_win() {
+        let (home, bin, ui) = (abs("/tmp/iso"), abs("/opt/loom/loomd"), abs("/opt/loom/ui"));
         let c = resolve(
             env_of(&[
                 ("HOME", "/Users/u"),
-                ("LOOM_HOME", "/tmp/iso"),
-                (ENV_DAEMON_BIN, "/opt/loom/loomd"),
-                (ENV_UI_DIR, "/opt/loom/ui"),
+                ("LOOM_HOME", &home),
+                (ENV_DAEMON_BIN, &bin),
+                (ENV_UI_DIR, &ui),
                 (ENV_TIMEOUT_MS, "5000"),
             ]),
             Some(Path::new(EXE)),
         )
         .unwrap();
-        assert_eq!(c.home, PathBuf::from("/tmp/iso"));
-        assert_eq!(c.daemon_bin, PathBuf::from("/opt/loom/loomd"));
-        assert_eq!(c.ui_dir, Some(PathBuf::from("/opt/loom/ui")));
+        assert_eq!(c.home, PathBuf::from(home));
+        assert_eq!(c.daemon_bin, PathBuf::from(bin));
+        assert_eq!(c.ui_dir, Some(PathBuf::from(ui)));
         assert_eq!(c.startup_timeout, Duration::from_secs(5));
     }
 
@@ -150,7 +162,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(c.home, PathBuf::from("/h/.loom"));
-        assert!(c.daemon_bin.ends_with("MacOS/loomd"));
+        assert!(c.daemon_bin.ends_with(Path::new("MacOS").join(DAEMON_FILE_NAME)));
     }
 
     #[test]
@@ -163,6 +175,33 @@ mod tests {
         )
         .unwrap_err();
         assert!(e.contains(ENV_UI_DIR), "{e}");
+    }
+
+    /// Windows GUI launch: no `HOME`, only `USERPROFILE` (same fallback as `loomd`/`loom`).
+    #[test]
+    fn userprofile_is_the_fallback_after_home() {
+        let c = resolve(env_of(&[("USERPROFILE", "/win/u")]), Some(Path::new(EXE))).unwrap();
+        assert_eq!(c.home, PathBuf::from("/win/u/.loom"));
+        let c = resolve(
+            env_of(&[("HOME", "/h"), ("USERPROFILE", "/win/u")]),
+            Some(Path::new(EXE)),
+        )
+        .unwrap();
+        assert_eq!(c.home, PathBuf::from("/h/.loom"), "HOME wins, as in the CLI");
+        let c = resolve(
+            env_of(&[("HOME", ""), ("USERPROFILE", "/win/u")]),
+            Some(Path::new(EXE)),
+        )
+        .unwrap();
+        assert_eq!(c.home, PathBuf::from("/win/u/.loom"));
+    }
+
+    #[test]
+    fn bundled_daemon_name_has_the_platform_suffix() {
+        let c = resolve(env_of(&[("HOME", "/h")]), Some(Path::new(EXE))).unwrap();
+        let name = c.daemon_bin.file_name().unwrap().to_str().unwrap();
+        assert_eq!(name, format!("loomd{}", std::env::consts::EXE_SUFFIX));
+        assert_eq!(DAEMON_FILE_NAME, name);
     }
 
     #[test]

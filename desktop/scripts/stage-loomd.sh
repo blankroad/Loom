@@ -67,6 +67,7 @@ if [[ $check -eq 1 ]]; then
     [[ "$(shasum -a 256 "$staged" | cut -c1-64)" == "$(stamp_field loomd_sha256)" ]] || reasons+=("staged binary != stamp")
     [[ -f "$dist_index" && "$(dist_digest)" == "$(stamp_field ui_dist_digest)" ]] || reasons+=("ui/dist changed since stage")
     [[ "$(stamp_field embedded_ui_verified)" == True ]] || reasons+=("embedded UI not verified (run verify-loomd.sh)")
+    cmp -s "$out_dir/loomd.ui-index.html" "$dist_index" || reasons+=("app UI identity (loomd.ui-index.html) != ui/dist/index.html")
   else
     reasons+=("missing stamp")
   fi
@@ -109,6 +110,9 @@ fi
 mkdir -p "$out_dir"
 tmp="$staged.tmp.$$"
 cp "$built" "$tmp" && chmod 0755 "$tmp" && mv -f "$tmp" "$staged"
+# UI build identity for the app's pre-navigation guard (build.rs embeds it; verify-loomd below proves
+# the staged daemon serves exactly these bytes at /ui/index.html).
+cp "$dist_index" "$out_dir/loomd.ui-index.html.tmp.$$" && mv -f "$out_dir/loomd.ui-index.html.tmp.$$" "$out_dir/loomd.ui-index.html"
 sha="$(shasum -a 256 "$staged" | cut -c1-64)"
 version="$("$staged" --version 2>/dev/null | head -1 || true)"
 base="$(git -C "$repo" rev-parse --short HEAD 2>/dev/null || echo unknown)"

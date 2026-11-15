@@ -88,6 +88,7 @@ fn real_loomd_lifecycle() {
         daemon_bin: bin,
         ui_dir: Some(ui),
         startup_timeout: Duration::from_secs(30),
+        daemon_env: Vec::new(),
     };
 
     // 1. absent → started from the explicit binary
@@ -113,6 +114,15 @@ fn real_loomd_lifecycle() {
     let (st, _, body) = request(s.port(), "GET", "/ui/", "");
     assert_eq!(st, 200);
     assert!(body.contains("ldh-ui-dir-marker"));
+    // 2b. the desktop UI-identity fetch reads exactly those bytes from the REAL daemon (canonical
+    //     host rule: a `Host: 127.0.0.1` GET outside /api would be a 308; regression 2026-11-15)
+    let served = loom_desktop_host::daemon_ui_index(s.port(), Duration::from_secs(5))
+        .expect("identity fetch of /ui/ from the real daemon");
+    assert_eq!(
+        served,
+        b"<!doctype html><title>ldh-ui-dir-marker</title>".to_vec(),
+        "identity bytes must equal the served index.html exactly"
+    );
 
     // 3. the minted code is a real, single-use viewer bootstrap
     let code = code_of(s.viewer_url()).to_owned();

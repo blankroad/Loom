@@ -75,7 +75,21 @@ pub fn new_window_action(url: &Url, daemon_port: Option<u16>) -> Action {
     }
 }
 
-/// The bundled launch page (Tauri asset protocol on macOS).
+/// Download request (`<a download>`, REC/export `blob:` links, `Content-Disposition: attachment`).
+/// Only content produced by the selected daemon page is saved: a `blob:` URL whose origin is the
+/// daemon origin, an in-page `data:` URL while connected, or the daemon origin itself. WKWebView
+/// cancels downloads outright when no handler is installed.
+pub fn download_allowed(url: &Url, daemon_port: Option<u16>) -> bool {
+    match url.scheme() {
+        // `blob:http://localhost:<port>/<uuid>` → the path is the creator's origin URL
+        "blob" => Url::parse(url.path()).is_ok_and(|inner| is_daemon_origin(&inner, daemon_port)),
+        "data" => daemon_port.is_some(),
+        _ => is_daemon_origin(url, daemon_port),
+    }
+}
+
+/// The bundled launch page: `tauri://localhost` on macOS/Linux, `http://tauri.localhost` on
+/// Windows (WebView2 custom-scheme convention used by Tauri 2).
 pub fn launch_page_url() -> Url {
     #[cfg(any(target_os = "windows", target_os = "android"))]
     let s = "http://tauri.localhost/index.html";
@@ -94,33 +108,94 @@ pub fn classify(url: &Url, daemon_port: Option<u16>) -> Nav {
     }
 }
 
-/// Open an explicit external link in the user's default browser (macOS `open`). Only
-/// `http(s)` URLs ever reach here; the URL is passed as one argv element, never through a shell.
+/// Open an explicit external link in the user's default browser. Only absolute `http(s)` URLs
+/// with a host ever reach the OS, always as one argument (never through a shell or `cmd /c start`):
+/// macOS `/usr/bin/open <url>`; Windows `ShellExecuteW("open", <url>)`; Linux/BSD `xdg-open <url>`
+/// (system copy preferred; inside an AppImage the `$APPDIR` environment is stripped first so the
+/// browser does not load the app's bundled GTK/GIO modules).
 pub fn open_external(url: &Url) {
-    if !matches!(url.scheme(), "http" | "https") {
+    if !is_external_link(url) {
         return;
     }
-    #[cfg(target_os = "macos")]
-    let r = std::process::Command::new("/usr/bin/open")
-        .arg(url.as_str())
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-        .map(|mut child| {
-            // reap in the background so no zombie is left behind
-            std::thread::spawn(move || child.wait());
-        });
-    #[cfg(not(target_os = "macos"))]
-    let r: std::io::Result<()> = Err(std::io::Error::new(
-        std::io::ErrorKind::Unsupported,
-        "external links: macOS only",
-    ));
-    if let Err(e) = r {
+    if let Err(e) = platform_open(url) {
         eprintln!(
             "loom-desktop: could not open external link host {:?}: {e}",
             url.host_str()
         );
+    }
+}
+
+/// What [`open_external`] accepts: `http(s)` with a non-empty host and no credentials.
+pub fn is_external_link(url: &Url) -> bool {
+    matches!(url.scheme(), "http" | "https")
+        && url.host_str().is_some_and(|h| !h.is_empty())
+        && url.username().is_empty()
+        && url.password().is_none()
+}
+
+#[cfg(unix)]
+fn spawn_reaped(cmd: &mut std::process::Command) -> std::io::Result<()> {
+    let mut child = cmd
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()?;
+    // reap in the background so no zombie is left behind
+    std::thread::spawn(move || child.wait());
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn platform_open(url: &Url) -> std::io::Result<()> {
+    spawn_reaped(std::process::Command::new("/usr/bin/open").arg(url.as_str()))
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn platform_open(url: &Url) -> std::io::Result<()> {
+    #[cfg(target_os = "linux")]
+    let fixups = crate::appimage::current_env_fixups();
+    #[cfg(not(target_os = "linux"))]
+    let fixups: Vec<(std::ffi::OsString, Option<std::ffi::OsString>)> = Vec::new();
+    // The distro's xdg-open first (an AppImage may ship its own copy on its PATH).
+    let program = ["/usr/bin/xdg-open", "/usr/local/bin/xdg-open"]
+        .into_iter()
+        .map(std::path::Path::new)
+        .find(|p| p.is_file())
+        .map_or_else(|| std::path::PathBuf::from("xdg-open"), std::path::Path::to_path_buf);
+    let mut cmd = std::process::Command::new(program);
+    for (k, v) in fixups {
+        match v {
+            Some(v) => cmd.env(k, v),
+            None => cmd.env_remove(k),
+        };
+    }
+    spawn_reaped(cmd.arg(url.as_str()))
+}
+
+#[cfg(windows)]
+fn platform_open(url: &Url) -> std::io::Result<()> {
+    use windows_sys::Win32::UI::Shell::ShellExecuteW;
+    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+    let (verb, file) = (wide("open"), wide(url.as_str()));
+    // SAFETY: both strings are NUL-terminated UTF-16 buffers that outlive the call; null HWND,
+    // parameters and directory are documented as optional. Called on the UI thread (COM is
+    // initialised there by the webview), as ShellExecute requires.
+    let h = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            verb.as_ptr(),
+            file.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    // Documented contract: a value greater than 32 means success.
+    if h as isize > 32 {
+        Ok(())
+    } else {
+        Err(std::io::Error::other(format!("ShellExecuteW returned {}", h as isize)))
     }
 }
 
@@ -220,5 +295,49 @@ mod tests {
         assert_eq!(new_window_action(&u("about:blank"), p), Action::Deny);
         assert_eq!(new_window_action(&u("data:text/html,x"), p), Action::Deny);
         assert_eq!(new_window_action(&u("javascript:alert(1)"), p), Action::Deny);
+    }
+
+    #[test]
+    fn only_plain_http_links_reach_the_os() {
+        assert!(is_external_link(&u("https://example.com/docs?a=1&b=2")));
+        assert!(is_external_link(&u("http://example.com/")));
+        for s in [
+            "https://user:pw@example.com/",
+            "file:///C:/Windows/System32/calc.exe",
+            "javascript:alert(1)",
+            "ms-settings:display",
+            "search-ms:query=x",
+            "data:text/html,x",
+            "mailto:a@example.com",
+        ] {
+            assert!(!is_external_link(&u(s)), "{s}");
+        }
+    }
+
+    /// The OS sees one argument per URL (argv element / `lpFile`, never a shell): whitespace,
+    /// quotes and newlines are percent-encoded by URL serialization, so the value cannot be split.
+    #[test]
+    fn external_url_serialization_has_no_whitespace_or_quotes() {
+        let url = u("https://example.com/a b\"c'd`e?x=1&y=$(z)|w;q");
+        let s = url.as_str();
+        assert!(!s.contains([' ', '"', '`', '\n', '\t']), "{s}");
+    }
+
+    #[test]
+    fn downloads_only_from_daemon_page() {
+        let p = Some(47123);
+        assert!(download_allowed(
+            &u("blob:http://localhost:47123/0b6c1f2e-9a4d-4c55-8f7e-1d2c3b4a5f60"),
+            p
+        ));
+        assert!(download_allowed(&u("http://localhost:47123/api/export?x=1"), p));
+        assert!(download_allowed(&u("data:text/plain;base64,aGk="), p));
+        assert!(!download_allowed(&u("blob:http://localhost:47999/0b6c"), p));
+        assert!(!download_allowed(&u("blob:https://example.com/0b6c"), p));
+        assert!(!download_allowed(&u("blob:tauri://localhost/0b6c"), p));
+        assert!(!download_allowed(&u("https://example.com/f.bin"), p));
+        assert!(!download_allowed(&u("file:///etc/hosts"), p));
+        assert!(!download_allowed(&u("data:text/plain,hi"), None));
+        assert!(!download_allowed(&u("blob:http://localhost:47123/0b6c"), None));
     }
 }

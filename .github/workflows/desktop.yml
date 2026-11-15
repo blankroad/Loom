@@ -1,0 +1,246 @@
+name: Desktop packages
+
+# Builds the Loom desktop app (Tauri 2, separate `desktop/` cargo workspace) on native runners and
+# uploads the installers. Every job uses the same portable entrypoint (desktop/scripts/package.mjs,
+# contract: work/reports/desktop-cross-platform/INTERFACE.md P1-P5):
+#   fresh ui/dist build -> loomd (main workspace, --locked) with that UI embedded -> staged sidecar
+#   loomd-<triple>[.exe] + byte-for-byte /ui verification -> tauri bundle -> sidecar check inside each
+#   bundle -> desktop/dist/<installers> + desktop/dist/artifacts.json
+# Then: verify the loomd that the installer actually contains, run a launch smoke, and upload the
+# exact artifacts.json paths. All three OSes are required (no continue-on-error).
+
+on:
+  push:
+    paths:
+      - "desktop/**"
+      - "ui/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - ".github/workflows/desktop.yml"
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "ui/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - ".github/workflows/desktop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_TOOLCHAIN: "1.93.1"   # workspace rust-version 1.93
+  NODE_VERSION: "24.22.2"    # ui engines node >=24
+  PNPM_VERSION: "11.11.0"    # ui packageManager pnpm@11.11.0
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  package:
+    name: Desktop / ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-22.04-x64
+            os: ubuntu-22.04          # Tauri 2 Linux baseline (WebKitGTK 4.1)
+          - name: windows-x64
+            os: windows-2022          # MSVC + NSIS (fetched by tauri-cli), WebView2 bootstrapper
+          - name: macos-arm64
+            os: macos-15              # Loom.app, ad-hoc signed (no notarization)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Desktop workspace target (package.mjs: LOOM_DESKTOP_TARGET_DIR > CARGO_TARGET_DIR > default).
+      # Inside the workspace so rust-cache can restore it; the main-workspace loomd uses <repo>/target.
+      LOOM_DESKTOP_TARGET_DIR: ${{ github.workspace }}/.desktop-target
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux prerequisites (Tauri 2 / Ubuntu 22.04)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev pkg-config xvfb dbus-x11
+          dpkg-query -W libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            desktop -> ../.desktop-target
+          key: desktop
+
+      - name: Tool versions
+        run: rustc -Vv && cargo -V && node --version && pnpm --version && npm --version
+
+      - name: Install (locked)
+        run: |
+          npm ci --prefix desktop
+          pnpm --dir ui install --frozen-lockfile
+
+      - name: Portable packaging tests
+        run: npm --prefix desktop test
+
+      - name: Backend platform regression (Windows video refusal)
+        if: runner.os == 'Windows'
+        run: cargo test --locked -p loom-video --test platform_unsupported
+
+      # stage (fresh UI + loomd --locked + /ui byte verify) -> tauri bundle -> bundle checks -> manifest.
+      # CI=true makes bundle strict: uninspectable bundle contents fail instead of WARN.
+      - name: Build installers (npm run dist)
+        run: npm --prefix desktop run dist
+
+      - name: Staged sidecar is current and verified
+        run: node desktop/scripts/package.mjs check
+
+      - name: Desktop workspace tests
+        run: cargo test --locked --manifest-path desktop/Cargo.toml -p loom-desktop-host -p loom-desktop
+
+      - name: Manifest -> upload list (exists + sha256 re-check)
+        id: manifest
+        run: |
+          node --input-type=module -e '
+          import fs from "node:fs"; import crypto from "node:crypto"; import path from "node:path";
+          const mpath = path.resolve("desktop/dist/artifacts.json");
+          const m = JSON.parse(fs.readFileSync(mpath, "utf8"));
+          if (m.verified !== true) throw new Error(`artifacts.json verified=${m.verified}: bundle contents not fully inspected`);
+          if (!Array.isArray(m.artifacts) || m.artifacts.length === 0) throw new Error("artifacts.json lists no artifacts");
+          const lines = [mpath];
+          for (const a of m.artifacts) {
+            const st = fs.statSync(a.abs_path);
+            if (st.isFile()) {
+              const h = crypto.createHash("sha256").update(fs.readFileSync(a.abs_path)).digest("hex");
+              if (h !== a.sha256) throw new Error(`sha256 mismatch for ${a.abs_path}`);
+            }
+            console.log(`${a.kind}\t${st.isFile() ? st.size : "dir"}\t${a.abs_path}`);
+            lines.push(a.abs_path);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `paths<<__EOF__\n${lines.join("\n")}\n__EOF__\n`);
+          '
+
+      # ---- the loomd inside the produced installer embeds the freshly built ui/dist ----
+      - name: Linux - verify loomd inside the .deb, launch smoke
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          deb=$(ls desktop/dist/*.deb | head -1)
+          x="$RUNNER_TEMP/deb"; rm -rf "$x"; dpkg-deb -x "$deb" "$x"
+          dpkg-deb -c "$deb" | grep -E 'usr/bin/(loomd|loom-desktop)$'
+          node desktop/scripts/package.mjs verify "$x/usr/bin/loomd"
+          # Launch the extracted app headless with a private home: it must start ITS bundled loomd
+          # (next to the app binary) and the daemon must serve /ui/ and survive the app quitting.
+          home="$RUNNER_TEMP/loom-smoke-home"; rm -rf "$home"; mkdir -m 700 "$home"
+          LOOM_HOME="$home" dbus-run-session -- xvfb-run -a "$x/usr/bin/loom-desktop" > "$RUNNER_TEMP/app.log" 2>&1 &
+          app=$!; echo "$app" >> "$RUNNER_TEMP/loom-smoke.pids"
+          for _ in $(seq 120); do [[ -s "$home/run/daemon.json" ]] && break; sleep 0.5; done
+          test -s "$home/run/daemon.json" || { cat "$RUNNER_TEMP/app.log"; exit 1; }
+          pid=$(node -p 'require(process.argv[1]).pid' "$home/run/daemon.json"); echo "$pid" >> "$RUNNER_TEMP/loom-smoke.pids"
+          port=$(node -p 'require(process.argv[1]).port' "$home/run/daemon.json")
+          exe=$(readlink "/proc/$pid/exe"); echo "daemon pid=$pid exe=$exe"
+          test "$exe" = "$x/usr/bin/loomd"
+          curl -fsS -o /dev/null -w 'GET /ui/ %{http_code}\n' "http://localhost:$port/ui/"
+          kill "$app"; pkill -TERM -f "$x/usr/bin/loom-desktop" || true; sleep 2
+          kill -0 "$pid" && echo "daemon survived app exit"
+          kill -TERM "$pid"
+
+      - name: Linux - smoke cleanup (own pids, extracted package, private home only)
+        if: always() && runner.os == 'Linux'
+        run: |
+          t="$RUNNER_TEMP"
+          if [[ -f "$t/loom-smoke.pids" ]]; then while read -r p; do kill -TERM "$p" 2>/dev/null || true; done < "$t/loom-smoke.pids"; fi
+          # app, daemon and its `loomd worker` children all run from the extracted package path
+          pkill -TERM -f "$t/deb/usr/bin/" 2>/dev/null || true; sleep 1
+          pkill -KILL -f "$t/deb/usr/bin/" 2>/dev/null || true
+          rm -rf "$t/loom-smoke-home"
+
+      - name: Windows - silent NSIS install, verify installed loomd.exe, launch smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = Get-ChildItem desktop/dist/*-setup.exe | Select-Object -First 1
+          $dir = Join-Path $env:RUNNER_TEMP 'LoomInstall'
+          $p = Start-Process -Wait -PassThru -FilePath $setup.FullName -ArgumentList '/S', "/D=$dir"
+          if ($p.ExitCode -ne 0) { throw "installer exit $($p.ExitCode)" }
+          Get-ChildItem $dir | Format-Table Name, Length
+          $loomd = Join-Path $dir 'loomd.exe'
+          if (-not (Test-Path $loomd)) { throw 'loomd.exe not installed next to the app' }
+          node desktop/scripts/package.mjs verify $loomd
+          if ($LASTEXITCODE -ne 0) { throw "verify exit $LASTEXITCODE" }
+          $app = Get-ChildItem $dir -Filter *.exe | Where-Object { $_.Name -notin @('loomd.exe', 'uninstall.exe') } | Select-Object -First 1
+          if (-not $app) { throw 'app executable not installed' }
+          $home_ = Join-Path $env:RUNNER_TEMP 'loom-smoke-home'
+          New-Item -ItemType Directory -Force $home_ | Out-Null
+          $env:LOOM_HOME = $home_
+          $a = Start-Process -PassThru -FilePath $app.FullName
+          $dj = Join-Path $home_ 'run/daemon.json'
+          for ($i = 0; $i -lt 120 -and -not (Test-Path $dj); $i++) { Start-Sleep -Milliseconds 500 }
+          if (-not (Test-Path $dj)) { throw 'app did not start a daemon (no run/daemon.json)' }
+          $d = Get-Content $dj -Raw | ConvertFrom-Json
+          $dp = Get-Process -Id $d.pid
+          "daemon pid=$($d.pid) path=$($dp.Path)"
+          if ($dp.Path -ne $loomd) { throw "daemon is not the installed loomd.exe: $($dp.Path)" }
+          $r = Invoke-WebRequest -UseBasicParsing "http://localhost:$($d.port)/ui/"
+          "GET /ui/ $($r.StatusCode)"
+          Stop-Process -Id $a.Id -Force; Start-Sleep 2
+          if (Get-Process -Id $d.pid -ErrorAction SilentlyContinue) { 'daemon survived app exit' } else { throw 'daemon died with the app' }
+          Stop-Process -Id $d.pid -Force
+
+      - name: Windows - smoke cleanup (processes from the private install dir, private home only)
+        if: always() && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'LoomInstall'
+          Get-Process | Where-Object { $_.Path -and $_.Path.StartsWith($dir, [StringComparison]::OrdinalIgnoreCase) } |
+            ForEach-Object { "stopping $($_.Id) $($_.Path)"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+          Remove-Item -Recurse -Force (Join-Path $env:RUNNER_TEMP 'loom-smoke-home') -ErrorAction SilentlyContinue
+
+      - name: macOS - verify loomd inside Loom.app
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          codesign --verify --deep --strict desktop/dist/Loom.app
+          node desktop/scripts/package.mjs verify desktop/dist/Loom.app/Contents/MacOS/loomd
+
+      # upload-artifact does not keep file modes, so the .app bundle also goes up as a tar.
+      # Relative output path: Git Bash's GNU tar would read "D:\..." as host:path on Windows.
+      - name: Permission-preserving archive
+        run: tar -C desktop/dist -cf "loom-desktop-${{ matrix.name }}.tar" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: loom-desktop-${{ matrix.name }}
+          path: |
+            ${{ steps.manifest.outputs.paths }}
+            loom-desktop-${{ matrix.name }}.tar
+          if-no-files-found: error
+          retention-days: 14

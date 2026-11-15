@@ -1,13 +1,13 @@
-# Loom desktop (macOS, Tauri 2)
+# Loom desktop (macOS, Windows, Ubuntu — Tauri 2)
 
-A native macOS window around the **real Loom UI served by `loomd`**. The window shows exactly what a browser
+A native window (macOS, Windows, Ubuntu) around the **real Loom UI served by `loomd`**. The window shows exactly what a browser
 shows at `http://localhost:<port>/ui/`, connected to **the same daemon** the `loom` CLI and agents use.
 
 - On launch, the app reuses a daemon already running for the selected `LOOM_HOME`. If none is running, it starts
   the bundled `loomd` (or `LOOM_DESKTOP_DAEMON_BIN`), detached, with logs going to `<home>/run/loomd.log`.
 - The app gets a fresh viewer bootstrap from the daemon using the local discovery token. It never asks for, or
   reads, a human login code. The viewer URL and token are never logged or shown.
-- Closing the window or quitting the app (Cmd-Q) **does not stop the daemon**. Open channels, devices, tasks and
+- Closing the window or quitting the app (Cmd-Q / Alt-F4) **does not stop the daemon**. Open channels, devices, tasks and
   recordings keep running. Stop the daemon explicitly with `loom daemon stop`.
 - The browser UI (`loom ui`) remains fully supported and can run alongside the app.
 
@@ -24,7 +24,60 @@ signing/notarization, the debugger.
 | `scripts/` | QA | preflight, staging, bundle build/verify, native smoke |
 | `src-tauri/binaries/loomd-<triple>` | generated | staged sidecar (do not commit), plus `loomd.stamp.json` provenance |
 
-## Build
+## Cross-platform packages (macOS, Windows, Ubuntu)
+
+One portable entrypoint (Node builtins only, no shell) builds every platform the same way. Contract:
+`work/reports/desktop-cross-platform/INTERFACE.md` (P1–P5).
+
+```sh
+npm ci --prefix desktop                      # pinned @tauri-apps/cli (task-local)
+pnpm --dir ui install --frozen-lockfile
+npm --prefix desktop test                    # portable packaging tests (no cargo)
+npm --prefix desktop run dist                # fresh ui/dist → loomd (--locked) → stage + /ui byte verify
+                                             # → tauri bundle → sidecar check in each bundle
+node desktop/scripts/package.mjs check       # exit 0 current, 3 stale
+```
+
+| Platform | Installers in `desktop/dist/` | Bundled daemon at run time |
+|---|---|---|
+| macOS | `Loom.app` (ad-hoc signed, not notarized) | `Loom.app/Contents/MacOS/loomd` |
+| Windows x64 (MSVC) | `Loom_<ver>_x64-setup.exe` (NSIS, per-user install, WebView2 bootstrapper) | `<install dir>\loomd.exe` |
+| Ubuntu 22.04+ | `Loom_<ver>_<arch>.deb` (the only supported Linux format) | `/usr/bin/loomd` |
+
+`desktop/dist/artifacts.json` lists every installer with its sha256, plus the staged `loomd` sha256 and the
+`ui/dist` digest. It is written only after every bundle check passed. This entrypoint and pipeline build
+natively on each target OS; cross-bundling is not exposed here. AppImage is not supported: linuxdeploy rewrites the bundled `loomd` ELF, so it fails the exact
+sidecar check, and `--bundles appimage` is rejected (evidence: `work/reports/desktop-cross-platform/evidence/`).
+
+- **Ubuntu prerequisites** (Tauri 2): `libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev
+  libssl-dev libayatana-appindicator3-dev librsvg2-dev`.
+  The default `loomd` needs no libpcap or libudev: live pcap capture is an opt-in feature.
+- **Windows prerequisites**: Rust MSVC toolchain + Visual Studio Build Tools; NSIS is fetched by tauri-cli.
+  The app looks for `loomd.exe` next to its own `.exe`. Home is `LOOM_HOME`, else `HOME\.loom`, else
+  `%USERPROFILE%\.loom`, the same rule as the `loom` CLI.
+- **Video on Windows: capture is unsupported.** The video worker's live media plane is a Unix domain
+  socket, and no Windows transport exists yet. On Windows, `video.open` is refused up front with
+  `E_UNSUPPORTED` (before any ffmpeg, storage or device work), and the live frame/meta routes answer `503
+  media_unavailable`. Nothing reports a fabricated preview. UART, CAN, UDS, Ethernet and the rest of the
+  daemon are built with default features. A Windows video port is separate work.
+- **CI**: `.github/workflows/desktop.yml` runs the steps above on `ubuntu-22.04`, `windows-2022` and
+  `macos-15`. All three jobs are required. Each job also verifies the `loomd` inside the produced installer
+  against the fresh `ui/dist` (deb extracted; NSIS silently installed; the `.app` checked in place). The
+  launch smoke runs on **Linux (Xvfb) and Windows only**: the app starts its bundled daemon, which serves
+  `/ui/` and survives the app quitting. On **macOS, CI only verifies the bundled daemon** (codesign + embedded
+  UI) and does not launch the app. Each job uploads the exact `artifacts.json` paths plus a mode-preserving tar.
+  The workflow has not been run on GitHub yet (no push or dispatch), so the Windows results are unverified
+  until it runs.
+  The Xvfb launch is a limited headless smoke, not visible-UI acceptance. macOS visible QA is tracked separately.
+- **Ubuntu in Docker (local evidence, Apple silicon → linux/arm64)**:
+  `work/reports/desktop-cross-platform/docker/run-ubuntu.sh` builds a toolchain-only image from an empty
+  context. It mounts the repo read-only, builds a filtered snapshot in a named volume, and writes installers
+  plus per-step exit codes to `/tmp/loom-ci-ubuntu/out`. `run-ubuntu.sh smoke` reinstalls the built `.deb` in
+  a fresh container without rebuilding, and `run-ubuntu.sh compare` reports snapshot drift against the
+  current tree. The last verified arm64 `.deb` is kept at `desktop/dist/linux-arm64/`, together with its
+  unmodified container manifest and `HOST-MAP.json`.
+
+## Build (macOS shell scripts)
 
 ```sh
 desktop/scripts/preflight.sh                       # read-only feasibility check (installs nothing)

@@ -17,7 +17,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use loom_desktop_host::{ConnectOptions, DesktopSession, HostError, connect};
+use loom_desktop_host::{ConnectOptions, DesktopSession, HostError, connect, connect_with};
 
 const MODE_ENV: &str = "LOOM_FAKE_DAEMON_MODE";
 const CLIENT_ENV: &str = "LOOM_FAKE_CLIENT";
@@ -239,7 +239,7 @@ fn fake_bin(dir: &Path, mode: &str) -> PathBuf {
     let exe = std::env::current_exe().unwrap();
     let script = dir.join(format!("fake-loomd-{mode}"));
     let body = format!(
-        "#!/bin/sh\necho spawn >> \"$LOOM_HOME/spawn-count\"\nprintf '%s\\n' \"$@\" > \"$LOOM_HOME/fake-args\"\npwd > \"$LOOM_HOME/fake-cwd\"\n{MODE_ENV}={mode} exec '{}' fake_loomd_entry --exact --nocapture --test-threads=1\n",
+        "#!/bin/sh\necho spawn >> \"$LOOM_HOME/spawn-count\"\nprintf '%s\\n' \"$@\" > \"$LOOM_HOME/fake-args\"\npwd > \"$LOOM_HOME/fake-cwd\"\nprintf '%s|%s' \"${{LOOM_TEST_ENV_PROBE-unset}}\" \"${{HOME-unset}}\" > \"$LOOM_HOME/fake-env\"\n{MODE_ENV}={mode} exec '{}' fake_loomd_entry --exact --nocapture --test-threads=1\n",
         exe.display()
     );
     fs::write(&script, body).unwrap();
@@ -253,6 +253,7 @@ fn opts(home: &Path, bin: &Path) -> ConnectOptions {
         daemon_bin: bin.to_path_buf(),
         ui_dir: None,
         startup_timeout: Duration::from_secs(10),
+        daemon_env: Vec::new(),
     }
 }
 
@@ -418,6 +419,72 @@ fn passes_ui_dir_only_when_starting() {
         args,
         format!("run\n--ui-dir\n{}\n", fs::canonicalize(&ui).unwrap().display())
     );
+}
+
+/// `daemon_env` reaches a daemon this call starts (set and remove), but can never redirect it to
+/// another home: `LOOM_HOME` is always the selected home.
+#[test]
+fn daemon_env_overrides_apply_but_never_replace_loom_home() {
+    let f = Fixture::new();
+    let bin = fake_bin(f.path(), "ok");
+    let mut o = opts(f.path(), &bin);
+    o.daemon_env = vec![
+        ("LOOM_TEST_ENV_PROBE".into(), Some("set-by-desktop".into())),
+        ("HOME".into(), None), // inherited from the test process: removal is real,
+        ("LOOM_HOME".into(), Some("/nonexistent-bogus-home".into())),
+    ];
+    let s = connect(&o).unwrap();
+    assert!(s.started());
+    // The probe file is under the real home, so LOOM_HOME was the selected one.
+    assert_eq!(
+        fs::read_to_string(f.path().join("fake-env")).unwrap(),
+        "set-by-desktop|unset"
+    );
+}
+
+/// `connect_with`'s prepare hook (Linux AppImage copy-out) runs only when a daemon is started:
+/// never on reuse (so a read-only home with a running daemon still connects), exactly once on a
+/// start, and the prepared file is what runs.
+#[test]
+fn prepare_hook_runs_only_when_starting_and_its_binary_is_spawned() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let calls = AtomicUsize::new(0);
+
+    // Reuse: hook never called (it would fail loudly).
+    let f = Fixture::new();
+    let _d = in_proc(f.path(), Serve::Ok, "loom/1.0");
+    let s = connect_with(&opts(f.path(), Path::new("/nonexistent/loomd")), &|_| {
+        calls.fetch_add(1, Ordering::SeqCst);
+        Err(std::io::Error::other("must not be called on reuse"))
+    })
+    .unwrap();
+    assert!(!s.started());
+    assert_eq!(calls.load(Ordering::SeqCst), 0);
+
+    // Start: hook called once with the configured binary; its result is what runs.
+    let f = Fixture::new();
+    let configured = fake_bin(f.path(), "ok");
+    let copies = f.path().join("copies");
+    fs::create_dir_all(&copies).unwrap();
+    let prepared = fake_bin(&copies, "ok");
+    let s = connect_with(&opts(f.path(), &configured), &|p| {
+        calls.fetch_add(1, Ordering::SeqCst);
+        assert_eq!(p, configured.as_path());
+        Ok(prepared.clone())
+    })
+    .unwrap();
+    assert!(s.started());
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+    assert!(f.log().contains(&format!("starting {}", prepared.display())), "{}", f.log());
+
+    // Hook failure: a spawn error naming the configured binary, and nothing started.
+    let f = Fixture::new();
+    let bin = fake_bin(f.path(), "ok");
+    let e = connect_with(&opts(f.path(), &bin), &|_| Err(std::io::Error::other("copy failed")))
+        .unwrap_err();
+    assert!(matches!(e, HostError::Spawn { .. }), "{e:?}");
+    assert!(e.to_string().contains("copy failed"), "{e}");
+    assert_eq!(f.spawns(), 0);
 }
 
 #[test]

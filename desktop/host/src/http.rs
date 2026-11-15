@@ -14,14 +14,34 @@ pub(crate) struct Response {
 
 /// `GET path` with `Authorization: Bearer <token>`, every step bounded by `timeout`.
 pub(crate) fn get_bearer(port: u16, path: &str, token: &str, timeout: Duration) -> io::Result<Response> {
+    get(port, path, Some(token), timeout)
+}
+
+/// Unauthenticated `GET path` (public static assets such as the `/ui/` page), bounded like [`get_bearer`].
+pub(crate) fn get_public(port: u16, path: &str, timeout: Duration) -> io::Result<Response> {
+    get(port, path, None, timeout)
+}
+
+fn get(port: u16, path: &str, token: Option<&str>, timeout: Duration) -> io::Result<Response> {
     let timeout = timeout.max(Duration::from_millis(1));
     let end = Instant::now() + timeout;
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let mut s = TcpStream::connect_timeout(&addr, timeout)?;
     s.set_nodelay(true)?;
     s.set_write_timeout(Some(timeout))?;
+    // Bearer calls keep the original JSON request byte-for-byte; public assets accept anything.
+    // Public (non-/api) GETs must name the daemon's canonical host: loomd answers any other
+    // `Host: 127.0.0.1` GET outside /rpc and /api/ with 308 → http://localhost:<port>/… .
+    let (host, auth, accept) = match token {
+        Some(t) => (
+            "127.0.0.1",
+            format!("Authorization: Bearer {t}\r\n"),
+            "application/json",
+        ),
+        None => ("localhost", String::new(), "*/*"),
+    };
     let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nAuthorization: Bearer {token}\r\nAccept: application/json\r\nConnection: close\r\n\r\n"
+        "GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\n{auth}Accept: {accept}\r\nConnection: close\r\n\r\n"
     );
     s.write_all(req.as_bytes())?;
     let mut raw = Vec::with_capacity(1024);
