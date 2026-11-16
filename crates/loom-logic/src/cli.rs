@@ -7,6 +7,7 @@ use loom_cli_kit::{DomainCli, RpcCall, UsageError, cursor_arg, render_common};
 use loom_proto::{cursor::Cursor, envelope::Envelope};
 use serde_json::{Value, json};
 
+use crate::archive::{ExportReq, ReadReq};
 use crate::model::StartConfig;
 
 /// Logic-analyzer CLI fragment, registered through `CliOf<LogicCli>`.
@@ -58,6 +59,62 @@ fn dur(id: &'static str) -> Arg {
 
 fn capture() -> Arg {
     Arg::new("capture").long("capture").value_name("ID")
+}
+
+fn sample_arg(id: &'static str, help: &'static str) -> Arg {
+    Arg::new(id)
+        .long(id)
+        .value_name("SAMPLE")
+        .value_parser(value_parser!(u64))
+        .help(help)
+}
+
+/// B2-C1. `archive read` matches → `logic.archive.read` params, validated by
+/// [`ReadReq::from_params`] (its message becomes the UsageError) and sent as `req.to_params()`.
+/// Wire keys: `capture_id` (positional ID), `kind`, `from_sample` (--from), `to_sample` (--to),
+/// `limit`, `mask` (--mask accepts decimal or 0x-hex 1..=255), `after_row` (--after-row).
+fn archive_read_call(s: &ArgMatches) -> Result<RpcCall, UsageError> {
+    let mut p = json!({});
+    put_string(&mut p, s, "id", "capture_id");
+    put_string(&mut p, s, "kind", "kind");
+    for (arg, wire) in [
+        ("from", "from_sample"),
+        ("to", "to_sample"),
+        ("limit", "limit"),
+        ("after-row", "after_row"),
+    ] {
+        if let Some(n) = s.get_one::<u64>(arg) {
+            p[wire] = json!(n);
+        }
+    }
+    if let Some(m) = s.get_one::<String>("mask") {
+        let t = m.trim();
+        let parsed = match t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")) {
+            Some(h) => u64::from_str_radix(h, 16),
+            None => t.parse::<u64>(),
+        };
+        let n = parsed.map_err(|_| UsageError::new("--mask: expected 1..255 or 0x01..0xFF"))?;
+        p["mask"] = json!(n);
+    }
+    let req = ReadReq::from_params(&p).map_err(UsageError::new)?;
+    Ok(RpcCall::new("logic.archive.read", req.to_params()))
+}
+
+/// B2-C2. `export` matches → `logic.export` params via [`ExportReq::from_params`].
+fn export_call(s: &ArgMatches) -> Result<RpcCall, UsageError> {
+    let mut p = json!({});
+    put_string(&mut p, s, "id", "capture_id");
+    put_string(&mut p, s, "kind", "kind");
+    put_string(&mut p, s, "format", "format");
+    for (arg, wire) in [("from", "from_sample"), ("to", "to_sample")] {
+        if let Some(n) = s.get_one::<u64>(arg) {
+            p[wire] = json!(n);
+        }
+    }
+    let req = ExportReq::from_params(&p).map_err(UsageError::new)?;
+    let mut c = RpcCall::new("logic.export", req.to_params());
+    c.wait = Some(Duration::from_secs(62));
+    Ok(c)
 }
 
 fn bounded_duration(
@@ -161,6 +218,20 @@ impl DomainCli for LogicCli {
                             .long("clock-hz")
                             .value_parser(value_parser!(u64).range(1..=5_000_000))
                             .help("Synthetic SPI clock in Hz (also ≤ sample rate / 2)"),
+                    )
+                    .arg(
+                        Arg::new("trigger")
+                            .long("trigger")
+                            .value_name("CH:EDGE")
+                            .help("Software trigger, e.g. D3:rising (falling, either); needs --post"),
+                    )
+                    .arg(dur("pre").requires("trigger").help("Kept before the trigger, 0..1s (default 0)"))
+                    .arg(dur("post").requires("trigger").help("Captured after the trigger, ≤ --duration"))
+                    .arg(
+                        Arg::new("glitch-every")
+                            .long("glitch-every")
+                            .value_parser(value_parser!(u64).range(1..=1000))
+                            .help("Synthetic UART: every Nth byte gets a framing error (decoder error-row demo)"),
                     ),
             )
             .subcommand(
@@ -222,6 +293,57 @@ impl DomainCli for LogicCli {
                             .help("Required result deadline, 1ms..600s"),
                     ),
             )
+            .subcommand(
+                Command::new("archive")
+                    .about("Whole-capture archive (every decoded line + lossless D0..D7), quota-bounded")
+                    .subcommand_required(true)
+                    .subcommand(Command::new("list").about("Archived captures with completeness and truncation"))
+                    .subcommand(
+                        Command::new("read")
+                            .about("Read archived edges or annotation rows of one capture, paged")
+                            .arg(Arg::new("id").value_name("ID").required(true))
+                            .arg(
+                                Arg::new("kind")
+                                    .long("kind")
+                                    .required(true)
+                                    .value_parser(["edges", "annotations"]),
+                            )
+                            .arg(sample_arg("from", "Inclusive start sample (default: archive start)"))
+                            .arg(sample_arg("to", "Exclusive end sample (default: archive end)"))
+                            .arg(
+                                Arg::new("limit")
+                                    .long("limit")
+                                    .value_parser(value_parser!(u64))
+                                    .help("edges ≤2048 (default 1024) / rows ≤1000 (default 500)"),
+                            )
+                            .arg(Arg::new("mask").long("mask").help("edges: kept bits, 1..255 or 0x01..0xFF"))
+                            .arg(
+                                Arg::new("after-row")
+                                    .long("after-row")
+                                    .value_parser(value_parser!(u64))
+                                    .help("annotations: continue after the previous result's next_row"),
+                            ),
+                    ),
+            )
+            .subcommand(
+                Command::new("export")
+                    .about("Write an export file inside the archive and print its daemon-side path")
+                    .arg(Arg::new("id").value_name("ID").required(true))
+                    .arg(
+                        Arg::new("kind")
+                            .long("kind")
+                            .required(true)
+                            .value_parser(["edges", "annotations"]),
+                    )
+                    .arg(
+                        Arg::new("format")
+                            .long("format")
+                            .default_value("csv")
+                            .value_parser(["csv", "txt"]),
+                    )
+                    .arg(sample_arg("from", "Inclusive start sample"))
+                    .arg(sample_arg("to", "Exclusive end sample")),
+            )
     }
 
     fn to_call(m: &ArgMatches) -> Result<RpcCall, UsageError> {
@@ -242,6 +364,7 @@ impl DomainCli for LogicCli {
                     ("rate", "samplerate"),
                     ("max-samples", "max_samples"),
                     ("clock-hz", "clock_hz"),
+                    ("glitch-every", "glitch_every"),
                 ] {
                     if let Some(n) = s.get_one::<u64>(arg) {
                         p[wire] = json!(n);
@@ -257,6 +380,17 @@ impl DomainCli for LogicCli {
                 }
                 if let Some(ds) = s.get_many::<String>("decode") {
                     p["decoders"] = json!(ds.collect::<Vec<_>>());
+                }
+                if let Some(t) = s.get_one::<String>("trigger") {
+                    let (ch, edge) = t
+                        .split_once(':')
+                        .ok_or_else(|| UsageError::new("--trigger: expected CH:EDGE (e.g. D3:rising)"))?;
+                    let post = s
+                        .get_one::<Duration>("post")
+                        .ok_or_else(|| UsageError::new("--trigger needs --post"))?;
+                    let pre = s.get_one::<Duration>("pre").copied().unwrap_or(Duration::ZERO);
+                    p["trigger"] =
+                        json!({"channel": ch, "edge": edge, "pre_ms": ms(pre), "post_ms": ms(*post)});
                 }
                 // Share the exact backend wire validation and canonicalization.
                 let cfg = StartConfig::from_params(&p).map_err(|e| UsageError::new(e.to_string()))?;
@@ -306,8 +440,16 @@ impl DomainCli for LogicCli {
                 c.wait = Some(d + Duration::from_secs(2));
                 Ok(c)
             }
-            _ => Err(UsageError::new("expected status, start, stop, read or wait")
-                .with_hint("loom logic help --json")),
+            Some(("archive", a)) => match a.subcommand() {
+                Some(("list", _)) => Ok(RpcCall::new("logic.archive.list", json!({}))),
+                Some(("read", s)) => archive_read_call(s),
+                _ => Err(UsageError::new("expected archive list or archive read")),
+            },
+            Some(("export", s)) => export_call(s),
+            _ => Err(
+                UsageError::new("expected status, start, stop, read, wait, archive or export")
+                    .with_hint("loom logic help --json"),
+            ),
         }
     }
 

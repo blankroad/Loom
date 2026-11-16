@@ -1,0 +1,31 @@
+{
+  "about": "Single source of truth for UI decoderSpec() output vs backend Decoder::parse. TS: ui/src/panels/logic/logicBatch1.test.ts; Rust: crates/loom-logic/tests/ui_decoder_specs.rs. config = overrides on DEFAULT_CONFIG.",
+  "cases": [
+    { "name": "uart default (unchanged wire)", "config": {}, "spec": "uart:baudrate=115200:rx=D0",
+      "canonical": "uart:rx=D0:baudrate=115200:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first", "synthetic_ok": true },
+    { "name": "uart 7E2 msb-first", "config": { "uartDataBits": 7, "uartParity": "even", "uartStopBits": "2", "uartBitOrder": "msb-first" },
+      "spec": "uart:baudrate=115200:rx=D0:data_bits=7:parity=even:stop_bits=2:bit_order=msb-first",
+      "canonical": "uart:rx=D0:baudrate=115200:data_bits=7:parity=even:stop_bits=2:bit_order=msb-first", "synthetic_ok": false },
+    { "name": "uart 9O1.5", "config": { "uartDataBits": 9, "uartParity": "odd", "uartStopBits": "1.5" },
+      "spec": "uart:baudrate=115200:rx=D0:data_bits=9:parity=odd:stop_bits=1.5",
+      "canonical": "uart:rx=D0:baudrate=115200:data_bits=9:parity=odd:stop_bits=1.5:bit_order=lsb-first", "synthetic_ok": false },
+    { "name": "uart tx line", "config": { "uartLine": "tx", "uartTx": 3, "uartBaud": 9600 },
+      "spec": "uart:baudrate=9600:tx=D3",
+      "canonical": "uart:tx=D3:baudrate=9600:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first", "synthetic_ok": true },
+    { "name": "uart RX + TX in one capture (B4)", "config": { "uartLine": "both", "uartTx": 1 },
+      "spec": "uart:baudrate=115200:rx=D0:tx=D1",
+      "canonical": "uart:rx=D0:tx=D1:baudrate=115200:data_bits=8:parity=none:stop_bits=1:bit_order=lsb-first", "synthetic_ok": true },
+    { "name": "spi default (unchanged wire)", "config": { "decoder": "spi" }, "spec": "spi:clk=D0:mosi=D1:cs=D2",
+      "canonical": "spi:clk=D0:mosi=D1:cs=D2:cpol=0:cpha=0:wordsize=8:bitorder=msb-first:cs_polarity=active-low:annotate=mosi", "synthetic_ok": true },
+    { "name": "spi mode 3 / 16-bit / lsb / active-high / annotate miso",
+      "config": { "decoder": "spi", "spiMiso": 3, "spiCpol": 1, "spiCpha": 1, "spiWordsize": 16, "spiBitOrder": "lsb-first", "spiCsPolarity": "active-high", "spiAnnotate": "miso" },
+      "spec": "spi:clk=D0:mosi=D1:miso=D3:cs=D2:cpol=1:cpha=1:wordsize=16:bitorder=lsb-first:cs_polarity=active-high:annotate=miso",
+      "canonical": "spi:clk=D0:mosi=D1:miso=D3:cs=D2:cpol=1:cpha=1:wordsize=16:bitorder=lsb-first:cs_polarity=active-high:annotate=miso", "synthetic_ok": false },
+    { "name": "spi mode 2 (cpol only), MISO annotated", "config": { "decoder": "spi", "spiMiso": 4, "spiCpol": 1, "spiAnnotate": "miso" },
+      "spec": "spi:clk=D0:mosi=D1:miso=D4:cs=D2:cpol=1:annotate=miso",
+      "canonical": "spi:clk=D0:mosi=D1:miso=D4:cs=D2:cpol=1:cpha=0:wordsize=8:bitorder=msb-first:cs_polarity=active-low:annotate=miso", "synthetic_ok": true },
+    { "name": "spi miso only, no cs (annotate implied)", "config": { "decoder": "spi", "spiMosi": null, "spiMiso": 3, "spiCs": null, "spiAnnotate": "miso" },
+      "spec": "spi:clk=D0:miso=D3",
+      "canonical": "spi:clk=D0:miso=D3:cpol=0:cpha=0:wordsize=8:bitorder=msb-first:cs_polarity=active-low:annotate=miso", "synthetic_ok": true }
+  ]
+}

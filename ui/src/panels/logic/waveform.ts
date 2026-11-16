@@ -6,6 +6,7 @@
 // Decoded annotations are a separate track (boxes over [start,end]) and never drawn as raw levels.
 
 import type { Annotation, CaptureData, UnknownRange } from './logicModel';
+import type { Cursors } from './logicTools';
 import { annEnd, fmtSampleTime, tickStep } from './logicModel';
 
 export interface View {
@@ -216,6 +217,9 @@ export const LANE_H = 28;
 export const ANN_H = 22;
 export const AXIS_H = 22;
 export const GUTTER = 96;
+/** L8b: axis header text drawn at x=6 inside the gutter (short enough for GUTTER; the full meaning is in the
+ * table header / legend). paint() draws it clipped to [0, GUTTER − 4) × [0, AXIS_H) — FUNCTIONS.md B1-W1. */
+export const AXIS_HEADER = { time: '시각', sample: '샘플 #' } as const;
 
 export interface PaintInput {
   cap: CaptureData | null;
@@ -226,6 +230,13 @@ export interface PaintInput {
   palette: Palette;
   hoverX: number | null;
   selected: Annotation | null;
+  /** B3a (L4): A/B measurement cursors (absolute samples). Drawn as labelled vertical lines with a light
+   * band between them when both are on screen — FUNCTIONS.md B3-W2. Optional: older callers draw none. */
+  cursors?: Cursors;
+  /** B4: decoder id → track label (`uart-1 RX D0`) for the decoded-track gutter; missing id → id itself. */
+  decoderLabels?: Record<string, string>;
+  /** B5: absolute trigger sample → solid marker line labelled `T` (FUNCTIONS §B45u W3). */
+  triggerSample?: number | null;
 }
 
 function hatch(ctx: CanvasRenderingContext2D, x0: number, y0: number, w: number, h: number, color: string): void {
@@ -267,7 +278,12 @@ export function paint(ctx: CanvasRenderingContext2D, inp: PaintInput, heightPx: 
   ctx.fillStyle = pal.muted;
   for (const t of ticks) ctx.fillText(t.label, GUTTER + t.x + 3, AXIS_H / 2);
   ctx.fillStyle = pal.muted;
-  ctx.fillText(inp.rate ? '시간(sample clock)' : '샘플', 6, AXIS_H / 2);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, GUTTER - 4, AXIS_H);
+  ctx.clip();
+  ctx.fillText(inp.rate ? AXIS_HEADER.time : AXIS_HEADER.sample, 6, AXIS_H / 2);
+  ctx.restore();
 
   // raw lanes
   lanes.forEach((ln, li) => {
@@ -329,7 +345,7 @@ export function paint(ctx: CanvasRenderingContext2D, inp: PaintInput, heightPx: 
     decoders.forEach((dec, di) => {
       const y = annY0 + di * ANN_H;
       ctx.fillStyle = pal.ann;
-      ctx.fillText(`⟦${dec}⟧`, 8, y + ANN_H / 2);
+      ctx.fillText(`⟦${inp.decoderLabels?.[dec] ?? dec}⟧`, 8, y + ANN_H / 2);
       ctx.setLineDash([3, 3]);
       ctx.strokeStyle = pal.grid;
       ctx.beginPath();
@@ -342,11 +358,12 @@ export function paint(ctx: CanvasRenderingContext2D, inp: PaintInput, heightPx: 
         const x1 = Math.min(W, GUTTER + xOf(v, a.end));
         const w = Math.max(2, x1 - x0);
         const sel = inp.selected?.key === a.key;
-        ctx.fillStyle = sel ? pal.sel : pal.ann;
+        const hot = sel || a.role === 'error'; // decoder error rows use the selection colour
+        ctx.fillStyle = hot ? pal.sel : pal.ann;
         ctx.globalAlpha = sel ? 0.55 : 0.22;
         ctx.fillRect(x0, y + 3, w, ANN_H - 6);
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = sel ? pal.sel : pal.ann;
+        ctx.strokeStyle = hot ? pal.sel : pal.ann;
         ctx.lineWidth = 1;
         ctx.strokeRect(x0 + 0.5, y + 3.5, w - 1, ANN_H - 7);
         if (w > 14) {
@@ -377,5 +394,58 @@ export function paint(ctx: CanvasRenderingContext2D, inp: PaintInput, heightPx: 
     ctx.moveTo(GUTTER + inp.hoverX + 0.5, AXIS_H);
     ctx.lineTo(GUTTER + inp.hoverX + 0.5, heightPx);
     ctx.stroke();
+  }
+
+  // measurement cursors A / B (B3a, L4)
+  if (inp.cursors) {
+    const { a, b } = inp.cursors;
+    if (a !== null && b !== null) {
+      const x0 = Math.min(Math.max(Math.min(a, b) - v.s0, 0) / v.spp, v.width);
+      const x1 = Math.min(Math.max(Math.max(a, b) - v.s0, 0) / v.spp, v.width);
+      if (x1 - x0 > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = pal.sel;
+        ctx.fillRect(GUTTER + x0, AXIS_H, x1 - x0, heightPx - AXIS_H);
+        ctx.restore();
+      }
+    }
+    const marks: [string, number | null][] = [
+      ['A', a],
+      ['B', b],
+    ];
+    for (const [label, smp] of marks) {
+      if (smp === null) continue;
+      const x = (smp - v.s0) / v.spp;
+      if (!(x >= 0 && x <= v.width)) continue;
+      const px = GUTTER + Math.round(x) + 0.5;
+      ctx.strokeStyle = pal.sel;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(px, AXIS_H);
+      ctx.lineTo(px, heightPx);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = pal.sel;
+      ctx.fillText(label, GUTTER + Math.round(x) + 3, AXIS_H + 8);
+    }
+  }
+
+  // software trigger marker (B5): solid line labelled T at the absolute trigger sample
+  if (inp.triggerSample != null) {
+    const x = (inp.triggerSample - v.s0) / v.spp;
+    if (x >= 0 && x <= v.width) {
+      const px = GUTTER + Math.round(x) + 0.5;
+      ctx.strokeStyle = pal.cursor;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(px, AXIS_H);
+      ctx.lineTo(px, heightPx);
+      ctx.stroke();
+      ctx.fillStyle = pal.cursor;
+      ctx.fillText('T', GUTTER + Math.round(x) + 3, AXIS_H + 18);
+    }
   }
 }

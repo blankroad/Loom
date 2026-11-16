@@ -21,6 +21,8 @@ export interface Counters {
   truncatedLines: number;
   unparsedLines: number;
   emitErrors: number;
+  /** B4: published rows with role 'error' (counters.error_rows); undefined = older engine (not reported) */
+  errorRows?: number;
 }
 
 export interface CaptureInfo {
@@ -45,6 +47,12 @@ export interface CaptureInfo {
   requestedBy: string | null;
   /** seq of the capture_state event this came from (stale filter) */
   seq: bigint;
+  /** B3b: capture_state `archive` (whole-capture evidence). undefined/null = not reported (older engine). */
+  archive?: ArchiveInfo | null;
+  /** B4: capture_state `decoder_tracks` (which stack decodes which line). undefined/null = not reported. */
+  decoderTracks?: DecoderTrack[] | null;
+  /** B5: capture_state `trigger`. undefined/null = no trigger configured / not reported. */
+  trigger?: TriggerInfo | null;
 }
 
 export interface EdgeChunk {
@@ -70,6 +78,9 @@ export interface Annotation {
   key: string;
   captureId: string;
   decoder: string;
+  /** B4: Loom-derived row role from the backend (`data` | `error`); null = not reported (older engine / raw).
+   * Never inferred in the UI. */
+  role?: 'data' | 'error' | null;
   /** null = PD/sigrok-cli 0.7.2 gave none; never invented (§8) */
   cls: string | null;
   start: number;
@@ -84,7 +95,7 @@ export interface Annotation {
 export interface UnknownRange {
   start: number;
   end: number;
-  cause: 'edges_capped' | 'malformed' | 'chunk_gap' | 'stream_gap' | 'evicted';
+  cause: 'edges_capped' | 'malformed' | 'chunk_gap' | 'stream_gap' | 'evicted' | 'not_loaded';
   detail: string;
 }
 
@@ -123,6 +134,7 @@ export function readCounters(v: unknown): Counters | null {
     truncatedLines: n('truncated_lines'),
     unparsedLines: n('unparsed_lines'),
     emitErrors: n('emit_errors'),
+    errorRows: Object.prototype.hasOwnProperty.call(c, 'error_rows') ? (num(c.error_rows) ?? 0) : undefined,
   };
 }
 
@@ -166,6 +178,9 @@ export function readCaptureState(p: Record<string, unknown>, channel: string | n
     counters: readCounters(p.counters) ?? prev?.counters ?? null,
     quality: has('quality') ? strList(p.quality) : (prev?.quality ?? []),
     requestedBy: str(p.requested_by) ?? prev?.requestedBy ?? null,
+    archive: has('archive') ? readArchiveInfo(p.archive) : (prev?.archive ?? null),
+    decoderTracks: has('decoder_tracks') ? readDecoderTracks(p.decoder_tracks) : (prev?.decoderTracks ?? null),
+    trigger: has('trigger') ? readTriggerInfo(p.trigger) : (prev?.trigger ?? null),
     seq,
   };
 }
@@ -232,6 +247,7 @@ function readOneAnnotation(a: Record<string, unknown>, captureId: string, seq: b
     tEndNs: tns('t_end_ns', end),
     text,
     seq,
+    role: a.role === 'data' || a.role === 'error' ? a.role : null,
   };
 }
 
@@ -375,6 +391,30 @@ export class CaptureData {
     let i = this.unknown.length;
     while (i > 0 && this.unknown[i - 1]!.start > u.start) i--;
     this.unknown.splice(i, 0, u);
+  }
+
+  /** B3b-M5. Drop all raw chunks and raw unknown ranges (annotations untouched) — archive view re-windowing.
+   * After it: chunks [], edgeCount 0, evictedTo 0, unknown [], seenChunk cleared, droppedEdges/malformedEdges/
+   * rejectedChunks 0, streamGapPending false; maxBit and edgeRate kept; version++. */
+  clearChunks(): void {
+    this.chunks = [];
+    this.edgeCount = 0;
+    this.evictedTo = 0;
+    this.unknown = [];
+    this.seenChunk.clear();
+    this.droppedEdges = 0;
+    this.malformedEdges = 0;
+    this.rejectedChunks = 0;
+    this.streamGapPending = false;
+    this.version++;
+  }
+
+  /** B3b-M6. Archive view: `[start, end)` exists in the archive but was not loaded (page limit) → unknown with
+   * cause 'not_loaded' (hatched, never drawn as a level). Ignored when end ≤ start. version++. */
+  markNotLoaded(start: number, end: number, detail: string): void {
+    if (end <= start) return;
+    this.addUnknown({ start, end, cause: 'not_loaded', detail });
+    this.version++;
   }
 
   /** a stream loss (seq hole) whose content is unknown: the following data gap stays unknown */
@@ -654,6 +694,7 @@ export const REASON_LABEL: Record<string, string> = {
   eof: '입력 종료(EOF)',
   stop_latch: 'STOP 래치',
   error: '오류',
+  trigger_post: '트리거 후 지정 길이 도달',
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -661,6 +702,30 @@ export const REASON_LABEL: Record<string, string> = {
 // UI-STATUS.md §계약 제안 2 — backend may rename; the mapping lives only here.
 
 export type DecoderKind = 'none' | 'uart' | 'spi';
+/** backend `uart` option allow-lists (crates/loom-logic/src/model.rs parse_uart) */
+export type UartParity = 'none' | 'odd' | 'even';
+export type UartStopBits = '1' | '1.5' | '2';
+export type BitOrder = 'lsb-first' | 'msb-first';
+/** annotated UART line of the single decoder stack (batch 1: one line per capture) */
+/** B4: 'both' = RX and TX in one capture (two decoder stacks: uart-1 RX, uart-2 TX) */
+export type UartLine = 'rx' | 'tx' | 'both';
+export type CsPolarity = 'active-low' | 'active-high';
+export type SpiAnnotate = 'mosi' | 'miso';
+export const UART_PARITIES: readonly UartParity[] = ['none', 'odd', 'even'];
+export const UART_STOP_BITS: readonly UartStopBits[] = ['1', '1.5', '2'];
+export const BIT_ORDERS: readonly BitOrder[] = ['lsb-first', 'msb-first'];
+export const UART_LINES: readonly UartLine[] = ['rx', 'tx', 'both'];
+export type TriggerEdgeName = 'rising' | 'falling' | 'either';
+export const TRIGGER_EDGES: readonly TriggerEdgeName[] = ['rising', 'falling', 'either'];
+/** backend Trigger bounds (crates/loom-logic/src/model.rs) */
+export const MAX_TRIGGER_PRE_MS = 1000;
+export const GLITCH_EVERY = { min: 1, max: 1000 } as const;
+export const CS_POLARITIES: readonly CsPolarity[] = ['active-low', 'active-high'];
+export const SPI_ANNOTATES: readonly SpiAnnotate[] = ['mosi', 'miso'];
+/** inclusive integer bounds (backend `num(k, v, lo, hi)`) */
+export const UART_DATA_BITS = { min: 5, max: 9 } as const;
+export const SPI_WORDSIZE = { min: 1, max: 32 } as const;
+
 export interface StartConfig {
   source: 'sigrok-demo' | 'synthetic' | 'sigrok-device';
   driver: string;
@@ -673,11 +738,35 @@ export interface StartConfig {
   durationS: number;
   decoder: DecoderKind;
   uartBaud: number;
+  /** RX data channel (bit index) — used when uartLine = 'rx' */
   uartRx: number;
+  /** TX data channel (bit index) — used when uartLine = 'tx' */
+  uartTx: number;
+  uartLine: UartLine;
+  uartDataBits: number;
+  uartParity: UartParity;
+  uartStopBits: UartStopBits;
+  uartBitOrder: BitOrder;
   spiClk: number;
-  spiMosi: number;
+  /** null = no MOSI line (then MISO is required) */
+  spiMosi: number | null;
   spiMiso: number | null;
   spiCs: number | null;
+  spiCpol: 0 | 1;
+  spiCpha: 0 | 1;
+  spiWordsize: number;
+  spiBitOrder: BitOrder;
+  spiCsPolarity: CsPolarity;
+  /** which data line becomes the decoded row stream */
+  spiAnnotate: SpiAnnotate;
+  /** B4: synthetic UART only — every Nth byte gets a framing error (0 = off) */
+  glitchEvery: number;
+  /** B5: software trigger */
+  triggerOn: boolean;
+  triggerCh: number;
+  triggerEdge: TriggerEdgeName;
+  triggerPreMs: number;
+  triggerPostMs: number;
 }
 
 export const DEFAULT_CONFIG: StartConfig = {
@@ -692,11 +781,306 @@ export const DEFAULT_CONFIG: StartConfig = {
   decoder: 'uart',
   uartBaud: 115_200,
   uartRx: 0,
+  uartTx: 1,
+  uartLine: 'rx',
+  uartDataBits: 8,
+  uartParity: 'none',
+  uartStopBits: '1',
+  uartBitOrder: 'lsb-first',
   spiClk: 0,
   spiMosi: 1,
   spiMiso: null,
   spiCs: 2,
+  spiCpol: 0,
+  spiCpha: 0,
+  spiWordsize: 8,
+  spiBitOrder: 'msb-first',
+  spiCsPolarity: 'active-low',
+  spiAnnotate: 'mosi',
+  glitchEvery: 0,
+  triggerOn: false,
+  triggerCh: 0,
+  triggerEdge: 'falling',
+  triggerPreMs: 10,
+  triggerPostMs: 1000,
 };
+
+/** sanitizeConfig allow-lists: a saved value outside its list falls back to DEFAULT_CONFIG */
+export const CONFIG_ENUMS: { readonly [K in keyof StartConfig]?: readonly unknown[] } = {
+  source: ['synthetic', 'sigrok-demo', 'sigrok-device'],
+  decoder: ['none', 'uart', 'spi'],
+  uartLine: UART_LINES,
+  triggerEdge: TRIGGER_EDGES,
+  uartParity: UART_PARITIES,
+  uartStopBits: UART_STOP_BITS,
+  uartBitOrder: BIT_ORDERS,
+  spiCpol: [0, 1],
+  spiCpha: [0, 1],
+  spiBitOrder: BIT_ORDERS,
+  spiCsPolarity: CS_POLARITIES,
+  spiAnnotate: SPI_ANNOTATES,
+};
+/** pin fields that may be null ("없음") */
+export const NULLABLE_CONFIG_KEYS: readonly (keyof StartConfig)[] = ['spiMosi', 'spiMiso', 'spiCs'];
+
+/** FUNCTIONS.md B1-M1: localStorage value (any shape, any age) → a valid StartConfig. Never returns DEFAULT_CONFIG itself. */
+export function sanitizeConfig(saved: unknown): StartConfig {
+  const out: Record<string, unknown> = { ...DEFAULT_CONFIG };
+  if (typeof saved !== 'object' || saved === null || Array.isArray(saved)) return out as unknown as StartConfig;
+  const src = saved as Record<string, unknown>;
+  const defaults = DEFAULT_CONFIG as unknown as Record<string, unknown>;
+  for (const k of Object.keys(DEFAULT_CONFIG) as (keyof StartConfig)[]) {
+    const v = src[k];
+    const d = defaults[k];
+    if (v === undefined) continue;
+    if (NULLABLE_CONFIG_KEYS.includes(k) && v === null) {
+      out[k] = null;
+      continue;
+    }
+    const allowed = CONFIG_ENUMS[k];
+    if (allowed) {
+      if (allowed.includes(v)) out[k] = v;
+      continue;
+    }
+    if (d === null) {
+      if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
+      continue;
+    }
+    if (typeof v === typeof d && (typeof v !== 'number' || Number.isFinite(v))) out[k] = v;
+  }
+  return out as unknown as StartConfig;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Pre-start publish-load estimate (L1 recommendation 1). Budgets mirror crates/loom-logic/src/worker.rs.
+
+/** worker ANNOT_RATE (rows/s); ANNOT_BURST 4000 */
+export const PUBLISH_ANNOTATIONS_PER_S = 2000;
+/** worker MAX_EDGES_PER_EVENT (1024) per EDGE_FLUSH (100 ms) */
+export const PUBLISH_EDGES_PER_S = 10_240;
+/** synthetic: what the number is based on; worst_case: continuous traffic upper bound; unknown: not estimable; none: no decoder */
+export type LoadBasis = 'synthetic' | 'worst_case' | 'unknown' | 'none';
+export interface LoadEstimate {
+  /** decoded rows/s; null = cannot be estimated */
+  annotationsPerS: number | null;
+  annotationBasis: LoadBasis;
+  /** upper bound of raw transitions/s over the displayed channels; null = cannot be estimated */
+  edgesPerS: number | null;
+  edgeBasis: LoadBasis;
+  /** user-visible warnings (Korean), fixed order: annotations, edges, unknown-density note */
+  warnings: string[];
+}
+
+/** FUNCTIONS.md B1-M3 */
+export function estimatePublishLoad(c: StartConfig, shown: readonly string[] = CAPTURE_CHANNELS): LoadEstimate {
+  const fmtN = (n: number) => Math.round(n).toLocaleString('ko-KR');
+  const isShown = (bit: number | null) => bit !== null && shown.includes('D' + bit);
+  const synthetic = c.source === 'synthetic';
+  const B = new TextEncoder().encode(unescapeText(c.text).replaceAll('{n}', '0000')).length;
+  const periodS = c.framePeriodMs / 1000;
+  const rate = effectiveRate(c);
+  const uartFrameBits = 1 + c.uartDataBits + (c.uartParity !== 'none' ? 1 : 0) + Number(c.uartStopBits);
+  const uartBit = c.uartLine === 'rx' ? c.uartRx : c.uartTx;
+
+  let annotationsPerS: number | null;
+  let annotationBasis: LoadBasis;
+  let edgesPerS: number | null;
+  let edgeBasis: LoadBasis;
+
+  if (c.decoder === 'none') {
+    annotationsPerS = 0;
+    annotationBasis = 'none';
+    if (synthetic) {
+      edgesPerS = 0;
+      edgeBasis = 'none';
+    } else {
+      edgesPerS = null;
+      edgeBasis = 'unknown';
+    }
+  } else if (c.decoder === 'uart') {
+    const both = c.uartLine === 'both';
+    const shownLines = both ? Number(isShown(c.uartRx)) + Number(isShown(c.uartTx)) : Number(isShown(uartBit));
+    if (synthetic) {
+      let perLine: number;
+      if (both) {
+        // the TX frame starts half a period after the RX frame (and after it ended)
+        const f = (2 + 10 * B) / c.uartBaud;
+        perLine = B / Math.max(periodS, Math.max(periodS / 2, f) + f);
+      } else {
+        perLine = B / Math.max(periodS, (2 + 10 * B) / c.uartBaud);
+      }
+      annotationsPerS = both ? 2 * perLine : perLine;
+      annotationBasis = 'synthetic';
+      edgesPerS = perLine * 10 * shownLines;
+      edgeBasis = 'synthetic';
+    } else {
+      const perLine = c.uartBaud / uartFrameBits;
+      annotationsPerS = both ? 2 * perLine : perLine;
+      annotationBasis = 'worst_case';
+      edgesPerS = perLine * uartFrameBits * shownLines;
+      edgeBasis = 'worst_case';
+    }
+  } else if (synthetic) {
+    const clk = Math.max(1, Math.floor(rate / 10));
+    const h = Math.floor(rate / clk / 2);
+    const frameS = (8 * h + 16 * h * B) / rate;
+    const rows = B / Math.max(periodS, frameS);
+    const framesPerS = 1 / Math.max(periodS, frameS);
+    annotationsPerS = rows;
+    annotationBasis = 'synthetic';
+    edgesPerS =
+      (isShown(c.spiClk) ? 16 * rows : 0) + (isShown(c.spiMosi) ? 8 * rows : 0) + (isShown(c.spiMiso) ? 8 * rows : 0) + (isShown(c.spiCs) ? 2 * framesPerS : 0);
+    edgeBasis = 'synthetic';
+  } else {
+    annotationsPerS = null;
+    annotationBasis = 'unknown';
+    edgesPerS = null;
+    edgeBasis = 'unknown';
+  }
+
+  const warnings: string[] = [];
+  if (annotationsPerS !== null && annotationsPerS > PUBLISH_ANNOTATIONS_PER_S) {
+    const worst = annotationBasis === 'worst_case';
+    warnings.push(
+      `예상 디코드 ${fmtN(annotationsPerS)}행/s${worst ? ' (연속 송신 시 최대)' : ''} > live 게시 상한 ${fmtN(PUBLISH_ANNOTATIONS_PER_S)}행/s — 초과분은 live 미리보기·저널에 실리지 않고 '디코드 손실'로 셉니다`,
+    );
+  }
+  if (edgesPerS !== null && edgesPerS > PUBLISH_EDGES_PER_S) {
+    const worst = edgeBasis === 'worst_case';
+    warnings.push(
+      `예상 전이 ${fmtN(edgesPerS)}개/s${worst ? ' (최대)' : ''} > live 게시 상한 ${fmtN(PUBLISH_EDGES_PER_S)}개/s — 초과 구간은 파형에 '데이터 없음'(빗금)으로 표시됩니다`,
+    );
+  }
+  if (edgeBasis === 'unknown' && c.decoder === 'spi') {
+    warnings.push('SPI 클록을 알 수 없어 게시량을 추정하지 못했습니다 — 1 MHz SPI는 전이 약 2,000,000개/s로 live 게시 상한을 크게 넘습니다');
+  } else if (edgeBasis === 'unknown' && c.source === 'sigrok-device') {
+    warnings.push(`실제 신호 밀도를 알 수 없어 전이 게시량을 추정하지 못했습니다 — 상한 ${fmtN(PUBLISH_EDGES_PER_S)}개/s 초과분은 빗금으로 표시됩니다`);
+  }
+  return { annotationsPerS, annotationBasis, edgesPerS, edgeBasis, warnings };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Held-vs-engine coverage (L5 recommendation 1): is what this panel holds the whole published record?
+
+/** live = capture not terminal (engine counters are stale until the final state) */
+export type CoverageState = 'live' | 'complete' | 'partial' | 'unknown';
+export interface DecodeCoverage {
+  /** rows the engine published (latest capture_state counters.annotations); null = not reported */
+  published: number | null;
+  /** rows the engine could not publish: max(counters.dropped_annotations, panel-seen batch drops) */
+  engineDropped: number;
+  /** rows this panel holds: annotations + unparsed raw lines + rejected rows */
+  held: number;
+  /** rows this panel evicted (MAX_ANNOTATIONS_PER_CAPTURE) */
+  evicted: number;
+  /** published rows this panel never received = max(0, published − held − evicted); 0 when published is null */
+  notReceived: number;
+  state: CoverageState;
+}
+export interface RawCoverage {
+  /** samples the engine acquired (counters.samples); null = not reported */
+  engineSamples: number | null;
+  /** first sample of the first retained chunk; null = no chunk */
+  heldStart: number | null;
+  /** exclusive end of the last retained chunk; null = no chunk */
+  heldEnd: number | null;
+  /** UI-evicted samples [0, evictedTo) */
+  evicted: number;
+  /** samples before heldStart that were never received (not UI eviction) = max(0, heldStart − evictedTo) */
+  notReceivedBefore: number;
+  /** terminal only: max(0, engineSamples − (heldEnd ?? 0)); 0 while live or when engineSamples is null */
+  notReceivedAfter: number;
+  /** union length of all unknown ranges clipped to [heldStart, heldEnd) (no double counting) */
+  unknownInside: number;
+  state: CoverageState;
+}
+
+/** FUNCTIONS.md B1-M4 */
+export function decodeCoverage(c: CaptureData): DecodeCoverage {
+  const k = c.info?.counters ?? null;
+  const st = c.info?.state ?? 'unknown';
+  const published = k ? k.annotations : null;
+  const engineDropped = Math.max(k?.droppedAnnotations ?? 0, c.droppedAnnotations);
+  const held = c.annotations.length + c.rawLinesTotal + c.rejectedAnnotations;
+  const evicted = c.evictedAnnotations;
+  const notReceived = published === null ? 0 : Math.max(0, published - held - evicted);
+  let state: CoverageState;
+  if (!k || st === 'unknown') state = 'unknown';
+  else if (st === 'starting' || st === 'running' || st === 'stopping') state = 'live';
+  else state = notReceived === 0 && engineDropped === 0 && evicted === 0 ? 'complete' : 'partial';
+  return { published, engineDropped, held, evicted, notReceived, state };
+}
+
+/** FUNCTIONS.md B1-M5 */
+export function rawCoverage(c: CaptureData): RawCoverage {
+  const k = c.info?.counters ?? null;
+  const st = c.info?.state ?? 'unknown';
+  const engineSamples = k ? k.samples : null;
+  const r = c.range;
+  const heldStart = r ? r.start : null;
+  const heldEnd = r ? r.end : null;
+  const evicted = c.evictedTo;
+  const notReceivedBefore = heldStart === null ? 0 : Math.max(0, heldStart - c.evictedTo);
+  const terminal = st === 'stopped' || st === 'failed';
+  const notReceivedAfter = terminal && engineSamples !== null ? Math.max(0, engineSamples - (heldEnd ?? 0)) : 0;
+  let unknownInside = 0;
+  if (heldStart !== null && heldEnd !== null) {
+    const clipped: [number, number][] = [];
+    for (const u of c.unknown) {
+      const s = Math.max(u.start, heldStart);
+      const e = Math.min(u.end, heldEnd);
+      if (e > s) clipped.push([s, e]);
+    }
+    clipped.sort((a, b) => a[0] - b[0]);
+    let curS = 0;
+    let curE = 0;
+    let open = false;
+    for (const [s, e] of clipped) {
+      if (open && s <= curE) curE = Math.max(curE, e);
+      else {
+        if (open) unknownInside += curE - curS;
+        curS = s;
+        curE = e;
+        open = true;
+      }
+    }
+    if (open) unknownInside += curE - curS;
+  }
+  let state: CoverageState;
+  if (!k || st === 'unknown') state = 'unknown';
+  else if (!terminal) state = 'live';
+  else state = notReceivedBefore === 0 && notReceivedAfter === 0 && unknownInside === 0 && evicted === 0 ? 'complete' : 'partial';
+  return { engineSamples, heldStart, heldEnd, evicted, notReceivedBefore, notReceivedAfter, unknownInside, state };
+}
+
+/** FUNCTIONS.md B1-M7: suffix of the stopped/failed notice (replaces "— 기록은 이 패널에 남아 있습니다"); '' while live */
+export function coverageNote(d: DecodeCoverage, r: RawCoverage): string {
+  const fmtN = (n: number) => Math.round(n).toLocaleString('ko-KR');
+  if (d.state === 'unknown' || r.state === 'unknown') return ' — 엔진 카운터 미수신: 이 패널 보유분이 전체인지 알 수 없습니다';
+  if (d.state === 'live' || r.state === 'live') return '';
+  if (d.state === 'complete' && r.state === 'complete') return ' — 이 패널이 엔진 게시분 전체를 보유합니다';
+  const parts: string[] = [];
+  if (d.notReceived > 0) parts.push(`디코드 ${fmtN(d.held)}/${fmtN(d.published ?? 0)}행 (미수신 ${fmtN(d.notReceived)})`);
+  if (d.engineDropped > 0) parts.push(`게시 손실 ${fmtN(d.engineDropped)}행`);
+  if (d.evicted > 0) parts.push(`디코드 보관 밖 ${fmtN(d.evicted)}행`);
+  if (r.notReceivedBefore > 0) parts.push(`원시 앞부분 sample ${fmtN(r.notReceivedBefore)} 미수신`);
+  if (r.notReceivedAfter > 0) parts.push(`원시 뒷부분 sample ${fmtN(r.notReceivedAfter)} 미수신`);
+  if (r.unknownInside > 0) parts.push(`원시 데이터 없음 sample ${fmtN(r.unknownInside)}`);
+  if (r.evicted > 0) parts.push(`원시 보관 밖 sample ${fmtN(r.evicted)}`);
+  return ' — 이 패널은 일부만 보유합니다: ' + parts.join(' · ');
+}
+
+/** FUNCTIONS.md B1-M8: insertion after "N행" in the decode-table info line; '' unless published rows were not received */
+export function annCoverageText(d: DecodeCoverage): string {
+  const fmtN = (n: number) => Math.round(n).toLocaleString('ko-KR');
+  if (d.published !== null && d.notReceived > 0) return ` · 패널 보유 ${fmtN(d.held)} / 엔진 게시 ${fmtN(d.published)} — ${fmtN(d.notReceived)}행 미수신`;
+  return '';
+}
+
+/** FUNCTIONS.md B1-M6 (L8a): live-follow anchor = end of RECEIVED raw data, not the decode/engine head */
+export function followHeadSample(c: CaptureData): number {
+  return c.chunks.length ? c.range!.end : c.headSample;
+}
 
 /** acquisition is always D0..D7, 1 byte/sample (CONTRACT §8 packing). Lane visibility is a UI choice only. */
 export const MAX_CHANNELS = 8;
@@ -719,11 +1103,27 @@ export function unescapeText(t: string): string {
 }
 
 export function decoderSpec(c: StartConfig): string | null {
-  if (c.decoder === 'uart') return `uart:baudrate=${c.uartBaud}:rx=D${c.uartRx}`;
+  if (c.decoder === 'uart') {
+    let spec =
+      `uart:baudrate=${c.uartBaud}:` +
+      (c.uartLine === 'rx' ? `rx=D${c.uartRx}` : c.uartLine === 'tx' ? `tx=D${c.uartTx}` : `rx=D${c.uartRx}:tx=D${c.uartTx}`);
+    if (c.uartDataBits !== 8) spec += `:data_bits=${c.uartDataBits}`;
+    if (c.uartParity !== 'none') spec += `:parity=${c.uartParity}`;
+    if (c.uartStopBits !== '1') spec += `:stop_bits=${c.uartStopBits}`;
+    if (c.uartBitOrder === 'msb-first') spec += ':bit_order=msb-first';
+    return spec;
+  }
   if (c.decoder === 'spi') {
-    const parts = [`spi:clk=D${c.spiClk}`, `mosi=D${c.spiMosi}`];
+    const parts = [`spi:clk=D${c.spiClk}`];
+    if (c.spiMosi !== null) parts.push(`mosi=D${c.spiMosi}`);
     if (c.spiMiso !== null) parts.push(`miso=D${c.spiMiso}`);
     if (c.spiCs !== null) parts.push(`cs=D${c.spiCs}`);
+    if (c.spiCpol === 1) parts.push('cpol=1');
+    if (c.spiCpha === 1) parts.push('cpha=1');
+    if (c.spiWordsize !== 8) parts.push(`wordsize=${c.spiWordsize}`);
+    if (c.spiBitOrder === 'lsb-first') parts.push('bitorder=lsb-first');
+    if (c.spiCsPolarity === 'active-high') parts.push('cs_polarity=active-high');
+    if (c.spiAnnotate === 'miso' && c.spiMosi !== null) parts.push('annotate=miso');
     return parts.join(':');
   }
   return null;
@@ -746,14 +1146,36 @@ export function validateConfig(c: StartConfig): string[] {
   }
   const inRange = (ch: number | null) => ch === null || (Number.isInteger(ch) && ch >= 0 && ch < MAX_CHANNELS);
   if (c.decoder === 'uart') {
-    if (!inRange(c.uartRx)) p.push('UART RX 채널이 캡처 채널 밖입니다');
+    if (c.uartLine !== 'tx' && !inRange(c.uartRx)) p.push('UART RX 채널이 캡처 채널 밖입니다');
+    if (c.uartLine !== 'rx' && !inRange(c.uartTx)) p.push('UART TX 채널이 캡처 채널 밖입니다');
+    if (c.uartLine === 'both' && c.uartRx === c.uartTx) p.push('UART RX와 TX가 같은 채널입니다');
     if (!(c.uartBaud > 0)) p.push('baudrate가 올바르지 않습니다');
     else if (rate < c.uartBaud * 4) p.push('샘플레이트가 baudrate의 4배 미만 — 디코드 불가');
+    if (!(Number.isInteger(c.uartDataBits) && c.uartDataBits >= 5 && c.uartDataBits <= 9)) p.push('UART 데이터 비트는 5–9 (정수)');
+    if (c.source === 'synthetic' && (c.uartDataBits !== 8 || c.uartParity !== 'none' || c.uartStopBits !== '1' || c.uartBitOrder !== 'lsb-first')) {
+      p.push('합성 UART는 8N1 LSB-first만 생성합니다 (실제 장비/데모에서는 사용 가능)');
+    }
   }
   if (c.decoder === 'spi') {
     const pins = [c.spiClk, c.spiMosi, c.spiMiso, c.spiCs].filter((x): x is number => x !== null);
     if (!pins.every(inRange)) p.push('SPI 핀이 캡처 채널 밖입니다');
     if (new Set(pins).size !== pins.length) p.push('SPI 핀이 겹칩니다');
+    if (c.spiMosi === null && c.spiMiso === null) p.push('SPI는 MOSI 또는 MISO가 필요합니다');
+    if (c.spiAnnotate === 'miso' && c.spiMiso === null) p.push('MISO 표시를 고르려면 MISO 핀이 필요합니다');
+    if (c.spiAnnotate === 'mosi' && c.spiMosi === null && c.spiMiso !== null) p.push('MOSI 표시를 고르려면 MOSI 핀이 필요합니다');
+    if (!(Number.isInteger(c.spiWordsize) && c.spiWordsize >= 1 && c.spiWordsize <= 32)) p.push('SPI 워드 크기는 1–32 (정수)');
+    if (c.source === 'synthetic' && c.spiWordsize !== 8) p.push('합성 SPI는 8-bit 워드만 생성합니다 (실제 장비/데모에서는 사용 가능)');
+  }
+  if (c.glitchEvery !== 0) {
+    if (!(c.source === 'synthetic' && c.decoder === 'uart')) p.push('글리치는 합성 UART에서만 쓸 수 있습니다');
+    else if (!(Number.isInteger(c.glitchEvery) && c.glitchEvery >= 1 && c.glitchEvery <= 1000)) p.push('글리치 주기는 1–1000 (정수, 0=끔)');
+  }
+  if (c.triggerOn) {
+    if (!(Number.isInteger(c.triggerCh) && c.triggerCh >= 0 && c.triggerCh < MAX_CHANNELS)) p.push('트리거 채널이 캡처 채널 밖입니다');
+    if (!(Number.isInteger(c.triggerPreMs) && c.triggerPreMs >= 0 && c.triggerPreMs <= 1000)) p.push('트리거 앞 구간 0–1000 ms (정수)');
+    if (!(Number.isInteger(c.triggerPostMs) && c.triggerPostMs >= 1 && c.triggerPostMs <= Math.round(c.durationS * 1000))) {
+      p.push('트리거 뒤 구간 1 ms – 캡처 시간 (정수 ms)');
+    }
   }
   return p;
 }
@@ -782,6 +1204,8 @@ export function startParams(c: StartConfig, shown: readonly string[] = CAPTURE_C
     if (c.text) p.text = unescapeText(c.text);
     p.frame_period_ms = c.framePeriodMs;
   }
+  if (c.source === 'synthetic' && c.decoder === 'uart' && c.glitchEvery > 0) p.glitch_every = c.glitchEvery;
+  if (c.triggerOn) p.trigger = { channel: `D${c.triggerCh}`, edge: c.triggerEdge, pre_ms: c.triggerPreMs, post_ms: c.triggerPostMs };
   return p;
 }
 
@@ -798,6 +1222,8 @@ export function cliLine(c: StartConfig, shown: readonly string[] = CAPTURE_CHANN
   parts.push(`--duration ${c.durationS}s`);
   if (c.source === 'sigrok-demo' && c.pattern) parts.push(`--pattern ${q(c.pattern)}`);
   if (c.source === 'synthetic' && c.text) parts.push(`--text ${q(c.text)}`, `--frame-period ${c.framePeriodMs}ms`);
+  if (c.source === 'synthetic' && c.decoder === 'uart' && c.glitchEvery > 0) parts.push(`--glitch-every ${c.glitchEvery}`);
+  if (c.triggerOn) parts.push(`--trigger D${c.triggerCh}:${c.triggerEdge} --pre ${c.triggerPreMs}ms --post ${c.triggerPostMs}ms`);
   return parts.join(' ');
 }
 
@@ -830,4 +1256,347 @@ export function readCapability(v: unknown): Capability {
     deviceDrivers: strList(impl.device_drivers),
     deviceVerified: impl.device_verified === true,
   };
+}
+
+// ---------------------------------------------------------------------------------------------
+// B3b — capture archive (whole-capture evidence kept by the daemon; FUNCTIONS.md §B3b)
+
+export type ArchiveStateName = 'disabled' | 'pending' | 'recording' | 'complete' | 'partial' | 'failed' | 'unknown';
+export interface ArchiveInfo {
+  state: ArchiveStateName;
+  /** daemon-side directory (absolute path string as reported) */
+  dir: string | null;
+  /** why disabled */
+  reason: string | null;
+  error: string | null;
+  rawEndSample: number | null;
+  rawBytes: number | null;
+  annotationRows: number | null;
+  rawTruncatedAt: number | null;
+  annotationTruncatedAt: number | null;
+  /** archives removed by rotation when this one was opened */
+  pruned: string[];
+}
+export interface ArchiveLabel {
+  text: string;
+  tone: 'ok' | 'warn' | 'bad' | 'muted';
+  title: string;
+}
+/** archive row pages per load (the daemon returns ≤1000 rows / ≤64 KiB per page; B6 keeps the window ≤ ARCHIVE_WINDOW_ROWS) */
+export const ARCHIVE_ROW_PAGES = 20;
+/** archive edge pages per view window (2048 edges each) */
+export const ARCHIVE_EDGE_PAGES = 10;
+export const ARCHIVE_NOTE = '아카이브가 켜져 있으면 전체 기록(모든 디코드 행·원시 D0–D7)은 캡처 아카이브에 남습니다 — 시작 후 상태 줄에서 확인하세요';
+export const NOT_LOADED_DETAIL = '아카이브: 이 배율에서 전이가 많아 일부만 불러옴 — 확대하세요';
+/** archive states whose files can be read */
+export const ARCHIVE_READABLE: readonly ArchiveStateName[] = ['recording', 'complete', 'partial'];
+
+/** B3b-M1. capture_state `archive` → ArchiveInfo; non-object → null; unknown/missing state word → 'unknown'.
+ * Numbers via `num` (null when absent/invalid); strings via `str`; pruned via strList. */
+export function readArchiveInfo(v: unknown): ArchiveInfo | null {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const names: readonly string[] = ['disabled', 'pending', 'recording', 'complete', 'partial', 'failed'];
+  const w = str(o.state);
+  return {
+    state: (w !== null && names.includes(w) ? w : 'unknown') as ArchiveStateName,
+    dir: str(o.dir),
+    reason: str(o.reason),
+    error: str(o.error),
+    rawEndSample: num(o.raw_end_sample),
+    rawBytes: num(o.raw_bytes),
+    annotationRows: num(o.annotation_rows),
+    rawTruncatedAt: num(o.raw_truncated_at_sample),
+    annotationTruncatedAt: num(o.annotation_truncated_at_row),
+    pruned: strList(o.pruned),
+  };
+}
+
+/** B3b-M2. Status-line chip text (FUNCTIONS.md §B3b exact strings). */
+export function archiveLabel(a: ArchiveInfo | null | undefined): ArchiveLabel {
+  const fmtN = (n: number) => Math.round(n).toLocaleString('ko-KR');
+  if (!a) {
+    return { text: '아카이브 정보 없음', tone: 'muted', title: '이 캡처의 capture_state에 archive가 없습니다 (이전 엔진이거나 아직 수신 전)' };
+  }
+  const title = a.dir ?? '';
+  switch (a.state) {
+    case 'disabled':
+      return { text: `아카이브 꺼짐 — ${a.reason ?? '사유 미보고'}`, tone: 'muted', title };
+    case 'pending':
+      return { text: '아카이브 준비 중', tone: 'muted', title };
+    case 'recording':
+      return { text: `아카이브 기록 중 · 디코드 ${fmtN(a.annotationRows ?? 0)}행`, tone: 'ok', title };
+    case 'complete':
+      return { text: `아카이브 완전 · 디코드 ${fmtN(a.annotationRows ?? 0)}행 · 원시 sample ${fmtN(a.rawEndSample ?? 0)}`, tone: 'ok', title };
+    case 'partial':
+      return {
+        text:
+          `아카이브 일부 — ${a.error ?? '잘림'}` +
+          (a.rawTruncatedAt !== null ? ` · 원시 sample ${fmtN(a.rawTruncatedAt)}에서 잘림` : '') +
+          (a.annotationTruncatedAt !== null ? ` · 디코드 ${fmtN(a.annotationTruncatedAt)}행에서 잘림` : ''),
+        tone: 'warn',
+        title,
+      };
+    case 'failed':
+      return { text: `아카이브 실패 — ${a.error ?? '사유 미보고'}`, tone: 'bad', title };
+    default:
+      return { text: '아카이브 상태 미확인', tone: 'muted', title };
+  }
+}
+
+export interface ArchiveEdgesPage {
+  chunks: EdgeChunk[];
+  nextFrom: number | null;
+  complete: boolean;
+  truncatedAt: number | null;
+}
+export interface ArchiveRowsPage {
+  rows: Annotation[];
+  rawLines: string[];
+  rejected: number;
+  nextRow: number | null;
+  complete: boolean;
+  truncatedAt: number | null;
+  /** archive rows reported in this page (incl. unparsed) */
+  count: number;
+}
+
+/** B3b-M7. `logic.archive.read` kind=edges result → chunks (readEdges with seq -1n, hostMonoNs null). */
+export function readArchiveEdges(result: unknown, captureId: string): ArchiveEdgesPage {
+  const o = obj(result);
+  const chunks: EdgeChunk[] = [];
+  if (Array.isArray(o.chunks)) {
+    for (const c of o.chunks) {
+      const e = readEdges(obj(c), captureId, -1n, null);
+      if (e) chunks.push(e);
+    }
+  }
+  return { chunks, nextFrom: num(o.next_from), complete: o.complete === true, truncatedAt: num(o.truncated_at) };
+}
+
+/** B3b-M8. `logic.archive.read` kind=annotations result → rows (readAnnotations 'logic.annotations', seq -1n). */
+export function readArchiveRows(result: unknown, captureId: string, samplerate: number | null): ArchiveRowsPage {
+  const o = obj(result);
+  const list = Array.isArray(o.rows) ? o.rows : [];
+  const r = readAnnotations('logic.annotations', { capture_id: captureId, samplerate, annotations: list }, captureId, -1n, samplerate);
+  return {
+    rows: r.rows,
+    rawLines: r.rawLines,
+    rejected: r.rejected,
+    nextRow: num(o.next_row),
+    complete: o.complete === true,
+    truncatedAt: num(o.truncated_at),
+    count: list.length,
+  };
+}
+
+/** B3b-M9. Copy/coverage state of the archive view: no info → unknown; recording → live; complete with every
+ * row loaded → complete; otherwise partial. */
+export function archiveViewCoverage(a: ArchiveInfo | null | undefined, rowsAllLoaded: boolean): CoverageState {
+  if (!a) return 'unknown';
+  if (a.state === 'recording') return 'live';
+  if (a.state === 'complete' && rowsAllLoaded) return 'complete';
+  return 'partial';
+}
+
+// ---------------------------------------------------------------------------------------------
+// B6 — bounded archive row window (ROOT browser defect D-L5W, FUNCTIONS.md §B6). The archive view holds at most
+// ARCHIVE_WINDOW_ROWS consecutive archive rows, never evicts inside the window, names the held range, and moves
+// with previous / next / seek. Archive row numbers are the daemon's 0-based `row`; the UI shows them 1-based.
+
+/** rows the archive view holds at most; equal to the per-capture cap so the archive CaptureData never evicts */
+export const ARCHIVE_WINDOW_ROWS = MAX_ANNOTATIONS_PER_CAPTURE;
+/** rows asked per archive page (the daemon may return fewer: ≤64 KiB per page) */
+export const ARCHIVE_PAGE_ROWS = 1000;
+
+export interface ArchiveRowWindow {
+  /** after_row the window was opened with (null = from archive row 0) */
+  startAfter: number | null;
+  /** 0-based archive row number of the first row held; null = nothing held yet */
+  first: number | null;
+  /** 0-based archive row number of the last row held; null = nothing held yet */
+  last: number | null;
+  /** archive rows held = sum of page.count (parsed rows + unparsed + rejected) */
+  held: number;
+  /** the daemon said nothing follows `last` (a page with next_row null) */
+  eof: boolean;
+}
+/** where a new window starts (`startAfter` = after_row of its first request); null result = no such window */
+export interface ArchiveWindowStart {
+  startAfter: number | null;
+}
+
+/** B6-M1. A new, empty window opened after `startAfter`: `{startAfter, first: null, last: null, held: 0, eof: false}`. */
+export function archiveWindowStart(startAfter: number | null): ArchiveRowWindow {
+  return { startAfter, first: null, last: null, held: 0, eof: false };
+}
+
+/** B6-M2. Fold one archive page into the window; returns a NEW object (never mutates `w`).
+ * `base` = (w.last ?? w.startAfter ?? −1) + 1 = archive row number of the page's first row.
+ * count 0 → `{...w, eof: page.nextRow === null}`.
+ * otherwise → first = w.first ?? base; last = page.nextRow ?? (base + page.count − 1); held = w.held + page.count;
+ * eof = page.nextRow === null. */
+export function archiveWindowAdd(w: ArchiveRowWindow, page: Pick<ArchiveRowsPage, 'count' | 'nextRow'>): ArchiveRowWindow {
+  if (page.count === 0) return { ...w, eof: page.nextRow === null };
+  const base = (w.last ?? w.startAfter ?? -1) + 1;
+  return {
+    startAfter: w.startAfter,
+    first: w.first ?? base,
+    last: page.nextRow ?? base + page.count - 1,
+    held: w.held + page.count,
+    eof: page.nextRow === null,
+  };
+}
+
+/** B6-M3. after_row for the window's next page: `w.last ?? w.startAfter` (null = send no after_row). */
+export function archiveWindowAfterRow(w: ArchiveRowWindow): number | null {
+  return w.last ?? w.startAfter;
+}
+
+/** B6-M4. `limit` for the window's next page: max(0, min(ARCHIVE_PAGE_ROWS, ARCHIVE_WINDOW_ROWS − w.held)). */
+export function archiveWindowLimit(w: ArchiveRowWindow): number {
+  return Math.max(0, Math.min(ARCHIVE_PAGE_ROWS, ARCHIVE_WINDOW_ROWS - w.held));
+}
+
+/** B6-M5. `w.held >= ARCHIVE_WINDOW_ROWS`. */
+export function archiveWindowFull(w: ArchiveRowWindow): boolean {
+  return w.held >= ARCHIVE_WINDOW_ROWS;
+}
+
+/** B6-M6. The window just before `w`: null when `w.first` is null or 0. Otherwise
+ * start = max(0, w.first − ARCHIVE_WINDOW_ROWS) → `{startAfter: start === 0 ? null : start − 1}`. */
+export function archivePrevStart(w: ArchiveRowWindow): ArchiveWindowStart | null {
+  if (w.first === null || w.first === 0) return null;
+  const start = Math.max(0, w.first - ARCHIVE_WINDOW_ROWS);
+  return { startAfter: start === 0 ? null : start - 1 };
+}
+
+/** B6-M7. The window right after `w`: null when `w.eof` or `w.last` is null; otherwise `{startAfter: w.last}`. */
+export function archiveNextStart(w: ArchiveRowWindow): ArchiveWindowStart | null {
+  if (w.eof || w.last === null) return null;
+  return { startAfter: w.last };
+}
+
+/** B6-M8. Seek to the 1-based row the user typed. null when `row1` is not a finite integer, < 1, or
+ * (total !== null and row1 > total). Otherwise start0 = row1 − 1 → `{startAfter: start0 === 0 ? null : start0 − 1}`. */
+export function archiveSeekStart(row1: number, total: number | null): ArchiveWindowStart | null {
+  if (!Number.isInteger(row1) || row1 < 1) return null;
+  if (total !== null && row1 > total) return null;
+  const start0 = row1 - 1;
+  return { startAfter: start0 === 0 ? null : start0 - 1 };
+}
+
+/** B6-M9. Coverage of what the archive view holds (replaces archiveViewCoverage in the panel).
+ * !a → 'unknown'; a.state 'recording' → 'live'; 'complete' only when ALL hold:
+ *   a.state === 'complete'; w.startAfter === null; (w.first === null || w.first === 0); w.eof; evicted === 0;
+ *   a.annotationRows === null || (w.last === null ? a.annotationRows === 0 : w.last + 1 === a.annotationRows).
+ * Anything else → 'partial'. */
+export function archiveWindowCoverage(a: ArchiveInfo | null | undefined, w: ArchiveRowWindow, evicted: number): CoverageState {
+  if (!a) return 'unknown';
+  if (a.state === 'recording') return 'live';
+  const rowsAgree = a.annotationRows === null || (w.last === null ? a.annotationRows === 0 : w.last + 1 === a.annotationRows);
+  if (a.state === 'complete' && w.startAfter === null && (w.first === null || w.first === 0) && w.eof && evicted === 0 && rowsAgree) {
+    return 'complete';
+  }
+  return 'partial';
+}
+
+/** B6-M10. Visible text naming the held range, the total and the window cap (numbers `toLocaleString('ko-KR')`,
+ * row numbers 1-based, `t` = total === null ? '?' : fmt(total), cap = fmt(ARCHIVE_WINDOW_ROWS)):
+ *   nothing held (first or last null): eof → `행 없음 (전체 ${t}행)`; busy → '아카이브 불러오는 중…'; else '아카이브 창 비어 있음'.
+ *   held: `행 ${fmt(first+1)}–${fmt(last+1)} / 전체 ${t}행` + suffix where head = first > 0 || startAfter !== null,
+ *   tail = !eof:
+ *     !head && !tail → ' (전체 표시)'
+ *     head && tail   → ` · 앞뒤 미표시 (창 최대 ${cap}행)`
+ *     head           → ` · 앞부분 미표시 (창 최대 ${cap}행)`
+ *     tail           → ` · 뒷부분 미표시 (창 최대 ${cap}행)` */
+export function archiveWindowText(w: ArchiveRowWindow, total: number | null, busy: boolean): string {
+  const fmt = (n: number) => n.toLocaleString('ko-KR');
+  const t = total === null ? '?' : fmt(total);
+  if (w.first === null || w.last === null) {
+    if (w.eof) return `행 없음 (전체 ${t}행)`;
+    return busy ? '아카이브 불러오는 중…' : '아카이브 창 비어 있음';
+  }
+  const head = w.first > 0 || w.startAfter !== null;
+  const tail = !w.eof;
+  const cap = fmt(ARCHIVE_WINDOW_ROWS);
+  let suffix = ' (전체 표시)';
+  if (head && tail) suffix = ` · 앞뒤 미표시 (창 최대 ${cap}행)`;
+  else if (head) suffix = ` · 앞부분 미표시 (창 최대 ${cap}행)`;
+  else if (tail) suffix = ` · 뒷부분 미표시 (창 최대 ${cap}행)`;
+  return `행 ${fmt(w.first + 1)}–${fmt(w.last + 1)} / 전체 ${t}행${suffix}`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// B4 — decoder tracks and error rows; B5 — software trigger (FUNCTIONS.md §B45u)
+
+export interface DecoderTrack {
+  /** decoder instance id as printed (uart-1) */
+  id: string;
+  /** rx | tx | mosi | miso */
+  line: string;
+  /** Dn */
+  channel: string;
+}
+export type TriggerStateName = 'armed' | 'fired' | 'not_fired' | 'unknown';
+export interface TriggerInfo {
+  state: TriggerStateName;
+  /** absolute trigger sample once fired */
+  sample: number | null;
+  channel: string | null;
+  edge: string | null;
+  preMs: number | null;
+  postMs: number | null;
+}
+
+/** B45-M1. capture_state `decoder_tracks` → tracks (entries without string id/line/channel dropped); non-array → null. */
+export function readDecoderTracks(v: unknown): DecoderTrack[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: DecoderTrack[] = [];
+  for (const x of v) {
+    const o = obj(x);
+    const id = str(o.id);
+    const line = str(o.line);
+    const channel = str(o.channel);
+    if (id !== null && line !== null && channel !== null) out.push({ id, line, channel });
+  }
+  return out;
+}
+
+/** B45-M2. Track label for a decoder id: `uart-1 RX D0` (line upper-cased) when a track matches, else the id. */
+export function trackLabel(id: string, tracks: readonly DecoderTrack[] | null | undefined): string {
+  const t = tracks?.find((x) => x.id === id);
+  return t ? `${id} ${t.line.toUpperCase()} ${t.channel}` : id;
+}
+
+/** B45-M3. capture_state `trigger` → TriggerInfo (state word outside the 3 names → 'unknown'); non-object → null. */
+export function readTriggerInfo(v: unknown): TriggerInfo | null {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const w = str(o.state);
+  return {
+    state: w === 'armed' || w === 'fired' || w === 'not_fired' ? w : 'unknown',
+    sample: num(o.sample),
+    channel: str(o.channel),
+    edge: str(o.edge),
+    preMs: num(o.pre_ms),
+    postMs: num(o.post_ms),
+  };
+}
+
+/** B45-M4. Status/counter text: armed `트리거 대기 (D3 rising)`; fired `트리거 sample 12,345`; not_fired
+ * `트리거 미발생 (D3 rising)`; unknown `트리거 상태 미확인`; null → ''. */
+export function triggerText(t: TriggerInfo | null | undefined): string {
+  if (!t) return '';
+  const what = `${t.channel ?? '?'} ${t.edge ?? '?'}`;
+  switch (t.state) {
+    case 'armed':
+      return `트리거 대기 (${what})`;
+    case 'fired':
+      return `트리거 sample ${t.sample === null ? '?' : Math.round(t.sample).toLocaleString('ko-KR')}`;
+    case 'not_fired':
+      return `트리거 미발생 (${what})`;
+    default:
+      return '트리거 상태 미확인';
+  }
 }

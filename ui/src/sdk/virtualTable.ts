@@ -309,7 +309,21 @@ export class VirtualTable<T> {
     const keys = this.items.map((it) => this.o.keyOf(it));
     const i = this._selected === null ? keys.length : keys.indexOf(this._selected);
     const j = e.key === 'ArrowDown' ? Math.min(keys.length - 1, i + 1) : Math.max(0, i - 1);
-    this.select(keys[j] ?? null);
+    const key = keys[j];
+    if (key === undefined) return this.select(null);
+    // the user navigates: leave the live tail (once), like a user scroll-back
+    if (this.follow) {
+      this.follow = false;
+      this.o.onScrollAway?.();
+    }
+    // minimal scroll so row j is fully inside the viewport (no layout height: make it the first row)
+    const top = j * this.h;
+    const view = this.scroll.clientHeight;
+    if (view <= 0) this.scroll.scrollTop = top;
+    else if (top < this.scroll.scrollTop) this.scroll.scrollTop = top;
+    else if (top + this.h > this.scroll.scrollTop + view) this.scroll.scrollTop = top + this.h - view;
+    this.select(key);
+    this.o.onNeedRender();
   };
 }
 

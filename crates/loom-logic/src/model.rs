@@ -6,6 +6,7 @@
 //! which bits are shown as edges. No shell is ever used: every argv element is built from
 //! validated, allow-listed tokens.
 
+use std::collections::VecDeque;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -152,6 +153,9 @@ pub struct Uart {
     pub stop_bits: &'static str,
     /// LSB first (UART default).
     pub lsb_first: bool,
+    /// B4 (L6): TX data channel decoded by a second stack (`uart-2`) when both `rx=` and `tx=` are given;
+    /// `ch` is then the RX channel (`uart-1`) and `tx` is false. `None` = one annotated line.
+    pub duplex_tx: Option<u8>,
 }
 
 /// SPI decoder options.
@@ -253,6 +257,7 @@ impl Decoder {
             parity: "none",
             stop_bits: "1",
             lsb_first: true,
+            duplex_tx: None,
         };
         let (mut rx, mut tx) = (None, None);
         for (k, v) in kv {
@@ -277,10 +282,17 @@ impl Decoder {
                 u.ch = c;
                 u.tx = true;
             }
-            _ => {
-                return Err(ConfigError::usage(
-                    "uart needs exactly one of rx= or tx= (one annotated line per capture)",
-                ));
+            (Some(r), Some(t)) => {
+                if r == t {
+                    return Err(ConfigError::usage(format!(
+                        "uart rx and tx on the same channel D{r}"
+                    )));
+                }
+                u.ch = r;
+                u.duplex_tx = Some(t);
+            }
+            (None, None) => {
+                return Err(ConfigError::usage("uart needs rx= and/or tx="));
             }
         }
         Ok(Decoder::Uart(u))
@@ -360,9 +372,10 @@ impl Decoder {
     pub fn canonical(&self) -> String {
         match self {
             Decoder::Uart(u) => format!(
-                "uart:{}=D{}:baudrate={}:data_bits={}:parity={}:stop_bits={}:bit_order={}",
+                "uart:{}=D{}{}:baudrate={}:data_bits={}:parity={}:stop_bits={}:bit_order={}",
                 if u.tx { "tx" } else { "rx" },
                 u.ch,
+                u.duplex_tx.map_or_else(String::new, |t| format!(":tx=D{t}")),
                 u.baudrate,
                 u.data_bits,
                 u.parity,
@@ -441,7 +454,17 @@ impl Decoder {
     /// `-A` value: data words only (verified to suppress per-bit annotations).
     pub fn annotation_filter(&self) -> String {
         match self {
-            Decoder::Uart(u) => format!("uart={}", if u.tx { "tx-data" } else { "rx-data" }),
+            Decoder::Uart(u) => {
+                let mut lines = vec![if u.tx { "tx" } else { "rx" }];
+                if u.duplex_tx.is_some() {
+                    lines.push("tx");
+                }
+                let parts: Vec<String> = lines
+                    .iter()
+                    .map(|l| format!("{l}-data:{l}-warnings:{l}-parity-err:{l}-break"))
+                    .collect();
+                format!("uart={}", parts.join(":"))
+            }
             Decoder::Spi(s) => format!("spi={}", if s.annotate_miso { "miso-data" } else { "mosi-data" }),
         }
     }
@@ -449,7 +472,7 @@ impl Decoder {
     /// Channel bits the decoder reads.
     pub fn mask(&self) -> u8 {
         let bits: Vec<u8> = match self {
-            Decoder::Uart(u) => vec![u.ch],
+            Decoder::Uart(u) => [Some(u.ch), u.duplex_tx].into_iter().flatten().collect(),
             Decoder::Spi(s) => [Some(s.clk), s.mosi, s.miso, s.cs]
                 .into_iter()
                 .flatten()
@@ -457,6 +480,109 @@ impl Decoder {
         };
         bits.into_iter().fold(0, |m, b| m | (1 << b))
     }
+
+    /// B4-M2. One `-P` value per decoder stack, in stack order (sigrok names them `<id>-1`, `<id>-2`, …).
+    /// UART: `uart:<rx|tx>=<n>:baudrate=…:data_bits=…:parity=…:stop_bits=…:bit_order=…:format=hex` (exactly
+    /// [`Decoder::pd_arg`]'s form plus `:format=hex`); duplex → `[rx stack, tx stack]`. SPI: `[pd_arg()]`.
+    pub fn pd_args(&self) -> Vec<String> {
+        match self {
+            Decoder::Uart(u) => {
+                let first = self.pd_arg();
+                let mut out = vec![format!("{first}:format=hex")];
+                if let Some(t) = u.duplex_tx {
+                    let rest = first
+                        .strip_prefix(&format!("uart:rx={}", u.ch))
+                        .unwrap_or_default();
+                    out.push(format!("uart:tx={t}{rest}:format=hex"));
+                }
+                out
+            }
+            Decoder::Spi(_) => vec![self.pd_arg()],
+        }
+    }
+
+    /// B4-M3. Track map for readers (capture_state `decoder_tracks`):
+    /// `[{"id":"uart-1","line":"rx"|"tx","channel":"Dn"}, …]` (duplex: uart-1 = rx, uart-2 = tx);
+    /// SPI: `[{"id":"spi-1","line":"mosi"|"miso","channel":"Dn"}]` (the annotated line).
+    pub fn tracks(&self) -> Value {
+        match self {
+            Decoder::Uart(u) => {
+                let mut v = vec![
+                    json!({"id": "uart-1", "line": if u.tx { "tx" } else { "rx" }, "channel": format!("D{}", u.ch)}),
+                ];
+                if let Some(t) = u.duplex_tx {
+                    v.push(json!({"id": "uart-2", "line": "tx", "channel": format!("D{t}")}));
+                }
+                Value::Array(v)
+            }
+            Decoder::Spi(s) => {
+                let ch = if s.annotate_miso { s.miso } else { s.mosi }.unwrap_or(0);
+                json!([{"id": "spi-1", "line": if s.annotate_miso { "miso" } else { "mosi" }, "channel": format!("D{ch}")}])
+            }
+        }
+    }
+}
+
+/// B4-M4. Loom-derived row role (sigrok-cli 0.7.2 prints no class): `"data"` iff `text` is 1..=8 upper-case
+/// hex digits (the PD `format=hex` word), else `"error"` (UART: `Frame error`, `Parity error`, break …).
+pub fn row_role(text: &str) -> &'static str {
+    if (1..=8).contains(&text.len())
+        && text
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'A'..=b'F').contains(&b))
+    {
+        "data"
+    } else {
+        "error"
+    }
+}
+
+/// B4-M5. OR-merge two run-length segment lists of equal total length (values on disjoint bits) into one
+/// list with adjacent equal values coalesced. Unequal totals: the shorter list is extended by its last value.
+fn merge_segs(a: &[(u8, u64)], b: &[(u8, u64)]) -> Vec<(u8, u64)> {
+    let mut out: Vec<(u8, u64)> = Vec::new();
+    let (mut i, mut j) = (0usize, 0usize);
+    let mut ra = a.first().map_or(0, |s| s.1);
+    let mut rb = b.first().map_or(0, |s| s.1);
+    loop {
+        while i < a.len() && ra == 0 {
+            i += 1;
+            ra = a.get(i).map_or(0, |s| s.1);
+        }
+        while j < b.len() && rb == 0 {
+            j += 1;
+            rb = b.get(j).map_or(0, |s| s.1);
+        }
+        let n = match (i < a.len(), j < b.len()) {
+            (true, true) => ra.min(rb),
+            (true, false) => ra,
+            (false, true) => rb,
+            (false, false) => break,
+        };
+        // an exhausted list keeps its last value
+        let va = if i < a.len() {
+            a[i].0
+        } else {
+            a.last().map_or(0, |s| s.0)
+        };
+        let vb = if j < b.len() {
+            b[j].0
+        } else {
+            b.last().map_or(0, |s| s.0)
+        };
+        let v = va | vb;
+        match out.last_mut() {
+            Some((lv, ln)) if *lv == v => *ln += n,
+            _ => out.push((v, n)),
+        }
+        if i < a.len() {
+            ra -= n;
+        }
+        if j < b.len() {
+            rb -= n;
+        }
+    }
+    out
 }
 
 /// Validated `logic.start` parameters.
@@ -486,6 +612,11 @@ pub struct StartConfig {
     pub frame_period_ms: u64,
     /// Synthetic SPI clock (Hz).
     pub clock_hz: Option<u64>,
+    /// B4: synthetic UART only — every Nth generated byte (1..=1000, counted across frames from 1, RX line
+    /// only) gets a LOW stop bit, so the real decoder reports a framing error (error-row demo/acceptance).
+    pub glitch_every: Option<u32>,
+    /// B5 (L7): software trigger — nothing is published, decoded or archived until it fires.
+    pub trigger: Option<Trigger>,
 }
 
 const START_KEYS: &[&str] = &[
@@ -501,6 +632,8 @@ const START_KEYS: &[&str] = &[
     "text",
     "frame_period_ms",
     "clock_hz",
+    "glitch_every",
+    "trigger",
 ];
 
 fn get_u64(o: &Map<String, Value>, k: &str) -> R<Option<u64>> {
@@ -679,6 +812,22 @@ impl StartConfig {
                 "text, frame_period_ms and clock_hz apply only to synthetic",
             ));
         }
+        let glitch_every = match get_u64(o, "glitch_every")? {
+            None => None,
+            Some(n) => {
+                if source != Source::Synthetic || !matches!(decoder, Some(Decoder::Uart(_))) {
+                    return Err(ConfigError::usage("glitch_every applies only to synthetic uart"));
+                }
+                if !(1..=1000).contains(&n) {
+                    return Err(ConfigError::usage("glitch_every: expected 1..=1000"));
+                }
+                Some(u32::try_from(n).unwrap_or(1000))
+            }
+        };
+        let trigger = match o.get("trigger") {
+            None | Some(Value::Null) => None,
+            Some(v) => Some(Trigger::parse(v, duration_ms)?),
+        };
         let text = text.unwrap_or(DEFAULT_TEXT).to_owned();
         if text.is_empty() || expand(&text, 9999).len() > MAX_TEXT_BYTES {
             return Err(ConfigError::usage(format!("text: 1..={MAX_TEXT_BYTES} bytes")));
@@ -700,6 +849,8 @@ impl StartConfig {
             text,
             frame_period_ms,
             clock_hz,
+            glitch_every,
+            trigger,
         };
         if source == Source::Synthetic {
             // Validates generator parameters up front.
@@ -728,11 +879,17 @@ impl StartConfig {
         if let Some(n) = self.max_samples {
             v["max_samples"] = json!(n);
         }
+        if let Some(t) = &self.trigger {
+            v["trigger"] = t.to_json();
+        }
         if self.source == Source::Synthetic {
             v["text"] = json!(self.text);
             v["frame_period_ms"] = json!(self.frame_period_ms);
             if let Some(c) = self.clock_hz {
                 v["clock_hz"] = json!(c);
+            }
+            if let Some(n) = self.glitch_every {
+                v["glitch_every"] = json!(n);
             }
         }
         v
@@ -765,19 +922,232 @@ impl StartConfig {
     /// Decoder argv (without the program). `None` without a decoder.
     pub fn decoder_args(&self) -> Option<Vec<String>> {
         let d = self.decoder.as_ref()?;
-        Some(vec![
+        let mut a = vec![
             "-i".into(),
             "-".into(),
             "-I".into(),
             format!("binary:numchannels={CHANNELS}:samplerate={}", self.samplerate),
-            "-P".into(),
-            d.pd_arg(),
+        ];
+        for p in d.pd_args() {
+            a.push("-P".into());
+            a.push(p);
+        }
+        a.extend([
             "--protocol-decoder-samplenum".into(),
             "-l".into(),
             "2".into(),
             "-A".into(),
             d.annotation_filter(),
-        ])
+        ]);
+        Some(a)
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Software trigger (B5, finding L7). Evaluated by Loom on the acquired byte stream for every source.
+
+/// Max pre-trigger window (ms). At 10 MS/s this is ≤ 10 M samples (bytes) held in [`PreRing`].
+pub const MAX_PRE_MS: u64 = 1000;
+
+/// Trigger condition on one channel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TriggerEdge {
+    /// 0 → 1.
+    Rising,
+    /// 1 → 0.
+    Falling,
+    /// Any change.
+    Either,
+}
+
+impl TriggerEdge {
+    /// B5-M2. Wire name: `rising` | `falling` | `either`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            TriggerEdge::Rising => "rising",
+            TriggerEdge::Falling => "falling",
+            TriggerEdge::Either => "either",
+        }
+    }
+}
+
+/// Validated `trigger` start parameter: `{"channel":"D3","edge":"rising","pre_ms":10,"post_ms":500}`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Trigger {
+    /// Channel bit.
+    pub bit: u8,
+    /// Edge.
+    pub edge: TriggerEdge,
+    /// Samples kept before the trigger, as ms (0..=MAX_PRE_MS).
+    pub pre_ms: u64,
+    /// Capture length after the trigger (1..=duration_ms); the capture then stops with reason `trigger_post`.
+    pub post_ms: u64,
+}
+
+impl Trigger {
+    /// B5-M3. Strict parse of the `trigger` object (keys exactly `channel`, `edge`, `pre_ms`, `post_ms`;
+    /// `pre_ms` default 0, the other three required). Errors (Usage): unknown key, `channel` not D0..D7,
+    /// `edge` not rising/falling/either, `pre_ms` > MAX_PRE_MS, `post_ms` 0 or > `duration_ms`, non-object.
+    pub fn parse(v: &Value, duration_ms: u64) -> Result<Trigger, ConfigError> {
+        let o = v
+            .as_object()
+            .ok_or_else(|| ConfigError::usage("trigger: expected an object"))?;
+        for k in o.keys() {
+            if !["channel", "edge", "pre_ms", "post_ms"].contains(&k.as_str()) {
+                return Err(ConfigError::usage(format!(
+                    "trigger option {k:?}: expected channel, edge, pre_ms, post_ms"
+                )));
+            }
+        }
+        let bit = match o.get("channel") {
+            None => return Err(ConfigError::usage("trigger.channel is required")),
+            Some(Value::String(s)) => chan(s)?,
+            Some(_) => return Err(ConfigError::usage("trigger.channel: expected D0..D7")),
+        };
+        let edge = match o.get("edge") {
+            None => return Err(ConfigError::usage("trigger.edge is required")),
+            Some(Value::String(s)) => match s.as_str() {
+                "rising" => TriggerEdge::Rising,
+                "falling" => TriggerEdge::Falling,
+                "either" => TriggerEdge::Either,
+                _ => {
+                    return Err(ConfigError::usage(
+                        "trigger.edge: expected rising, falling or either",
+                    ));
+                }
+            },
+            Some(_) => {
+                return Err(ConfigError::usage(
+                    "trigger.edge: expected rising, falling or either",
+                ));
+            }
+        };
+        let pre_ms = match o.get("pre_ms") {
+            None | Some(Value::Null) => 0,
+            Some(x) => match x.as_u64() {
+                Some(n) if n <= MAX_PRE_MS => n,
+                _ => {
+                    return Err(ConfigError::usage(format!(
+                        "trigger.pre_ms: expected 0..={MAX_PRE_MS}"
+                    )));
+                }
+            },
+        };
+        let post_ms = match o.get("post_ms") {
+            None => return Err(ConfigError::usage("trigger.post_ms is required")),
+            Some(x) => match x.as_u64() {
+                Some(n) if (1..=duration_ms).contains(&n) => n,
+                _ => {
+                    return Err(ConfigError::usage(format!(
+                        "trigger.post_ms: expected 1..={duration_ms} (the capture duration)"
+                    )));
+                }
+            },
+        };
+        Ok(Trigger {
+            bit,
+            edge,
+            pre_ms,
+            post_ms,
+        })
+    }
+    /// B5-M4. Normalized object `{"channel":"Dn","edge":…,"pre_ms":…,"post_ms":…}` (round-trips `parse`).
+    pub fn to_json(&self) -> Value {
+        json!({
+            "channel": format!("D{}", self.bit),
+            "edge": self.edge.as_str(),
+            "pre_ms": self.pre_ms,
+            "post_ms": self.post_ms,
+        })
+    }
+    /// B5-M5. `pre_ms * samplerate / 1000` (u128 math, floor).
+    pub fn pre_samples(&self, samplerate: u64) -> u64 {
+        u64::try_from(u128::from(self.pre_ms) * u128::from(samplerate) / 1000).unwrap_or(u64::MAX)
+    }
+    /// B5-M5. `post_ms * samplerate / 1000` (u128 math, floor, at least 1).
+    pub fn post_samples(&self, samplerate: u64) -> u64 {
+        u64::try_from(u128::from(self.post_ms) * u128::from(samplerate) / 1000)
+            .unwrap_or(u64::MAX)
+            .max(1)
+    }
+}
+
+/// Streaming edge detector on one bit.
+#[derive(Debug, Clone)]
+pub struct TriggerDetector {
+    mask: u8,
+    edge: TriggerEdge,
+    prev: Option<u8>,
+}
+
+impl TriggerDetector {
+    /// New detector (no previous sample yet: the very first sample can never fire).
+    pub fn new(t: &Trigger) -> Self {
+        TriggerDetector {
+            mask: 1 << t.bit,
+            edge: t.edge,
+            prev: None,
+        }
+    }
+    /// B5-M6. Index in `chunk` of the first sample whose masked bit differs from the previous sample's (the
+    /// previous may be the last sample of an earlier chunk) in the requested direction; `None` otherwise.
+    /// Remembers the last sample of the chunk for the next call (also after a hit).
+    pub fn feed(&mut self, chunk: &[u8]) -> Option<usize> {
+        let mut prev = self.prev;
+        let mut hit = None;
+        for (i, &b) in chunk.iter().enumerate() {
+            if let Some(p) = prev {
+                let (was, now) = (p & self.mask != 0, b & self.mask != 0);
+                let fire = match self.edge {
+                    TriggerEdge::Rising => !was && now,
+                    TriggerEdge::Falling => was && !now,
+                    TriggerEdge::Either => was != now,
+                };
+                if fire {
+                    hit = Some(i);
+                    break;
+                }
+            }
+            prev = Some(b);
+        }
+        if let Some(&last) = chunk.last() {
+            self.prev = Some(last);
+        }
+        hit
+    }
+}
+
+/// The last `cap` samples before the trigger (absolute sample numbering from 0 = first acquired sample).
+#[derive(Debug, Clone)]
+pub struct PreRing {
+    cap: usize,
+    buf: VecDeque<u8>,
+    end: u64,
+}
+
+impl PreRing {
+    /// Ring holding at most `cap` samples.
+    pub fn new(cap: u64) -> Self {
+        PreRing {
+            cap: usize::try_from(cap).unwrap_or(usize::MAX),
+            buf: VecDeque::new(),
+            end: 0,
+        }
+    }
+    /// B5-M7. Append samples, dropping the oldest beyond `cap`; `end` += chunk length.
+    pub fn push(&mut self, chunk: &[u8]) {
+        self.end += chunk.len() as u64;
+        if self.cap == 0 {
+            return;
+        }
+        self.buf.extend(chunk.iter().copied());
+        let over = self.buf.len().saturating_sub(self.cap);
+        self.buf.drain(..over);
+    }
+    /// B5-M8. `(first absolute sample of the held bytes, bytes)` and empty the ring (`end` unchanged).
+    pub fn take(&mut self) -> (u64, Vec<u8>) {
+        let first = self.end - self.buf.len() as u64;
+        (first, self.buf.drain(..).collect())
     }
 }
 
@@ -945,6 +1315,15 @@ pub fn parse_annotation(line: &str) -> Annotation {
 }
 
 impl Annotation {
+    /// B5-M9. Decoder sample numbers are relative to the first byte fed to it; add `base` (the absolute
+    /// sample of that byte) to `start`/`end` when present (saturating). Unparsed lines are unchanged.
+    pub fn shifted(self, base: u64) -> Self {
+        let mut a = self;
+        a.start = a.start.map(|s| s.saturating_add(base));
+        a.end = a.end.map(|e| e.saturating_add(base));
+        a
+    }
+
     /// Marker carrying only a trailing loss count (never emitted as a row).
     pub fn loss_marker(n: u64) -> Self {
         Annotation {
@@ -968,10 +1347,10 @@ impl Annotation {
                 "decoder": self.decoder, "class": null,
                 "start_sample": a, "end_sample": b,
                 "t_start_ns": sample_ns(a, samplerate), "t_end_ns": sample_ns(b, samplerate),
-                "text": self.text,
+                "text": self.text, "role": row_role(&self.text),
             }),
             _ => json!({"decoder": null, "class": "_raw", "start_sample": null, "end_sample": null,
-                        "t_start_ns": null, "t_end_ns": null, "text": self.text}),
+                        "t_start_ns": null, "t_end_ns": null, "text": self.text, "role": null}),
         }
     }
 }
@@ -988,6 +1367,8 @@ pub struct Synth {
     template: String,
     period: u64,
     frame: u64,
+    /// B4: bytes generated so far on the RX line (glitch counter, 1-based for the next byte − 1)
+    bytes_done: u64,
     segs: Vec<(u8, u64)>,
     seg: usize,
     left: u64,
@@ -995,8 +1376,17 @@ pub struct Synth {
 
 #[derive(Debug, Clone)]
 enum SynthKind {
-    Uart { ch: u8, baud: u64 },
-    Spi { s: Spi, half: u64 },
+    /// `tx`: duplex TX channel (same bytes, see FUNCTIONS §B4); `glitch_every`: 0 = off.
+    Uart {
+        ch: u8,
+        baud: u64,
+        tx: Option<u8>,
+        glitch_every: u64,
+    },
+    Spi {
+        s: Spi,
+        half: u64,
+    },
 }
 
 impl Synth {
@@ -1020,6 +1410,8 @@ impl Synth {
                 SynthKind::Uart {
                     ch: u.ch,
                     baud: u64::from(u.baudrate),
+                    tx: u.duplex_tx,
+                    glitch_every: cfg.glitch_every.map_or(0, u64::from),
                 }
             }
             Decoder::Spi(s) => {
@@ -1050,6 +1442,7 @@ impl Synth {
             template: cfg.text.clone(),
             period: (cfg.samplerate.saturating_mul(cfg.frame_period_ms) / 1000).max(1),
             frame: 0,
+            bytes_done: 0,
             segs: Vec::new(),
             seg: 0,
             left: 0,
@@ -1060,7 +1453,7 @@ impl Synth {
 
     fn idle(&self) -> u8 {
         match &self.kind {
-            SynthKind::Uart { ch, .. } => 1 << ch,
+            SynthKind::Uart { ch, tx, .. } => (1u8 << *ch) | tx.map_or(0, |t| 1u8 << t),
             SynthKind::Spi { s, .. } => {
                 let mut v = 0;
                 if s.cpol == 1 {
@@ -1091,24 +1484,63 @@ impl Synth {
             }
         };
         let mut used = 0u64;
+        let mut skip_tail = false;
         match &self.kind {
-            SynthKind::Uart { ch, baud } => {
+            SynthKind::Uart {
+                ch,
+                baud,
+                tx,
+                glitch_every,
+            } => {
                 // Bit k starts at round(k * rate / baud) relative to the frame start.
                 let (rate, baud) = (u128::from(self.samplerate), u128::from(*baud));
                 let lead = u64::try_from(rate * 2 / baud).unwrap_or(0); // two idle bit-times
-                push(idle, lead, &mut segs);
-                used += lead;
-                let mut k: u128 = 0;
                 let edge = |k: u128| u64::try_from(k * rate / baud).unwrap_or(0);
-                for b in bytes {
-                    let mut bits = vec![0u8];
-                    bits.extend((0..8).map(|i| (b >> i) & 1));
-                    bits.push(1);
-                    for bit in bits {
-                        let n = edge(k + 1) - edge(k);
-                        push(if bit == 1 { 1 << ch } else { 0 }, n, &mut segs);
-                        used += n;
-                        k += 1;
+                // One line: two idle bit-times, then every byte (start, 8 data LSB first, stop). `glitch` > 0:
+                // every `glitch`-th byte counted in `done` gets a LOW stop bit.
+                let build_line = |line: u8, glitch: u64, done: &mut u64| -> (Vec<(u8, u64)>, u64) {
+                    let mut out: Vec<(u8, u64)> = Vec::new();
+                    let mut u = 0u64;
+                    push(1u8 << line, lead, &mut out);
+                    u += lead;
+                    let mut k: u128 = 0;
+                    for b in &bytes {
+                        *done += 1;
+                        let glitched = glitch > 0 && done.is_multiple_of(glitch);
+                        let mut bits = vec![0u8];
+                        bits.extend((0..8).map(|i| (b >> i) & 1));
+                        bits.push(if glitched { 0 } else { 1 });
+                        for bit in bits {
+                            let n = edge(k + 1) - edge(k);
+                            push(if bit == 1 { 1u8 << line } else { 0 }, n, &mut out);
+                            u += n;
+                            k += 1;
+                        }
+                    }
+                    (out, u)
+                };
+                let (rx_segs, rx_used) = build_line(*ch, *glitch_every, &mut self.bytes_done);
+                match tx {
+                    None => {
+                        segs = rx_segs;
+                        used = rx_used;
+                    }
+                    Some(t) => {
+                        let mut unused = 0u64;
+                        let (tx_segs, tx_used) = build_line(*t, 0, &mut unused);
+                        let offset = (self.period / 2).max(rx_used);
+                        let total = self.period.max(offset + tx_used + 1);
+                        let mut rx_list = rx_segs;
+                        push(1u8 << *ch, total - rx_used, &mut rx_list);
+                        let mut tx_list: Vec<(u8, u64)> = Vec::new();
+                        push(1u8 << *t, offset, &mut tx_list);
+                        for (v, n) in tx_segs {
+                            push(v, n, &mut tx_list);
+                        }
+                        push(1u8 << *t, total - offset - tx_used, &mut tx_list);
+                        segs = merge_segs(&rx_list, &tx_list);
+                        used = total;
+                        skip_tail = true;
                     }
                 }
             }
@@ -1147,8 +1579,10 @@ impl Synth {
                 used += 2 * half;
             }
         }
-        let rest = self.period.saturating_sub(used).max(1);
-        push(idle, rest, &mut segs);
+        if !skip_tail {
+            let rest = self.period.saturating_sub(used).max(1);
+            push(idle, rest, &mut segs);
+        }
         self.segs = segs;
         self.seg = 0;
         self.left = self.segs.first().map_or(0, |s| s.1);
@@ -1221,7 +1655,8 @@ mod tests {
         assert!(start(json!({"source": "synthetic", "decoders": ["uart:rx=D0;rm -rf"]})).is_err());
         assert!(start(json!({"source": "synthetic", "decoders": ["uart:rx=D0:baudrate=1e5"]})).is_err());
         assert!(start(json!({"source": "synthetic", "decoders": ["i2c:scl=D0"]})).is_err());
-        assert!(start(json!({"source": "synthetic", "decoders": ["uart:rx=D0:tx=D1"]})).is_err());
+        // B4 (L6): rx+tx together is a duplex capture; the same channel for both is refused
+        assert!(start(json!({"source": "synthetic", "decoders": ["uart:rx=D0:tx=D0"]})).is_err());
         assert!(start(json!({"source": "synthetic", "decoders": ["spi:clk=D0:mosi=D0"]})).is_err());
         assert!(start(json!({"source": "sigrok-demo", "samplerate": 999})).is_err());
         assert!(start(json!({"source": "sigrok-demo", "samplerate": "1M"})).is_err());

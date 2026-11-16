@@ -7,8 +7,10 @@
 //! lands in the daemon journal before STOP, so the CLI agent and the UI read the same records.
 //!
 //! Pieces: [`model`] (validation, argv, edge/annotation codecs, synthetic generator — pure),
+//! [`archive`] (whole-capture evidence archive: codec, writer, readers, export, rotation),
 //! [`gateway`] (registration, read/wait, reducer), [`worker`] (process supervisor), [`cli`].
 
+pub mod archive;
 #[cfg(feature = "cli")]
 pub mod cli;
 #[cfg(feature = "gateway")]

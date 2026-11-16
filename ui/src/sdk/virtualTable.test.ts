@@ -79,3 +79,94 @@ describe('VirtualTable follow / scroll-back', () => {
     expect(m.away()).toBe(2);
   });
 });
+
+// ROOT follow-up (logic live marker run): ArrowUp/ArrowDown selected rows that stayed off-screen — onKey only
+// called select(), unlike reveal(). Contract: work/reports/operator-upgrade/logic/FUNCTIONS.md §VT-K1.
+describe('VirtualTable keyboard selection stays visible', () => {
+  const key = (m: ReturnType<typeof make>, k: string, times = 1) => {
+    for (let i = 0; i < times; i++) m.scroll.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+  };
+  const inView = (m: ReturnType<typeof make>, idx: number) => idx * 20 >= m.scroll.scrollTop && idx * 20 + 20 <= m.scroll.scrollTop + m.scroll.clientHeight;
+  const drawnRow = (m: ReturnType<typeof make>, k: string) => {
+    m.vt.render();
+    const r = [...m.scroll.querySelectorAll<HTMLElement>('.vt-row')].find((e) => e.dataset.key === k && !e.hidden);
+    return r ?? null;
+  };
+
+  it("ROOT's case: revealed hit + 19 × ArrowDown keeps every selected row inside the view", () => {
+    const m = make();
+    m.vt.reveal('100'); // search jump: 100 centred, scrollTop 1 900
+    expect(m.scroll.scrollTop).toBe(1_900);
+    for (let n = 101; n <= 119; n++) {
+      key(m, 'ArrowDown');
+      expect(m.vt.selected).toBe(String(n));
+      expect(inView(m, n)).toBe(true);
+    }
+    expect(m.scroll.scrollTop).toBe(120 * 20 - 200); // minimal scroll: the row sits on the bottom edge
+    const r = drawnRow(m, '119');
+    expect(r).not.toBeNull();
+    expect(r!.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('ArrowUp above the view scrolls up just enough; moves inside the view do not scroll', () => {
+    const m = make();
+    m.vt.reveal('300'); // scrollTop 5 900 → rows 295…304 in view
+    key(m, 'ArrowDown');
+    expect(m.scroll.scrollTop).toBe(5_900);
+    key(m, 'ArrowUp', 11); // → 290, above the view
+    expect(m.vt.selected).toBe('290');
+    expect(m.scroll.scrollTop).toBe(290 * 20);
+    expect(drawnRow(m, '290')).not.toBeNull();
+  });
+
+  it('navigating with the keys leaves the live tail once, and appended rows no longer move the selection away', () => {
+    const m = make();
+    m.vt.render(); // following: pinned to the tail
+    expect(m.vt.following).toBe(true);
+    m.vt.select('495');
+    key(m, 'ArrowUp', 10);
+    expect(m.vt.selected).toBe('485');
+    expect(m.vt.following).toBe(false);
+    expect(m.away()).toBe(1);
+    expect(inView(m, 485)).toBe(true);
+    m.vt.setItems(Array.from({ length: 520 }, (_, i) => i)); // live rows keep arriving
+    expect(drawnRow(m, '485')).not.toBeNull();
+    key(m, 'ArrowUp');
+    expect(m.away()).toBe(1); // not repeated while already off the tail
+  });
+
+  it('without layout height the selected row becomes the first drawn row', () => {
+    const m = make();
+    m.setClientH(0);
+    m.vt.reveal('100');
+    key(m, 'ArrowDown', 60);
+    expect(m.vt.selected).toBe('160');
+    expect(m.scroll.scrollTop).toBe(160 * 20);
+    expect(drawnRow(m, '160')).not.toBeNull();
+  });
+
+  it('Escape is unchanged: clears the selection, no scroll, no follow change', () => {
+    const m = make();
+    m.vt.reveal('100');
+    key(m, 'Escape');
+    expect(m.vt.selected).toBeNull();
+    expect(m.scroll.scrollTop).toBe(1_900);
+    expect(m.vt.following).toBe(false);
+    const t = make();
+    t.vt.render();
+    key(t, 'Escape');
+    expect(t.vt.following).toBe(true);
+    expect(t.away()).toBe(0);
+  });
+
+  it('first ArrowDown with nothing selected keeps the old target (last row); an empty table selects nothing', () => {
+    const m = make();
+    m.vt.render();
+    key(m, 'ArrowDown');
+    expect(m.vt.selected).toBe('499');
+    expect(inView(m, 499)).toBe(true);
+    m.vt.setItems([]);
+    key(m, 'ArrowUp');
+    expect(m.vt.selected).toBeNull();
+  });
+});

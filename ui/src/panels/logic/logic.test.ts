@@ -239,11 +239,12 @@ describe('logic.analyzer panel', () => {
     expect(q('logic-notice').textContent).toContain('사용자 정지');
     expect(q('logic-notice').textContent).toContain('디코더 exit 0');
     expect((q('logic-stop') as HTMLButtonElement).disabled).toBe(true);
-    // stopped capture keeps its decoded rows (class null shown as —, decoder id verbatim)
+    // stopped capture keeps its decoded rows (decoder id verbatim). B3a/L3: an all-null class column is not
+    // shown at all (it carried no information; the null class is still never invented).
     const row = h.host.querySelector('.lg-table .vt-row[data-start="10"]')!;
     expect(row.textContent).toContain('4C');
     expect(row.textContent).toContain('uart-1');
-    expect(row.textContent).toContain('—');
+    expect(h.host.querySelector('.lg-table .vt-head')!.textContent).not.toContain('class');
   });
 
   it('late join: §9 snapshot alone shows state, decode rows and counters', () => {

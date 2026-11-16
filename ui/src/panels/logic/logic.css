@@ -66,6 +66,13 @@
 .lg-panel .lg-cfg-foot { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0; }
 .lg-panel .lg-start { background: var(--lg-ok); border-color: var(--lg-ok); color: #fff; font-weight: 600; }
 .lg-panel .lg-problems { margin: 0; padding-left: 1.2em; color: var(--lg-err); }
+/* L1: pre-start publish-load warnings — informational, never blocks start */
+.lg-panel .lg-warnings { margin: 0; padding-left: 1.2em; color: var(--lg-warn); }
+.lg-panel .lg-warnings:empty { display: none; }
+/* L2: advanced decoder options (collapsed unless a non-default value is set) */
+.lg-panel .lg-adv { margin: 2px 0 6px; }
+.lg-panel .lg-adv[hidden] { display: none; }
+.lg-panel .lg-adv > summary { cursor: pointer; font-size: 11px; color: var(--lg-muted); }
 .lg-panel .lg-cli { display: block; margin: 2px 0 4px; padding: 4px 6px; background: #f1f3f5; border-radius: 4px; font-size: 11px; overflow-x: auto; white-space: nowrap; user-select: all; }
 
 .lg-panel .lg-viewbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -99,3 +106,36 @@
 /* module tab: explicit engine check next to the capability line */
 .lg-caprow { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .lg-caprow .lg-capline { flex: 1; min-width: 12em; margin: 0; }
+/* B3a (L3): decode table tools — radix, row/line view, search, copy */
+.lg-panel .lg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.lg-panel .lg-tools input[type='search'] { min-width: 12em; }
+.lg-panel .lg-search-status { font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--lg-muted); min-width: 4em; }
+.lg-panel .lg-search-status.lg-bad { color: var(--lg-err); }
+.lg-panel .lg-lines { flex: 1; min-height: 140px; display: flex; flex-direction: column; background: var(--lg-surface); border: 1px solid var(--lg-line); border-radius: 4px; }
+.lg-panel .lg-lines[hidden], .lg-panel .lg-table[hidden] { display: none; }
+.lg-panel .lg-lineend { color: var(--lg-muted); }
+/* B3a (L4): cursor measurement bar */
+.lg-panel .lg-cursors { display: flex; align-items: center; gap: 8px; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.lg-panel .lg-cursors-text { color: var(--lg-fg); }
+.lg-panel .lg-cursors-text.lg-muted { color: var(--lg-muted); }
+/* B3b: capture archive bar */
+.lg-panel .lg-archive { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11px; }
+.lg-panel .lg-archive-chip { padding: 1px 7px; border-radius: 3px; border: 1px solid var(--lg-line); color: var(--lg-muted); }
+.lg-panel .lg-archive-chip[data-tone='ok'] { color: var(--lg-ok); border-color: var(--lg-ok); }
+.lg-panel .lg-archive-chip[data-tone='warn'] { color: var(--lg-warn); border-color: var(--lg-warn); }
+.lg-panel .lg-archive-chip[data-tone='bad'] { color: var(--lg-err); border-color: var(--lg-err); }
+.lg-panel .lg-export-result { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--lg-muted); overflow-wrap: anywhere; }
+.lg-panel .lg-archive-window { color: var(--lg-muted); font-variant-numeric: tabular-nums; }
+.lg-panel .lg-archive-window[hidden], .lg-panel .lg-archive-nav[hidden] { display: none; }
+.lg-panel .lg-archive-seek { width: 7em; font: inherit; font-variant-numeric: tabular-nums; }
+.lg-panel .lg-archive-note { margin: 2px 0; color: var(--lg-muted); font-size: 11px; }
+.lg-panel .lg-archive-note[hidden] { display: none; }
+/* B4: decoder error rows (framing / parity / break) */
+.lg-panel .vt-row.lg-annerr, .lg-panel .vt-row.lg-annerr .lg-anntext { color: var(--lg-err); }
+.lg-panel .vt-row.lg-annerr { background: #fdecea; }
+/* B5: trigger state chip in the status line */
+.lg-panel .lg-trigger { font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--lg-line); }
+.lg-panel .lg-trigger[data-state='armed'] { color: var(--lg-warn); border-color: var(--lg-warn); }
+.lg-panel .lg-trigger[data-state='fired'] { color: var(--lg-ok); border-color: var(--lg-ok); }
+.lg-panel .lg-trigger[data-state='not_fired'] { color: var(--lg-err); border-color: var(--lg-err); }
+.lg-panel .lg-trigger[hidden] { display: none; }

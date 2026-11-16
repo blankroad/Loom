@@ -147,12 +147,26 @@ fn registration() {
             "logic.start",
             "logic.stop",
             "logic.read",
-            "logic.wait"
+            "logic.wait",
+            "logic.archive.list",
+            "logic.archive.read",
+            "logic.export"
         ]
     );
-    assert_eq!(report.write_commands, ["logic.start", "logic.stop"]);
-    let stop = reg.commands().iter().find(|c| c.method == "logic.stop").unwrap();
-    assert_eq!(stop.roles, loom_domain_api::RoleSet::READ);
+    assert_eq!(
+        report.write_commands,
+        ["logic.start", "logic.stop", "logic.export"]
+    );
+    // safety-direction stop and evidence export are open to watchers; archive reads are reads
+    for m in [
+        "logic.stop",
+        "logic.export",
+        "logic.archive.list",
+        "logic.archive.read",
+    ] {
+        let c = reg.commands().iter().find(|c| c.method == m).unwrap();
+        assert_eq!(c.roles, loom_domain_api::RoleSet::READ, "{m}");
+    }
 }
 
 #[test]

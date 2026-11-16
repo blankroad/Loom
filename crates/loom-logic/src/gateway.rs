@@ -14,6 +14,7 @@ use loom_proto::rpc::SubFilter;
 use schemars::{Schema, json_schema};
 use serde_json::{Map, Value, json};
 
+use crate::archive::{self, ArchiveArgs, ExportReq, ReadReq};
 use crate::model::{self, StartConfig};
 use crate::{DOMAIN, KIND_ANNOTATION, KIND_ANNOTATIONS, KIND_CAPTURE_STATE, KIND_EDGES, WORKER_KIND};
 
@@ -89,6 +90,20 @@ fn cursor(o: &Map<String, Value>) -> Result<Option<Cursor>, DomainError> {
         .transpose()
 }
 
+/// Max wait of `logic.export` (≤ 64 MiB file write).
+pub const EXPORT_WAIT: Duration = Duration::from_secs(60);
+
+/// B2-G1. `[logic]` archive settings + daemon storage home → worker args. Config errors →
+/// `E_CONFIG` with the [`ArchiveArgs::from_config`] message; no storage roots → `Disabled`
+/// ("daemon storage roots unavailable; logic archive is never written to a default home").
+fn archive_args(ctx: &CallCtx) -> Result<ArchiveArgs, DomainError> {
+    archive::ArchiveArgs::from_config(
+        &ctx.config(),
+        ctx.storage_roots().as_ref().map(|r| r.home.as_path()),
+    )
+    .map_err(|e| DomainError::new(ErrorCode::Config, e))
+}
+
 /// Engine path from `[logic] sigrok_cli` or PATH; error text when absent.
 fn engine(ctx: &CallCtx) -> (Option<String>, Option<String>) {
     let cfg = ctx.config();
@@ -159,7 +174,9 @@ impl Handler for Start {
         Box::pin(async move {
             let cfg = StartConfig::from_params(&params).map_err(|e| DomainError::new(e.code, e.message))?;
             let (path, error) = engine(ctx);
-            let args = json!({"config": cfg.to_params(), "engine": path, "engine_error": error});
+            let archive = archive_args(ctx)?.to_args();
+            let args =
+                json!({"config": cfg.to_params(), "engine": path, "engine_error": error, "archive": archive});
             ctx.worker(WORKER_KIND)?
                 .call("logic.start", args, ctx.deadline())
                 .await
@@ -505,6 +522,61 @@ impl Handler for Wait {
     }
 }
 
+/// `logic.archive.list` → worker `{"archive": archive_args}`.
+#[derive(Debug)]
+struct ArchiveList;
+impl Handler for ArchiveList {
+    fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            strict(&params, &[])?;
+            let archive = archive_args(ctx)?.to_args();
+            ctx.worker(WORKER_KIND)?
+                .call("logic.archive.list", json!({"archive": archive}), ctx.deadline())
+                .await
+        })
+    }
+}
+
+/// `logic.archive.read` → [`ReadReq::from_params`] (E_USAGE) → worker
+/// `{"archive": archive_args, "request": req.to_params()}`.
+#[derive(Debug)]
+struct ArchiveRead;
+impl Handler for ArchiveRead {
+    fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            let req = ReadReq::from_params(&params).map_err(usage)?;
+            let archive = archive_args(ctx)?.to_args();
+            ctx.worker(WORKER_KIND)?
+                .call(
+                    "logic.archive.read",
+                    json!({"archive": archive, "request": req.to_params()}),
+                    ctx.deadline(),
+                )
+                .await
+        })
+    }
+}
+
+/// `logic.export` → [`ExportReq::from_params`] (E_USAGE) → worker
+/// `{"archive": archive_args, "request": req.to_params()}`.
+#[derive(Debug)]
+struct Export;
+impl Handler for Export {
+    fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            let req = ExportReq::from_params(&params).map_err(usage)?;
+            let archive = archive_args(ctx)?.to_args();
+            ctx.worker(WORKER_KIND)?
+                .call(
+                    "logic.export",
+                    json!({"archive": archive, "request": req.to_params()}),
+                    ctx.deadline(),
+                )
+                .await
+        })
+    }
+}
+
 // ---------------------------------------------------------------------------------------------
 // Hooks, reducer, registration.
 
@@ -515,6 +587,10 @@ impl WriteHooks for LogicHooks {
     fn classify(&self, req: &WriteRequest<'_>) -> Classification {
         let (risk, reason) = match req.method {
             "logic.start" => (Risk::R1, "starts sigrok-cli capture processes (observation only)"),
+            "logic.export" => (
+                Risk::R0,
+                "writes an export file inside the logic archive (no device I/O, quota-bounded)",
+            ),
             _ => (Risk::R0, "stops a capture"),
         };
         Classification {
@@ -689,15 +765,35 @@ pub fn help() -> HelpSpec {
             ex("loom logic wait --ascii LOOM --timeout 5s", "wait for decoded bytes spelling LOOM"),
             ex("loom logic read --kind annotation --tail 50", "recent decoded words"),
             ex("loom logic stop", "stop and reap the capture processes"),
+            ex("loom logic archive list", "archived captures: completeness, truncation, sizes"),
+            ex(
+                "loom logic archive read lc-… --kind annotations --limit 500",
+                "whole decoded history from the archive (not rate-limited); page with --after-row",
+            ),
+            ex(
+                "loom logic export lc-… --kind annotations --format csv",
+                "write a CSV inside the archive; prints the daemon-side path",
+            ),
         ],
         notes: vec![
             "Acquisition is always D0..D7; --channels only selects displayed edge bits.".into(),
             "Edges are bounded (≤4096 per event, ≤10 events/s): `dropped` is real loss, use `final` to resync."
                 .into(),
-            "Annotation class is null (sigrok-cli 0.7.2 does not print it); decoder ids are e.g. uart-1.".into(),
+            "Annotation class is null (sigrok-cli 0.7.2 does not print it); decoder ids are e.g. uart-1. Rows carry a \
+             Loom-derived `role`: data (hex word) or error (Frame error, Parity error, break)."
+                .into(),
+            "UART rx= and tx= together decode both lines in one capture: uart-1 = RX, uart-2 = TX (see decoder_tracks)."
+                .into(),
+            "--trigger D3:rising (falling/either) is a Loom software trigger on the acquired stream: nothing is \
+             published, decoded or archived until it fires; --pre keeps up to 1 s before it, --post sets the length \
+             after it (reason trigger_post). Sample numbers stay absolute. Hardware triggers are not used."
+                .into(),
             "sigrok-device accepts fx2lafw only and is unverified on hardware; saleae-logic16/-pro are refused."
                 .into(),
             "No automatic fallback: synthetic is used only when --source synthetic is given.".into(),
+            "Live events are a bounded preview (≈2000 rows/s, ≈10240 edges/s); the capture archive keeps every \
+             decoded line and a lossless D0..D7 record until its quota — check `complete` / `truncated_at`."
+                .into(),
         ],
     }
 }
@@ -726,7 +822,9 @@ impl DomainModule for Logic {
                     "source": {"enum": ["sigrok-demo", "sigrok-device", "synthetic"]},
                     "driver": s, "conn": s, "samplerate": i, "channels": {"type": "array", "items": s},
                     "decoders": {"type": "array", "items": s}, "duration_ms": i, "max_samples": i,
-                    "pattern": s, "text": s, "frame_period_ms": i, "clock_hz": i}}),
+                    "pattern": s, "text": s, "frame_period_ms": i, "clock_hz": i, "glitch_every": i,
+                    "trigger": {"type": "object", "properties": {"channel": s, "edge": {"enum": ["rising", "falling", "either"]},
+                                "pre_ms": i, "post_ms": i}}}}),
                 DEFAULT_WAIT,
             ),
             spec(
@@ -755,11 +853,37 @@ impl DomainModule for Logic {
                 ),
                 Duration::from_millis(MAX_WAIT_MS) + DEFAULT_WAIT,
             ),
+            spec(
+                "logic.archive.list",
+                false,
+                Arc::new(ArchiveList),
+                obj(json!({})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "logic.archive.read",
+                false,
+                Arc::new(ArchiveRead),
+                json!({"type": "object", "required": ["capture_id", "kind"], "properties": {
+                    "capture_id": s, "kind": {"enum": ["edges", "annotations"]},
+                    "from_sample": i, "to_sample": i, "limit": i, "mask": i, "after_row": i}}),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "logic.export",
+                true,
+                Arc::new(Export),
+                json!({"type": "object", "required": ["capture_id", "kind", "format"], "properties": {
+                    "capture_id": s, "kind": {"enum": ["edges", "annotations"]},
+                    "format": {"enum": ["csv", "txt"]}, "from_sample": i, "to_sample": i}}),
+                EXPORT_WAIT,
+            ),
         ];
         for mut c in commands {
             // STOP of a capture is allowed to watchers too (UI stop action is `watch`): request
             // class for audit, READ roles.
-            if c.method == "logic.stop" {
+            // Export writes only inside the domain archive (quota-bounded evidence copy): watchers too.
+            if c.method == "logic.stop" || c.method == "logic.export" {
                 c.roles = RoleSet::READ;
             }
             reg.command(c)?;
@@ -802,6 +926,12 @@ impl DomainModule for Logic {
                     selector: None,
                     risk: Risk::R0,
                     reason: "stops a capture".into(),
+                },
+                RiskRow {
+                    method: "logic.export".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "export file inside the logic archive (no device I/O)".into(),
                 },
             ],
             ..RiskTable::default()

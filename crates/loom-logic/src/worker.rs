@@ -27,7 +27,11 @@ use loom_proto::worker::{Call, Input, WorkerError, Write as WorkerWrite};
 use loom_worker_sdk::{BoxFuture, Emitter, EventDraft, JobCmd, RateGuard, Worker, WorkerCtx, WriteOutcome};
 use serde_json::{Value, json};
 
-use crate::model::{self, Annotation, EdgeAcc, Source, StartConfig, Synth, mask_channels, parse_annotation};
+use crate::archive::{self, AnnTap, ArchiveArgs, ArchiveSink, RawEncoder};
+use crate::model::{
+    self, Annotation, EdgeAcc, PreRing, Source, StartConfig, Synth, Trigger, TriggerDetector, mask_channels,
+    parse_annotation,
+};
 use crate::{KIND_ANNOTATIONS, KIND_CAPTURE_STATE, KIND_EDGES, WORKER_KIND};
 
 /// Raw read chunk.
@@ -138,6 +142,8 @@ impl LogicWorker {
                     .with_detail(json!({"capture_id": r.id})));
             }
             let cfg = StartConfig::from_params(&call.args["config"]).map_err(|e| err(e.code, e.message))?;
+            let archive = ArchiveArgs::from_args(&call.args["archive"])
+                .map_err(|e| err(ErrorCode::Usage, format!("archive: {e}")))?;
             let engine = match call.args.get("engine").and_then(Value::as_str) {
                 Some(p) if Path::new(p).is_absolute() => Ok(PathBuf::from(p)),
                 Some(p) => Err(format!("engine path {p:?} is not absolute")),
@@ -150,13 +156,23 @@ impl LogicWorker {
             if needs_engine && let Err(e) = &engine {
                 return Err(err(ErrorCode::NotFound, e.clone()));
             }
-            Ok((cfg, engine.ok()))
+            Ok((cfg, engine.ok(), archive))
         })();
-        let (cfg, engine) = match prepared {
+        let (cfg, engine, archive) = match prepared {
             Ok(v) => v,
             Err(e) => return Box::pin(async move { Err(e) }),
         };
         self.next += 1;
+        let archive_view = match &archive {
+            ArchiveArgs::Disabled { reason } => json!({"state": "disabled", "reason": reason}),
+            ArchiveArgs::Enabled(_) => json!({"state": "pending"}),
+        };
+        let trigger_view = cfg.trigger.map_or(Value::Null, |t| {
+            let mut v = t.to_json();
+            v["state"] = json!("armed");
+            v["sample"] = Value::Null;
+            v
+        });
         let id = format!("lc-{:x}-{}", cx.clock().wall_ns() / 1_000_000, self.next);
         let ctl = Arc::new(Control::default());
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -170,6 +186,10 @@ impl LogicWorker {
             counters: Arc::new(Counters::default()),
             last: self.last.clone(),
             ctl: ctl.clone(),
+            archive,
+            archive_view: Mutex::new(archive_view),
+            sample_base: Arc::new(AtomicU64::new(0)),
+            trigger_view: Mutex::new(trigger_view),
         };
         let join = std::thread::Builder::new()
             .name(format!("logic-{id}"))
@@ -269,6 +289,109 @@ impl LogicWorker {
     }
 }
 
+impl LogicWorker {
+    /// B2-W6. `logic.archive.list` — args `{"archive": ArchiveArgs wire}`.
+    fn archive_list(&mut self, call: &Call) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        let args = match ArchiveArgs::from_args(&call.args["archive"]) {
+            Ok(a) => a,
+            Err(e) => {
+                return Box::pin(async move { Err(err(ErrorCode::Usage, format!("archive: {e}"))) });
+            }
+        };
+        match args {
+            ArchiveArgs::Disabled { reason } => Box::pin(async move {
+                Ok(json!({"root": null, "archives": [], "left_out": 0, "disabled": reason}))
+            }),
+            ArchiveArgs::Enabled(cfg) => {
+                let root = cfg.root;
+                run_blocking("logic-archive-list", move || Ok(archive::list(&root)))
+            }
+        }
+    }
+    /// B2-W7. `logic.archive.read` — args `{"archive": …, "request": ReadReq params}`.
+    fn archive_read(&mut self, call: &Call) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        let args = match ArchiveArgs::from_args(&call.args["archive"]) {
+            Ok(a) => a,
+            Err(e) => {
+                return Box::pin(async move { Err(err(ErrorCode::Usage, format!("archive: {e}"))) });
+            }
+        };
+        let req = match archive::ReadReq::from_params(&call.args["request"]) {
+            Ok(r) => r,
+            Err(e) => return Box::pin(async move { Err(err(ErrorCode::Usage, e)) }),
+        };
+        match args {
+            ArchiveArgs::Disabled { reason } => Box::pin(async move {
+                Err(err(
+                    ErrorCode::Config,
+                    format!("logic archive disabled: {reason}"),
+                ))
+            }),
+            ArchiveArgs::Enabled(cfg) => {
+                let root = cfg.root;
+                run_blocking("logic-archive-read", move || {
+                    archive::read(&root, &req).map_err(archive_err)
+                })
+            }
+        }
+    }
+    /// B2-W8. `logic.export` — args `{"archive": …, "request": ExportReq params}`.
+    fn export(&mut self, call: &Call) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        let args = match ArchiveArgs::from_args(&call.args["archive"]) {
+            Ok(a) => a,
+            Err(e) => {
+                return Box::pin(async move { Err(err(ErrorCode::Usage, format!("archive: {e}"))) });
+            }
+        };
+        let req = match archive::ExportReq::from_params(&call.args["request"]) {
+            Ok(r) => r,
+            Err(e) => return Box::pin(async move { Err(err(ErrorCode::Usage, e)) }),
+        };
+        match args {
+            ArchiveArgs::Disabled { reason } => Box::pin(async move {
+                Err(err(
+                    ErrorCode::Config,
+                    format!("logic archive disabled: {reason}"),
+                ))
+            }),
+            ArchiveArgs::Enabled(cfg) => {
+                let (root, max) = (cfg.root, cfg.max_capture_bytes);
+                run_blocking("logic-archive-export", move || {
+                    archive::export(&root, &req, max).map_err(archive_err)
+                })
+            }
+        }
+    }
+}
+
+/// B2-W9. Run blocking archive I/O on a named helper thread (probe pattern): spawn failure →
+/// E_INTERNAL "thread: …"; thread ended without result → E_INTERNAL "<name> ended".
+fn run_blocking(
+    name: &'static str,
+    f: impl FnOnce() -> Result<Value, WorkerError> + Send + 'static,
+) -> BoxFuture<'static, Result<Value, WorkerError>> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    let spawned = std::thread::Builder::new().name(name.into()).spawn(move || {
+        let _ = tx.send(f());
+    });
+    Box::pin(async move {
+        spawned.map_err(|e| err(ErrorCode::Internal, format!("thread: {e}")))?;
+        match rx.await {
+            Ok(r) => r,
+            Err(_) => Err(err(ErrorCode::Internal, format!("{name} ended"))),
+        }
+    })
+}
+
+/// B2-W10. [`archive::ArchiveError`] → worker error (same code and message, detail null).
+fn archive_err(e: archive::ArchiveError) -> WorkerError {
+    WorkerError {
+        code: e.code,
+        message: e.message,
+        detail: Value::Null,
+    }
+}
+
 impl Drop for LogicWorker {
     fn drop(&mut self) {
         if let Some(mut r) = self.run.take() {
@@ -300,6 +423,9 @@ impl Worker for LogicWorker {
             "logic.stop" => self.stop(&call),
             "logic.status" => self.status(),
             "logic.probe" => self.probe(&call),
+            "logic.archive.list" => self.archive_list(&call),
+            "logic.archive.read" => self.archive_read(&call),
+            "logic.export" => self.export(&call),
             m => {
                 let m = m.to_owned();
                 Box::pin(async move { Err(err(ErrorCode::NotImplemented, format!("{m} not implemented"))) })
@@ -490,6 +616,8 @@ struct Counters {
     decoder_input_bytes: AtomicU64,
     /// Annotations lost before the batcher (queue full); folded into the next batch's `dropped`.
     reader_dropped: AtomicU64,
+    /// B4: published rows whose role is "error" (framing/parity/break …); json key `error_rows`.
+    error_rows: AtomicU64,
 }
 
 impl Counters {
@@ -500,7 +628,8 @@ impl Counters {
                "dropped_annotations": g(&self.dropped_annotations),
                "queue_dropped_annotations": g(&self.reader_dropped),
                "truncated_lines": g(&self.truncated_lines), "unparsed_lines": g(&self.unparsed_lines),
-               "emit_errors": g(&self.emit_errors), "decoder_input_bytes": g(&self.decoder_input_bytes)})
+               "emit_errors": g(&self.emit_errors), "decoder_input_bytes": g(&self.decoder_input_bytes),
+               "error_rows": g(&self.error_rows)})
     }
 }
 
@@ -560,6 +689,33 @@ struct Capture {
     counters: Arc<Counters>,
     last: Arc<Mutex<Value>>,
     ctl: Arc<Control>,
+    /// B2: archive arguments of this capture (from `args["archive"]`).
+    archive: ArchiveArgs,
+    /// B2: capture_state `archive` object (latest; see FUNCTIONS §B2-W).
+    archive_view: Mutex<Value>,
+    /// B5: absolute sample of the first byte fed to the decoder (pre-trigger start); 0 without a trigger.
+    sample_base: Arc<AtomicU64>,
+    /// B5: capture_state `trigger` object (latest), `Value::Null` without a trigger.
+    trigger_view: Mutex<Value>,
+}
+
+/// B5: software-trigger runtime of one capture (owned by the supervisor thread).
+#[derive(Debug)]
+struct TrigSide {
+    t: Trigger,
+    det: TriggerDetector,
+    ring: PreRing,
+    /// absolute trigger sample once fired
+    fired_at: Option<u64>,
+    /// exclusive absolute end of the post window once fired
+    post_end: Option<u64>,
+}
+
+/// B2: archive encoder + writer of one capture (owned by the supervisor thread).
+#[derive(Debug)]
+struct ArchiveSide {
+    enc: RawEncoder,
+    sink: ArchiveSink,
 }
 
 fn exit_json(s: Option<ExitStatus>, style: &str) -> Value {
@@ -680,6 +836,9 @@ impl Capture {
             "requested_by": self.requested_by, "reason": reason, "error": error,
             "exit": exit, "stderr_tail": stderr_tail, "counters": self.counters.json(),
             "quality": self.quality(),
+            "archive": lock(&self.archive_view).clone(),
+            "decoder_tracks": self.cfg.decoder.as_ref().map(model::Decoder::tracks),
+            "trigger": lock(&self.trigger_view).clone(),
         });
         if self
             .em
@@ -714,7 +873,168 @@ impl Capture {
         }
     }
 
-    fn setup_decoder(&self, engine: &Path, args: &[String]) -> Result<DecSide, (ErrorCode, String)> {
+    /// B5-W2. Route one acquired chunk (replaces `pump`; FUNCTIONS §B5r). Returns the stop reason when a
+    /// bound was hit: `"samples"` (max_samples) or `"trigger_post"` (post window), else `None`.
+    #[allow(clippy::too_many_arguments)]
+    fn feed(
+        &self,
+        chunk: Vec<u8>,
+        acc: &mut EdgeAcc,
+        dec: Option<&mut DecSide>,
+        running: &mut bool,
+        arch: Option<&mut ArchiveSide>,
+        trig: Option<&mut TrigSide>,
+    ) -> Option<&'static str> {
+        let mut dec = dec;
+        let mut arch = arch;
+        if !*running && !chunk.is_empty() {
+            *running = true;
+            if let Some(a) = arch.as_deref() {
+                *lock(&self.archive_view) = a.sink.status();
+            }
+            self.state("running", None, Value::Null, "", None);
+        }
+        let Some(t) = trig else {
+            let (c, why) = self.bound(chunk, None);
+            self.publish(&c, acc, dec, arch);
+            return why;
+        };
+        if t.fired_at.is_some() {
+            let (c, why) = self.bound(chunk, t.post_end);
+            self.publish(&c, acc, dec, arch);
+            return why;
+        }
+        // armed: acquired and counted, kept only in the pre-ring; nothing published, decoded or archived
+        let (c, why) = self.bound(chunk, None);
+        let base = self.counters.samples.load(Ordering::Relaxed) - c.len() as u64;
+        let Some(i) = t.det.feed(&c) else {
+            t.ring.push(&c);
+            return why;
+        };
+        t.ring.push(&c[..i]);
+        let (first, pre) = t.ring.take();
+        let fired_at = base + i as u64;
+        let post_end = fired_at + t.t.post_samples(self.cfg.samplerate);
+        t.fired_at = Some(fired_at);
+        t.post_end = Some(post_end);
+        acc.sample = first;
+        // before any byte reaches the decoder tee: decoder rows are shifted by this base
+        self.sample_base.store(first, Ordering::Release);
+        if let Some(a) = arch.as_deref_mut() {
+            a.enc = RawEncoder::new(first);
+            a.sink.set_first_sample(first);
+        }
+        let mut view = t.t.to_json();
+        view["state"] = json!("fired");
+        view["sample"] = json!(fired_at);
+        *lock(&self.trigger_view) = view;
+        self.state("running", None, Value::Null, "", None);
+        self.publish(&pre, acc, dec.as_deref_mut(), arch.as_deref_mut());
+        let mut rest = c[i..].to_vec();
+        let room = usize::try_from(post_end - fired_at).unwrap_or(usize::MAX);
+        let mut why2 = None;
+        if rest.len() >= room {
+            // the post window ends inside this chunk: samples past it were counted by `bound`, take them back
+            self.counters
+                .samples
+                .fetch_sub((rest.len() - room) as u64, Ordering::Relaxed);
+            rest.truncate(room);
+            why2 = Some("trigger_post");
+        }
+        self.publish(&rest, acc, dec, arch);
+        why.or(why2)
+    }
+
+    /// B5-W3. Truncate `chunk` at the max_samples bound and at `post_end` (absolute, exclusive), add the
+    /// kept length to `counters.samples`; reason of the bound hit first (`"samples"` before
+    /// `"trigger_post"` when both coincide), else `None`.
+    fn bound(&self, chunk: Vec<u8>, post_end: Option<u64>) -> (Vec<u8>, Option<&'static str>) {
+        let mut chunk = chunk;
+        let have = self.counters.samples.load(Ordering::Relaxed);
+        let room = |end: u64| usize::try_from(end.saturating_sub(have)).unwrap_or(usize::MAX);
+        let limit = match (self.cfg.max_samples.map(room), post_end.map(room)) {
+            (Some(a), Some(b)) if a <= b => Some((a, "samples")),
+            (Some(_), Some(b)) => Some((b, "trigger_post")),
+            (Some(a), None) => Some((a, "samples")),
+            (None, Some(b)) => Some((b, "trigger_post")),
+            (None, None) => None,
+        };
+        let mut why = None;
+        if let Some((r, w)) = limit
+            && chunk.len() >= r
+        {
+            chunk.truncate(r);
+            why = Some(w);
+        }
+        self.counters
+            .samples
+            .fetch_add(chunk.len() as u64, Ordering::Relaxed);
+        (chunk, why)
+    }
+
+    /// B5-W4. Publish already-counted samples (post-trigger or untriggered): edges accumulator, decoder
+    /// tee, archive encoder/sink — exactly what `pump` did after counting. Empty slice → no-op.
+    fn publish(
+        &self,
+        chunk: &[u8],
+        acc: &mut EdgeAcc,
+        dec: Option<&mut DecSide>,
+        arch: Option<&mut ArchiveSide>,
+    ) {
+        if chunk.is_empty() {
+            return;
+        }
+        if let Some(a) = arch {
+            let b = a.enc.feed(chunk);
+            if !b.is_empty() {
+                a.sink.raw(b);
+            }
+        }
+        acc.feed(chunk);
+        if let Some(d) = dec {
+            d.tee.feed(chunk);
+        }
+    }
+
+    /// B2-W2. Open the archive (prune + dir + manifest + writer) per `self.archive`; sets
+    /// `archive_view`. Never fails the capture: open error → view `{"state":"failed","error":…}`.
+    fn setup_archive(&self) -> Option<ArchiveSide> {
+        let ArchiveArgs::Enabled(cfg) = &self.archive else {
+            return None;
+        };
+        let meta = archive::ManifestMeta {
+            capture_id: self.id.clone(),
+            source: self.cfg.source.as_str().to_owned(),
+            samplerate: self.cfg.samplerate,
+            decoders: self
+                .cfg
+                .decoder
+                .iter()
+                .map(model::Decoder::canonical)
+                .collect::<Vec<_>>(),
+            first_sample: 0,
+        };
+        match ArchiveSink::open(cfg, &meta, self.cx.clock().wall_ns()) {
+            Ok(sink) => {
+                *lock(&self.archive_view) = sink.status();
+                Some(ArchiveSide {
+                    enc: RawEncoder::new(0),
+                    sink,
+                })
+            }
+            Err(e) => {
+                *lock(&self.archive_view) = json!({"state": "failed", "error": e, "dir": null});
+                None
+            }
+        }
+    }
+
+    fn setup_decoder(
+        &self,
+        engine: &Path,
+        args: &[String],
+        tap: Option<AnnTap>,
+    ) -> Result<DecSide, (ErrorCode, String)> {
         let mut child = spawn_group(engine, args, Stdio::piped()).map_err(|e| {
             (
                 ErrorCode::NotFound,
@@ -742,7 +1062,10 @@ impl Capture {
         // Bounded reader → batcher queue; overflow is counted, never buffered without limit.
         let (atx, arx) = mpsc::sync_channel::<Annotation>(ANNOT_QUEUE);
         let counters = self.counters.clone();
-        match thread("logic-dec-out", move || read_lines(stdout, &atx, &counters)) {
+        let base = self.sample_base.clone();
+        match thread("logic-dec-out", move || {
+            read_lines(stdout, &atx, &counters, tap.as_ref(), &base)
+        }) {
             Ok(t) => proc.threads.push(t),
             Err(e) => return Err(fail(proc, e)),
         }
@@ -851,6 +1174,8 @@ impl Capture {
 
     fn run(self, ready: tokio::sync::oneshot::Sender<Result<Value, WorkerError>>) {
         self.state("starting", None, Value::Null, "", None);
+        // Opened before the engine is resolved, so even an engine error leaves a finalized archive.
+        let mut arch = self.setup_archive();
         let setup = (|| {
             let needs = self.cfg.source.acquires() || self.cfg.decoder.is_some();
             let engine = match (&self.engine, needs) {
@@ -860,7 +1185,7 @@ impl Capture {
             };
             // Decoder first, so no raw byte exists before its consumer.
             let dec = match self.cfg.decoder_args() {
-                Some(a) => Some(self.setup_decoder(&engine, &a)?),
+                Some(a) => Some(self.setup_decoder(&engine, &a, arch.as_ref().map(|s| s.sink.tap()))?),
                 None => None,
             };
             let acq = match self.cfg.acquisition_args() {
@@ -884,9 +1209,12 @@ impl Capture {
                     "config": self.cfg.to_params(), "argv": self.argv(),
                     "engine": self.engine.as_ref().and_then(|p| p.to_str()),
                 })));
-                self.main(dec, acq);
+                self.main(dec, acq, arch);
             }
             Err((code, msg)) => {
+                if let Some(a) = arch.take() {
+                    *lock(&self.archive_view) = a.sink.finish(None, 0, 0);
+                }
                 let p = self.state("failed", Some("error"), Value::Null, "", Some(&msg));
                 let _ = ready.send(Err(err(code, msg).with_detail(json!({"capture_id": self.id}))));
                 self.finish(p);
@@ -894,7 +1222,8 @@ impl Capture {
         }
     }
 
-    fn main(&self, mut dec: Option<DecSide>, mut acq: Option<AcqSide>) {
+    fn main(&self, mut dec: Option<DecSide>, mut acq: Option<AcqSide>, arch: Option<ArchiveSide>) {
+        let mut arch = arch;
         let started = Instant::now();
         let duration = Duration::from_millis(self.cfg.duration_ms);
         let mut acc = EdgeAcc::new(self.cfg.mask);
@@ -911,6 +1240,13 @@ impl Capture {
         let mut error: Option<String> = None;
         let mut acq_ended = false;
         let mut sample_bound_hit = false;
+        let mut trig: Option<TrigSide> = self.cfg.trigger.map(|t| TrigSide {
+            t,
+            det: TriggerDetector::new(&t),
+            ring: PreRing::new(t.pre_samples(self.cfg.samplerate)),
+            fired_at: None,
+            post_end: None,
+        });
         loop {
             if let Some(r) = self.ctl.requested() {
                 reason = r;
@@ -962,9 +1298,16 @@ impl Capture {
             };
             match data {
                 Data::Chunk(c) => {
-                    sample_bound_hit = self.pump(c, &mut acc, dec.as_mut(), &mut running);
-                    if sample_bound_hit {
-                        reason = "samples";
+                    if let Some(r) = self.feed(
+                        c,
+                        &mut acc,
+                        dec.as_mut(),
+                        &mut running,
+                        arch.as_mut(),
+                        trig.as_mut(),
+                    ) {
+                        sample_bound_hit = true;
+                        reason = r;
                         break;
                     }
                 }
@@ -982,6 +1325,9 @@ impl Capture {
         }
 
         // ---- stop / reap ----
+        if let Some(a) = arch.as_ref() {
+            *lock(&self.archive_view) = a.sink.status();
+        }
         self.state("stopping", Some(reason), Value::Null, "", error.as_deref());
         let mut acq_exit = Value::Null;
         let mut acq_tail = String::new();
@@ -997,7 +1343,16 @@ impl Capture {
             loop {
                 match a.rx.recv_timeout(Duration::from_millis(20)) {
                     Ok(c) if !sample_bound_hit => {
-                        sample_bound_hit = self.pump(c, &mut acc, dec.as_mut(), &mut running);
+                        sample_bound_hit = self
+                            .feed(
+                                c,
+                                &mut acc,
+                                dec.as_mut(),
+                                &mut running,
+                                arch.as_mut(),
+                                trig.as_mut(),
+                            )
+                            .is_some();
                     }
                     Ok(_) | Err(RecvTimeoutError::Timeout) => {}
                     Err(RecvTimeoutError::Disconnected) => break,
@@ -1038,6 +1393,7 @@ impl Capture {
         self.flush_edges(&mut acc, &mut edge_seq);
         let mut dec_exit = Value::Null;
         let mut dec_tail = String::new();
+        let mut gap: Option<String> = None;
         if let Some(mut d) = dec.take() {
             if error.is_none()
                 && let Some(f) = d.tee.failed.clone()
@@ -1067,7 +1423,47 @@ impl Capture {
                 reason = "error";
                 error = Some(format!("decoder did not exit cleanly: {}", dec_tail.trim()));
             }
+            let samples = self.counters.samples.load(Ordering::Relaxed);
+            let clean = !killed && status.is_some_and(|s| s.success());
+            // armed samples never reach the decoder: it should have consumed what was published
+            let samples = match &trig {
+                Some(t) if t.fired_at.is_none() => 0,
+                _ => samples.saturating_sub(self.sample_base.load(Ordering::Acquire)),
+            };
+            if written < samples || !clean {
+                gap = Some(format!(
+                    "decoder consumed {written} of {samples} samples{}",
+                    if clean {
+                        ""
+                    } else {
+                        "; decoder did not exit cleanly"
+                    }
+                ));
+            }
             dec_exit = exit_json(status, if killed { "kill" } else { "eof" });
+        }
+        // A trigger that never fired: nothing was published; the archive range is empty and exact.
+        if let Some(t) = &trig
+            && t.fired_at.is_none()
+        {
+            let mut view = t.t.to_json();
+            view["state"] = json!("not_fired");
+            view["sample"] = Value::Null;
+            *lock(&self.trigger_view) = view;
+            if let Some(a) = arch.as_mut() {
+                let samples = self.counters.samples.load(Ordering::Relaxed);
+                a.enc = RawEncoder::new(samples);
+                a.sink.set_first_sample(samples);
+            }
+        }
+        // Every tap clone is gone (the decoder reader thread is joined): finalize the archive.
+        if let Some(mut a) = arch.take() {
+            let samples = self.counters.samples.load(Ordering::Relaxed);
+            let (last, end) = a.enc.finish();
+            if let Some(g) = &gap {
+                a.sink.mark_decode_gap(g);
+            }
+            *lock(&self.archive_view) = a.sink.finish(last, end, samples);
         }
         let tail = match (acq_tail.is_empty(), dec_tail.is_empty()) {
             (true, true) => String::new(),
@@ -1079,40 +1475,6 @@ impl Capture {
         let state = if error.is_some() { "failed" } else { "stopped" };
         let p = self.state(state, Some(reason), exit, &tail, error.as_deref());
         self.finish(p);
-    }
-
-    /// Feed one chunk (sample bound applied). Returns true when the bound was reached.
-    fn pump(
-        &self,
-        mut chunk: Vec<u8>,
-        acc: &mut EdgeAcc,
-        dec: Option<&mut DecSide>,
-        running: &mut bool,
-    ) -> bool {
-        let mut hit = false;
-        if let Some(max) = self.cfg.max_samples {
-            let have = self.counters.samples.load(Ordering::Relaxed);
-            let room = usize::try_from(max.saturating_sub(have)).unwrap_or(usize::MAX);
-            if chunk.len() >= room {
-                chunk.truncate(room);
-                hit = true;
-            }
-        }
-        if chunk.is_empty() {
-            return hit;
-        }
-        if !*running {
-            *running = true;
-            self.state("running", None, Value::Null, "", None);
-        }
-        acc.feed(&chunk);
-        self.counters
-            .samples
-            .fetch_add(chunk.len() as u64, Ordering::Relaxed);
-        if let Some(d) = dec {
-            d.tee.feed(&chunk);
-        }
-        hit
     }
 }
 
@@ -1140,7 +1502,13 @@ struct AcqSide {
 
 /// Reads decoder lines into the bounded queue. Lines dropped on a full queue are attributed to
 /// the next delivered annotation (`lost_before`), so readers know exactly where the hole is.
-fn read_lines(out: impl Read, tx: &mpsc::SyncSender<Annotation>, counters: &Counters) {
+fn read_lines(
+    out: impl Read,
+    tx: &mpsc::SyncSender<Annotation>,
+    counters: &Counters,
+    tap: Option<&AnnTap>,
+    base: &AtomicU64,
+) {
     let mut r = BufReader::new(out);
     let mut buf = Vec::with_capacity(256);
     let mut pending = 0u64;
@@ -1174,9 +1542,12 @@ fn read_lines(out: impl Read, tx: &mpsc::SyncSender<Annotation>, counters: &Coun
         if line.is_empty() {
             continue;
         }
-        let a = parse_annotation(line);
+        let a = parse_annotation(line).shifted(base.load(Ordering::Acquire));
         if a.start.is_none() {
             counters.unparsed_lines.fetch_add(1, Ordering::Relaxed);
+        }
+        if let Some(t) = tap {
+            t.push(&a);
         }
         let mut a = a;
         a_lost(&mut a, pending);
@@ -1244,6 +1615,9 @@ fn batch_annotations(
                 gap += a.lost_before;
                 if rate.try_take(1) {
                     let mut row = a.to_row(samplerate);
+                    if row["role"] == "error" {
+                        counters.error_rows.fetch_add(1, Ordering::Relaxed);
+                    }
                     if gap > 0 {
                         row["gap_before"] = json!(gap);
                         gap = 0;
