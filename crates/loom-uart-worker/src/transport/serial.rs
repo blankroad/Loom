@@ -253,6 +253,27 @@ mod imp {
         }
     }
 
+    /// B9 (F2): a line-control (DTR/RTS/break) failure → `io::Error`. A device that does not support modem control (a PTY answers
+    /// `ENOTTY`, "Not a typewriter") becomes `io::ErrorKind::Unsupported`; every other failure keeps today's conversion
+    /// (`io::Error::from`), so a real unplug stays a disconnect. See FUNCTIONS.md §B9.2.
+    fn line_control_error(e: serialport::Error) -> io::Error {
+        let io = io::Error::from(e);
+        if io.kind() == io::ErrorKind::Unsupported {
+            return io;
+        }
+        let msg = io.to_string();
+        if [Errno::ENOTTY, Errno::ENOTSUP, Errno::EOPNOTSUPP]
+            .iter()
+            .any(|errno| msg.contains(errno.desc()))
+        {
+            return io::Error::new(
+                io::ErrorKind::Unsupported,
+                format!("modem control not supported by this device ({io})"),
+            );
+        }
+        io
+    }
+
     impl Transport for SerialTransport {
         fn read(&mut self, buf: &mut [u8], wait: Duration) -> io::Result<usize> {
             read_nonblocking(self.data.as_fd(), buf, wait)
@@ -263,12 +284,14 @@ mod imp {
         }
 
         fn set_dtr(&mut self, on: bool) -> io::Result<()> {
-            self.port.write_data_terminal_ready(on).map_err(io::Error::from)
+            self.port
+                .write_data_terminal_ready(on)
+                .map_err(line_control_error)
         }
 
         fn set_rts(&mut self, on: bool) -> io::Result<()> {
             rts_conflict(&self.config)?;
-            self.port.write_request_to_send(on).map_err(io::Error::from)
+            self.port.write_request_to_send(on).map_err(line_control_error)
         }
 
         fn set_break(&mut self, on: bool) -> io::Result<()> {
@@ -277,7 +300,7 @@ mod imp {
             } else {
                 self.port.clear_break()
             };
-            r.map_err(io::Error::from)
+            r.map_err(line_control_error)
         }
 
         fn config(&self) -> &PortConfig {

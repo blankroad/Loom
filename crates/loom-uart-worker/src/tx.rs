@@ -19,6 +19,15 @@
 //! Results go out on a bounded `sync_channel` as [`TxEvent`]s: one [`TxChunk`] per chunk actually
 //! written (P1: `uart.data dir=tx`) and one [`TxDone`] per request. Events are never dropped; a
 //! consumer that stops reading back-pressures the actor.
+//!
+//! **Pacing (U3, operator-upgrade B2).** A request may carry a [`Pacing`]: a per-byte and/or
+//! per-line delay. Paced requests are cut into smaller chunks ([`paced_chunk_end`]) and each
+//! written chunk sets a per-lane *not-before* time ([`gap_after`]). While the active request of
+//! the highest busy lane waits for its not-before time, lower lanes are not written; higher
+//! lanes, line controls, cancellation and shutdown wake the actor at once. A gap is a condvar
+//! wait inside the actor, never a timer elsewhere, so no write can fire after a request's
+//! `TxDone`. Ctrl-C is never paced and cancels paced user requests. `Pacing::NONE` keeps the
+//! unpaced path byte-identical (TX_CHUNK_MAX chunks, no waits).
 
 use std::collections::VecDeque;
 use std::fmt;
@@ -58,6 +67,108 @@ pub const TX_CANCEL_CAUSE_BYTES: usize = "interrupted_by_user".len();
 /// Recommended capacity for the event channel (see [`event_channel`]); a full channel blocks
 /// the actor rather than dropping write results (§3.13: write terminals are never dropped).
 pub const TX_EVENT_CHANNEL_CAP: usize = 1024;
+
+/// Longest per-byte pacing delay (U3: `char_delay_ms` 0–1000).
+pub const PACING_CHAR_MAX: Duration = Duration::from_millis(1000);
+/// Longest per-line pacing delay (U3: `line_delay_ms` 0–10 000).
+pub const PACING_LINE_MAX: Duration = Duration::from_millis(10_000);
+
+/// Transmit pacing of one request (U3). Ignored on the Ctrl-C lane.
+///
+/// * `char_delay > 0`: one byte per chunk; after each byte the lane waits `char_delay`
+///   (+ `line_delay` when that byte ends a line, see [`is_line_end`]).
+/// * only `line_delay > 0`: one line (≤ [`TX_CHUNK_MAX`]) per chunk; after a chunk that ends a
+///   line the lane waits `line_delay`.
+/// * both zero ([`Pacing::NONE`]): today's unpaced path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct Pacing {
+    /// Delay after every byte (≤ [`PACING_CHAR_MAX`]).
+    pub char_delay: Duration,
+    /// Extra delay after every line end (≤ [`PACING_LINE_MAX`]).
+    pub line_delay: Duration,
+}
+
+impl Pacing {
+    /// No pacing.
+    pub const NONE: Pacing = Pacing {
+        char_delay: Duration::ZERO,
+        line_delay: Duration::ZERO,
+    };
+
+    /// Both delays are zero. See FUNCTIONS.md §B2.1 `Pacing::is_none`.
+    pub fn is_none(&self) -> bool {
+        self.char_delay.is_zero() && self.line_delay.is_zero()
+    }
+}
+
+/// Byte `i` of `bytes` ends a line: `\n`, or `\r` not followed by `\n` inside `bytes`
+/// (a `\r` at the last index counts). `i >= bytes.len()` → false. See FUNCTIONS.md §B2.1.
+pub fn is_line_end(bytes: &[u8], i: usize) -> bool {
+    match bytes.get(i) {
+        Some(b'\n') => true,
+        Some(b'\r') => bytes.get(i + 1) != Some(&b'\n'),
+        _ => false,
+    }
+}
+
+/// Exclusive end of the chunk that starts at `start` (`start < bytes.len()`).
+/// NONE → `min(start + TX_CHUNK_MAX, len)`; char pacing → `start + 1`; line-only pacing →
+/// just after the first line end in `[start, min(start + TX_CHUNK_MAX, len))`, else that cap.
+/// See FUNCTIONS.md §B2.1.
+pub fn paced_chunk_end(bytes: &[u8], start: usize, pacing: Pacing) -> usize {
+    let cap = start.saturating_add(TX_CHUNK_MAX).min(bytes.len());
+    if !pacing.char_delay.is_zero() {
+        start + 1
+    } else if !pacing.line_delay.is_zero() {
+        (start..cap)
+            .find(|&i| is_line_end(bytes, i))
+            .map_or(cap, |i| i + 1)
+    } else {
+        cap
+    }
+}
+
+/// Lane gap after a written chunk whose exclusive end is `end` (`1 ≤ end ≤ len`):
+/// `char_delay` (if > 0) + `line_delay` when `is_line_end(bytes, end - 1)`. See §B2.1.
+pub fn gap_after(bytes: &[u8], end: usize, pacing: Pacing) -> Duration {
+    if end == 0 {
+        return Duration::ZERO;
+    }
+    let mut gap = pacing.char_delay;
+    if !pacing.line_delay.is_zero() && is_line_end(bytes, end - 1) {
+        gap = gap.saturating_add(pacing.line_delay);
+    }
+    gap
+}
+
+/// Time from the first to the last write of `bytes` when every chunk is accepted whole:
+/// the sum of [`gap_after`] over the chunk sequence of [`paced_chunk_end`], **excluding** the
+/// gap after the last chunk (see [`trailing_gap`]). Zero for NONE or empty input. See §B2.1.
+pub fn pacing_estimate(bytes: &[u8], pacing: Pacing) -> Duration {
+    if pacing.is_none() || bytes.is_empty() {
+        return Duration::ZERO;
+    }
+    let mut total = Duration::ZERO;
+    let mut start = 0;
+    loop {
+        let end = paced_chunk_end(bytes, start, pacing);
+        if end >= bytes.len() {
+            break;
+        }
+        total = total.saturating_add(gap_after(bytes, end, pacing));
+        start = end;
+    }
+    total
+}
+
+/// The lane gap left after the request's last byte (`gap_after(bytes, len)`; zero when empty).
+/// It delays the next request on the same lane, not this request's `TxDone`. See §B2.1.
+pub fn trailing_gap(bytes: &[u8], pacing: Pacing) -> Duration {
+    if bytes.is_empty() {
+        return Duration::ZERO;
+    }
+    gap_after(bytes, bytes.len(), pacing)
+}
 
 /// Which queue a request goes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -124,6 +235,8 @@ pub struct TxRequest {
     pub secret: bool,
     /// Absolute deadline for the whole request.
     pub deadline: Instant,
+    /// Transmit pacing (U3); [`Pacing::NONE`] = unpaced. Ignored on [`TxLane::CtrlC`].
+    pub pacing: Pacing,
 }
 
 /// Terminal state of a request (common write states D4·A14; UART success terminal is `Sent`).
@@ -343,6 +456,9 @@ struct LaneQ {
     bytes: usize,
     /// Items queued + in flight.
     items: usize,
+    /// `pacing_estimate + trailing_gap` of paced requests queued + in flight (B2: charged at
+    /// submit, released in finish; an upper bound, progress is not subtracted).
+    paced: Duration,
 }
 
 #[derive(Debug)]
@@ -367,6 +483,9 @@ struct State {
     cancelled: VecDeque<CancelledRequest>,
     cancelled_bytes: usize,
     stopping: bool,
+    /// B2: per-lane not-before time set after a paced chunk (`now + gap_after`); `None` = no
+    /// gap. Index = lane idx; the Ctrl-C slot is never set.
+    not_before: [Option<Instant>; 3],
 }
 
 #[derive(Debug, Default)]
@@ -402,6 +521,16 @@ impl TxHandle {
                 cap: cap_bytes,
             });
         }
+        let eff = if lane == TxLane::CtrlC {
+            Pacing::NONE
+        } else {
+            req.pacing
+        };
+        let charge = if eff.is_none() {
+            Duration::ZERO
+        } else {
+            pacing_estimate(&req.bytes, eff).saturating_add(trailing_gap(&req.bytes, eff))
+        };
         let mut st = self.shared.lock();
         if st.stopping {
             return Err(SubmitError::Stopped);
@@ -416,6 +545,7 @@ impl TxHandle {
         }
         l.bytes += req.bytes.len();
         l.items += 1;
+        l.paced = l.paced.saturating_add(charge);
         l.q.push_back(req);
         drop(st);
         self.shared.cv.notify_one();
@@ -539,6 +669,16 @@ impl TxHandle {
             .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "tx control did not complete in time"))?
     }
 
+    /// Pacing time already committed on `lane`: its `paced` charge plus the time left until the
+    /// lane's not-before (zero when none / passed). Used for user deadlines and the 600 s cap.
+    /// See FUNCTIONS.md §B2.1 `TxHandle::paced_backlog`.
+    pub fn paced_backlog(&self, lane: TxLane) -> Duration {
+        let st = self.shared.lock();
+        let i = lane.idx();
+        let left = st.not_before[i].map_or(Duration::ZERO, |t| t.saturating_duration_since(Instant::now()));
+        st.lanes[i].paced.saturating_add(left)
+    }
+
     /// `(bytes, items)` charged to `lane`, including cancelled requests awaiting completion.
     pub fn queued(&self, lane: TxLane) -> (usize, usize) {
         let st = self.shared.lock();
@@ -640,6 +780,8 @@ impl Worker {
             let mut controls = Vec::new();
             let mut pick = None;
             let mut cancel_agent = false;
+            let mut cancel_user = false;
+            let mut gap_until = None;
             {
                 let mut st = self.shared.lock();
                 while !st.stopping
@@ -680,6 +822,29 @@ impl Worker {
                 if pick == Some(TxLane::CtrlC) && self.active[TxLane::Agent.idx()].is_some() {
                     cancel_agent = true;
                 }
+                if pick == Some(TxLane::CtrlC) {
+                    let u = TxLane::User.idx();
+                    cancel_user = self.active[u].as_ref().is_some_and(|f| !f.req.pacing.is_none());
+                    let s = &mut *st;
+                    for req in std::mem::take(&mut s.lanes[u].q) {
+                        let len = req.bytes.len();
+                        if !req.pacing.is_none()
+                            && s.cancelled.len() < TX_CANCEL_QUEUE_ITEMS
+                            && s.cancelled_bytes + len <= TX_CANCEL_QUEUE_BYTES
+                        {
+                            s.cancelled_bytes += len;
+                            s.cancelled.push_back(CancelledRequest {
+                                req,
+                                cause: CancelCause::InterruptedByUser,
+                            });
+                        } else {
+                            s.lanes[u].q.push_back(req);
+                        }
+                    }
+                    s.not_before[u] = None;
+                } else if let Some(lane) = pick {
+                    gap_until = self.pace_gap_until(&mut st, lane);
+                }
                 // Ctrl-C never waits behind cancellation notifications or line controls.
                 if pick != Some(TxLane::CtrlC) {
                     controls.extend(st.controls.drain(..));
@@ -696,15 +861,64 @@ impl Worker {
             if cancel_agent && let Some(f) = self.active[TxLane::Agent.idx()].take() {
                 self.finish(f, Some(TxErrorCode::InterruptedByUser));
             }
+            if cancel_user && let Some(f) = self.active[TxLane::User.idx()].take() {
+                self.finish(f, Some(TxErrorCode::InterruptedByUser));
+            }
             if pick != Some(TxLane::CtrlC) {
                 // A cancelled, paused agent must complete even while user input stays ready.
                 self.finish_cancelled_active();
             }
-            if let Some(lane) = pick {
+            if let Some(lane) = pick
+                && gap_until.is_none()
+            {
                 self.step(lane);
             }
             self.finish_one_cancelled();
+            if let (Some(until), Some(lane)) = (gap_until, pick) {
+                self.pace_block(until, lane);
+            }
         }
+    }
+
+    /// Instant the gap-waiting active request of `lane` may resume, or `None` when it must step now.
+    fn pace_gap_until(&self, st: &mut State, lane: TxLane) -> Option<Instant> {
+        let i = lane.idx();
+        let f = self.active[i].as_ref()?;
+        let nb = st.not_before[i]?;
+        let now = Instant::now();
+        if nb <= now {
+            st.not_before[i] = None;
+            return None;
+        }
+        let claimed = st.active[i].as_ref().is_some_and(|a| a.cancel.is_some());
+        if claimed || now >= f.req.deadline {
+            return None;
+        }
+        Some(nb.min(f.req.deadline))
+    }
+
+    /// Blocks on the condvar until `until` unless other work (control, cancel, higher lane, stop) is pending.
+    fn pace_block(&self, until: Instant, lane: TxLane) {
+        let st = self.shared.lock();
+        let pending = st.stopping
+            || !st.controls.is_empty()
+            || !st.cancelled.is_empty()
+            || st.lanes[..lane.idx()].iter().any(|l| !l.q.is_empty())
+            || st.active[..lane.idx()].iter().any(Option::is_some)
+            || st.active[lane.idx()].as_ref().is_some_and(|a| a.cancel.is_some());
+        if pending {
+            return;
+        }
+        let dur = until.saturating_duration_since(Instant::now());
+        if dur.is_zero() {
+            return;
+        }
+        drop(
+            self.shared
+                .cv
+                .wait_timeout(st, dur)
+                .unwrap_or_else(|p| p.into_inner()),
+        );
     }
 
     /// Writes one chunk of the lane's in-flight request.
@@ -725,7 +939,12 @@ impl Worker {
             self.finish(f, Some(TxErrorCode::Timeout));
             return;
         }
-        let end = (f.written + TX_CHUNK_MAX).min(len);
+        let eff = if lane == TxLane::CtrlC {
+            Pacing::NONE
+        } else {
+            f.req.pacing
+        };
+        let end = paced_chunk_end(&f.req.bytes, f.written, eff);
         let r = self.transport.write(&f.req.bytes[f.written..end], f.req.deadline);
         if r.written > 0 {
             let mono = self.clock.mono_ns();
@@ -742,6 +961,14 @@ impl Worker {
                 secret: f.req.secret,
             };
             f.written += r.written;
+            if !eff.is_none() {
+                let g = gap_after(&f.req.bytes, f.written, eff);
+                self.shared.lock().not_before[i] = if g.is_zero() {
+                    None
+                } else {
+                    Some(Instant::now() + g)
+                };
+            }
             let _ = self.events.send(TxEvent::Chunk(chunk));
         }
         match r.outcome {
@@ -764,6 +991,16 @@ impl Worker {
         was_active: bool,
     ) {
         let len = f.req.bytes.len();
+        let eff = if f.req.lane == TxLane::CtrlC {
+            Pacing::NONE
+        } else {
+            f.req.pacing
+        };
+        let charge = if eff.is_none() {
+            Duration::ZERO
+        } else {
+            pacing_estimate(&f.req.bytes, eff).saturating_add(trailing_gap(&f.req.bytes, eff))
+        };
         // Release payload storage before returning its permits or blocking on the Done sink.
         // Cancellation metadata never creates a second retained copy of the request bytes.
         drop(std::mem::take(&mut f.req.bytes));
@@ -780,6 +1017,7 @@ impl Worker {
             let l = &mut st.lanes[f.req.lane.idx()];
             l.bytes -= len;
             l.items -= 1;
+            l.paced = l.paced.saturating_sub(charge);
             active_cancel.or(queued_cancel)
         };
         let error = cancel.map(CancelCause::legacy_error).or(error);

@@ -47,7 +47,7 @@
 :where(.mod-uart, .ub-layer, .uart-panel) .group-h svg { width: 12px; height: 12px; transition: transform .12s; }
 :where(.mod-uart, .ub-layer, .uart-panel) .group-h[aria-expanded="false"] svg { transform: rotate(-90deg); }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess {
-  display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 0 8px;
+  display: grid; grid-template-columns: 3px 8px minmax(0, 1fr) auto; align-items: center; gap: 0 8px;
   padding: 5px 6px 5px 12px; border-left: 3px solid transparent; cursor: default; user-select: none; touch-action: none;
 }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess:hover, :where(.mod-uart, .ub-layer, .uart-panel) .sess:focus-within { background: var(--sf); }
@@ -55,7 +55,7 @@
 :where(.mod-uart, .ub-layer, .uart-panel) .sess .dot, :where(.mod-uart, .ub-layer, .uart-panel) .tab .dot, :where(.mod-uart, .ub-layer, .uart-panel) .ph-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tag, var(--muted)); }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess-name .open-tag { font: 600 10px/16px var(--mono); color: var(--ok); background: #dafbe1; border-radius: 8px; padding: 0 5px; }
-:where(.mod-uart, .ub-layer, .uart-panel) .sess-meta { grid-column: 2 / 4; color: var(--muted); font: 11px/1.35 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-meta { grid-column: 3 / 5; color: var(--muted); font: 11px/1.35 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess-acts { display: flex; gap: 0; opacity: 0; }
 :where(.mod-uart, .ub-layer, .uart-panel) .sess:hover .sess-acts, :where(.mod-uart, .ub-layer, .uart-panel) .sess:focus-within .sess-acts { opacity: 1; }
 @media (hover: none) {
@@ -399,3 +399,25 @@
 .mod-uart > .work > .diagnostic-context { margin: -6px -6px 6px; }
 .mod-uart .mtbar .layout-bar, .mod-uart .mtbar .tab-settings { align-self: center; }
 .mod-uart .mtbar .preset-picker select, .mod-uart .mtbar .layout-bar input, .mod-uart .mtbar .layout-bar button { height: 26px; min-height: 0; font-size: 12px; }
+
+/* ---------- operator-upgrade U5/U7 (batch 1): state-coloured dots, narrow pane identity, search toggles ---------- */
+:where(.mod-uart, .ub-layer, .uart-panel) .phead { box-shadow: inset 3px 0 0 var(--tag, transparent); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot[data-conn="connected"] { background: var(--ok); box-shadow: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot[data-conn="lost"] { background: var(--err); box-shadow: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot[data-conn="waiting"] { background: var(--warn-bd); box-shadow: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot[data-conn="unknown"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot[data-conn="disconnected"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-dot { flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-alias { flex: 0 1 auto; min-width: 6ch; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:where(.mod-uart, .ub-layer, .uart-panel) .ph-state, :where(.mod-uart, .ub-layer, .uart-panel) .ph-frame { flex: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .phead[data-mode="narrow"] { gap: 6px; padding-left: 8px; }
+:where(.mod-uart, .ub-layer, .uart-panel) .search .pill { flex: none; font: 600 11px var(--mono); }
+:where(.mod-uart, .ub-layer, .uart-panel) .search .count[data-state="error"] { color: var(--err); }
+:where(.mod-uart, .ub-layer, .uart-panel) .search .search-hint { font-size: 11px; color: var(--warn); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+:where(.mod-uart, .ub-layer, .uart-panel) .search .search-hint[hidden] { display: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess .tagsw { width: 3px; height: 14px; border-radius: 2px; background: var(--tag, var(--muted)); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess .dot.on { background: var(--ok); box-shadow: none; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess .dot.off { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess .dot.unknown { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-name .sess-alias { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+:where(.mod-uart, .ub-layer, .uart-panel) .sess-name .open-tag { flex: none; white-space: nowrap; }

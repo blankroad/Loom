@@ -11,7 +11,11 @@ use loom_proto::worker::WorkerError;
 use loom_worker_sdk::{EventDraft, WorkerCtx};
 use serde_json::{Value, json};
 
-use crate::tx::{SubmitError, TxDone, TxErrorCode};
+use crate::logsink::{
+    LOG_QUOTA_DEFAULT_MIB, LOG_QUOTA_MAX_MIB, LOG_ROTATE_DEFAULT_MIB, LOG_ROTATE_MAX_MIB, LOG_ROTATE_MIN_MIB,
+    LogCfg, LogFormat, LogStats,
+};
+use crate::tx::{PACING_CHAR_MAX, PACING_LINE_MAX, Pacing, SubmitError, TxDone, TxErrorCode};
 
 /// Event kinds (canonical list: `crates/loom-uart/src/kinds.rs`; the worker does not depend on
 /// the gateway crate, so the names are repeated here and checked by the worker tests).
@@ -23,6 +27,10 @@ pub(crate) mod kind {
     pub const INPUT_ACK: &str = "uart.input_ack";
     pub const AGENT_ACTIVITY: &str = "uart.agent_activity";
     pub const EXPECT_RESULT: &str = "uart.expect_result";
+    /// B4 (U1-A): native log started / stopped.
+    pub const LOG: &str = "uart.log";
+    /// B3 (U6): a break / DTR / RTS operation.
+    pub const SIGNAL: &str = "uart.signal";
 }
 
 /// `WorkerError` with an empty detail.
@@ -166,6 +174,127 @@ pub(crate) fn escape_preview(bytes: &[u8], max_chars: usize) -> String {
         out.push_str(&piece);
     }
     out
+}
+
+/// Keys allowed in a `pacing` object (`uart.open.pacing`).
+pub(crate) const PACING_KEYS: [&str; 2] = ["char_delay_ms", "line_delay_ms"];
+
+/// B2: `base` with the optional `char_delay_ms` (0–[`PACING_CHAR_MAX`]) and `line_delay_ms`
+/// (0–[`PACING_LINE_MAX`]) fields of `v` applied; other keys of `v` are ignored. A present field
+/// that is not a non-negative integer in range → `E_USAGE`. See FUNCTIONS.md §B2.2.
+pub(crate) fn pacing_fields(v: &Value, base: Pacing) -> Result<Pacing, WorkerError> {
+    let field = |key: &str,
+                 max: std::time::Duration,
+                 keep: std::time::Duration|
+     -> Result<std::time::Duration, WorkerError> {
+        match v.get(key) {
+            None | Some(Value::Null) => Ok(keep),
+            Some(val) => match val.as_u64() {
+                Some(n) if std::time::Duration::from_millis(n) <= max => {
+                    Ok(std::time::Duration::from_millis(n))
+                }
+                _ => Err(werr(
+                    ErrorCode::Usage,
+                    format!("bad {key}: {val} (0–{} ms)", max.as_millis()),
+                )),
+            },
+        }
+    };
+    let char_delay = field("char_delay_ms", PACING_CHAR_MAX, base.char_delay)?;
+    let line_delay = field("line_delay_ms", PACING_LINE_MAX, base.line_delay)?;
+    Ok(Pacing {
+        char_delay,
+        line_delay,
+    })
+}
+
+/// B2: the `pacing` option of `uart.open`. Absent / null → `Ok(None)`; not an object, or a key
+/// outside [`PACING_KEYS`] → `E_USAGE`; else `Some(pacing_fields(v, Pacing::NONE)?)`. §B2.2.
+pub(crate) fn parse_pacing(v: Option<&Value>) -> Result<Option<Pacing>, WorkerError> {
+    match v {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::Object(m)) => {
+            if let Some(k) = m.keys().find(|k| !PACING_KEYS.contains(&k.as_str())) {
+                return Err(werr(ErrorCode::Usage, format!("unknown pacing field '{k}'")));
+            }
+            Ok(Some(pacing_fields(&Value::Object(m.clone()), Pacing::NONE)?))
+        }
+        Some(_) => Err(werr(ErrorCode::Usage, "pacing must be an object")),
+    }
+}
+
+/// B2: `{"char_delay_ms": u64, "line_delay_ms": u64}` (whole milliseconds). §B2.2.
+pub(crate) fn pacing_json(p: Pacing) -> Value {
+    let ms = |d: std::time::Duration| u64::try_from(d.as_millis()).unwrap_or(u64::MAX);
+    json!({"char_delay_ms": ms(p.char_delay), "line_delay_ms": ms(p.line_delay)})
+}
+
+/// Keys allowed in a `log` object (`uart.open.log`, `uart.log.start`).
+pub(crate) const LOG_KEYS: [&str; 3] = ["format", "rotate_mib", "quota_mib"];
+
+/// B4: `{format?: "log"|"jsonl", rotate_mib?: 1–1024, quota_mib?: 1–8192}` → [`LogCfg`] (defaults: log, 64, 1024).
+/// `allow_other_keys` = the whole `uart.log.start` args (channel etc. ignored); `false` = the `uart.open.log` object
+/// (unknown key → `E_USAGE`). See FUNCTIONS.md §B4.2.
+pub(crate) fn parse_log_cfg(v: &Value, allow_other_keys: bool) -> Result<LogCfg, WorkerError> {
+    let Value::Object(m) = v else {
+        return Err(werr(ErrorCode::Usage, "log must be an object"));
+    };
+    if !allow_other_keys && let Some(k) = m.keys().find(|k| !LOG_KEYS.contains(&k.as_str())) {
+        return Err(werr(ErrorCode::Usage, format!("unknown log field '{k}'")));
+    }
+    let format = match m.get("format") {
+        None | Some(Value::Null) => LogFormat::Log,
+        Some(Value::String(s)) if s == "log" => LogFormat::Log,
+        Some(Value::String(s)) if s == "jsonl" => LogFormat::Jsonl,
+        Some(x) => return Err(werr(ErrorCode::Usage, format!("bad log format: {x} (log|jsonl)"))),
+    };
+    let mib = |key: &str, default: u64, min: u64, max: u64| -> Result<u64, WorkerError> {
+        match m.get(key) {
+            None | Some(Value::Null) => Ok(default),
+            Some(x) => match x.as_u64() {
+                Some(n) if (min..=max).contains(&n) => Ok(n),
+                _ => Err(werr(ErrorCode::Usage, format!("bad {key}: {x} ({min}–{max})"))),
+            },
+        }
+    };
+    let rotate = mib(
+        "rotate_mib",
+        LOG_ROTATE_DEFAULT_MIB,
+        LOG_ROTATE_MIN_MIB,
+        LOG_ROTATE_MAX_MIB,
+    )?;
+    let quota = mib("quota_mib", LOG_QUOTA_DEFAULT_MIB, 1, LOG_QUOTA_MAX_MIB)?;
+    Ok(LogCfg {
+        format,
+        rotate_bytes: rotate * 1_048_576,
+        quota_bytes: quota * 1_048_576,
+    })
+}
+
+/// B4: `{active, dir, file, format, rotate_mib, quota_mib, files, bytes_written, dir_bytes, dropped_records,
+/// dropped_bytes, stopped}` (`cfg` None → format/rotate/quota null). See §B4.2.
+pub(crate) fn log_json(st: &LogStats, cfg: Option<&LogCfg>) -> Value {
+    let path = |p: &std::path::Path| -> Value {
+        if p.as_os_str().is_empty() {
+            Value::Null
+        } else {
+            json!(p.to_string_lossy())
+        }
+    };
+    json!({
+        "active": st.active,
+        "dir": path(&st.dir),
+        "file": st.file.as_deref().map(|f| f.to_string_lossy().into_owned()),
+        "format": cfg.map(|c| if c.format == LogFormat::Jsonl { "jsonl" } else { "log" }),
+        "rotate_mib": cfg.map(|c| c.rotate_bytes / 1_048_576),
+        "quota_mib": cfg.map(|c| c.quota_bytes / 1_048_576),
+        "files": st.files,
+        "bytes_written": st.bytes_written,
+        "dir_bytes": st.dir_bytes,
+        "dropped_records": st.dropped_records,
+        "dropped_bytes": st.dropped_bytes,
+        "stopped": st.stopped,
+    })
 }
 
 /// String argument.

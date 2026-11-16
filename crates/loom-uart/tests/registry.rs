@@ -53,7 +53,10 @@ fn help_lists_m1_verbs_as_available() {
     let send = verbs.iter().find(|v| v["method"] == "uart.send").unwrap();
     assert_eq!(send["available"], true);
     let sig = verbs.iter().find(|v| v["method"] == "uart.signal").unwrap();
-    assert_eq!(sig["available"], false);
+    // operator-upgrade B3 (U6): uart.signal is implemented (M1); B2 added uart.pacing.
+    assert_eq!(sig["available"], true);
+    let pacing = verbs.iter().find(|v| v["method"] == "uart.pacing").unwrap();
+    assert_eq!(pacing["available"], true);
     assert!(VERBS.iter().filter(|v| available(v)).count() >= 9);
 }
 
@@ -78,8 +81,16 @@ fn uart_data_schema_requires_bytes_unless_secret() {
                 .iter()
                 .any(|b| has_all(&b["required"], &v))
     };
-    assert!(valid(json!({"bytes": {"encoding": "base64", "data": "aGk="}, "len": 2})));
+    assert!(valid(
+        json!({"bytes": {"encoding": "base64", "data": "aGk="}, "len": 2})
+    ));
     assert!(valid(json!({"len": 8, "secret": {"len": 8}})));
-    assert!(!valid(json!({"len": 8})), "non-secret payload without bytes must be invalid");
-    assert!(!valid(json!({"bytes": {"encoding": "base64", "data": ""}})), "len is required");
+    assert!(
+        !valid(json!({"len": 8})),
+        "non-secret payload without bytes must be invalid"
+    );
+    assert!(
+        !valid(json!({"bytes": {"encoding": "base64", "data": ""}})),
+        "len is required"
+    );
 }

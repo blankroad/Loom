@@ -39,6 +39,14 @@ export interface UartPortState {
   parity?: string;
   stopBits?: string;
   flow?: string;
+  /** B6: transmit pacing reported by uart.config (absent = not reported) */
+  pacing?: { charMs: number; lineMs: number };
+  /** B6: reconnect setting/progress from uart.state `reconnect` (+ `reason` when an episode ended without reopening) */
+  reconnect?: { enabled: boolean; windowMs: number; active: boolean; attempts: number; reason: string | null };
+  /** B6: native log from uart.log events */
+  log?: { active: boolean; format: string | null; file: string | null; stopped: string | null };
+  /** B6: line levels from uart.signal events (null = never set by Loom) */
+  lines?: { dtr: boolean | null; rts: boolean | null };
 }
 
 export const INITIAL_INPUT: UartInputState = {
@@ -91,9 +99,48 @@ function reduceInputState(st: UartInputState, kind: string, payload: unknown, no
   }
 }
 
+/** B6: port event kinds the reducer reads */
+export const PORT_KINDS: readonly string[] = ['uart.state', 'uart.config', 'uart.log', 'uart.signal'];
+
+/** B6: status-line text for pacing / reconnect / log / line levels, or null when none is reported. §B6.2 */
+export function portExtrasText(p: UartPortState): string | null {
+  const parts: string[] = [];
+  if (p.pacing && (p.pacing.charMs > 0 || p.pacing.lineMs > 0)) parts.push(`TX 지연 문자 ${p.pacing.charMs} ms · 줄 ${p.pacing.lineMs} ms`);
+  if (p.reconnect) {
+    const r = p.reconnect;
+    if (r.active) parts.push(`재연결 중 (시도 ${r.attempts}, 최대 ${r.windowMs / 1000} s)`);
+    else if (r.reason) {
+      const why = r.reason === 'gave_up' ? '시간 초과' : r.reason === 'identity_mismatch' ? '다른 장치' : r.reason === 'stopped' ? 'STOP' : r.reason;
+      parts.push(`재연결 중단: ${why}`);
+    }
+  }
+  if (p.log) {
+    if (p.log.active) parts.push(`로그 기록 중 (.${p.log.format ?? '?'})`);
+    else if (p.log.stopped && p.log.stopped !== 'user' && p.log.stopped !== 'closed') parts.push(`로그 중지: ${p.log.stopped}`);
+  }
+  if (p.lines && (p.lines.dtr !== null || p.lines.rts !== null)) {
+    const lv = (v: boolean | null) => (v === null ? '?' : v ? 'on' : 'off');
+    parts.push(`DTR ${lv(p.lines.dtr)} · RTS ${lv(p.lines.rts)}`);
+  }
+  return parts.length ? parts.join(' · ') : null;
+}
+
 export function reducePort(st: UartPortState, ev: LoomEvent): UartPortState {
-  if (ev.kind !== 'uart.state' && ev.kind !== 'uart.config') return st;
-  return reducePortState(st, ev.payload, ev.generation);
+  if (!PORT_KINDS.includes(ev.kind)) return st;
+  if (ev.kind === 'uart.state' || ev.kind === 'uart.config') return reducePortState(st, ev.payload, ev.generation);
+  const p = obj(ev.payload);
+  if (ev.kind === 'uart.log') {
+    return {
+      ...st,
+      log: { active: p.state === 'started', format: s(p.format), file: s(p.file), stopped: p.state === 'stopped' ? (s(p.reason) ?? null) : null },
+    };
+  }
+  // uart.signal: only a successful dtr/rts change moves the displayed level
+  const level = p.value;
+  if (p.result !== 'ok' || (p.kind !== 'dtr' && p.kind !== 'rts') || typeof level !== 'boolean') return st;
+  const lines = { dtr: st.lines?.dtr ?? null, rts: st.lines?.rts ?? null };
+  lines[p.kind] = typeof p.duration_ms === 'number' ? !level : level;
+  return { ...st, lines };
 }
 
 function reducePortState(st: UartPortState, payload: unknown, generation?: number | null): UartPortState {
@@ -115,6 +162,22 @@ function reducePortState(st: UartPortState, payload: unknown, generation?: numbe
   if (parity !== undefined) next.parity = parity;
   if (stopBits !== undefined) next.stopBits = stopBits;
   if (flow !== undefined) next.flow = flow;
+  // B6 extras: kept across events, replaced only when an event reports them
+  const pc = obj(p.pacing);
+  const charMs = n(pc.char_delay_ms);
+  const lineMs = n(pc.line_delay_ms);
+  const pacing = charMs !== null && lineMs !== null ? { charMs, lineMs } : st.pacing;
+  if (pacing !== undefined) next.pacing = pacing;
+  let reconnect = st.reconnect;
+  if (typeof p.reconnect === 'object' && p.reconnect !== null) {
+    const r = obj(p.reconnect);
+    reconnect = { enabled: r.enabled === true, windowMs: n(r.window_ms) ?? 0, active: r.active === true, attempts: n(r.attempts) ?? 0, reason: s(p.reason) ?? null };
+  } else if (reconnect && (p.state === 'open' || p.state === 'closed')) {
+    reconnect = { ...reconnect, active: false, reason: null };
+  }
+  if (reconnect !== undefined) next.reconnect = reconnect;
+  if (st.log !== undefined) next.log = st.log;
+  if (st.lines !== undefined) next.lines = st.lines;
   return next;
 }
 

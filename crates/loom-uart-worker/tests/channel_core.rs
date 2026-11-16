@@ -1134,7 +1134,10 @@ fn secret_tx_reaches_device_but_payload_and_ring_hold_no_bytes() {
     assert_eq!(payload["len"], 8);
     assert_eq!(payload["secret"]["len"], 8);
     let flat = payload.to_string();
-    assert!(!flat.contains("hunter2") && !flat.contains("aHVudGVyMg"), "{flat}");
+    assert!(
+        !flat.contains("hunter2") && !flat.contains("aHVudGVyMg"),
+        "{flat}"
+    );
     // Ring: the TX row shows the mask; no read/lines view yields the original.
     let v = r
         .core

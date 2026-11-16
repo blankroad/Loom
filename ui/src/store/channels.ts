@@ -179,6 +179,12 @@ export function defaultPanelFor(domain: string, channel: string): { panel: strin
   return view ? { panel: view.panel, props: view.props } : null;
 }
 
+/** UART B8 (U8): text of the "channel opened" toast. See FUNCTIONS.md §B8. */
+export function openedToastText(origin: string, what: string, reopen: boolean): string {
+  if (origin === 'device') return `${what} ${reopen ? '다시 열림' : '열림'}`;
+  return `${ORIGIN_SUBJECT[origin] ?? `${origin}가`} ${what}를 ${reopen ? '다시 열었습니다' : '열었습니다'}`;
+}
+
 export const ORIGIN_SUBJECT: Record<string, string> = {
   agent: '에이전트가',
   user: '사용자가',

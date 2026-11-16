@@ -9,7 +9,7 @@ use loom_uart_worker::bridge::{BridgeItem, BridgeRx, PopError, bridge};
 use loom_uart_worker::clock::{SeqSource, SystemClock};
 use loom_uart_worker::reader::Reader;
 use loom_uart_worker::transport::Transport;
-use loom_uart_worker::tx::{TxActor, TxDone, TxEvent, TxHandle, TxLane, TxRequest, event_channel};
+use loom_uart_worker::tx::{Pacing, TxActor, TxDone, TxEvent, TxHandle, TxLane, TxRequest, event_channel};
 
 /// Default wait for device output in tests (§ common rules: sleeps/waits ≤ 2 s each).
 pub const WAIT: Duration = Duration::from_secs(2);
@@ -57,6 +57,7 @@ impl Session {
                 bytes: bytes.to_vec(),
                 secret: false,
                 deadline: Instant::now() + WAIT,
+                pacing: Pacing::NONE,
             })
             .expect("submit");
         let end = Instant::now() + WAIT;

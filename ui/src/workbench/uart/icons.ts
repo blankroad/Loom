@@ -26,6 +26,7 @@ export const ICONS: Record<string, string> = {
   "up": "<path d=\"M8 10.5v-8M4.5 6 8 2.5 11.5 6M3 13.5h10\"/>",
   "kbd": "<rect x=\"1.5\" y=\"4\" width=\"13\" height=\"8.5\" rx=\"1.5\"/><path d=\"M4 7h.01M6.5 7h.01M9 7h.01M11.5 7h.01M5 10h6\"/>",
   "sun": "<circle cx=\"8\" cy=\"8\" r=\"2.8\"/><path d=\"M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1\"/>",
+  "contrast": "<circle cx=\"8\" cy=\"8\" r=\"5.6\"/><path d=\"M8 2.4a5.6 5.6 0 0 1 0 11.2z\" fill=\"currentColor\"/>",
   "moon": "<path d=\"M13.2 9.8A5.6 5.6 0 0 1 6.2 2.8a5.6 5.6 0 1 0 7 7z\"/>",
   "reset": "<path d=\"M2.8 6.2A5.3 5.3 0 1 1 3 10M2.5 2.8v3.6h3.6\"/>",
   "more": "<path d=\"M3.5 8h.01M8 8h.01M12.5 8h.01\" stroke-width=\"2.6\"/>",

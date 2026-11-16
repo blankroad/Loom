@@ -30,6 +30,10 @@ import {
 import './uart.css';
 import { ByteLog, rowAscii, rowHex, rowsToHex, type ByteRow } from './byteLog';
 import { createSendString, routeFor } from './sendString';
+import { compileQuery, DEFAULT_SEARCH_OPTIONS, searchBuffer, searchCountText, stepHit, type SearchHit, type SearchOptions } from './scrollSearch';
+import { connClass, headerMode, identityPlan, identityTitle, toolPlacement, type HeaderMode, type ToolId } from './paneLayout';
+import { compileRules, HIGHLIGHT_CSS, HIGHLIGHT_MAX_DECORATIONS, matchLine, type CompiledRule } from './highlight';
+import { downloadText, EXPORT_QUERY, EXPORT_RECENT_MINUTES, runExport, summaryText, type ExportFormat, type ExportProgress, type ExportRange, type ExportSummary } from './journalExport';
 // The UART workbench (shell-side) never gives this panel daemon access: the panel registers a handle whose sends
 // go through its own ctx.act('input') path; the workbench only supplies local prefs, scopes and run state.
 import { EOLS, uartBench, type EolKey } from '../../workbench/uart/workbench';
@@ -41,6 +45,8 @@ import {
   INITIAL_INPUT,
   inputChip,
   isOpenStatus,
+  portExtrasText,
+  PORT_KINDS,
   reduceInput,
   reducePort,
   restoreUartState,
@@ -49,7 +55,7 @@ import {
   type UartPortState,
 } from './uartState';
 
-const PALETTE: { label: string; byte?: number; signal?: string; title: string }[] = [
+const PALETTE: { label: string; byte?: number; signal?: string; title: string; value?: boolean; ms?: number; line?: boolean }[] = [
   { label: 'Ctrl-W', byte: 0x17, title: '단어 지우기 (브라우저가 가로채는 키)' },
   { label: 'Ctrl-T', byte: 0x14, title: '0x14' },
   { label: 'Ctrl-N', byte: 0x0e, title: '0x0E' },
@@ -58,6 +64,9 @@ const PALETTE: { label: string; byte?: number; signal?: string; title: string }[
   { label: 'Tab', byte: 0x09, title: '0x09' },
   { label: 'Ctrl-C', byte: 0x03, title: '0x03 (즉시)' },
   { label: 'Break', signal: 'break', title: 'UART break 신호 (uart.signal)' },
+  // B6 (U6): reset-style line pulses — they can reset the board, so they go through a confirm card (action `signalLine`)
+  { label: 'DTR 펄스', signal: 'dtr', value: false, ms: 100, line: true, title: 'DTR 100 ms 내렸다 올리기 (보드 리셋에 쓰임 · 확인 후 전송)' },
+  { label: 'RTS 펄스', signal: 'rts', value: false, ms: 100, line: true, title: 'RTS 100 ms 내렸다 올리기 (부트 모드 진입에 쓰임 · 확인 후 전송)' },
 ];
 
 const RX_WINDOW_MS = 1_000;
@@ -81,7 +90,6 @@ const XTHEME = {
 };
 const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} kB` : `${(n / 1048576).toFixed(2)} MB`);
 const CONN_LABEL: Record<string, string> = { open: '연결됨', closed: '닫힘', disconnected: '장치 없음', reconnecting: '재연결 대기', '?': '상태 확인 중' };
-const connClass = (status: string) => (isOpenStatus(status) ? 'connected' : /disconn|lost/i.test(status) ? 'lost' : /reconn|wait/i.test(status) ? 'waiting' : status === '?' ? 'unknown' : 'disconnected');
 const PAUSE_CAP = 2 * 1024 * 1024;
 
 export function createUartTerminal(ctx: PanelContext): PanelInstance {
@@ -123,6 +131,63 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   let rec: Recorder | null = null;
   let recPicking = false;
   let recDialog: HTMLDialogElement | null = null;
+  // U1-B (B5): journal export of a past range — running export (cancel) and the last result summary
+  let jx: { ac: AbortController; progress: ExportProgress } | null = null;
+  let jxLast: ExportSummary | null = null;
+  /** dialog selection kept across re-renders of the REC dialog */
+  const jxSel: { kind: ExportRange['kind']; minutes: number } = { kind: 'retained', minutes: 15 };
+  // U5b (B6): compiled highlight rules of this channel's session and the live decorations (oldest disposed first)
+  let hlRules: CompiledRule[] = [];
+  let hlKey = '';
+  const hlDecos: { dispose(): void }[] = [];
+  /** B6 §B6.4: recompile when the session's rules change; decorate logical lines from buffer row `fromRow` on. */
+  function applyHighlights(fromRow: number): void {
+    const session = uartBench.sessionFor(channel);
+    const key = JSON.stringify([session?.highlights ?? [], session?.scrollback ?? null]);
+    let from = fromRow;
+    if (key !== hlKey) {
+      hlKey = key;
+      const { compiled, errors } = compileRules(session?.highlights ?? []);
+      hlRules = compiled;
+      for (const d of hlDecos.splice(0)) {
+        try {
+          d.dispose();
+        } catch {
+          /* already disposed */
+        }
+      }
+      try {
+        term.term.options.scrollback = session?.scrollback ?? 10_000;
+      } catch {
+        /* terminal not open (tests) */
+      }
+      wrap.dataset.hlRules = String(hlRules.length);
+      wrap.dataset.hlErrors = String(errors.length);
+      from = 0; // new rules: the whole buffer is decorated again
+    }
+    if (hlRules.length === 0) return;
+    try {
+      const buf = term.term.buffer.active;
+      const cursorAbs = buf.baseY + buf.cursorY;
+      for (let row = Math.max(0, from); row < buf.length; row++) {
+        const text = buf.getLine(row)?.translateToString(true);
+        if (!text) continue;
+        for (const span of matchLine(text, hlRules)) {
+          try {
+            const marker = term.term.registerMarker(row - cursorAbs);
+            if (!marker) continue;
+            const deco = term.term.registerDecoration({ marker, x: span.start, width: span.end - span.start, backgroundColor: HIGHLIGHT_CSS[span.color] });
+            hlDecos.push(deco ?? marker);
+            while (hlDecos.length > HIGHLIGHT_MAX_DECORATIONS) hlDecos.shift()?.dispose();
+          } catch {
+            /* decorations are best-effort; writing is never affected */
+          }
+        }
+      }
+    } catch {
+      /* terminal not open / buffer unavailable */
+    }
+  }
   const bytes = new ByteLog();
   const wallOf = (ev: LoomEvent): number => {
     try {
@@ -290,6 +355,10 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   const moreBtn = ibtn('more', 'more', '더보기: 입력권·특수 키, 로그 저장', () => { leaseOpen = !leaseOpen; ctx.scheduler.invalidate(); });
   tools.append(viewGroup, pauseBtn, clearViewBtn, tsBtn, recBtn, eolSel, macroBtn, searchBtn, sendStrBtn, themeBtn, plugBtn, gearBtn, moreBtn);
   head.append(target, chipEl, tools);
+  // U7 (FUNCTIONS §B1.4): every header tool by id; applyHeaderMode moves these same nodes between header and ⋯ row
+  const toolEls: Record<ToolId, HTMLElement> = { view: viewGroup, pause: pauseBtn, clear: clearViewBtn, ts: tsBtn, rec: recBtn, eol: eolSel, macro: macroBtn, search: searchBtn, send: sendStrBtn, theme: themeBtn, plug: plugBtn, gear: gearBtn, more: moreBtn };
+  head.dataset.mode = 'full';
+  aliasEl.title = channel;
 
   // input lease / special keys (existing product controls; shown on demand or when the lease needs attention)
   const lease = el('div', 'uart-lease');
@@ -308,16 +377,45 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     palette.append(
       btn(k.label, k.title, () => {
         if (k.byte !== undefined) term.sendBytes(new Uint8Array([k.byte]));
-        else if (k.signal) void act('signal', { channel, kind: k.signal });
+        else if (k.signal) {
+          void act(k.line ? 'signalLine' : 'signal', {
+            channel,
+            kind: k.signal,
+            ...(k.value !== undefined ? { value: k.value } : {}),
+            ...(k.ms ? { duration_ms: k.ms } : {}),
+          });
+        }
         if (view === 'terminal') term.focus();
       }, 'pill'),
     );
   }
   lease.append(leaseLbl, takeBtn, yieldBtn, clearBtn, holdBtn, keysLbl, palette);
+  const overflow = el('span', 'uart-overflow');
+  overflow.setAttribute('role', 'group');
+  overflow.setAttribute('aria-label', '숨긴 도구');
+  overflow.hidden = true;
+  const overflowLbl = el('span', 'uart-lease-l', '도구');
+  lease.prepend(overflow);
+  // U7: move the same tool nodes between the header and the ⋯ row by header width (listeners stay attached)
+  function applyHeaderMode(): void {
+    const m = headerMode(head.clientWidth);
+    if (m === null || m === headMode) return;
+    headMode = m;
+    head.dataset.mode = m;
+    const p = toolPlacement(m);
+    tools.replaceChildren(...p.header.map((id) => toolEls[id]));
+    overflow.replaceChildren(overflowLbl, ...p.overflow.map((id) => toolEls[id]));
+    overflow.hidden = p.overflow.length === 0;
+    moreBtn.title = p.overflow.length ? '더보기: 숨긴 도구 · 입력권 · 특수 키' : '더보기: 입력권·특수 키, 로그 저장';
+    ctx.scheduler.invalidate();
+  }
+  const headObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => applyHeaderMode());
 
   // search (xterm scrollback; Enter next, Shift+Enter previous)
   let searchOpen = false;
-  let hits: { y: number; x: number }[] = [];
+  let hits: SearchHit[] = [];
+  const searchOpts: SearchOptions = { ...DEFAULT_SEARCH_OPTIONS }; // toggled in place by setSearchOption (FUNCTIONS §B1.3)
+  let headMode: HeaderMode = 'full';
   let hitAt = -1;
   const search = el('div', 'search');
   search.dataset.tab = channel;
@@ -329,22 +427,41 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   const scount = el('span', 'count');
   scount.dataset.role = 'count';
   const sclose = ibtn('search-close', 'x', '검색 닫기', () => setSearch(false));
-  search.append(sq, scount, sclose);
+  sq.title = 'xterm 스크롤백 안에서 검색 · 줄바꿈된 긴 줄은 이어서 검색 · 더 오래된 기록은 데몬 저널';
+  const caseBtn = pill('search-case', 'Aa', '대소문자 구분 (켜면 정확히 일치)', () => setSearchOption('caseSensitive'), 'uart-search-case');
+  caseBtn.setAttribute('aria-pressed', String(searchOpts.caseSensitive));
+  const regexBtn = pill('search-regex', '.*', '정규식 (JavaScript 문법) — 복잡한 패턴은 화면을 잠시 멈출 수 있음', () => setSearchOption('regex'), 'uart-search-regex');
+  regexBtn.setAttribute('aria-pressed', String(searchOpts.regex));
+  const searchHint = el('span', 'search-hint', '정규식: 복잡한 패턴은 화면을 잠시 멈출 수 있습니다 · 최대 10,000건 · 스크롤백 범위만');
+  searchHint.dataset.role = 'search-hint';
+  searchHint.hidden = !searchOpts.regex;
+  search.append(sq, caseBtn, regexBtn, searchHint, scount, sclose);
+  function setSearchOption(key: keyof SearchOptions): void {
+    searchOpts[key] = !searchOpts[key];
+    caseBtn.setAttribute('aria-pressed', String(searchOpts.caseSensitive));
+    regexBtn.setAttribute('aria-pressed', String(searchOpts.regex));
+    searchHint.hidden = !searchOpts.regex;
+    hitAt = -1;
+    runSearch(1);
+    sq.focus();
+  }
   const runSearch = (dir: 1 | -1) => {
-    const q = sq.value;
-    const buf = term.term.buffer.active;
-    hits = [];
-    if (q) for (let y = 0; y < buf.length; y++) {
-      const line = buf.getLine(y)?.translateToString(true) ?? '';
-      let i = line.indexOf(q);
-      while (i >= 0) { hits.push({ y, x: i }); i = line.indexOf(q, i + Math.max(1, q.length)); }
+    const cq = compileQuery(sq.value, searchOpts);
+    const res = searchBuffer(term.term.buffer.active, term.term.cols, cq);
+    hits = res.hits;
+    if (cq.kind === 'error') scount.dataset.state = 'error';
+    else delete scount.dataset.state;
+    if (!hits.length) {
+      hitAt = -1;
+      scount.textContent = searchCountText(cq, res, -1);
+      term.term.clearSelection();
+      return;
     }
-    if (!hits.length) { hitAt = -1; scount.textContent = q ? '0건' : ''; term.term.clearSelection(); return; }
-    hitAt = hitAt < 0 ? (dir > 0 ? 0 : hits.length - 1) : (hitAt + dir + hits.length) % hits.length;
+    hitAt = stepHit(hitAt, hits.length, dir);
     const h = hits[hitAt]!;
-    term.term.select(h.x, h.y, q.length);
-    term.term.scrollToLine(Math.max(0, h.y - Math.floor(term.term.rows / 2)));
-    scount.textContent = `${hitAt + 1}/${hits.length}`;
+    term.term.select(h.col, h.row, h.cells);
+    term.term.scrollToLine(Math.max(0, h.row - Math.floor(term.term.rows / 2)));
+    scount.textContent = searchCountText(cq, res, hitAt);
   };
   sq.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); runSearch(e.shiftKey ? -1 : 1); }
@@ -499,7 +616,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     wrap.className = `term-wrap t-${theme}`;
     wrap.dataset.theme = theme;
     term.term.options.theme = XTHEME[theme];
-    themeBtn.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon');
+    themeBtn.innerHTML = icon('contrast');
     themeBtn.title = `이 터미널만 ${theme === 'dark' ? '밝게' : '어둡게'}`;
     themeBtn.setAttribute('aria-label', `터미널 테마 전환 (현재 ${theme === 'dark' ? '어두움' : '밝음'})`);
   }
@@ -606,11 +723,21 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   term.term.onScroll(() => gutterSoon());
   /** device bytes → xterm unchanged; the gutter stamp is UI metadata applied after the chunk is parsed */
   function writeChunk(b: Uint8Array, t: number): void {
+    let firstRow = 0;
+    try {
+      const buf = term.term.buffer.active;
+      firstRow = buf.baseY + buf.cursorY;
+    } catch {
+      /* terminal not open (tests) */
+    }
     term.write(b);
     let nl = 0;
     for (const x of b) if (x === 0x0a) nl++;
     try {
-      term.term.write('', () => markRows(t, nl));
+      term.term.write('', () => {
+        markRows(t, nl);
+        applyHighlights(firstRow);
+      });
     } catch {
       /* terminal not open (tests) */
     }
@@ -660,6 +787,43 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       recChanged();
     }
   }
+  /** B5 §B5.2: run one journal export (one at a time) and hand the file to the download path. */
+  async function startJournalExport(range: ExportRange, format: ExportFormat): Promise<void> {
+    if (jx) return;
+    const ac = new AbortController();
+    jx = { ac, progress: { phase: 'locate', pages: 0, events: 0, outBytes: 0 } };
+    recChanged();
+    try {
+      const r = await runExport({
+        query: (rpc, p, sig) => ctx.query(rpc, p, sig),
+        channel,
+        range,
+        format,
+        signal: ac.signal,
+        nowMs: Date.now(),
+        onProgress: (p) => {
+          if (jx) jx.progress = p;
+          recChanged();
+        },
+      });
+      jxLast = r;
+      if (r.incomplete.includes('cancelled')) {
+        ctx.ui.toast('저널 내보내기 취소 — 파일을 만들지 않았습니다');
+      } else {
+        const d = downloadText(r.fileName, r.text, format);
+        ctx.ui.toast(
+          d.requested
+            ? `다운로드 요청: ${r.fileName} (${fmtBytes(d.bytes)}) · ${summaryText(r)} — 저장 완료 여부는 브라우저/앱의 다운로드에서 확인하세요`
+            : `다운로드를 요청할 수 없습니다 (${r.fileName}) — 이 환경은 다운로드를 지원하지 않습니다`,
+        );
+      }
+    } catch (e) {
+      ctx.ui.toast(`저널 내보내기 실패: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      jx = null;
+      recChanged();
+    }
+  }
   function fillRecDialog(): void {
     const d = recDialog;
     if (!d) return;
@@ -680,9 +844,20 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
         <pre class="preview" data-role="rectail"></pre>
         <div class="err-text" data-role="err"></div>
         <p class="hint">데몬 저널은 이 기록과 별개로 항상 남습니다(헤더 REC). 파일 기록은 이 브라우저가 파일 저장 선택기를 제공할 때만 가능하며${hasFilePicker() ? '' : ' — <b>이 환경에는 없어 버퍼 기록 후 내보내기를 씁니다</b>'}. 새로 고침해도 기록은 자동으로 다시 시작하지 않습니다.</p>
+        <fieldset data-role="jx" ${jx ? 'disabled' : ''}><legend>지난 구간 내보내기 (데몬 저널)</legend><div class="chk-row">
+          <label class="chk"><input type="radio" name="jxrange" value="retained" ${jxSel.kind === 'retained' ? 'checked' : ''}> 보존 범위 전체</label>
+          <label class="chk"><input type="radio" name="jxrange" value="recent" ${jxSel.kind === 'recent' ? 'checked' : ''}> 최근 <select data-act="jx-minutes">${EXPORT_RECENT_MINUTES.map((m) => `<option value="${m}" ${m === jxSel.minutes ? 'selected' : ''}>${m}분</option>`).join('')}</select></label>
+          <label class="chk"><input type="radio" name="jxrange" value="generation" ${jxSel.kind === 'generation' ? 'checked' : ''} ${port.generation === null ? 'disabled' : ''}> 현재 연결 (gen ${port.generation ?? '?'})</label></div></fieldset>
+        <div class="hint" data-role="jxstat"></div>
+        <p class="hint">REC를 켜기 전 구간도 데몬 저널 보존 범위 안이면 내보낼 수 있습니다. 형식은 위 선택(.log/.jsonl)을 따릅니다. 이전 데몬 실행의 기록은 포함하지 않으며, 파일 머리글에 실제 범위·완전성·공백을 적습니다.</p>
+        <fieldset data-role="nlog"><legend>네이티브 로그 파일 (데몬 쪽, 계속 기록)</legend>
+          <div class="hint">$LOOM_HOME/uart/logs/${channel}/ — 열기 옵션 또는 여기서 시작 · 용량 한도에서 멈춤(삭제 없음) · 파일에 stream seq 없음</div>
+          <div class="hint" data-role="nlogstat"></div>
+          <div class="chk-row">${port.log?.active ? '<button type="button" class="btn" data-act="nlog-stop">로그 중지</button>' : '<button type="button" class="btn" data-act="nlog-start">로그 시작</button>'}</div></fieldset>
       </div>
       <div class="dlg-f">
         ${rec && rec.sink === 'buffer' && rec.state !== 'recording' && rec.state !== 'stopping' ? '<button type="button" class="btn" data-act="rec-export">' + icon('down') + '내보내기</button>' : ''}
+        ${jx ? '<button type="button" class="btn" data-act="jx-cancel">' + icon('stop') + '내보내기 취소</button>' : '<button type="button" class="btn" data-act="jx-start">' + icon('down') + '저널에서 내보내기</button>'}
         <span class="grow"></span>
         <button type="button" class="btn" data-act="rec-close">닫기</button>
         ${running ? '<button type="button" class="btn danger" data-act="rec-stop">' + icon('stop') + '기록 중지</button>'
@@ -700,6 +875,34 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
       tailEl.textContent = rec.tail.join('\n') || '(아직 줄 없음)';
       errEl.textContent = rec.error ?? '';
     } else tailEl.hidden = true;
+    const jxStat = form.querySelector<HTMLElement>('[data-role=jxstat]')!;
+    if (jx) {
+      const pr = jx.progress;
+      jxStat.textContent = pr.phase === 'locate' ? '범위 찾는 중…' : `저널 읽는 중 · 페이지 ${pr.pages} · ${pr.events}건 · ${fmtBytes(pr.outBytes)}`;
+    } else jxStat.textContent = jxLast ? `마지막 내보내기: ${summaryText(jxLast)}` : '';
+    form.querySelectorAll<HTMLInputElement>('input[name=jxrange]').forEach((i) =>
+      i.addEventListener('change', () => {
+        if (i.checked) jxSel.kind = i.value as ExportRange['kind'];
+      }),
+    );
+    form.querySelector<HTMLSelectElement>('[data-act=jx-minutes]')?.addEventListener('change', (e) => {
+      const m = Number((e.target as HTMLSelectElement).value);
+      if (Number.isFinite(m)) jxSel.minutes = m;
+    });
+    d.querySelector('[data-act=jx-start]')?.addEventListener('click', () => {
+      const range: ExportRange =
+        jxSel.kind === 'recent'
+          ? { kind: 'recent', minutes: jxSel.minutes }
+          : jxSel.kind === 'generation' && port.generation !== null
+            ? { kind: 'generation', generation: port.generation }
+            : { kind: 'retained' };
+      void startJournalExport(range, fmt());
+    });
+    d.querySelector('[data-act=jx-cancel]')?.addEventListener('click', () => jx?.ac.abort());
+    const nlogStat = form.querySelector<HTMLElement>('[data-role=nlogstat]')!;
+    nlogStat.textContent = port.log?.active ? `기록 중 · ${port.log.file ?? ''}` : port.log ? `중지됨 (${port.log.stopped ?? '-'})` : '꺼짐';
+    d.querySelector('[data-act=nlog-start]')?.addEventListener('click', () => void act('logStart', { channel, format: fmt() }));
+    d.querySelector('[data-act=nlog-stop]')?.addEventListener('click', () => void act('logStop', { channel }));
     d.querySelector('[data-act=rec-close]')?.addEventListener('click', () => d.close());
     d.querySelector('[data-act=rec-buffer]')?.addEventListener('click', () => void startRec('buffer', read()));
     d.querySelector('[data-act=rec-file]')?.addEventListener('click', () => void startRec('file', read()));
@@ -854,7 +1057,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   }
   /** uart.state / uart.config with a per-port seq guard (control path and data/backlog path share it) */
   function applyPort(ev: LoomEvent): boolean {
-    if (ev.kind !== 'uart.state' && ev.kind !== 'uart.config') return false;
+    if (!PORT_KINDS.includes(ev.kind)) return false;
     let seq: bigint;
     try {
       seq = BigInt(ev.seq);
@@ -865,6 +1068,7 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     portSeq = seq;
     const before = port.status;
     port = reducePort(port, ev);
+    if (ev.kind === 'uart.log' && recDialog?.open) fillRecDialog();
     if (ev.kind === 'uart.state' && port.status !== before) {
       openSinceWallMs = isOpenStatus(port.status) ? wallOf(ev) || null : null;
       if (before !== '?' && !isOpenStatus(port.status)) {
@@ -918,11 +1122,17 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     portEl.textContent = `UART ${channel} ● ${port.status}${port.baud ? ` ${port.baud}` : ''}${
       port.generation !== null ? ` gen${port.generation}` : ''
     } [${(ctx.env ?? '?').toUpperCase()}]`;
+    const ip = identityPlan(headMode);
     pathEl.textContent = port.path ?? sess?.port ?? '';
+    pathEl.hidden = !ip.path;
+    countEl.hidden = !ip.counts;
     const frame = frameText(port);
-    frameEl.textContent = [port.baud ? `${port.baud} ${frame ? frame.replace(/-/g, '') : ''}`.trim() : '', port.flow ?? '', prefs.eol].filter(Boolean).join(' · ');
+    const fullFrame = [port.baud ? `${port.baud} ${frame ? frame.replace(/-/g, '') : ''}`.trim() : '', port.flow ?? '', prefs.eol].filter(Boolean).join(' · ');
+    frameEl.textContent = ip.frame === 'full' ? fullFrame : port.baud ? String(port.baud) : '';
     frameEl.title = `${port.path ?? ''}${frame ? ` / ${frame}` : ''}${openSinceWallMs !== null && isOpenStatus(port.status) ? ` · 연결 ${hms(Date.now() - openSinceWallMs)}` : ''}${port.generation !== null ? ` · gen${port.generation}` : ''}`;
     const cc = connClass(port.status);
+    dot.dataset.conn = cc;
+    target.title = identityTitle({ channel, stateLabel: CONN_LABEL[port.status] ?? port.status, path: port.path ?? sess?.port ?? null, frame: fullFrame, rx: fmtBytes(rxObserved), tx: fmtBytes(txObserved) });
     stateEl.className = `ph-state ${cc}`;
     stateEl.textContent = CONN_LABEL[port.status] ?? port.status;
     const bc = uartBench.bc;
@@ -1004,6 +1214,8 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
     const ex = expectText(input, t);
     if (ex) parts.push(ex);
     parts.push(`rx ${rate < 1024 ? `${rate} B/s` : `${(rate / 1024).toFixed(1)} KB/s`}`);
+    const ex2 = portExtrasText(port);
+    if (ex2) parts.push(ex2);
     if (st.blockedQueries || st.blockedAutoInput) parts.push(`차단 질의×${st.blockedQueries} 자동응답×${st.blockedAutoInput}`);
     if (st.droppedBytes) parts.push(`화면 생략 ${st.droppedBytes} B`);
     if (ctx.recordHealth !== 'ok') parts.push(`REC ${ctx.recordHealth}`);
@@ -1028,19 +1240,31 @@ export function createUartTerminal(ctx: PanelContext): PanelInstance {
   return {
     mount(host) {
       host.append(root);
+      applyHeaderMode();
+      headObserver?.observe(head);
       term.open(body);
       bodyObserver?.observe(body);
       fitSoon();
       ctx.scheduler.invalidate();
     },
     resize() {
+      applyHeaderMode();
       fitSoon();
       ctx.scheduler.invalidate();
     },
     dispose() {
       clearInterval(tick);
+      jx?.ac.abort();
+      for (const d of hlDecos.splice(0)) {
+        try {
+          d.dispose();
+        } catch {
+          /* already disposed */
+        }
+      }
       if (gRaf && typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(gRaf);
       bodyObserver?.disconnect();
+      headObserver?.disconnect();
       table.dispose();
       offAppend();
       offControl();
@@ -1070,6 +1294,9 @@ const uartActions = (
     ['hold', 'uart.hold', 'request', 'none'],
     ['unhold', 'uart.unhold', 'request', 'none'],
     ['signal', 'uart.signal', 'request', 'none'],
+    ['signalLine', 'uart.signal', 'request', 'card'],
+    ['logStart', 'uart.log.start', 'request', 'none'],
+    ['logStop', 'uart.log.stop', 'request', 'none'],
   ] as const
 ).map(([id, rpc, cls, confirm]) => ({ id, rpc, class: cls, right: 'operate' as const, confirm }));
 
@@ -1090,7 +1317,7 @@ registerPanel(
         mirrorRows: 4_000,
       },
     ],
-    queries: [],
+    queries: [EXPORT_QUERY],
     actions: uartActions,
     memory: { maxBytes: 8 * 1024 * 1024 }, // 2 MiB draw queue + scrollback + mirror
     render: { maxHz: 60, budgetMs: 4, lagTargetMs: 100 },

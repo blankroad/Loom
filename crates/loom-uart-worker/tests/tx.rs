@@ -11,8 +11,8 @@ use loom_uart_worker::transport::{
     PortConfig, RxHandle, Transport, TransportKind, WriteOutcome, WriteResult,
 };
 use loom_uart_worker::tx::{
-    AGENT_QUEUE_BYTES, AGENT_QUEUE_ITEMS, CTRLC_QUEUE_BYTES, CTRLC_QUEUE_ITEMS, ControlOp, SubmitError,
-    TX_CHUNK_MAX, TxActor, TxDone, TxErrorCode, TxEvent, TxLane, TxOrigin, TxRequest, TxState,
+    AGENT_QUEUE_BYTES, AGENT_QUEUE_ITEMS, CTRLC_QUEUE_BYTES, CTRLC_QUEUE_ITEMS, ControlOp, Pacing,
+    SubmitError, TX_CHUNK_MAX, TxActor, TxDone, TxErrorCode, TxEvent, TxLane, TxOrigin, TxRequest, TxState,
     USER_QUEUE_BYTES, USER_QUEUE_ITEMS, event_channel,
 };
 
@@ -189,6 +189,7 @@ fn req(id: u64, lane: TxLane, bytes: &[u8], within: Duration) -> TxRequest {
         bytes: bytes.to_vec(),
         secret: false,
         deadline: Instant::now() + within,
+        pacing: Pacing::NONE,
     }
 }
 
@@ -547,7 +548,8 @@ fn secret_request_writes_real_bytes_and_flags_every_chunk() {
     let mut secret = req(1, TxLane::Agent, b"hunter2\r", WAIT);
     secret.secret = true;
     h.submit(secret).expect("submit secret");
-    h.submit(req(2, TxLane::Agent, b"ls\r", WAIT)).expect("submit plain");
+    h.submit(req(2, TxLane::Agent, b"ls\r", WAIT))
+        .expect("submit plain");
     let events = collect_until_done(&erx, &[1, 2]);
     let sent: Vec<u8> = writes.lock().expect("lock").concat();
     assert_eq!(sent, b"hunter2\rls\r");

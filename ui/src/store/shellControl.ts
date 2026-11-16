@@ -134,14 +134,18 @@ export interface ChannelEntry {
   genChangedMs: number | null;
   /** stream seq of the state applied last (this connection); older control/snapshot states never overwrite it */
   stateSeq?: bigint | null;
+  /** UART B8 (U8): this tab has seen the channel open at least once (a later open is a re-open) */
+  everOpen?: boolean;
 }
 
 /** a channel the agent (or anyone) opened while this tab was watching */
 export interface ChannelOpened {
   entry: ChannelEntry;
   signal: ChannelSignal;
-  /** true = first time this tab sees it; false = re-opened after closed */
+  /** true = first time this tab sees it OPEN; false = re-opened after this tab saw it open and closed (UART B8) */
   isNew: boolean;
+  /** UART B8 (U8): this tab asked for this open itself (see `noteLocalOpen`) */
+  local: boolean;
 }
 
 export interface ShellErrorView {
@@ -189,6 +193,10 @@ const MAX_GAPS = 50; // ring: oldest overwritten
 const MAX_WORKERS = 64; // over: new workers ignored + counted
 /** after a (re)connect, implicit channel reports are treated as pre-existing (no toast) */
 export const JOIN_GRACE_MS = 3_000;
+/** UART B8: how long a UI-initiated open waits for its `open` state event */
+export const LOCAL_OPEN_TTL_MS = 30_000;
+/** UART B8: pending UI-initiated opens remembered at most (oldest dropped) */
+export const MAX_LOCAL_OPENS = 64;
 const MAX_CHANNELS = 64; // over: new channels ignored + counted
 const MAX_ERRORS = 20; // ring
 
@@ -209,6 +217,8 @@ export class ShellControlStore extends Emitter {
   automation = false;
   private automationPolicyStale = false;
   private openedListeners = new Set<(o: ChannelOpened) => void>();
+  /** UART B8: `${domain}/${channel}` → expiry ms of a pending UI-initiated open */
+  private localOpens = new Map<string, number>();
   /** client ms the connection last opened (join grace for the new-channel toast) */
   private connOpenedMs: number | null = null;
 
@@ -246,6 +256,20 @@ export class ShellControlStore extends Emitter {
     this.automation = on;
     this.changed();
   }
+  /** UART B8 (U8): this tab is about to open `domain/channel` itself (e.g. the UART workbench ▶). The next
+   * open state for that channel within LOCAL_OPEN_TTL_MS is reported with `local: true`. See FUNCTIONS.md §B8. */
+  noteLocalOpen(domain: string, channel: string, nowMs: number): void {
+    const key = `${domain}/${channel}`;
+    for (const [k, expiry] of this.localOpens) if (expiry < nowMs) this.localOpens.delete(k);
+    this.localOpens.delete(key);
+    this.localOpens.set(key, nowMs + LOCAL_OPEN_TTL_MS);
+    while (this.localOpens.size > MAX_LOCAL_OPENS) {
+      const oldest = this.localOpens.keys().next();
+      if (oldest.done) break;
+      this.localOpens.delete(oldest.value);
+    }
+  }
+
   onChannelOpened(cb: (o: ChannelOpened) => void): () => void {
     this.openedListeners.add(cb);
     return () => this.openedListeners.delete(cb);
@@ -370,6 +394,7 @@ export class ShellControlStore extends Emitter {
     const e = this.noteChannel(sig.domain, sig.channel, sig.generation, nowMs);
     if (!e) return;
     const before = e.state;
+    const reopen = e.everOpen === true;
     const seq = sig.seq ?? null;
     // an older state report (lower seq, e.g. a replayed/late delivery) never overrides a newer one
     const stale = seq !== null && e.stateSeq != null && seq <= e.stateSeq;
@@ -380,6 +405,7 @@ export class ShellControlStore extends Emitter {
     // A report establishes identity, not connectivity (e.g. PSU output-off telemetry).
     // Keep unknown until an explicit connection state is available.
     const opened = e.state === 'open' && before !== 'open';
+    if (e.state === 'open') e.everOpen = true;
     // join grace: right after (re)connecting, periodic state reports describe channels that
     // were already open before this tab — bar only. An explicit "opened" still toasts.
     const inGrace = this.connOpenedMs !== null && nowMs - this.connOpenedMs < JOIN_GRACE_MS;
@@ -387,7 +413,16 @@ export class ShellControlStore extends Emitter {
       e.addedLiveMs = null;
       return;
     }
-    if (opened) for (const cb of [...this.openedListeners]) cb({ entry: e, signal: sig, isNew: !existed });
+    if (opened) {
+      const lkey = `${sig.domain}/${sig.channel}`;
+      const expiry = this.localOpens.get(lkey);
+      let local = false;
+      if (expiry !== undefined) {
+        local = expiry >= nowMs;
+        this.localOpens.delete(lkey);
+      }
+      for (const cb of [...this.openedListeners]) cb({ entry: e, signal: sig, isNew: !reopen, local });
+    }
   }
 
   /** late join: channels from snapshot items are added without toasts (they predate this tab) */

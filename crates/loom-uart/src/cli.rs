@@ -102,6 +102,56 @@ impl DomainCli for UartCli {
                         Arg::new("env")
                             .long("env")
                             .value_parser(["sim", "bench", "vehicle"]),
+                    )
+                    .arg(
+                        Arg::new("char_delay")
+                            .long("char-delay")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=1000))
+                            .help("pace input: wait MS after every byte"),
+                    )
+                    .arg(
+                        Arg::new("line_delay")
+                            .long("line-delay")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=10_000))
+                            .help("pace input: wait MS after every line"),
+                    )
+                    .arg(
+                        Arg::new("reconnect")
+                            .long("reconnect")
+                            .action(ArgAction::SetTrue)
+                            .help("reopen the same device after an unplug (bounded window)"),
+                    )
+                    .arg(
+                        Arg::new("reconnect_window")
+                            .long("reconnect-window")
+                            .value_name("S")
+                            .value_parser(value_parser!(u64).range(1..=120))
+                            .requires("reconnect"),
+                    )
+                    .arg(
+                        Arg::new("log")
+                            .long("log")
+                            .value_name("FORMAT")
+                            .num_args(0..=1)
+                            .default_missing_value("log")
+                            .value_parser(["log", "jsonl"])
+                            .help("keep a native log file (default format: log)"),
+                    )
+                    .arg(
+                        Arg::new("log_rotate")
+                            .long("log-rotate")
+                            .value_name("MIB")
+                            .value_parser(value_parser!(u64).range(1..=1024))
+                            .requires("log"),
+                    )
+                    .arg(
+                        Arg::new("log_quota")
+                            .long("log-quota")
+                            .value_name("MIB")
+                            .value_parser(value_parser!(u64).range(1..=8192))
+                            .requires("log"),
                     ),
             )
             .subcommand(Command::new("close").about("Close a channel").arg(ch()))
@@ -136,7 +186,19 @@ impl DomainCli for UartCli {
                         .value_parser(value_parser!(u64).range(0..=600))
                         .default_value("10"),
                 )
-                .arg(Arg::new("dry_run").long("dry-run").action(ArgAction::SetTrue)),
+                .arg(Arg::new("dry_run").long("dry-run").action(ArgAction::SetTrue))
+                .arg(
+                    Arg::new("char_delay")
+                        .long("char-delay")
+                        .value_name("MS")
+                        .value_parser(value_parser!(u64).range(0..=1000)),
+                )
+                .arg(
+                    Arg::new("line_delay")
+                        .long("line-delay")
+                        .value_name("MS")
+                        .value_parser(value_parser!(u64).range(0..=10_000)),
+                ),
             )
             .subcommand(
                 Command::new("read")
@@ -193,7 +255,79 @@ impl DomainCli for UartCli {
                             .long("prompt")
                             .help("prompt regex (default: channel profile)"),
                     )
-                    .arg(timeout("30")),
+                    .arg(timeout("30"))
+                    .arg(
+                        Arg::new("char_delay")
+                            .long("char-delay")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=1000)),
+                    )
+                    .arg(
+                        Arg::new("line_delay")
+                            .long("line-delay")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=10_000)),
+                    ),
+            )
+            .subcommand(
+                Command::new("pacing")
+                    .about("Show or change the input pacing of a channel")
+                    .arg(ch())
+                    .arg(
+                        Arg::new("char")
+                            .long("char")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=1000)),
+                    )
+                    .arg(
+                        Arg::new("line")
+                            .long("line")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(0..=10_000)),
+                    ),
+            )
+            .subcommand(
+                Command::new("signal")
+                    .about("Break pulse, or set / pulse DTR or RTS")
+                    .arg(ch())
+                    .arg(
+                        Arg::new("kind")
+                            .required(true)
+                            .value_parser(["break", "dtr", "rts"]),
+                    )
+                    .arg(
+                        Arg::new("on")
+                            .long("on")
+                            .action(ArgAction::SetTrue)
+                            .conflicts_with("off"),
+                    )
+                    .arg(Arg::new("off").long("off").action(ArgAction::SetTrue))
+                    .arg(
+                        Arg::new("ms")
+                            .long("ms")
+                            .value_name("N")
+                            .value_parser(value_parser!(u64).range(1..=5000))
+                            .help("break length, or DTR/RTS pulse length"),
+                    ),
+            )
+            .subcommand(
+                Command::new("log")
+                    .about("Start or stop the native log file of a channel")
+                    .arg(ch())
+                    .arg(Arg::new("action").required(true).value_parser(["start", "stop"]))
+                    .arg(Arg::new("format").long("format").value_parser(["log", "jsonl"]))
+                    .arg(
+                        Arg::new("rotate")
+                            .long("rotate")
+                            .value_name("MIB")
+                            .value_parser(value_parser!(u64).range(1..=1024)),
+                    )
+                    .arg(
+                        Arg::new("quota")
+                            .long("quota")
+                            .value_name("MIB")
+                            .value_parser(value_parser!(u64).range(1..=8192)),
+                    ),
             )
     }
 
@@ -234,6 +368,35 @@ impl DomainCli for UartCli {
                 if !cfg.is_empty() {
                     put("config", Value::Object(cfg));
                 }
+                let mut pacing = Map::new();
+                if let Some(v) = a.get_one::<u64>("char_delay") {
+                    pacing.insert("char_delay_ms".into(), json!(v));
+                }
+                if let Some(v) = a.get_one::<u64>("line_delay") {
+                    pacing.insert("line_delay_ms".into(), json!(v));
+                }
+                if !pacing.is_empty() {
+                    put("pacing", Value::Object(pacing));
+                }
+                if a.get_flag("reconnect") {
+                    let mut rc = Map::new();
+                    rc.insert("enabled".into(), json!(true));
+                    if let Some(sec) = a.get_one::<u64>("reconnect_window") {
+                        rc.insert("window_ms".into(), json!(sec * 1000));
+                    }
+                    put("reconnect", Value::Object(rc));
+                }
+                if let Some(format) = s(a, "log") {
+                    let mut lg = Map::new();
+                    lg.insert("format".into(), json!(format));
+                    if let Some(v) = a.get_one::<u64>("log_rotate") {
+                        lg.insert("rotate_mib".into(), json!(v));
+                    }
+                    if let Some(v) = a.get_one::<u64>("log_quota") {
+                        lg.insert("quota_mib".into(), json!(v));
+                    }
+                    put("log", Value::Object(lg));
+                }
                 "uart.open"
             }
             "close" => {
@@ -270,6 +433,8 @@ impl DomainCli for UartCli {
                 put("timeout_ms", json!(t * 1000));
                 put("defer_timeout_ms", json!(d * 1000));
                 put("dry_run", json!(a.get_flag("dry_run")));
+                put("char_delay_ms", json!(a.get_one::<u64>("char_delay")));
+                put("line_delay_ms", json!(a.get_one::<u64>("line_delay")));
                 wait = Some(Duration::from_secs(t + d + REPLY_MARGIN_S));
                 "uart.send"
             }
@@ -320,10 +485,47 @@ impl DomainCli for UartCli {
                 put("data", json!(hex::encode(cmd.as_bytes())));
                 put("eol", json!("cr"));
                 put("prompt", json!(s(a, "prompt")));
+                put("char_delay_ms", json!(a.get_one::<u64>("char_delay")));
+                put("line_delay_ms", json!(a.get_one::<u64>("line_delay")));
                 let t = a.get_one::<u64>("timeout").copied().unwrap_or(30);
                 put("timeout_ms", json!(t * 1000));
                 wait = Some(Duration::from_secs(t + REPLY_MARGIN_S));
                 "uart.run"
+            }
+            "pacing" => {
+                put("channel", json!(s(a, "channel")));
+                put("char_delay_ms", json!(a.get_one::<u64>("char")));
+                put("line_delay_ms", json!(a.get_one::<u64>("line")));
+                "uart.pacing"
+            }
+            "signal" => {
+                put("channel", json!(s(a, "channel")));
+                let kind = s(a, "kind").unwrap_or_default();
+                let (on, off) = (a.get_flag("on"), a.get_flag("off"));
+                if kind == "break" && off {
+                    return Err(UsageError::new("break is a pulse"));
+                }
+                if kind != "break" && !on && !off {
+                    return Err(UsageError::new("dtr/rts need --on or --off"));
+                }
+                put("kind", json!(kind));
+                if on || off {
+                    put("value", json!(on));
+                }
+                put("duration_ms", json!(a.get_one::<u64>("ms")));
+                wait = Some(Duration::from_secs(10));
+                "uart.signal"
+            }
+            "log" => {
+                put("channel", json!(s(a, "channel")));
+                if s(a, "action").as_deref() == Some("stop") {
+                    "uart.log.stop"
+                } else {
+                    put("format", json!(s(a, "format")));
+                    put("rotate_mib", json!(a.get_one::<u64>("rotate")));
+                    put("quota_mib", json!(a.get_one::<u64>("quota")));
+                    "uart.log.start"
+                }
             }
             other => {
                 return Err(

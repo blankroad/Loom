@@ -14,11 +14,11 @@ use tokio::sync::oneshot;
 
 use super::port::{MAX_EXPECT_WAITERS, MAX_TX_WAITERS, Port, TxWait, bytes_obj};
 use super::util::{
-    arg_str, arg_u64, done_error_code, draft, escape_preview, kind, submit_error, werr, werr_detail,
-    write_row,
+    arg_str, arg_u64, done_error_code, draft, escape_preview, kind, pacing_fields, pacing_json, submit_error,
+    werr, werr_detail, write_row,
 };
 use crate::channel::{Eol, ExpectFrom, PatternKind, PatternSpec};
-use crate::tx::{CTRLC_QUEUE_BYTES, TxLane, TxRequest, TxState};
+use crate::tx::{CTRLC_QUEUE_BYTES, Pacing, TxLane, TxRequest, TxState, pacing_estimate};
 
 /// Default `uart.send --expect` wait (plan §4.1).
 pub const SEND_EXPECT_TIMEOUT_MS: u64 = 10_000;
@@ -36,6 +36,23 @@ pub const WRITE_TEXT_CHARS: usize = 256;
 pub const SENT_ESCAPED_CHARS: usize = 1024;
 /// Characters of the agent-activity label (arbiter cuts at 80).
 pub const ACTIVITY_LABEL_CHARS: usize = 80;
+/// Base deadline of a viewer (user / Ctrl-C lane) TX request; B2 adds the paced time to it.
+pub const USER_TX_DEADLINE: Duration = Duration::from_secs(5);
+/// Longest pacing time (own estimate + lane backlog) a viewer request may commit (U3, B2);
+/// longer → `uart.input_ack discarded reason:"pacing_too_long"`, nothing written.
+pub const USER_PACING_MAX: Duration = Duration::from_secs(600);
+
+/// B9 (F1): the caller's operation window for `uart.send` / `uart.run` = `defer_timeout_ms + timeout_ms` (both already clamped
+/// to [`MAX_WAIT_MS`]; saturating). Admission, transmission and the expect wait must all end inside it, because the caller
+/// (e.g. the CLI: timeout + defer + reply margin) stops waiting then. See FUNCTIONS.md §B9.1.
+fn op_window(timeout_ms: u64, defer_timeout_ms: u64) -> Duration {
+    Duration::from_millis(timeout_ms.saturating_add(defer_timeout_ms))
+}
+
+/// B9 (F1): what is left for this request now: `min(rpc_remaining, window − elapsed)` (saturating at zero). See §B9.1.
+fn effective_budget(rpc_remaining: Duration, window: Duration, elapsed: Duration) -> Duration {
+    rpc_remaining.min(window.saturating_sub(elapsed))
+}
 
 /// Remaining time until an absolute SDK-clock deadline.
 pub(crate) fn remaining(cx: &WorkerCtx, deadline_mono_ns: u64) -> Duration {
@@ -238,10 +255,13 @@ struct SendOp {
     patterns: Vec<PatternSpec>,
     timeout_ms: u64,
     defer_timeout_ms: u64,
+    /// B2: port pacing with this request's `char_delay_ms` / `line_delay_ms` overrides.
+    pacing: Pacing,
 }
 
 fn parse_send(port: &Port, op: &Value, run: bool) -> Result<SendOp, WorkerError> {
     let hex_s = arg_str(op, "data").unwrap_or_default();
+    let pacing = pacing_fields(op, port.pacing())?;
     let mut bytes =
         hex::decode(hex_s).map_err(|e| werr(ErrorCode::Usage, format!("data is not hex: {e}")))?;
     let profile = port.core().profile().clone();
@@ -275,19 +295,20 @@ fn parse_send(port: &Port, op: &Value, run: bool) -> Result<SendOp, WorkerError>
         defer_timeout_ms: arg_u64(op, "defer_timeout_ms")
             .unwrap_or(DEFER_TIMEOUT_MS)
             .min(MAX_WAIT_MS),
+        pacing,
     })
 }
 
-/// Write-row emitter for one request.
-struct Rows<'a> {
-    port: &'a Port,
-    origin: Origin,
-    client: String,
-    request_id: String,
+/// Write-row emitter for one request (B3: shared with `uart.signal`).
+pub(crate) struct Rows<'a> {
+    pub(crate) port: &'a Port,
+    pub(crate) origin: Origin,
+    pub(crate) client: String,
+    pub(crate) request_id: String,
 }
 
 impl Rows<'_> {
-    fn emit(&self, state: &str, extra: Value) {
+    pub(crate) fn emit(&self, state: &str, extra: Value) {
         let mut d = draft(
             kind::WRITE,
             self.port.ts_now(TsSource::Driver),
@@ -300,7 +321,7 @@ impl Rows<'_> {
         self.port.emit(d);
     }
 
-    fn fail(&self, state: WriteState, err: WorkerError, extra: Value) -> WriteOutcome {
+    pub(crate) fn fail(&self, state: WriteState, err: WorkerError, extra: Value) -> WriteOutcome {
         let mut p = json!({"final": true, "error": {"code": err.code.as_str(), "message": err.message}});
         if let (Value::Object(m), Value::Object(e)) = (&mut p, extra) {
             m.extend(e);
@@ -320,6 +341,7 @@ impl Rows<'_> {
 
 /// `uart.send` / `uart.run`.
 pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: bool) -> WriteOutcome {
+    let started = Instant::now();
     let client = w.client_id.clone().unwrap_or_else(|| "agent".into());
     let rows = Rows {
         port: &port,
@@ -340,6 +362,9 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
         escape_preview(&op.bytes, WRITE_TEXT_CHARS)
     };
     let mut requested = json!({"text": preview, "len": op.bytes.len()});
+    if !op.pacing.is_none() {
+        requested["pacing"] = pacing_json(op.pacing);
+    }
     if op.secret {
         // No digest crate in this build: length only (see report); never the bytes.
         requested["secret"] = json!({"len": op.bytes.len()});
@@ -365,6 +390,39 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
     }
 
     // ① Admission by the InputArbiter (user always wins, plan §3.7).
+    // F1: a paced request must fit the caller's own window (defer + timeout), not only the RPC deadline.
+    let window = op_window(op.timeout_ms, op.defer_timeout_ms);
+    let estimate = pacing_estimate(&op.bytes, op.pacing);
+    let ms = |d: Duration| u64::try_from(d.as_millis()).unwrap_or(u64::MAX);
+    let refuse = |b: Duration, rpc: Duration, deferred: Option<u64>| -> WriteOutcome {
+        let (e_ms, b_ms, w_ms) = (ms(estimate), ms(b), ms(window));
+        let mut detail = json!({
+            "estimate_ms": e_ms, "budget_ms": b_ms, "window_ms": w_ms, "rpc_remaining_ms": ms(rpc),
+        });
+        let mut extra = json!({});
+        if let Some(d) = deferred {
+            detail["after_admission"] = json!(true);
+            extra = json!({"deferred_ms": d});
+        }
+        rows.fail(
+            WriteState::Failed,
+            werr_detail(
+                ErrorCode::Usage,
+                format!(
+                    "pacing needs {e_ms} ms but the request leaves {b_ms} ms (caller window {w_ms} ms = defer + timeout); raise --timeout or lower the pacing"
+                ),
+                detail,
+            ),
+            extra,
+        )
+    };
+    if !op.pacing.is_none() {
+        let rpc = remaining(cx, w.deadline_mono_ns.get());
+        let b = effective_budget(rpc, window, started.elapsed());
+        if estimate > b {
+            return refuse(b, rpc, None);
+        }
+    }
     let label = if op.secret {
         preview.clone()
     } else {
@@ -404,6 +462,22 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
             json!({"deferred_ms": deferred_ms}),
         );
     }
+    // F1: the wait for the user used part of the window; re-check what is left before any byte is queued.
+    let paced_budget = if op.pacing.is_none() {
+        None
+    } else {
+        let rpc = remaining(cx, w.deadline_mono_ns.get());
+        let b = effective_budget(rpc, window, started.elapsed());
+        if estimate > b {
+            if let Some(e) = &expect {
+                port.waiters().expect.remove(&e.id());
+                port.core().expect_remove(e.id());
+            }
+            release_lease(&port, &w.request_id);
+            return refuse(b, rpc, Some(deferred_ms));
+        }
+        Some(b)
+    };
     let tx_id = port.next_tx_id();
     let (done_tx, done_rx) = oneshot::channel();
     {
@@ -424,17 +498,26 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
                 agent_request: Some(w.request_id.clone()),
                 origin: w.origin,
                 interrupt: false,
+                input_seq: None,
             },
         );
     }
-    let budget = remaining(cx, w.deadline_mono_ns.get());
+    let budget = paced_budget.unwrap_or_else(|| remaining(cx, w.deadline_mono_ns.get()));
+    let deadline = if paced_budget.is_some() {
+        Instant::now()
+            .checked_add(budget)
+            .unwrap_or_else(|| Instant::now() + Duration::from_millis(MAX_WAIT_MS))
+    } else {
+        Instant::now() + budget
+    };
     let req = TxRequest {
         request_id: tx_id,
         lane: TxLane::Agent,
         client_id: client.clone(),
         bytes: op.bytes.clone(),
         secret: op.secret,
-        deadline: Instant::now() + budget,
+        deadline,
+        pacing: op.pacing,
     };
     if let Err(e) = port.tx.submit(req) {
         port.waiters().tx.remove(&tx_id);
@@ -505,8 +588,17 @@ pub(crate) async fn agent_write(port: Arc<Port>, cx: &WorkerCtx, w: Write, run: 
     };
     let label = op.patterns.first().map(|p| p.pattern.clone()).unwrap_or_default();
     activity_expect(&port, &label, op.timeout_ms, Some(&w.request_id), &client);
+    let expect_wait = if op.pacing.is_none() {
+        Duration::from_millis(op.timeout_ms)
+    } else {
+        Duration::from_millis(op.timeout_ms).min(effective_budget(
+            remaining(cx, w.deadline_mono_ns.get()),
+            window,
+            started.elapsed(),
+        ))
+    };
     let (id, started) = (exp.id(), exp.started_rx());
-    let end = exp.wait(&port, Duration::from_millis(op.timeout_ms)).await;
+    let end = exp.wait(&port, expect_wait).await;
     activity_idle(&port);
     if let ExpectEnd::Hit(hit) = &end {
         // send --expect / run: the agent has seen up to the match end (plan §4.5).
@@ -561,7 +653,7 @@ fn result_detail(
     let sent = &op.bytes[..usize::try_from(done.written_bytes)
         .unwrap_or(op.bytes.len())
         .min(op.bytes.len())];
-    json!({
+    let mut detail = json!({
         "request_id": rid,
         "state": state,
         "sent_escaped": if op.secret { format!("[secret {} B]", sent.len()) } else { escape_preview(sent, SENT_ESCAPED_CHARS) },
@@ -569,7 +661,11 @@ fn result_detail(
         "remaining_bytes": done.remaining_bytes,
         "deferred_ms": deferred_ms,
         "generation": generation,
-    })
+    });
+    if !op.pacing.is_none() {
+        detail["pacing"] = pacing_json(op.pacing);
+    }
+    detail
 }
 
 /// Release an admitted lease that will not be used (error before TX).
@@ -677,6 +773,33 @@ pub(crate) fn submit_user(
     } else {
         TxLane::User
     };
+    let pacing = if lane == TxLane::CtrlC {
+        Pacing::NONE
+    } else {
+        port.pacing()
+    };
+    let mut deadline = Instant::now() + USER_TX_DEADLINE;
+    if !pacing.is_none() {
+        let total = pacing_estimate(send, pacing).saturating_add(port.tx.paced_backlog(lane));
+        if total > USER_PACING_MAX {
+            if interrupt {
+                port.arb().interrupt_written(1);
+            }
+            port.emit(draft(
+                kind::INPUT_ACK,
+                port.ts_now(TsSource::HostReadComplete),
+                Origin::User,
+                json!({
+                    "input_seq": input_seq.to_string(),
+                    "state": "discarded",
+                    "reason": "pacing_too_long",
+                    "estimate_ms": u64::try_from(total.as_millis()).unwrap_or(u64::MAX),
+                }),
+            ));
+            return;
+        }
+        deadline += total;
+    }
     let tx_id = port.next_tx_id();
     {
         let mut w = port.waiters();
@@ -688,6 +811,7 @@ pub(crate) fn submit_user(
                     agent_request: None,
                     origin: Origin::User,
                     interrupt,
+                    input_seq: Some(input_seq),
                 },
             );
         }
@@ -698,7 +822,8 @@ pub(crate) fn submit_user(
         client_id: viewer.to_owned(),
         bytes: send.to_vec(),
         secret: false,
-        deadline: Instant::now() + Duration::from_secs(5),
+        deadline,
+        pacing,
     };
     if let Err(e) = port.tx.submit(req) {
         port.waiters().tx.remove(&tx_id);

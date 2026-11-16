@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HelloResult, LoomEvent } from '../proto/provisional';
 import { MERGE_MS } from '../store/focus';
-import { JOIN_GRACE_MS } from '../store/shellControl';
+import { JOIN_GRACE_MS, LOCAL_OPEN_TTL_MS } from '../store/shellControl';
 import { TabSettings, type KV } from '../store/tabSettings';
 import { ev, FakeNet, TEST_HELLO } from '../store/testing/fakeNet';
 import { Banners, Toasts } from './Banners';
@@ -240,7 +240,40 @@ describe('new channel rule (UD-31)', () => {
     expect(toastTexts()).toEqual([]); // output state alone does not confirm a connection
     expect(chip('psu/aux')!.dataset.state).toBe('unknown');
     emit(ev({ kind: 'psu.state', domain: 'psu', channel: 'aux', origin: 'agent', payload: { connected: true, out: false } }));
-    expect(toastTexts()).toEqual(['에이전트가 psu aux를 다시 열었습니다 — 패널을 열었습니다']);
+    // UART B8 (U8): known-but-never-open is a first open, not "다시"
+    expect(toastTexts()).toEqual(['에이전트가 psu aux를 열었습니다 — 패널을 열었습니다']);
+  });
+
+  it('UART B8: a device-origin open names the channel, not "장치가"', () => {
+    const { emit } = mount();
+    emit(opened('uart', 'dut2', { origin: 'device', actor_id: null }));
+    expect(toastTexts()).toEqual(['uart dut2 열림 — 패널을 열었습니다']);
+  });
+
+  it('UART B8: an open this tab asked for makes no toast and opens no extra panel', () => {
+    const { emit, services } = mount();
+    act(() => services.shell.noteLocalOpen('uart', 'dut', services.now()));
+    emit(opened('uart', 'dut', { origin: 'device', actor_id: null }));
+    expect(toastTexts()).toEqual([]);
+    expect(services.uiState.extraSlots).toEqual([]);
+  });
+
+  it('UART B8: an expired local note toasts like any other open', () => {
+    const { emit, services, advance } = mount();
+    act(() => services.shell.noteLocalOpen('uart', 'dut', services.now()));
+    advance(LOCAL_OPEN_TTL_MS + 1);
+    emit(opened('uart', 'dut', { origin: 'device', actor_id: null }));
+    expect(toastTexts()).toEqual(['uart dut 열림 — 패널을 열었습니다']);
+  });
+
+  it('UART B8: [패널 열기] is not offered when that channel is already shown', () => {
+    const settings = new TabSettings(memKV());
+    settings.setAutoOpen('off');
+    const { emit, services } = mount({ settings });
+    act(() => services.uiState.addExtraSlot({ panel: 'can.trace', props: { channel: 'ch3' } }));
+    emit(opened('can', 'ch3'));
+    expect(toastTexts()).toEqual(['에이전트가 can ch3를 열었습니다']);
+    expect(host.querySelector('.toast button')).toBeNull();
   });
 
   it('late join: channels from snapshot items appear silently', () => {

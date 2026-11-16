@@ -40,3 +40,6 @@
 .uart-panel .uart-chip[data-kind='hold'], .uart-panel .uart-chip[data-kind='lock'] { color: var(--err); background: var(--err-bg); border-color: #ff8182; }
 .uart-panel .uart-chip[data-kind='deferred'], .uart-panel .uart-chip[data-kind='dirty'], .uart-panel .uart-chip[data-kind='paused'], .uart-panel .uart-chip[data-kind='other'] { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-bd); }
 .uart-panel .term-wrap > .uart-bytes { flex: 1; min-width: 0; background: var(--bg); color: var(--text); }
+/* operator-upgrade U7 (batch 1): tools moved out of a narrow header live in the ⋯ row */
+.uart-panel .uart-overflow { display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; margin-right: 8px; }
+.uart-panel .uart-overflow[hidden] { display: none; }

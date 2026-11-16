@@ -9,7 +9,7 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{Receiver, SyncSender};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
@@ -23,12 +23,15 @@ use loom_worker_sdk::Emitter;
 use serde_json::{Value, json};
 use tokio::sync::oneshot;
 
+use super::reconnect::{PortIdentity, ReconnectCfg, ReconnectState};
+use super::signal::LineState;
 use super::util::{arbiter_draft, draft, kind, ts_at, tx_data_draft};
 use crate::bridge::{BridgeItem, BridgeRx, PopError, RxChunk};
 use crate::channel::ChannelCore;
+use crate::logsink::{LogCfg, LogSink};
 use crate::reader::Reader;
 use crate::transport::PortConfig;
-use crate::tx::{TxActor, TxDone, TxEvent, TxHandle, TxOrigin};
+use crate::tx::{Pacing, TxActor, TxDone, TxEvent, TxHandle, TxOrigin, TxState};
 
 /// Arbiter tick period (task p1-opus-worker: 50 ms) and the pump's bridge wait.
 pub const ARB_TICK: Duration = Duration::from_millis(50);
@@ -46,6 +49,9 @@ pub const RX_COALESCE: Duration = Duration::from_millis(10);
 /// Largest coalesced RX chunk (= matcher window 64 KiB, §3.13 expect row). Bounded buffer.
 pub const RX_COALESCE_MAX_BYTES: usize = 64 * 1024;
 
+/// B4: the worker's log sink slot with the settings it was started with.
+pub(crate) type LogSlot = Arc<Mutex<Option<(LogSink, LogCfg)>>>;
+
 /// Bookkeeping for one TX request until its `TxDone`.
 #[derive(Debug)]
 pub(crate) struct TxWait {
@@ -57,6 +63,9 @@ pub(crate) struct TxWait {
     pub(crate) origin: Origin,
     /// The arbiter counted this as an interrupt (call `interrupt_written`).
     pub(crate) interrupt: bool,
+    /// B2: viewer `input_seq` of a user / Ctrl-C request (`None` for agent writes); a terminal
+    /// other than `Sent` is reported as `uart.input_ack` (FUNCTIONS.md §B2.3 `tx_loop`).
+    pub(crate) input_seq: Option<u64>,
 }
 
 /// Waiting async callers, all bounded.
@@ -78,6 +87,12 @@ pub(crate) struct PortInfo {
     pub(crate) config: PortConfig,
     pub(crate) config_json: Value,
     pub(crate) clock_id: String,
+    /// B3: opened via Loom's own sim harness pty (`OpenOpts::sim_pty`), reused on reopen.
+    pub(crate) sim_pty: bool,
+    /// B3: reconnect setting (U2).
+    pub(crate) reconnect: ReconnectCfg,
+    /// B3: USB identity recorded at open (`None` = not listed / unknown → path-only reopen).
+    pub(crate) identity: Option<PortIdentity>,
 }
 
 #[derive(Debug, Default)]
@@ -110,6 +125,16 @@ pub(crate) struct Port {
     publication: Arc<Mutex<()>>,
     pub(crate) emit_stats: EmitStats,
     pub(crate) connected: AtomicBool,
+    /// B2: current port pacing (U3), captured per request at submit.
+    pacing: Mutex<Pacing>,
+    /// B3: levels Loom last set (U6).
+    pub(crate) lines: Mutex<LineState>,
+    /// B3: live reconnect bookkeeping (U2).
+    pub(crate) reconnect: Mutex<ReconnectState>,
+    /// B4: the channel's native log sink (shared with the worker; survives a reconnect, ends on close).
+    pub(crate) log: LogSlot,
+    /// B3: notified once when the reader reports a disconnect; dropped by `shutdown` (ends the supervisor).
+    disconnect_tx: Mutex<Option<SyncSender<()>>>,
     next_tx_id: AtomicU64,
     t0: Instant,
     stop: AtomicBool,
@@ -121,6 +146,7 @@ fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
 }
 
 impl Port {
+    #[allow(clippy::too_many_arguments)] // B2–B4 added pacing / log; one constructor call site (spawn_port)
     pub(crate) fn new(
         info: PortInfo,
         core: Arc<Mutex<ChannelCore>>,
@@ -128,6 +154,8 @@ impl Port {
         actor: TxActor,
         emitter: Emitter,
         publication: Arc<Mutex<()>>,
+        pacing: Pacing,
+        log: LogSlot,
     ) -> Self {
         let tx = actor.handle();
         Self {
@@ -143,6 +171,11 @@ impl Port {
             next_tx_id: AtomicU64::new(1),
             t0: Instant::now(),
             stop: AtomicBool::new(false),
+            pacing: Mutex::new(pacing),
+            log,
+            lines: Mutex::new(LineState::default()),
+            reconnect: Mutex::new(ReconnectState::default()),
+            disconnect_tx: Mutex::new(None),
             threads: Mutex::new(Threads {
                 actor: Some(actor),
                 ..Threads::default()
@@ -170,6 +203,29 @@ impl Port {
         t.pump = Some(pump);
         t.tx_pump = Some(tx_pump);
         Ok(())
+    }
+
+    /// B3: install the disconnect notifier (reconnect supervisor). See FUNCTIONS.md §B3.3.
+    pub(crate) fn set_disconnect_notify(&self, tx: SyncSender<()>) {
+        *lock(&self.disconnect_tx) = Some(tx);
+    }
+
+    /// B4: producer identity of this port's emitter (log headers).
+    pub(crate) fn producer(&self) -> (String, u64) {
+        (
+            self.emitter.producer_id().to_owned(),
+            self.emitter.producer_epoch().0,
+        )
+    }
+
+    /// B2: current port pacing. See FUNCTIONS.md §B2.3.
+    pub(crate) fn pacing(&self) -> Pacing {
+        *lock(&self.pacing)
+    }
+
+    /// B2: replace the port pacing; returns the previous value. See FUNCTIONS.md §B2.3.
+    pub(crate) fn set_pacing(&self, p: Pacing) -> Pacing {
+        std::mem::replace(&mut *lock(&self.pacing), p)
     }
 
     /// Arbiter time base (ms since open).
@@ -347,27 +403,67 @@ impl Port {
             BridgeItem::Data(mut c) => {
                 // Reader sequence numbers describe transport hand-off only. Reserve the real
                 // producer seq after coalescing so the ring and emitted record agree exactly.
+                let mut emit_ok = false;
                 let ing = {
                     let _publication = lock(&self.publication);
-                    let Ok(seq) = self.emitter.reserve_seq() else {
+                    if let Ok(seq) = self.emitter.reserve_seq() {
+                        c.source_seq = seq.0;
+                        let mut ing = self.core().on_rx(&c);
+                        let ts = ts_at(
+                            c.mono_ns,
+                            c.wall_ns,
+                            &self.info.clock_id,
+                            TsSource::HostReadComplete,
+                        );
+                        let payload = std::mem::take(&mut ing.data_payload);
+                        if self.emitter.rx_with_seq(seq, kind::DATA, ts, payload).is_err() {
+                            // A Full result may follow journal acceptance. Never retry this seq.
+                            self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
+                        } else {
+                            emit_ok = true;
+                        }
+                        Some(ing)
+                    } else {
                         self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
-                        return;
-                    };
-                    c.source_seq = seq.0;
-                    let mut ing = self.core().on_rx(&c);
-                    let ts = ts_at(
-                        c.mono_ns,
-                        c.wall_ns,
-                        &self.info.clock_id,
-                        TsSource::HostReadComplete,
-                    );
-                    let payload = std::mem::take(&mut ing.data_payload);
-                    if self.emitter.rx_with_seq(seq, kind::DATA, ts, payload).is_err() {
-                        // A Full result may follow journal acceptance. Never retry this seq.
-                        self.emit_stats.rx_dropped.fetch_add(1, Ordering::Relaxed);
+                        None
                     }
-                    ing
                 };
+                // Native log (B4): recorded after the emission attempt, outside the publication lock; never blocks.
+                let notice = {
+                    let slot = self.log.lock().unwrap_or_else(|p| p.into_inner());
+                    slot.as_ref().and_then(|(sink, cfg)| {
+                        sink.record(crate::logsink::LogRecord {
+                            dir: crate::logsink::LogDir::Rx,
+                            origin: "device".to_owned(),
+                            generation: self.info.generation,
+                            rx_offset: Some(c.rx_offset),
+                            request_id: None,
+                            client_id: None,
+                            producer_id: self.emitter.producer_id().to_owned(),
+                            producer_epoch: self.emitter.producer_epoch().0,
+                            source_seq: c.source_seq,
+                            mono_ns: c.mono_ns,
+                            wall_ns: c.wall_ns,
+                            clock_id: self.info.clock_id.clone(),
+                            bytes: c.bytes.clone(),
+                            secret: false,
+                            emit_ok,
+                        });
+                        sink.take_stop_notice().map(|reason| (reason, sink.stats(), *cfg))
+                    })
+                };
+                if let Some((reason, st, cfg)) = notice {
+                    let mut p = super::util::log_json(&st, Some(&cfg));
+                    p["state"] = json!("stopped");
+                    p["reason"] = json!(reason);
+                    self.emit(draft(
+                        kind::LOG,
+                        self.ts_now(TsSource::HostReadComplete),
+                        Origin::Device,
+                        p,
+                    ));
+                }
+                let Some(ing) = ing else { return };
                 if !ing.hits.is_empty() {
                     let mut w = self.waiters();
                     for hit in ing.hits {
@@ -412,6 +508,10 @@ impl Port {
                     Origin::Device,
                     json!({"state": "disconnected", "path": self.info.target, "cause": format!("{kind_:?}")}),
                 ));
+                // Wake the reconnect supervisor once (no-op when reconnect is off).
+                if let Some(tx) = lock(&self.disconnect_tx).take() {
+                    let _ = tx.try_send(());
+                }
             }
         }
     }
@@ -436,19 +536,73 @@ impl Port {
                     };
                     let wall = self.emitter.clock().wall_ns();
                     let ts = ts_at(c.mono_ns, wall, &self.info.clock_id, TsSource::Driver);
-                    let _publication = lock(&self.publication);
-                    let Ok(seq) = self.emitter.reserve_seq() else {
-                        self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
-                        continue;
+                    let emit_ok = {
+                        let _publication = lock(&self.publication);
+                        if let Ok(seq) = self.emitter.reserve_seq() {
+                            c.source_seq = seq.0;
+                            let payload = self.core().on_tx(&c);
+                            let mut data = tx_data_draft(
+                                payload,
+                                ts,
+                                origin,
+                                &c.client_id,
+                                rid.clone(),
+                                self.info.generation,
+                            );
+                            if c.secret {
+                                data.quality.push("redacted".to_owned());
+                            }
+                            if self.emitter.data_with_seq(seq, data).is_err() {
+                                self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
+                                false
+                            } else {
+                                true
+                            }
+                        } else {
+                            self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
+                            false
+                        }
                     };
-                    c.source_seq = seq.0;
-                    let payload = self.core().on_tx(&c);
-                    let mut data = tx_data_draft(payload, ts, origin, &c.client_id, rid, self.info.generation);
-                    if c.secret {
-                        data.quality.push("redacted".to_owned());
-                    }
-                    if self.emitter.data_with_seq(seq, data).is_err() {
-                        self.emit_stats.tx_dropped.fetch_add(1, Ordering::Relaxed);
+                    // Native log (B4): same record the journal row carries, plus whether its emission succeeded.
+                    let notice = {
+                        let slot = self.log.lock().unwrap_or_else(|p| p.into_inner());
+                        slot.as_ref().and_then(|(sink, cfg)| {
+                            sink.record(crate::logsink::LogRecord {
+                                dir: crate::logsink::LogDir::Tx,
+                                origin: match origin {
+                                    Origin::User => "user",
+                                    Origin::Agent => "agent",
+                                    Origin::Script => "script",
+                                    Origin::Device => "device",
+                                }
+                                .to_owned(),
+                                generation: self.info.generation,
+                                rx_offset: None,
+                                request_id: rid.clone(),
+                                client_id: Some(c.client_id.clone()),
+                                producer_id: self.emitter.producer_id().to_owned(),
+                                producer_epoch: self.emitter.producer_epoch().0,
+                                source_seq: c.source_seq,
+                                mono_ns: c.mono_ns,
+                                wall_ns: wall,
+                                clock_id: self.info.clock_id.clone(),
+                                bytes: c.bytes.clone(),
+                                secret: c.secret,
+                                emit_ok,
+                            });
+                            sink.take_stop_notice().map(|reason| (reason, sink.stats(), *cfg))
+                        })
+                    };
+                    if let Some((reason, st, cfg)) = notice {
+                        let mut p = super::util::log_json(&st, Some(&cfg));
+                        p["state"] = json!("stopped");
+                        p["reason"] = json!(reason);
+                        self.emit(draft(
+                            kind::LOG,
+                            self.ts_now(TsSource::HostReadComplete),
+                            Origin::Device,
+                            p,
+                        ));
                     }
                 }
                 TxEvent::Done(d) => {
@@ -467,6 +621,28 @@ impl Port {
                         self.emit_arbiter(evs);
                         self.dispatch(acts);
                     }
+                    if wait.agent_request.is_none()
+                        && let Some(seq) = wait.input_seq
+                        && d.state != TxState::Sent
+                    {
+                        let state = if d.written_bytes == 0 {
+                            "discarded"
+                        } else {
+                            "partial"
+                        };
+                        self.emit(draft(
+                            kind::INPUT_ACK,
+                            self.ts_now(TsSource::HostReadComplete),
+                            Origin::User,
+                            json!({
+                                "input_seq": seq.to_string(),
+                                "state": state,
+                                "reason": d.cause.unwrap_or("shutdown"),
+                                "written_bytes": d.written_bytes,
+                                "remaining_bytes": d.remaining_bytes,
+                            }),
+                        ));
+                    }
                     if let Some(tx) = wait.done {
                         let _ = tx.send(d);
                     }
@@ -479,6 +655,7 @@ impl Port {
     /// Unfinished TX requests end `E_SHUTDOWN` → their writes report `outcome_unknown`/`failed`.
     pub(crate) fn shutdown(&self) {
         self.stop.store(true, Ordering::Release);
+        drop(lock(&self.disconnect_tx).take());
         let (reader, actor, pump, tx_pump) = {
             let mut t = lock(&self.threads);
             (t.reader.take(), t.actor.take(), t.pump.take(), t.tx_pump.take())

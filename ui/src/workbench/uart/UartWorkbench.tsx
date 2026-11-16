@@ -9,7 +9,9 @@ import { useServices } from '../../shell/ShellContext';
 import type { ShellServices } from '../../shell/services';
 import { closeGroup, splitGroup } from '../../shell/dock/dockHost';
 import { I } from './Icon';
-import { BAUDS, COLORS, EOLS, frameOf, MS_LABEL, nid, stepText, uartBench, type EolKey, type Macro, type MacroStep, type Session } from './workbench';
+import { openTagText, sessionDot } from '../../panels/uart/paneLayout';
+import { compileRules, HIGHLIGHT_COLORS, HIGHLIGHT_MAX_RULES, type HighlightRule } from '../../panels/uart/highlight';
+import { BAUDS, COLORS, EOLS, frameOf, MS_LABEL, nid, SESSION_CHAR_DELAY_MAX, SESSION_LINE_DELAY_MAX, SESSION_RECONNECT_WINDOW_S, SESSION_SCROLLBACK, stepText, uartBench, type EolKey, type Macro, type MacroStep, type Session } from './workbench';
 import './bench.css';
 
 const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} kB` : `${(n / 1048576).toFixed(2)} MB`);
@@ -151,6 +153,19 @@ function SessionDialog({ base, isNew, onClose }: { base: Session; isNew: boolean
   };
   const opt = <T extends string | number>(arr: (T | [T, string])[]) => arr.map((x) => Array.isArray(x) ? <option key={String(x[0])} value={x[0]}>{x[1]}</option> : <option key={String(x)} value={x}>{x}</option>);
   const groups = [...new Set(uartBench.sessions.map((x) => x.group))];
+  // B6 operator options: values are clamped by sanitizeSession on save; here only NaN is kept out of the state
+  const num = (v: string): number => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const hl: HighlightRule[] = d.highlights ?? [];
+  const setHl = (i: number, patch: Partial<HighlightRule>) => setD({ ...d, highlights: hl.map((r, j) => (j === i ? { ...r, ...patch } : r)) });
+  const hlErrors = compileRules(hl).errors;
+  const applyPacingNow = async () => {
+    try {
+      await uartBench.applyPacing(base.alias, d.charDelayMs ?? 0, d.lineDelayMs ?? 0);
+      s.toasts.push('전송 지연 적용됨');
+    } catch (e) {
+      s.toasts.push(`전송 지연 적용 실패: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
   return <Dialog label={isNew ? '새 UART 세션' : `세션 설정 — ${base.alias}`} onClose={onClose}>
     <form method="dialog" noValidate onSubmit={(e) => { e.preventDefault(); submit(((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === 'open' ? 'open' : 'save'); }}>
       <div className="dlg-h"><span className="ph-dot" style={{ ['--tag' as string]: d.color }} /><h2>{isNew ? '새 UART 세션' : `세션 설정 — ${base.alias}`}</h2>{openNow && <span className="ph-state connected">연결됨</span>}</div>
@@ -187,6 +202,31 @@ function SessionDialog({ base, isNew, onClose }: { base: Session; isNew: boolean
           <label className="fld"><span>전송 줄 끝</span><select name="eol" className="mono" value={d.eol} onChange={(e) => setD({ ...d, eol: e.target.value as EolKey })}>{opt<string>(Object.keys(EOLS))}</select></label>
           <label className="fld"><span>태그 색</span><select name="color" value={d.color} onChange={(e) => setD({ ...d, color: e.target.value })}>{opt<string>(COLORS)}</select></label>
         </div><p className="hint" style={{ margin: '8px 0 0' }}>장치 baud와 다르게 설정하면 수신이 깨진 문자로 보이고 명령이 통하지 않습니다. Mark/Space 패리티와 1.5 stop bit는 엔진이 지원하지 않습니다.</p></fieldset>
+        <fieldset data-role="ops"><legend>운영 옵션</legend>
+          <div className="grid4">
+            <label className="fld"><span>문자 지연 ms</span><input type="number" name="charDelayMs" className="mono" min={0} max={SESSION_CHAR_DELAY_MAX} value={d.charDelayMs ?? 0} onChange={(e) => setD({ ...d, charDelayMs: num(e.target.value) })} /></label>
+            <label className="fld"><span>줄 지연 ms</span><input type="number" name="lineDelayMs" className="mono" min={0} max={SESSION_LINE_DELAY_MAX} value={d.lineDelayMs ?? 0} onChange={(e) => setD({ ...d, lineDelayMs: num(e.target.value) })} /></label>
+            <label className="fld"><span>열 때 네이티브 로그</span><select name="log" value={d.log ?? 'off'} onChange={(e) => setD({ ...d, log: e.target.value as NonNullable<Session['log']> })}><option value="off">끔</option><option value="log">.log</option><option value="jsonl">.jsonl</option></select></label>
+            <label className="fld"><span>스크롤백 줄</span><input type="number" name="scrollback" className="mono" min={SESSION_SCROLLBACK.min} max={SESSION_SCROLLBACK.max} step={1000} value={d.scrollback ?? SESSION_SCROLLBACK.def} onChange={(e) => setD({ ...d, scrollback: num(e.target.value) })} /></label>
+          </div>
+          <div className="chk-row" style={{ marginTop: 6 }}>
+            <label className="chk"><input type="checkbox" name="reconnect" checked={d.reconnect === true} onChange={(e) => setD({ ...d, reconnect: e.target.checked })} /> 분리되면 같은 장치를 다시 연결 (새 세대)</label>
+            <label className="chk"><span>최대 s</span> <input type="number" name="reconnectWindowS" className="mono" min={SESSION_RECONNECT_WINDOW_S.min} max={SESSION_RECONNECT_WINDOW_S.max} disabled={d.reconnect !== true} value={d.reconnectWindowS ?? SESSION_RECONNECT_WINDOW_S.def} onChange={(e) => setD({ ...d, reconnectWindowS: num(e.target.value) })} /></label>
+            {openNow && <button type="button" className="btn" data-act="pacing-apply" onClick={() => void applyPacingNow()}>지금 적용</button>}
+          </div>
+          {openNow && <p className="hint" style={{ margin: '6px 0 0' }}>재연결·로그 설정은 다음 열기부터 적용</p>}
+          <div className="fld" style={{ marginTop: 8 }}><span>강조 규칙 (최대 {HIGHLIGHT_MAX_RULES}개 · 화면 장식만, 장치 바이트·저널은 그대로)</span>
+            {hl.map((r, i) => <div key={i} className="chk-row" data-role="hlrow">
+              <input type="text" name="hlPattern" className="inp mono" value={r.pattern} maxLength={256} aria-label={`강조 규칙 ${i + 1} 패턴`} onChange={(e) => setHl(i, { pattern: e.target.value })} />
+              <label className="chk"><input type="checkbox" name="hlRegex" checked={r.regex} onChange={(e) => setHl(i, { regex: e.target.checked })} /> .*</label>
+              <label className="chk"><input type="checkbox" name="hlCase" checked={r.caseSensitive} onChange={(e) => setHl(i, { caseSensitive: e.target.checked })} /> Aa</label>
+              <select name="hlColor" value={r.color} aria-label={`강조 규칙 ${i + 1} 색`} onChange={(e) => setHl(i, { color: e.target.value as HighlightRule['color'] })}>{HIGHLIGHT_COLORS.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+              <button type="button" className="btn sm" data-act="hl-del" onClick={() => setD({ ...d, highlights: hl.filter((_, j) => j !== i) })}>삭제</button>
+            </div>)}
+            <div><button type="button" className="btn sm" data-act="hl-add" disabled={hl.length >= HIGHLIGHT_MAX_RULES} onClick={() => setD({ ...d, highlights: [...hl, { pattern: '', regex: false, caseSensitive: false, color: 'yellow' }] })}>규칙 추가</button></div>
+            <div className="err-text" data-role="hlerr">{hlErrors.map((e) => `규칙 ${e.index + 1}: ${e.message}`).join(' · ')}</div>
+          </div>
+        </fieldset>
         <div className="chk-row">
           <label className="chk"><input type="checkbox" name="ts" checked={d.ts} onChange={(e) => setD({ ...d, ts: e.target.checked })} /> 타임스탬프</label>
         </div>
@@ -439,13 +479,15 @@ function Side({ openMenu, dlg }: { openMenu: (m: MenuState) => void; dlg: (d: Dl
           {open && items.map((x) => {
             const st = uartBench.channelState(x.alias);
             const pane = st === 'open' ? paneNoOfChannel(api, x.alias) : null;
+            const tag = openTagText(st, pane);
             const isAct = active?.channel === x.alias;
             return <div key={x.id} className={`sess${isAct ? ' is-active' : ''}`} role="treeitem" tabIndex={0} data-sid={x.id} style={{ ['--tag' as string]: x.color }}
-              title="더블클릭/Enter: 활성 pane에 열기"
+              title={`더블클릭/Enter: 활성 pane에 열기 · ${st === 'open' ? '연결됨' : st === 'unknown' ? '상태 확인 중' : '닫힘'}`}
               onDoubleClick={() => void openAndPlace(s, x, 'tab')}
               onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) void openAndPlace(s, x, 'tab'); }}>
-              <span className="dot" />
-              <span className="sess-name">{x.alias}{st === 'open' && <span className="open-tag" title="연결됨">{pane ? `pane ${pane}` : '열림'}</span>}</span>
+              <span className="tagsw" aria-hidden="true" />
+              <span className={`dot ${sessionDot(st)}`} />
+              <span className="sess-name"><span className="sess-alias">{x.alias}</span>{tag && <span className="open-tag" title="연결됨">{tag}</span>}</span>
               <span className="sess-acts">
                 <button type="button" className="ibtn" data-act="open-here" title="활성 pane에 탭으로 열기" aria-label={`${x.alias} 활성 pane에 열기`} onClick={() => void openAndPlace(s, x, 'tab')}><I id="play" /></button>
                 <button type="button" className="ibtn" data-act="open-right" title="활성 pane 오른쪽 새 분할에 열기" aria-label={`${x.alias} 오른쪽 분할에 열기`} onClick={() => void openAndPlace(s, x, 'right')}><I id="split-r" /></button>
@@ -461,8 +503,11 @@ function Side({ openMenu, dlg }: { openMenu: (m: MenuState) => void; dlg: (d: Dl
         <div className="group-h" aria-hidden="false" style={{ cursor: 'default' }}>저장 안 된 열린 채널 <span style={{ fontWeight: 400 }}>({adhoc.length})</span></div>
         {adhoc.map((c) => {
           const t = uartBench.terminal(c.channel);
+          const tag = openTagText('open', paneNoOfChannel(api, c.channel));
           return <div key={c.channel} className={`sess${active?.channel === c.channel ? ' is-active' : ''}`} role="treeitem" tabIndex={0} data-channel={c.channel} onDoubleClick={() => placeChannel(s, c.channel, 'tab')} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) placeChannel(s, c.channel, 'tab'); }}>
-            <span className="dot" /><span className="sess-name">{c.channel}<span className="open-tag">{paneNoOfChannel(api, c.channel) ? `pane ${paneNoOfChannel(api, c.channel)}` : '열림'}</span></span>
+            <span className="tagsw" aria-hidden="true" />
+            <span className={`dot ${sessionDot('open')}`} />
+            <span className="sess-name"><span className="sess-alias">{c.channel}</span>{tag && <span className="open-tag" title="연결됨">{tag}</span>}</span>
             <span className="sess-acts">
               <button type="button" className="ibtn" title="활성 pane에 탭으로 보기" aria-label={`${c.channel} 활성 pane에 보기`} onClick={() => placeChannel(s, c.channel, 'tab')}><I id="play" /></button>
               <button type="button" className="ibtn" title="오른쪽 분할에 보기" aria-label={`${c.channel} 오른쪽 분할에 보기`} onClick={() => placeChannel(s, c.channel, 'right')}><I id="split-r" /></button>

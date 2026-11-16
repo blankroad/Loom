@@ -13,6 +13,7 @@ import type { ActionSpec } from '../../sdk/manifest';
 import { unwrapDomainResult } from '../../sdk/rpcEnvelope';
 import { Emitter } from '../../store/emitter';
 import type { ShellServices } from '../../shell/services';
+import { sanitizeRules, type HighlightRule } from '../../panels/uart/highlight';
 
 export type Parity = 'N' | 'E' | 'O';
 export type Flow = 'none' | 'RTS/CTS' | 'XON/XOFF';
@@ -34,7 +35,25 @@ export interface Session {
   eol: EolKey;
   ts: boolean;
   color: string;
+  // ---- B6 operator options (optional: older saved sessions lack them; sanitizeSession fills defaults) ----
+  /** transmit pacing (uart.open.pacing) */
+  charDelayMs?: number;
+  lineDelayMs?: number;
+  /** opt-in reconnect (uart.open.reconnect) */
+  reconnect?: boolean;
+  reconnectWindowS?: number;
+  /** native log from open (uart.open.log) */
+  log?: 'off' | 'log' | 'jsonl';
+  /** terminal scrollback lines for this channel */
+  scrollback?: number;
+  /** U5b highlight rules */
+  highlights?: HighlightRule[];
 }
+/** B6 bounds of the session operator options */
+export const SESSION_CHAR_DELAY_MAX = 1000;
+export const SESSION_LINE_DELAY_MAX = 10_000;
+export const SESSION_RECONNECT_WINDOW_S = { min: 1, max: 120, def: 10 } as const;
+export const SESSION_SCROLLBACK = { min: 1000, max: 50_000, def: 10_000 } as const;
 export type MacroStep = { type: 'send'; text: string; eol: 'session' | EolKey } | { type: 'delay'; ms: number } | { type: 'wait'; text: string; ms: number };
 export interface Macro {
   id: string;
@@ -141,15 +160,43 @@ export function stepText(st: MacroStep, vars?: Record<string, string>): string {
 const enc = new TextEncoder();
 const toHex = (b: Uint8Array) => [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
 const OPEN_SPEC: ActionSpec = { id: 'uart.bench.open', rpc: 'uart.open', class: 'request', right: 'operate', confirm: 'none', label: 'UART 세션 열기' };
+/** B6: live pacing change of an open channel */
+export const PACING_SPEC: ActionSpec = { id: 'uart.bench.pacing', rpc: 'uart.pacing', class: 'request', right: 'operate', confirm: 'none', label: 'UART 전송 지연 변경' };
+
+/** B6: `uart.open` params of a saved session (config + only the operator options that are on). §B6.3 */
+export function openParams(s: Session): Record<string, unknown> {
+  const params: Record<string, unknown> = {
+    target: s.port,
+    alias: s.alias,
+    config: {
+      baud: s.baud,
+      data_bits: s.dataBits,
+      parity: { N: 'none', E: 'even', O: 'odd' }[s.parity],
+      stop_bits: String(s.stopBits),
+      flow: { none: 'none', 'RTS/CTS': 'hardware', 'XON/XOFF': 'software' }[s.flow],
+    },
+  };
+  const c = s.charDelayMs ?? 0;
+  const l = s.lineDelayMs ?? 0;
+  if (c > 0 || l > 0) params.pacing = { char_delay_ms: c, line_delay_ms: l };
+  if (s.reconnect) params.reconnect = { enabled: true, window_ms: (s.reconnectWindowS ?? SESSION_RECONNECT_WINDOW_S.def) * 1000 };
+  if (s.log === 'log' || s.log === 'jsonl') params.log = { format: s.log };
+  return params;
+}
+
 const CLOSE_SPEC: ActionSpec = { id: 'uart.bench.close', rpc: 'uart.close', class: 'request', right: 'operate', confirm: 'none', label: 'UART 포트 닫기' };
 
-function sanitizeSession(x: Partial<Session> & Record<string, unknown>): Session | null {
+/** Persisted/imported value → a valid Session (B6: also clamps the operator options; see FUNCTIONS.md §B6.3). */
+export function sanitizeSession(x: Partial<Session> & Record<string, unknown>): Session | null {
   if (typeof x.alias !== 'string' || !ALIAS_RE.test(x.alias) || typeof x.port !== 'string' || !x.port.trim()) return null;
   const parity = x.parity === 'E' || x.parity === 'O' ? x.parity : 'N';
   const eol = x.eol === 'LF' || x.eol === 'CRLF' || x.eol === 'none' ? x.eol : 'CR';
   const flow = x.flow === 'RTS/CTS' || x.flow === 'XON/XOFF' ? x.flow : 'none';
   const baud = Number(x.baud);
   const db = Number(x.dataBits);
+  // integer clamped to [min, max]; a non-number (or NaN) gives `def`
+  const clampInt = (v: unknown, min: number, max: number, def: number): number =>
+    typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.trunc(v))) : def;
   return {
     id: typeof x.id === 'string' && x.id ? x.id : nid('s-'),
     alias: x.alias,
@@ -163,6 +210,13 @@ function sanitizeSession(x: Partial<Session> & Record<string, unknown>): Session
     eol,
     ts: x.ts !== false,
     color: typeof x.color === 'string' && /^#[0-9a-f]{6}$/i.test(x.color) ? x.color : COLORS[0]!,
+    charDelayMs: clampInt(x.charDelayMs, 0, SESSION_CHAR_DELAY_MAX, 0),
+    lineDelayMs: clampInt(x.lineDelayMs, 0, SESSION_LINE_DELAY_MAX, 0),
+    reconnect: x.reconnect === true,
+    reconnectWindowS: clampInt(x.reconnectWindowS, SESSION_RECONNECT_WINDOW_S.min, SESSION_RECONNECT_WINDOW_S.max, SESSION_RECONNECT_WINDOW_S.def),
+    log: x.log === 'log' || x.log === 'jsonl' ? x.log : 'off',
+    scrollback: clampInt(x.scrollback, SESSION_SCROLLBACK.min, SESSION_SCROLLBACK.max, SESSION_SCROLLBACK.def),
+    highlights: sanitizeRules(x.highlights),
   };
 }
 function sanitizeMacro(x: Record<string, unknown>): Macro | null {
@@ -185,6 +239,10 @@ function sanitizeMacro(x: Record<string, unknown>): Macro | null {
   };
 }
 
+/** U4 (B5): delay before the "port still open" toast after the last view of a channel closes — a view that is only being
+ * moved/re-mounted re-registers within it and cancels the toast. */
+export const LAST_VIEW_TOAST_MS = 400;
+
 export class UartBench extends Emitter {
   sessions: Session[] = [];
   macros: Macro[] = [];
@@ -201,6 +259,8 @@ export class UartBench extends Emitter {
   private lastActive: string | null = null;
   services: ShellServices | null = null;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  /** U4 (B5): channel → pending last-view-closed toast timer */
+  private lastViewTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(private readonly storage: Storage | null = typeof localStorage === 'undefined' ? null : localStorage) {
     super();
@@ -263,6 +323,11 @@ export class UartBench extends Emitter {
   // ---------- terminals ----------
   registerTerminal(h: TerminalHandle): () => void {
     this.terminals.add(h);
+    const pending = this.lastViewTimers.get(h.channel);
+    if (pending !== undefined) {
+      clearTimeout(pending);
+      this.lastViewTimers.delete(h.channel);
+    }
     this.changed();
     return () => {
       // another workspace (integrated / UART module dock) may still show this channel: only the LAST view closing
@@ -271,9 +336,38 @@ export class UartBench extends Emitter {
         const run = this.runs.get(h.channel);
         if (run?.status === 'running') this.stopRun(h.channel, '보기 닫힘으로 중단');
         if (this.bc.on) this.pruneBroadcast();
+        this.lastViewClosed(h.channel);
       }
       this.changed();
     };
+  }
+  /** U4 (B5): the last view of `channel` closed — after LAST_VIEW_TOAST_MS, if still no view and the port is open, toast
+   * that the port stays open with [포트 닫기] / [다시 보기]. See FUNCTIONS.md §B5.3. */
+  private lastViewClosed(channel: string): void {
+    const pending = this.lastViewTimers.get(channel);
+    if (pending !== undefined) clearTimeout(pending);
+    this.lastViewTimers.set(
+      channel,
+      setTimeout(() => {
+        this.lastViewTimers.delete(channel);
+        const services = this.services;
+        if (this.terminals.all(channel).length > 0 || this.channelState(channel) !== 'open' || !services) return;
+        services.toasts.push(`${channel} 포트는 아직 열려 있습니다 (다른 도구가 쓰려면 닫으세요)`, {
+          key: `uart-last-view-${channel}`,
+          ttlMs: 10_000,
+          actions: [
+            {
+              label: '포트 닫기',
+              run: () =>
+                void this.closeChannel(channel).catch((e: unknown) =>
+                  this.services?.toasts.push(`포트 닫기 실패: ${e instanceof Error ? e.message : String(e)}`),
+                ),
+            },
+            { label: '다시 보기', run: () => this.services?.showSlot({ panel: 'uart.terminal', props: { channel } }) },
+          ],
+        });
+      }, LAST_VIEW_TOAST_MS),
+    );
   }
   terminal(channel: string): TerminalHandle | undefined {
     return this.terminals.get(channel);
@@ -334,8 +428,12 @@ export class UartBench extends Emitter {
     if (this.channelState(s.alias) === 'open') return;
     const used = this.terminals.values().find((t) => t.path() === s.port && t.channel !== s.alias && t.status().toLowerCase() === 'open');
     if (used) throw new Error(`${s.port}은(는) 이미 ${used.channel}이(가) 열고 있습니다 — 포트는 한 탭만 점유`);
-    const config = { baud: s.baud, data_bits: s.dataBits, parity: { N: 'none', E: 'even', O: 'odd' }[s.parity], stop_bits: String(s.stopBits), flow: { none: 'none', 'RTS/CTS': 'hardware', 'XON/XOFF': 'software' }[s.flow] };
-    await sv.gate.run(OPEN_SPEC, { target: s.port, alias: s.alias, config });
+    sv.shell.noteLocalOpen('uart', s.alias, sv.now());
+    await sv.gate.run(OPEN_SPEC, openParams(s));
+  }
+  /** B6: apply pacing to an open channel now (`uart.pacing`). §B6.3 */
+  async applyPacing(channel: string, charMs: number, lineMs: number): Promise<void> {
+    await this.need().gate.run(PACING_SPEC, { channel, char_delay_ms: charMs, line_delay_ms: lineMs });
   }
   async closeChannel(channel: string): Promise<void> {
     const sv = this.need();

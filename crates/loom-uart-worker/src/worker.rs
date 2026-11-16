@@ -12,10 +12,13 @@
 //! adapter remains for existing in-process test harnesses.
 
 mod port;
+mod reconnect;
 mod send;
+mod signal;
 mod util;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
@@ -28,23 +31,34 @@ use loom_worker_sdk::{BoxFuture, JobCmd, SharedWorker, Worker, WorkerCtx, WriteO
 use serde_json::{Value, json};
 
 pub use port::{ARB_TICK, MAX_ADMIT_WAITERS, MAX_EXPECT_WAITERS, MAX_TX_WAITERS, PUMP_BATCH};
+pub use reconnect::{
+    PortIdentity, RECONNECT_POLL, RECONNECT_WINDOW_DEFAULT, RECONNECT_WINDOW_MAX, RECONNECT_WINDOW_MIN,
+    ReconnectCfg, Reopener, SystemReopener,
+};
 pub use send::{DEFER_TIMEOUT_MS, MAX_WAIT_MS, RUN_TIMEOUT_MS, SEND_EXPECT_TIMEOUT_MS};
+pub use signal::{BREAK_DEFAULT_MS, SIGNAL_CONTROL_TIMEOUT, SIGNAL_MAX_MS};
 
-use port::{Port, PortInfo};
+use port::{LogSlot, Port, PortInfo};
+use reconnect::{ReopenStep, identity_json, parse_reconnect, reconnect_json, supervise};
 use send::{
     ExpectWait, activity_expect, activity_idle, agent_write, channel_error, expect_finish, parse_patterns,
     submit_user, viewer_input,
 };
-use util::{arg_str, arg_u64, ctx_clock, draft, env_name, kind, open_error, parse_env, werr};
+use signal::{line_json, signal_write};
+use util::{
+    arg_str, arg_u64, ctx_clock, draft, env_name, kind, log_json, open_error, pacing_fields, pacing_json,
+    parse_env, parse_log_cfg, parse_pacing, werr,
+};
 
 use crate::bridge::bridge;
 use crate::channel::{ChannelCore, ExpectFrom, LinesQuery, Profile, ReadQuery};
 use crate::clock::SeqSource;
+use crate::logsink::LogCfg;
 use crate::reader::Reader;
 use crate::transport::{
     self, FlowControl, OpenOpts, Parity, PortConfig, SIM_SCHEME, StopBits, TransportKind,
 };
-use crate::tx::{TxActor, event_channel};
+use crate::tx::{Pacing, TxActor, event_channel};
 
 /// Worker kind registered by the gateway side (`loom-uart`).
 pub const WORKER_KIND: &str = "uart";
@@ -69,6 +83,30 @@ struct Inner {
     next_input_seq: AtomicU64,
     next_expect: AtomicU64,
     opens: AtomicU32,
+    /// B3: reconnect identity/reopen seam (`None` = [`SystemReopener`]).
+    reopener: Mutex<Option<Arc<dyn Reopener>>>,
+    /// B4: native log sink of this worker's channel (handed to every `Port` it starts).
+    log: LogSlot,
+    /// B4: test seam for `$LOOM_HOME` (`None` = `loom_worker_sdk::transport::loom_home()`).
+    log_home: Mutex<Option<PathBuf>>,
+}
+
+/// B3: everything needed to (re)start a port; built by `open_inner` and by `reopen_after_disconnect` from the
+/// old port's [`PortInfo`] + live pacing / HOLD. See FUNCTIONS.md §B3.3 `spawn_port`.
+#[derive(Debug, Clone)]
+struct PortSpec {
+    target: String,
+    channel: String,
+    config: PortConfig,
+    profile_name: String,
+    profile: Profile,
+    env: Env,
+    sim_pty: bool,
+    pacing: Pacing,
+    reconnect: ReconnectCfg,
+    identity: Option<PortIdentity>,
+    /// carry HOLD over to the new arbiter (reconnect only)
+    hold: bool,
 }
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -96,6 +134,339 @@ impl UartWorker {
         }
         v.push(path.to_owned());
         Ok(())
+    }
+
+    /// Test seam (B3): how a disconnected port is re-identified and reopened (default [`SystemReopener`]).
+    /// Set before `uart.open`. See FUNCTIONS.md §B3.3.
+    pub fn set_reopener(&self, r: Arc<dyn Reopener>) {
+        *lock(&self.inner.reopener) = Some(r);
+    }
+
+    /// B3: the injected reopener or [`SystemReopener`]. See §B3.3.
+    fn reopener(&self) -> Arc<dyn Reopener> {
+        lock(&self.inner.reopener)
+            .clone()
+            .unwrap_or_else(|| Arc::new(SystemReopener))
+    }
+
+    /// B3: start a port from `spec` on `transport` (kept core / generation, emitter, reader, TX actor, arbiter,
+    /// `Port::new` + `start`, reconnect supervisor when enabled, `uart.state open` (+ `reopen` note) and
+    /// `uart.config`). Caller holds the lifecycle lock and an empty port slot. See FUNCTIONS.md §B3.3.
+    fn spawn_port(
+        &self,
+        cx: &WorkerCtx,
+        spec: &PortSpec,
+        transport: Box<dyn transport::Transport>,
+        reopen: Option<Value>,
+    ) -> Result<Arc<Port>, WorkerError> {
+        let kind_ = transport.kind();
+        let rx_handle = transport.rx_handle().map_err(|e| open_error(&e))?;
+
+        // Ring/cursors survive close → reopen of the same channel (generation + 1).
+        let (core, generation) = {
+            let mut kept = lock(&self.inner.kept);
+            match kept.remove(&spec.channel) {
+                Some((core, last_gen)) => {
+                    let g = last_gen + 1;
+                    lock(&core).new_generation(g);
+                    (core, g)
+                }
+                None => {
+                    kept.clear();
+                    (
+                        Arc::new(Mutex::new(ChannelCore::new(
+                            &spec.channel,
+                            spec.profile.clone(),
+                            1,
+                        ))),
+                        1,
+                    )
+                }
+            }
+        };
+        let emitter = cx
+            .emitter(&spec.channel)
+            .with_generation(Some(generation), Some(spec.env));
+        lock(&core).set_producer(emitter.producer_id(), emitter.producer_epoch().0);
+        let start_offset = lock(&core).rx_end();
+
+        let clock = ctx_clock(cx);
+        let seq = Arc::new(SeqSource::default());
+        let (btx, brx) = bridge();
+        let reader = Reader::spawn(rx_handle, btx, Arc::clone(&seq), Arc::clone(&clock), start_offset)
+            .map_err(|e| open_error(&e))?;
+        let (etx, erx) = event_channel();
+        let actor = TxActor::spawn(transport, seq, clock, etx).map_err(|e| open_error(&e))?;
+        let arb = InputArbiter::new(ArbiterConfig {
+            has_prompt: spec.profile.prompt.is_some(),
+            line_kill_ctrl_u: spec.profile.line_kill_ctrl_u,
+        });
+        let info = PortInfo {
+            channel: spec.channel.clone(),
+            target: spec.target.clone(),
+            generation,
+            env: spec.env,
+            profile: spec.profile_name.clone(),
+            config_json: config_json(&spec.config),
+            config: spec.config,
+            clock_id: cx.clock().clock_id().to_owned(),
+            sim_pty: spec.sim_pty,
+            reconnect: spec.reconnect,
+            identity: spec.identity.clone(),
+        };
+        let port = Arc::new(Port::new(
+            info,
+            core,
+            arb,
+            actor,
+            emitter,
+            Arc::clone(&self.inner.publication),
+            spec.pacing,
+            Arc::clone(&self.inner.log),
+        ));
+        port.start(reader, brx, erx).map_err(|e| open_error(&e))?;
+        self.inner.opens.fetch_add(1, Ordering::Relaxed);
+
+        if spec.hold {
+            let now = port.now_ms();
+            let (acts, evs) = {
+                let mut a = port.arb();
+                let acts = a.set_hold(true, now);
+                (acts, a.take_events())
+            };
+            port.emit_arbiter(evs);
+            port.dispatch(acts);
+        }
+        if spec.reconnect.enabled {
+            let (tx, rx) = std::sync::mpsc::sync_channel(1);
+            port.set_disconnect_notify(tx);
+            let (w, cx2, rc) = (self.clone(), cx.clone(), spec.reconnect);
+            std::thread::Builder::new()
+                .name("loom-uart-reconnect".into())
+                .spawn(move || supervise(w, cx2, rx, generation, rc))
+                .map_err(|e| open_error(&e))?;
+        }
+
+        let ts = port.ts_now(TsSource::HostReadComplete);
+        let mut opened =
+            json!({"state": "open", "path": port.info.target, "transport": transport_name(kind_)});
+        if let Some(r) = reopen {
+            opened["reopen"] = r;
+        }
+        port.emit(draft(kind::STATE, ts.clone(), Origin::Device, opened));
+        let mut cfg = port.info.config_json.clone();
+        cfg["profile"] = json!(port.info.profile);
+        cfg["env"] = json!(env_name(spec.env));
+        cfg["pacing"] = pacing_json(port.pacing());
+        port.emit(draft(kind::CONFIG, ts, Origin::Device, cfg));
+        Ok(port)
+    }
+
+    /// B3: one reconnect attempt for the disconnected port of generation `expect_gen`. See FUNCTIONS.md §B3.3.
+    fn reopen_after_disconnect(
+        &self,
+        cx: &WorkerCtx,
+        expect_gen: u32,
+        attempt: u32,
+        after_ms: u64,
+    ) -> ReopenStep {
+        let _lifecycle = lock(&self.inner.lifecycle);
+        let mut slot = lock(&self.inner.port);
+        let Some(old) = slot.as_ref().cloned() else {
+            return ReopenStep::Gone;
+        };
+        if old.info.generation != expect_gen || old.connected.load(Ordering::Acquire) {
+            return ReopenStep::Gone;
+        }
+        let info = &old.info;
+        let reopener = self.reopener();
+        let found = reopener.identity(&info.target);
+        if let Some(exp) = &info.identity {
+            match found {
+                None => return ReopenStep::NotYet("device absent".into()),
+                Some(f) if !exp.matches(&f) => {
+                    return ReopenStep::IdentityMismatch {
+                        expected: exp.clone(),
+                        found: f,
+                    };
+                }
+                Some(_) => {}
+            }
+        }
+        let Some(profile) = Profile::named(&info.profile) else {
+            return ReopenStep::Gone;
+        };
+        let opts = OpenOpts {
+            sim_pty: info.sim_pty,
+            ..OpenOpts::default()
+        };
+        let transport = match reopener.open(&info.target, &info.config, &opts) {
+            Ok(t) => t,
+            Err(e) => return ReopenStep::NotYet(e.to_string()),
+        };
+        // Take the old port out without a `closed` state event: this is a reconnect, not a close.
+        let Some(old) = slot.take() else {
+            return ReopenStep::Gone;
+        };
+        old.cancel_agents("closed", ErrorCode::NotOpen);
+        let hold = old.arb().hold_on();
+        let pacing = old.pacing();
+        old.shutdown();
+        {
+            let mut kept = lock(&self.inner.kept);
+            if kept.len() >= MAX_KEPT_CHANNELS {
+                kept.clear();
+            }
+            kept.insert(
+                old.info.channel.clone(),
+                (Arc::clone(&old.core), old.info.generation),
+            );
+        }
+        let spec = PortSpec {
+            target: old.info.target.clone(),
+            channel: old.info.channel.clone(),
+            config: old.info.config,
+            profile_name: old.info.profile.clone(),
+            profile,
+            env: old.info.env,
+            sim_pty: old.info.sim_pty,
+            pacing,
+            reconnect: old.info.reconnect,
+            identity: old.info.identity.clone(),
+            hold,
+        };
+        let reopen = json!({
+            "attempt": attempt,
+            "after_ms": after_ms,
+            "identity": if old.info.identity.is_some() { "usb" } else { "path_only" },
+            "previous_generation": expect_gen,
+        });
+        match self.spawn_port(cx, &spec, transport, Some(reopen)) {
+            Ok(port) => {
+                let generation = port.info.generation;
+                *slot = Some(port);
+                ReopenStep::Reopened(generation)
+            }
+            Err(_) => ReopenStep::Gone,
+        }
+    }
+
+    /// Test seam (B4): directory used instead of `$LOOM_HOME` for native logs. See FUNCTIONS.md §B4.2.
+    pub fn set_log_home(&self, home: PathBuf) {
+        *lock(&self.inner.log_home) = Some(home);
+    }
+
+    /// B4 `uart.log.start{channel, format?, rotate_mib?, quota_mib?}` (also used by `uart.open{log}`). See §B4.2.
+    fn log_start(&self, args: &Value, cfg: LogCfg) -> Result<Value, WorkerError> {
+        use crate::logsink::{LogHeader, LogSink, LogStartError, log_dir};
+        let port = self.port_for(args)?;
+        {
+            let slot = lock(&port.log);
+            if let Some((sink, cur)) = slot.as_ref() {
+                let st = sink.stats();
+                if st.active {
+                    if *cur == cfg {
+                        return Ok(
+                            json!({"channel": port.info.channel, "log": log_json(&st, Some(cur)), "already": true}),
+                        );
+                    }
+                    let file = st
+                        .file
+                        .as_deref()
+                        .map(|f| f.display().to_string())
+                        .unwrap_or_default();
+                    return Err(werr(
+                        ErrorCode::Config,
+                        format!("already logging ({file}); stop it first"),
+                    ));
+                }
+            }
+        }
+        let home = lock(&self.inner.log_home)
+            .clone()
+            .unwrap_or_else(loom_worker_sdk::transport::loom_home);
+        let (producer_id, producer_epoch) = port.producer();
+        let header = LogHeader {
+            channel: port.info.channel.clone(),
+            target: port.info.target.clone(),
+            producer_id,
+            producer_epoch,
+            generation: port.info.generation,
+            clock_id: port.info.clock_id.clone(),
+        };
+        let wall_now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| u64::try_from(d.as_nanos()).unwrap_or(u64::MAX));
+        // The sink starts outside the slot lock: the RX/TX pumps lock the slot and must not wait for disk IO.
+        let sink = match LogSink::start(&log_dir(&home, &port.info.channel), header, cfg, wall_now) {
+            Ok(s) => s,
+            Err(
+                e @ LogStartError::Quota {
+                    dir_bytes,
+                    quota_bytes,
+                },
+            ) => {
+                return Err(util::werr_detail(
+                    ErrorCode::Limit,
+                    e.to_string(),
+                    json!({"dir_bytes": dir_bytes, "quota_bytes": quota_bytes}),
+                ));
+            }
+            Err(e) => return Err(werr(ErrorCode::Internal, e.to_string())),
+        };
+        let stats = {
+            let mut slot = lock(&port.log);
+            if slot.as_ref().is_some_and(|(s, _)| s.stats().active) {
+                drop(slot);
+                let _ = sink.stop("closed");
+                return Err(werr(ErrorCode::Config, "already logging; stop it first"));
+            }
+            let stats = sink.stats();
+            *slot = Some((sink, cfg));
+            stats
+        };
+        let mut payload = log_json(&stats, Some(&cfg));
+        payload["state"] = json!("started");
+        payload["provenance"] = json!("native-worker-log");
+        port.emit(draft(
+            kind::LOG,
+            port.ts_now(TsSource::HostReadComplete),
+            Origin::Device,
+            payload,
+        ));
+        Ok(json!({"channel": port.info.channel, "log": log_json(&stats, Some(&cfg))}))
+    }
+
+    /// B4 `uart.log.stop{channel}` and the close path (`reason` `user` | `closed`). See §B4.2.
+    fn log_stop(&self, args: &Value, reason: &str) -> Result<Value, WorkerError> {
+        let port = self.port_for(args)?;
+        let taken = {
+            let mut slot = lock(&port.log);
+            if slot.as_ref().is_some_and(|(s, _)| s.stats().active) {
+                slot.take()
+            } else {
+                None
+            }
+        };
+        let Some((sink, cfg)) = taken else {
+            let slot = lock(&port.log);
+            let log = match slot.as_ref() {
+                Some((s, c)) => log_json(&s.stats(), Some(c)),
+                None => log_json(&crate::logsink::LogStats::default(), None),
+            };
+            return Ok(json!({"channel": port.info.channel, "stopped": false, "log": log}));
+        };
+        let fin = sink.stop(reason);
+        let mut payload = log_json(&fin, Some(&cfg));
+        payload["state"] = json!("stopped");
+        payload["reason"] = json!(reason);
+        port.emit(draft(
+            kind::LOG,
+            port.ts_now(TsSource::HostReadComplete),
+            Origin::Device,
+            payload,
+        ));
+        Ok(json!({"channel": port.info.channel, "stopped": true, "log": log_json(&fin, Some(&cfg))}))
     }
 
     /// Threads still running for the open port (0 when closed).
@@ -164,8 +535,11 @@ impl UartWorker {
             "uart.input.clear" => self.viewer_clear(args, viewer_conn(&call)?),
             "uart.input.takeover" => self.viewer_takeover(args, viewer_conn(&call)?),
             "uart.hold" | "uart.unhold" => self.viewer_hold(args, call.method == "uart.hold"),
+            "uart.pacing" => self.set_pacing(args),
+            "uart.log.start" => self.log_start(args, parse_log_cfg(args, true)?),
+            "uart.log.stop" => self.log_stop(args, "user"),
             // Request writes normally arrive through `on_write`; accept them here too.
-            "uart.open" | "uart.close" | "uart.send" | "uart.run" => Err(werr(
+            "uart.open" | "uart.close" | "uart.send" | "uart.run" | "uart.signal" => Err(werr(
                 ErrorCode::Usage,
                 format!("{} is a request write (on_write)", call.method),
             )),
@@ -187,6 +561,14 @@ impl UartWorker {
             "uart.close" => outcome(self.close(cx, &w.op)),
             "uart.send" | "uart.run" => match self.port_for(&w.op) {
                 Ok(port) => agent_write(port, cx, w, method == "uart.run").await,
+                Err(e) => WriteOutcome {
+                    state: WriteState::Failed,
+                    detail: Value::Null,
+                    error: Some(e),
+                },
+            },
+            "uart.signal" => match self.port_for(&w.op) {
+                Ok(port) => signal_write(port, cx, w).await,
                 Err(e) => WriteOutcome {
                     state: WriteState::Failed,
                     detail: Value::Null,
@@ -275,6 +657,9 @@ impl UartWorker {
         config
             .validate()
             .map_err(|e| werr(ErrorCode::Unsupported, format!("unsupported line settings: {e}")))?;
+        let pacing = parse_pacing(op.get("pacing"))?;
+        let reconnect = parse_reconnect(op.get("reconnect"))?;
+        let log = op.get("log").map(|v| parse_log_cfg(v, false)).transpose()?;
         let profile_name = arg_str(op, "profile").unwrap_or("generic").to_owned();
         let profile = Profile::named(&profile_name)
             .ok_or_else(|| werr(ErrorCode::Usage, format!("unknown profile '{profile_name}'")))?;
@@ -294,7 +679,25 @@ impl UartWorker {
         if let Some(p) = slot.as_ref() {
             // Idempotent reopen of the same port with the same settings.
             if p.info.target == target && p.info.config == config && p.info.profile == profile_name {
-                return Ok(open_result(&p.info));
+                if !pacing.is_none_or(|x| x == p.pacing()) {
+                    return Err(werr(
+                        ErrorCode::Config,
+                        format!(
+                            "worker already owns '{}' with other pacing; use uart.pacing or close it first",
+                            p.info.target
+                        ),
+                    ));
+                }
+                if !reconnect.is_none_or(|x| x == p.info.reconnect) {
+                    return Err(werr(
+                        ErrorCode::Config,
+                        format!(
+                            "worker already owns '{}' with other reconnect setting; close it first",
+                            p.info.target
+                        ),
+                    ));
+                }
+                return Ok(open_result(&p.info, p.pacing()));
             }
             return Err(werr(
                 ErrorCode::Config,
@@ -305,6 +708,13 @@ impl UartWorker {
             ));
         }
 
+        let reconnect = reconnect.unwrap_or(ReconnectCfg::OFF);
+        // No port enumeration on ordinary opens: identity is only recorded when reconnect is on.
+        let identity = if reconnect.enabled {
+            self.reopener().identity(&target).filter(PortIdentity::is_known)
+        } else {
+            None
+        };
         let opts = OpenOpts {
             sim_pty: sim_issued_pty,
             ..OpenOpts::default()
@@ -313,81 +723,36 @@ impl UartWorker {
             Some(t) => t,
             None => transport::open(&target, &config, &opts).map_err(|e| open_error(&e))?,
         };
-        let kind_ = transport.kind();
-        let rx_handle = transport.rx_handle().map_err(|e| open_error(&e))?;
-
-        // Ring/cursors survive close → reopen of the same channel (generation + 1).
-        let (core, generation) = {
-            let mut kept = lock(&self.inner.kept);
-            match kept.remove(&channel) {
-                Some((core, last_gen)) => {
-                    let g = last_gen + 1;
-                    lock(&core).new_generation(g);
-                    (core, g)
-                }
-                None => {
-                    kept.clear();
-                    (
-                        Arc::new(Mutex::new(ChannelCore::new(&channel, profile.clone(), 1))),
-                        1,
-                    )
-                }
-            }
-        };
-        let emitter = cx.emitter(&channel).with_generation(Some(generation), Some(env));
-        lock(&core).set_producer(emitter.producer_id(), emitter.producer_epoch().0);
-        let start_offset = lock(&core).rx_end();
-
-        let clock = ctx_clock(cx);
-        let seq = Arc::new(SeqSource::default());
-        let (btx, brx) = bridge();
-        let reader = Reader::spawn(rx_handle, btx, Arc::clone(&seq), Arc::clone(&clock), start_offset)
-            .map_err(|e| open_error(&e))?;
-        let (etx, erx) = event_channel();
-        let actor = TxActor::spawn(transport, seq, clock, etx).map_err(|e| open_error(&e))?;
-        let arb = InputArbiter::new(ArbiterConfig {
-            has_prompt: profile.prompt.is_some(),
-            line_kill_ctrl_u: profile.line_kill_ctrl_u,
-        });
-        let info = PortInfo {
-            channel,
+        let spec = PortSpec {
             target,
-            generation,
-            env,
-            profile: profile_name,
-            config_json: config_json(&config),
+            channel,
             config,
-            clock_id: cx.clock().clock_id().to_owned(),
+            profile_name,
+            profile,
+            env,
+            sim_pty: sim_issued_pty,
+            pacing: pacing.unwrap_or(Pacing::NONE),
+            reconnect,
+            identity,
+            hold: false,
         };
-        let port = Arc::new(Port::new(
-            info,
-            core,
-            arb,
-            actor,
-            emitter,
-            Arc::clone(&self.inner.publication),
-        ));
-        port.start(reader, brx, erx).map_err(|e| open_error(&e))?;
-        self.inner.opens.fetch_add(1, Ordering::Relaxed);
-
-        let ts = port.ts_now(TsSource::HostReadComplete);
-        port.emit(draft(
-            kind::STATE,
-            ts.clone(),
-            Origin::Device,
-            json!({"state": "open", "path": port.info.target, "transport": transport_name(kind_)}),
-        ));
-        let mut cfg = port.info.config_json.clone();
-        cfg["profile"] = json!(port.info.profile);
-        cfg["env"] = json!(env_name(env));
-        port.emit(draft(kind::CONFIG, ts, Origin::Device, cfg));
-        let result = open_result(&port.info);
+        let port = self.spawn_port(cx, &spec, transport, None)?;
+        let mut result = open_result(&port.info, port.pacing());
         *slot = Some(port);
+        // The sink is started through `log_start`, which looks the port up in the slot: release it first.
+        drop(slot);
+        if let Some(cfg) = log
+            && let Err(e) = self.log_start(op, cfg)
+        {
+            result["log_error"] = json!({"code": e.code.as_str(), "message": e.message});
+        }
         Ok(result)
     }
 
     fn close(&self, _cx: &WorkerCtx, op: &Value) -> Result<Value, WorkerError> {
         let _lifecycle = lock(&self.inner.lifecycle);
+        // Stop an active native log first (reason `closed`), while the port can still emit its event.
+        let _ = self.log_stop(op, "closed");
         let port = {
             let mut slot = lock(&self.inner.port);
             let Some(p) = slot.as_ref() else {
@@ -431,6 +796,32 @@ impl UartWorker {
         }))
     }
 
+    /// B2 `uart.pacing{channel, char_delay_ms?, line_delay_ms?}`: change the port pacing.
+    /// See FUNCTIONS.md §B2.4 `set_pacing`.
+    fn set_pacing(&self, args: &Value) -> Result<Value, WorkerError> {
+        let port = self.port_for(args)?;
+        let new = pacing_fields(args, port.pacing())?;
+        let old = port.set_pacing(new);
+        if old != new {
+            let mut cfg = port.info.config_json.clone();
+            cfg["profile"] = json!(port.info.profile);
+            cfg["env"] = json!(env_name(port.info.env));
+            cfg["pacing"] = pacing_json(new);
+            port.emit(draft(
+                kind::CONFIG,
+                port.ts_now(TsSource::HostReadComplete),
+                Origin::Device,
+                cfg,
+            ));
+        }
+        Ok(json!({
+            "channel": port.info.channel,
+            "generation": port.info.generation,
+            "pacing": pacing_json(new),
+            "changed": old != new,
+        }))
+    }
+
     // ------------------------------------------------------------------ reads & waits
 
     fn status(&self, args: &Value) -> Result<Value, WorkerError> {
@@ -445,11 +836,20 @@ impl UartWorker {
                     json!({"owner": "agent", "client": client, "request_id": request_id})
                 }
             };
+            let log = match lock(&p.log).as_ref() {
+                Some((s, c)) => log_json(&s.stats(), Some(c)),
+                None => log_json(&crate::logsink::LogStats::default(), None),
+            };
             let extra = json!({
                 "open": true,
+                "log": log,
                 "connected": p.connected.load(Ordering::Acquire),
                 "channel": p.info.channel, "path": p.info.target, "generation": p.info.generation,
                 "env": env_name(p.info.env), "profile": p.info.profile, "config": p.info.config_json,
+                "pacing": pacing_json(p.pacing()),
+                "lines": line_json(*lock(&p.lines)),
+                "reconnect": reconnect_json(p.info.reconnect, *lock(&p.reconnect)),
+                "identity": p.info.identity.as_ref().map(identity_json),
                 "input": owner, "input_dirty": a.input_dirty(), "hold": a.hold_on(),
                 "lock": a.lock_info().map(|(c, r, exp)| json!({"actor": c, "reason": r, "expires_ms": exp})),
                 "pending_agent_sends": a.pending_agent_sends(),
@@ -596,10 +996,12 @@ fn outcome(r: Result<Value, WorkerError>) -> WriteOutcome {
     }
 }
 
-fn open_result(info: &PortInfo) -> Value {
+/// Open result; B2 adds `pacing` (FUNCTIONS.md §B2.4).
+fn open_result(info: &PortInfo, pacing: Pacing) -> Value {
     json!({
         "channel": info.channel, "generation": info.generation, "path": info.target,
         "config": info.config_json, "profile": info.profile, "env": env_name(info.env),
+        "pacing": pacing_json(pacing),
     })
 }
 

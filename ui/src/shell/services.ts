@@ -6,7 +6,7 @@ import { ActionGate } from '../sdk/actionGate';
 import { parseEvidenceRef, type EvidenceRef } from '../sdk/evidenceRef';
 import { SimpleCursorBus, type ShellUiHooks } from '../sdk/context';
 import { ActivityStore } from '../store/activityStore';
-import { defaultPanelFor, ORIGIN_SUBJECT } from '../store/channels';
+import { defaultPanelFor, openedToastText, viewsForChannel } from '../store/channels';
 import { FocusController, type FocusRequest } from '../store/focus';
 import { TabSettings } from '../store/tabSettings';
 import { Emitter } from '../store/emitter';
@@ -327,22 +327,29 @@ export function createShellServices(net: NetClient, opts: ServiceOptions = {}): 
     );
     // UD-31: a channel opened while watching → bar (shell store) + toast + optional auto-open
     offs.push(
-      shell.onChannelOpened(({ entry, signal, isNew }) => {
+      shell.onChannelOpened(({ entry, signal, isNew, local }) => {
+        if (local) return;
         const dp = defaultPanelFor(entry.domain, entry.channel);
-        const subj = ORIGIN_SUBJECT[signal.origin] ?? `${signal.origin}가`;
         const what = `${entry.domain} ${entry.channel}`;
-        const verb = isNew ? '열었습니다' : '다시 열었습니다';
+        const text = openedToastText(signal.origin, what, !isNew);
         const key = `chan:${entry.domain}/${entry.channel}`;
+        const route = parseRoute(currentHash());
+        const shown = viewsForChannel(entry.domain, entry.channel).some((v) => {
+          const slot = { panel: v.panel, props: v.props };
+          return dock.current
+            ? dock.current.find(slot) !== null
+            : (route.kind === 'panel' && sameSlot(route.slot, slot)) || uiState.extraSlots.some((x) => sameSlot(x, slot));
+        });
         if (dp && !dock.current?.lifecycleManaged && parseRoute(currentHash()).kind !== 'panel' && settings.autoOpenPanels === 'on') {
           // New agent/device connections must not replace the view the user is reading
           // or redirect terminal input. Explicit explorer selection still activates it.
           const r = showSlot(dp, { activate: false });
-          toasts.push(`${subj} ${what}를 ${verb}${r === 'added' ? ' — 패널을 열었습니다' : ''}`, { key, ttlMs: 8_000 });
+          toasts.push(`${text}${r === 'added' ? ' — 패널을 열었습니다' : ''}`, { key, ttlMs: 8_000 });
         } else {
-          toasts.push(`${subj} ${what}를 ${verb}`, {
+          toasts.push(text, {
             key,
             ttlMs: 12_000,
-            actions: dp ? [{ label: '패널 열기', run: () => void showSlot(dp) }] : [],
+            actions: dp && !shown ? [{ label: '패널 열기', run: () => void showSlot(dp) }] : [],
           });
         }
       }),

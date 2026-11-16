@@ -12,8 +12,9 @@ use loom_uart_worker::transport::{
 };
 use loom_uart_worker::tx::{
     AGENT_QUEUE_BYTES, AGENT_QUEUE_ITEMS, CTRLC_QUEUE_BYTES, CTRLC_QUEUE_ITEMS, CancelResult, ControlOp,
-    SubmitError, TX_CANCEL_QUEUE_BYTES, TX_CANCEL_QUEUE_ITEMS, TX_CHUNK_MAX, TxActor, TxDone, TxErrorCode,
-    TxEvent, TxHandle, TxLane, TxRequest, TxState, USER_QUEUE_BYTES, USER_QUEUE_ITEMS, event_channel,
+    Pacing, SubmitError, TX_CANCEL_QUEUE_BYTES, TX_CANCEL_QUEUE_ITEMS, TX_CHUNK_MAX, TxActor, TxDone,
+    TxErrorCode, TxEvent, TxHandle, TxLane, TxRequest, TxState, USER_QUEUE_BYTES, USER_QUEUE_ITEMS,
+    event_channel,
 };
 
 const WAIT: Duration = Duration::from_secs(2);
@@ -182,6 +183,7 @@ fn request(id: u64, lane: TxLane, bytes: &[u8]) -> TxRequest {
         bytes: bytes.to_vec(),
         secret: false,
         deadline: Instant::now() + WAIT,
+        pacing: Pacing::NONE,
     }
 }
 

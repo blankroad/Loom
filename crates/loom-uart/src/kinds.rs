@@ -31,13 +31,15 @@ pub const AGENT_ACTIVITY: &str = "uart.agent_activity";
 pub const TRANSFER: &str = "uart.transfer";
 /// Line signal (break/DTR/RTS, M2).
 pub const SIGNAL: &str = "uart.signal";
+/// Native log started / stopped (operator-upgrade U1-A, B4).
+pub const LOG: &str = "uart.log";
 /// Named position.
 pub const MARK: &str = "uart.mark";
 /// Result of an expect / send --expect (evidence row).
 pub const EXPECT_RESULT: &str = "uart.expect_result";
 
 /// All kinds in registration order.
-pub const ALL: [&str; 14] = [
+pub const ALL: [&str; 15] = [
     DATA,
     WRITE,
     STATE,
@@ -50,6 +52,7 @@ pub const ALL: [&str; 14] = [
     AGENT_ACTIVITY,
     TRANSFER,
     SIGNAL,
+    LOG,
     MARK,
     EXPECT_RESULT,
 ];
@@ -143,10 +146,15 @@ pub fn specs() -> Vec<EventKindSpec> {
                 "type": "object",
                 "required": ["state"],
                 "properties": {
-                    "state": {"enum": ["closed", "opening", "open", "released", "disconnected", "matching", "reopening", "ambiguous", "stopped", "closing", "error"]},
+                    "state": {"enum": ["closed", "opening", "open", "released", "disconnected", "matching", "reconnecting", "reopening", "ambiguous", "stopped", "closing", "error"]},
                     "path": {"type": "string"},
                     "cause": {"type": "string"},
-                    "error": {"type": "string"}
+                    "error": {"type": "string"},
+                    "reason": {"enum": ["gave_up", "identity_mismatch", "stopped"], "description": "B3: why a reconnect episode ended without reopening"},
+                    "reconnect": {"type": "object", "description": "B3: {enabled, window_ms, active, attempts}"},
+                    "reopen": {"type": "object", "description": "B3: on the open after a reconnect: {attempt, after_ms, identity: usb|path_only, previous_generation}"},
+                    "expected": {"type": "object"},
+                    "found": {"type": "object"}
                 }
             }),
             vec![ptr(
@@ -158,6 +166,7 @@ pub fn specs() -> Vec<EventKindSpec> {
                     "released",
                     "disconnected",
                     "matching",
+                    "reconnecting",
                     "reopening",
                     "ambiguous",
                     "stopped",
@@ -177,7 +186,15 @@ pub fn specs() -> Vec<EventKindSpec> {
                     "stop_bits": {"enum": ["1", "1.5", "2"]},
                     "flow": {"enum": ["none", "software", "hardware"]},
                     "profile": {"type": "string"},
-                    "env": {"enum": ["sim", "bench", "vehicle"]}
+                    "env": {"enum": ["sim", "bench", "vehicle"]},
+                    "pacing": {
+                        "type": "object",
+                        "description": "transmit pacing (B2/U3); zeros = unpaced",
+                        "properties": {
+                            "char_delay_ms": {"type": "integer", "minimum": 0, "maximum": 1000},
+                            "line_delay_ms": {"type": "integer", "minimum": 0, "maximum": 10000}
+                        }
+                    }
                 }
             }),
             vec![ptr("/payload/baud", ValueType::U32)],
@@ -205,11 +222,19 @@ pub fn specs() -> Vec<EventKindSpec> {
                 "required": ["input_seq", "state"],
                 "properties": {
                     "input_seq": {"type": "string", "description": "u64 decimal, echoed from uart.input"},
-                    "state": {"enum": ["sent", "held", "discarded"]},
-                    "reason": {"enum": ["other_writer", "agent_lock", "queue_full", "takeover_timeout", "viewer_left", "not_open"]}
+                    "state": {"enum": ["sent", "held", "discarded", "partial"]},
+                    "reason": {"enum": [
+                        "other_writer", "agent_lock", "queue_full", "takeover_timeout", "viewer_left", "not_open",
+                        "pacing_too_long", "interrupted_by_user", "deadline", "io_error", "shutdown"
+                    ]},
+                    "written_bytes": {"type": "integer", "description": "B2: bytes the driver accepted before the request ended"},
+                    "remaining_bytes": {"type": "integer"}
                 }
             }),
-            vec![ptr("/payload/state", enum_of(&["sent", "held", "discarded"]))],
+            vec![ptr(
+                "/payload/state",
+                enum_of(&["sent", "held", "discarded", "partial"]),
+            )],
         ),
         spec(
             INPUT_SUSPECT,
@@ -270,9 +295,30 @@ pub fn specs() -> Vec<EventKindSpec> {
             json_schema!({
                 "type": "object",
                 "required": ["kind"],
-                "properties": {"kind": {"enum": ["break", "dtr", "rts"]}, "value": {"type": "boolean"}, "duration_ms": {"type": "integer"}}
+                "properties": {
+                    "kind": {"enum": ["break", "dtr", "rts"]}, "value": {"type": "boolean"}, "duration_ms": {"type": "integer"},
+                    "result": {"enum": ["ok", "failed", "release_failed"], "description": "B3: release_failed = the break/pulse may still be held"},
+                    "error": {"type": "object", "properties": {"code": {"type": "string"}, "message": {"type": "string"}}}
+                }
             }),
             vec![ptr("/payload/kind", enum_of(&["break", "dtr", "rts"]))],
+        ),
+        spec(
+            LOG,
+            json_schema!({
+                "type": "object",
+                "required": ["state"],
+                "properties": {
+                    "state": {"enum": ["started", "stopped"]},
+                    "reason": {"type": "string", "description": "stopped: user | closed | quota | io_error: …"},
+                    "provenance": {"const": "native-worker-log"},
+                    "dir": {"type": "string"}, "file": {"type": ["string", "null"]},
+                    "format": {"enum": ["log", "jsonl", null]},
+                    "files": {"type": "integer"}, "bytes_written": {"type": "integer"},
+                    "dropped_records": {"type": "integer"}, "dropped_bytes": {"type": "integer"}
+                }
+            }),
+            vec![ptr("/payload/state", enum_of(&["started", "stopped"]))],
         ),
         spec(
             MARK,

@@ -19,6 +19,12 @@ Exact verbs, flags, defaults, exit codes: `loom uart help --json`. Don't guess f
 - `read dut` (new since your last read, max 100 lines) · `--tail 50` · `--since now|@last|off:N` (N = an `rx_offset_*` from a result) · `--page`
 - Keys: `send dut --ctrl c` · raw bytes: `send dut --hex "1b 5b 41"` · passwords: `--secret-env VAR` only.
 
+## Opt-in operator features (only when the user asks)
+- Slow device input: `send dut 'line' --line-delay 50` (per request) or `pacing dut --char 5 --line 50` (whole channel, the user's typing too). A paced send must finish inside `--defer-timeout` + `--timeout`, or it is refused before any byte (`E_USAGE`, with `estimate_ms` and `budget_ms`); raise `--timeout` for long pacing.
+- Lines: `signal dut break [--ms 250]` · `signal dut dtr --off --ms 100` (pulse) · `signal dut rts --on`. Say first what you will do; STOP/HOLD refuse it.
+- Unplug-tolerant: `open … --reconnect [--reconnect-window 10]` reopens the same device only (same USB identity) as a new generation; nothing you sent is resent — check `status` before continuing.
+- Long captures: `open … --log [jsonl]` or `log dut start|stop` writes `$LOOM_HOME/uart/logs/dut/` (bounded, never deletes). The files carry no stream seq; seq-aligned evidence comes from the journal.
+
 ## Watch for a fresh line (read-only)
 `loom uart expect dut '(?m)^<line regex>\r?\n' --regex --from now --timeout 60 --json`
 - Channel already open and you only read: run this directly, also on follow-ups. Run
