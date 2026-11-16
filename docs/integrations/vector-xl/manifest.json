@@ -1,0 +1,20 @@
+{
+  "product": "Vector XL Driver Library",
+  "version": "26.30.16",
+  "published_date": "2026-07-23",
+  "checked_date": "2026-11-16",
+  "platform": "Windows",
+  "target_hardware": "VN5640",
+  "archive_format": "zip",
+  "displayed_size": "288.5 MB",
+  "vendor_published_sha1": "03c53375fdf8527bf05b019ed000ea99666ed067",
+  "product_url": "https://www.vector.com/en/business-unit/testing-validation-diagnostics/products/network-interfaces/xl-driver-library/",
+  "download_url": "https://www.vector.com/en/services/download-center/#search:xl%20driver%20library",
+  "terms_url": "https://cdn.vector.com/cms/content/corporate/terms-and-conditions/TC_XLDriverLibrary_EN.pdf",
+  "terms_version": "1.2 (2025-04-01)",
+  "download_status": "pending_user_download_request_form",
+  "archive_downloaded": false,
+  "archive_hash_locally_verified": false,
+  "vendor_files_committed": false,
+  "redistribution_requires_prior_written_agreement": true
+}
