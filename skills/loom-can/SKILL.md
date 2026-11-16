@@ -31,6 +31,10 @@ Full command reference (authoritative): `loom can help --json`.
 - When done: `loom can periodic stop --mine`. STOP ends all periodic jobs; they do not restart by themselves.
 - If the user changes a job in the UI (IG), you see it in `others_since_last` / `NOTE:`; mention it, don't fight it.
 
+## Export (BLF / ASC)
+- `loom can export --since <cursor> [--until <cursor>] [--ids …] [--format blf|asc] [-o FILE]` writes the journal's `can.frame` rows to a file **on the daemon machine** plus a `<file>.loom.jsonl` provenance sidecar. Default `--since -10m`; default file = a new daemon temp file. An existing file is never overwritten.
+- Report the printed path and `seq` range. `TRUNCATED (…)` → continue with the printed `--since`; `INCOMPLETE` → the range has journal gaps (gap records are in the file and sidecar) — say so, never call it complete.
+
 ## Rules
 - Exit codes: 2 usage → fix the command. 3 → the condition did not happen in time (report it, don't retry blindly). 4 denied → report, don't retry. 6 → the user intervened, STOP is on, or a lock — tell the user and wait. 7 → device/worker problem (`loom can status`). 8 → result has a gap: report the gap before concluding. 9 → `loom daemon status`.
 - `NOTE:` / `others_since_last` means the user acted on the bus. Mention it and adapt; never silently overwrite their frames.

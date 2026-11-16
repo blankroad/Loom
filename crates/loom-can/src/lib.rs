@@ -6,6 +6,9 @@
 #[cfg(feature = "cli")]
 pub mod cli;
 pub mod condition;
+/// `can.export` (CAN-4): journal → BLF/ASC on the daemon machine.
+#[cfg(feature = "runtime")]
+pub mod export;
 #[cfg(feature = "runtime")]
 pub mod gateway;
 #[cfg(feature = "runtime")]
@@ -42,6 +45,8 @@ pub const RPC_LAST: &str = "can.last";
 pub const RPC_EXPECT: &str = "can.expect";
 /// RPC: channel status.
 pub const RPC_STATUS: &str = "can.status";
+/// Journal frames of one channel → BLF/ASC file + provenance sidecar on the daemon machine.
+pub const RPC_EXPORT: &str = "can.export";
 /// RPC: load a DBC for a channel (M2a).
 pub const RPC_DB_LOAD: &str = "can.db.load";
 /// RPC: loaded DBC of a channel.

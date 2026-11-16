@@ -29,10 +29,10 @@ use crate::signals::{
 use crate::{
     DOMAIN, KIND_CHANNEL_STATE, KIND_FRAME, KIND_ISOTP_RX_COMPLETE, KIND_ISOTP_RX_ERROR, KIND_ISOTP_RX_START,
     KIND_ISOTP_STATE, KIND_ISOTP_TX_DONE, KIND_ISOTP_TX_ERROR, KIND_JOB_STATE, KIND_STATS, KIND_TX,
-    RPC_EXPECT, RPC_ISOTP_ABORT, RPC_ISOTP_BARRIER, RPC_ISOTP_CANCEL, RPC_ISOTP_CLOSE, RPC_ISOTP_LIST,
-    RPC_ISOTP_OPEN, RPC_ISOTP_RECV, RPC_ISOTP_SEND, RPC_LAST, RPC_PERIODIC_LIST, RPC_PERIODIC_RENEW,
-    RPC_PERIODIC_START, RPC_PERIODIC_STOP, RPC_PERIODIC_TAKEOVER, RPC_PERIODIC_UPDATE, RPC_SEND, RPC_SIG_SET,
-    RPC_STATUS, RPC_TRACE_QUERY, WORKER_KIND_SIM,
+    RPC_EXPECT, RPC_EXPORT, RPC_ISOTP_ABORT, RPC_ISOTP_BARRIER, RPC_ISOTP_CANCEL, RPC_ISOTP_CLOSE,
+    RPC_ISOTP_LIST, RPC_ISOTP_OPEN, RPC_ISOTP_RECV, RPC_ISOTP_SEND, RPC_LAST, RPC_PERIODIC_LIST,
+    RPC_PERIODIC_RENEW, RPC_PERIODIC_START, RPC_PERIODIC_STOP, RPC_PERIODIC_TAKEOVER, RPC_PERIODIC_UPDATE,
+    RPC_SEND, RPC_SIG_SET, RPC_STATUS, RPC_TRACE_QUERY, WORKER_KIND_SIM,
 };
 
 /// Default rows of `can.trace.query` (plan §4.1: CAN 100).
@@ -166,7 +166,7 @@ pub(crate) fn resolve_channel(table: &Shared, given: Option<&str>) -> Result<Str
 /// An id or id range argument: number, `"0x300"`, `"768"`, `"0x7E0-0x7EF"`.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
-enum IdArg {
+pub(crate) enum IdArg {
     Num(u32),
     Text(String),
 }
@@ -181,7 +181,7 @@ fn parse_u32(s: &str) -> Result<u32, DomainError> {
 }
 
 impl IdArg {
-    fn range(&self) -> Result<(u32, u32), DomainError> {
+    pub(crate) fn range(&self) -> Result<(u32, u32), DomainError> {
         let (lo, hi) = match self {
             IdArg::Num(n) => (*n, *n),
             IdArg::Text(t) => match t.split_once('-') {
@@ -980,7 +980,7 @@ fn reply_row(rec: &PublishedRecord, db: Option<&LoadedDb>) -> Value {
     row
 }
 
-fn row_matches(rec: &PublishedRecord, ids: &[(u32, u32)], dir: Option<Dir>) -> bool {
+pub(crate) fn row_matches(rec: &PublishedRecord, ids: &[(u32, u32)], dir: Option<Dir>) -> bool {
     if let Some(d) = dir {
         // `can.tx` rows describe sends; they belong to the tx side.
         let rd = if rec.kind == KIND_TX {
@@ -2404,14 +2404,18 @@ impl DomainModule for Can {
                 "origins": {"type": "array", "items": {"enum": ["agent", "user", "device", "script"]}},
                 "dir": {"enum": ["rx", "tx"]},
                 "max": {"type": "integer", "minimum": 1, "maximum": MAX_ROWS},
-                "peek": {"type": "boolean"}
+                "peek": {"type": "boolean"},
+                // CAN-5: the handler accepts it (`TraceParams.decode`); the schema must too
+                "decode": {"type": "boolean"}
             }
         });
         let last_params = json_schema!({
             "type": "object", "additionalProperties": false,
             "properties": {
                 "channel": {"type": "string"}, "id": id_arg,
-                "window_ms": {"type": "integer", "minimum": 1, "maximum": LAST_MAX_WINDOW_MS}
+                "window_ms": {"type": "integer", "minimum": 1, "maximum": LAST_MAX_WINDOW_MS},
+                // CAN-5: the handler accepts it (`LastParams.decode`); the schema must too
+                "decode": {"type": "boolean"}
             }
         });
         let expect_params = json_schema!({
@@ -2422,6 +2426,17 @@ impl DomainModule for Can {
                 "origin": {"enum": ["agent", "user", "device", "script"]},
                 "dir": {"enum": ["rx", "tx"]}, "after": cursor,
                 "within_ms": {"type": "integer", "minimum": 1, "maximum": MAX_EXPECT_MS}
+            }
+        });
+        let export_params = json_schema!({
+            "type": "object", "additionalProperties": false, "required": ["format"],
+            "properties": {
+                "channel": {"type": "string"}, "since": cursor, "until": cursor,
+                "ids": {"type": "array", "items": id_arg, "maxItems": 64},
+                "origins": {"type": "array", "items": {"enum": ["agent", "user", "device", "script"]}},
+                "dir": {"enum": ["rx", "tx"]},
+                "format": {"enum": ["blf", "asc"]},
+                "path": {"type": "string", "minLength": 1, "maxLength": 4096}
             }
         });
         let expect_wait = Duration::from_millis(u64::from(MAX_EXPECT_MS) + 1_000);
@@ -2469,6 +2484,13 @@ impl DomainModule for Can {
             json_schema!({"type": "object"}),
             Arc::new(StatusH),
             Duration::from_secs(5),
+        ))?
+        // CAN-4: journal → BLF/ASC file on the daemon machine (read role; bounded, streaming)
+        .command(read_spec(
+            RPC_EXPORT,
+            export_params,
+            Arc::new(crate::export::ExportH { table: table.clone() }),
+            crate::export::EXPORT_MAX_WAIT,
         ))?
         .event_kind(EventKindSpec {
             kind: KIND_FRAME.into(),
@@ -2656,6 +2678,10 @@ fn help() -> HelpSpec {
             ex("loom can last --id 0x310", "last frame of an id (Fixed view)"),
             ex("loom can db load /abs/path/body.dbc -c ch0", "load a DBC for a channel (signals, decode)"),
             ex("loom can trace --decode --max 20", "trace rows with decoded signals"),
+            ex(
+                "loom can export --since -5m --format blf -o /abs/path/cap.blf",
+                "journal frames → BLF/ASC + .loom.jsonl sidecar on the daemon machine",
+            ),
             ex(
                 "loom can isotp open --tx 0x7E0 --rx 0x7E8",
                 "ISO-TP endpoint for transport debugging (diagnostics: use `loom uds`)",

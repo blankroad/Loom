@@ -167,7 +167,8 @@ describe('can.trace panel', () => {
     h = mountPanel('can.trace', { channel: 'ch0' }, { activity: [mine, other] });
     expect(h.net.subs).toHaveLength(2); // can + the live-only activity topic: nothing extra
     expect(h.net.subs[ACT]!.opts.snapshot).toBe(false);
-    expect(h.net.calls).toEqual([]); // no query / read / send
+    // no trace query / replay / send; only the bound panel's explicit state reads (B3 periodic list, B5 DB info)
+    expect(h.net.calls.filter((c) => c.method !== 'can.periodic.list' && c.method !== 'can.db.info')).toEqual([]);
     // the frames come from the CAN snapshot after mount
     h.net.subs[CAN]!.h.onSnapshotPart?.({ sub: 's', n: 1, total: 1, events: fs, items: [] } as never);
     h.snapshotEnd(fs[2]!.seq, CAN);

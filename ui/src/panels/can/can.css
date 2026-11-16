@@ -14,7 +14,7 @@
 .ct-live.paused { color: var(--usr); }
 .ct-agent { color: var(--agt); }
 .ct-table { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; font-family: ui-monospace, monospace; }
-.ct-grid { display: grid; grid-template-columns: 4px 6.5em 2.2em 4.6em 7.2em 3.2em minmax(12em, 1fr) 7.5em minmax(6em, 14em); gap: 6px; }
+.ct-grid { display: grid; grid-template-columns: 4px 7.8em 2.2em 4.6em 7.2em 3.2em minmax(12em, 1fr) 7.5em minmax(6em, 14em); gap: 6px; }
 .ct-head { color: var(--muted); border-bottom: 1px solid var(--line); padding-right: 6px; }
 .ct-scroll { position: relative; flex: 1; overflow: auto; min-height: 0; outline: none; }
 .ct-scroll:focus-visible { box-shadow: inset 0 0 0 1px var(--usr); }
@@ -34,6 +34,13 @@
 .ct-topnote { padding: 0 6px; border-bottom: 1px dashed var(--line); }
 .ct-newrows { position: absolute; right: 16px; bottom: 8px; background: var(--usr); color: var(--fg, #1f2328); border: 0; border-radius: 3px; padding: 2px 8px; }
 .ct-risk { padding: 0 3px; border: 1px solid var(--line); border-radius: 2px; }
+/* CAN-1 time column + reference row (timeFmt.ts, traceView.ts) */
+.ct-row[aria-selected='true'] { background: color-mix(in srgb, var(--usr) 22%, transparent); }
+.ct-t-unknown, .ct-t-xclock { color: var(--muted); }
+.ct-t-gap { color: var(--warn); }
+.ct-timebox { display: inline-flex; gap: 4px; align-items: center; }
+.ct-timebox[hidden] { display: none; }
+.ct-time-ref-label { color: var(--muted); white-space: nowrap; }
 
 /* view tabs + Receive/Transmit view (rxtxView.ts) — panel-scoped, shell tokens only */
 .ct-tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
@@ -53,7 +60,7 @@
 .crx-body { flex: 1; overflow: auto; min-height: 2.5em; outline: none; font-family: ui-monospace, monospace; }
 .crx-body:focus-visible { box-shadow: inset 0 0 0 1px var(--usr); }
 .crx-grid { display: grid; gap: 6px; padding: 0 6px; align-items: center; white-space: nowrap; }
-.crx-rxgrid { grid-template-columns: 7.2em 9em 3em minmax(12em, 1fr) 5.5em 6em 7em; }
+.crx-rxgrid { grid-template-columns: 7.2em 9em 3em minmax(12em, 1fr) 5.5em 6em 7em minmax(6em, 12em); } /* B5: + message name */
 .crx-txgrid { grid-template-columns: 7.2em 9em 3em minmax(12em, 1fr) 4em 5em 4em minmax(4em, 12em); }
 .crx-head { color: var(--muted); border-bottom: 1px solid var(--line); font-family: ui-monospace, monospace; }
 .crx-row { cursor: default; }
@@ -78,6 +85,15 @@
 .crx-byteidx { font-size: 10px; }
 .crx-types { display: flex; gap: 8px; flex-wrap: wrap; border: 1px solid var(--line); padding: 0 6px 2px; }
 .crx-ederr { flex: 1; min-width: 10em; font-family: ui-monospace, monospace; }
+/* CAN-3 transmit list persistence + JSON exchange (rxtxView.ts) */
+.crx-persist { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 28em; }
+.crx-persist.err { color: var(--err); }
+.crx-io { border-top: 1px dashed var(--line); padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.crx-io[hidden] { display: none; }
+.crx-io-text { width: 100%; box-sizing: border-box; min-height: 6em; max-height: 14em; resize: vertical; font-family: ui-monospace, monospace; font-size: 11px; }
+.crx-io-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.crx-io-msg { flex: 1; min-width: 10em; }
+.crx-io-msg.err { color: var(--err); }
 /* unbound module application: interface / connect section (canConnect.ts) */
 .ct-connect { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 .ct-connect-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
@@ -93,3 +109,65 @@
 .ct-open-list { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .ct-open-items { display: inline-flex; gap: 4px; flex-wrap: wrap; color: var(--muted); }
 .ct-open-item { font-family: ui-monospace, monospace; }
+
+/* B2 (CAN-8): applied id filter, normalised */
+.ct-filter-norm { font-family: ui-monospace, monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22em; }
+.ct-filter-norm[hidden] { display: none; }
+/* B2 (CAN-7): row detail line */
+.ct-detail { border-top: 1px dashed var(--line); padding: 3px 6px; display: flex; gap: 8px; align-items: flex-start; flex-shrink: 0; }
+.ct-detail[hidden] { display: none; }
+.ct-detail-fields { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 11px; }
+.ct-detail-f { display: inline-flex; gap: 4px; min-width: 0; }
+.ct-detail-f[data-k='data'] { flex-basis: 100%; }
+.ct-detail-k { color: var(--muted); font-weight: 400; }
+.ct-detail-v { font-family: ui-monospace, monospace; word-break: break-all; user-select: text; }
+.ct-detail-tools { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.ct-detail-msg.err { color: var(--err); }
+/* B2 (CAN-6): channel close */
+.ct-close-btn { margin-left: auto; }
+.ct-closed { color: var(--err); font-weight: 700; }
+.ct-closed[hidden] { display: none; }
+.ct-closebox { border-top: 1px solid var(--err); border-bottom: 1px solid var(--line); padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.ct-closebox[hidden] { display: none; }
+.ct-closebox-lines { display: flex; flex-direction: column; font-size: 11px; max-height: 12em; overflow: auto; }
+.ct-closebox-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ct-close-go { color: var(--err); font-weight: 700; }
+.ct-close-msg { flex: 1; min-width: 10em; }
+.ct-close-msg.err { color: var(--err); }
+/* B4 (CAN-4): export to a daemon-side file */
+.ct-exportbox { border-bottom: 1px solid var(--line); padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.ct-exportbox[hidden] { display: none; }
+.ct-exportbox-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ct-export-path { flex: 1; min-width: 14em; font-family: ui-monospace, monospace; }
+.ct-export-result { display: flex; flex-direction: column; font-size: 11px; }
+.ct-export-result div { font-family: ui-monospace, monospace; word-break: break-all; user-select: text; }
+.ct-export-result.warn { color: var(--warn); }
+.ct-export-msg { flex: 1; min-width: 10em; }
+.ct-export-msg.err { color: var(--err); }
+/* B3 (CAN-2): daemon periodic jobs */
+.crx-periodic { border-top: 1px solid var(--line); display: flex; flex-direction: column; flex-shrink: 0; max-height: 12em; min-height: 0; }
+.crx-periodic-head { display: flex; gap: 8px; align-items: center; padding: 2px 6px; flex-wrap: wrap; }
+.crx-periodic-title { font-weight: 700; }
+.crx-periodic-status { color: var(--muted); flex: 1; min-width: 8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crx-periodic-status.err { color: var(--err); }
+.crx-periodic-stop { color: var(--err); font-weight: 700; padding: 2px 6px; }
+.crx-periodic-stop[hidden] { display: none; }
+.crx-job-head, .crx-job { display: grid; grid-template-columns: 4em 7em 5em minmax(8em, 1fr) 9em 6em 6em 6em; gap: 6px; align-items: center; padding: 0 6px; white-space: nowrap; }
+.crx-job-head { color: var(--muted); border-bottom: 1px solid var(--line); }
+.crx-job-body { overflow: auto; min-height: 0; }
+.crx-job > span { overflow: hidden; text-overflow: ellipsis; font-family: ui-monospace, monospace; }
+.crx-job[data-mine='false'] { color: var(--muted); }
+.crx-job[data-state='stopped'] { opacity: 0.6; }
+.crx-job-empty[hidden] { display: none; }
+.crx-job-empty { padding: 2px 6px; }
+.crx-periodic-host { display: contents; }
+/* B5 (CAN-5): DBC chip, load box, decoded lines */
+.ct-db { font-family: ui-monospace, monospace; white-space: nowrap; max-width: 22em; overflow: hidden; text-overflow: ellipsis; }
+.ct-db.ct-db-none, .ct-db.ct-db-unknown { color: var(--muted); }
+.ct-db.ct-db-warn { color: var(--warn); }
+.ct-dbbox { border-bottom: 1px solid var(--line); padding: 4px 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
+.ct-dbbox[hidden] { display: none; }
+.ct-db-path { flex: 1; min-width: 14em; font-family: ui-monospace, monospace; }
+.ct-db-msg { flex-basis: 100%; }
+.ct-db-msg.err { color: var(--err); }
+.ct-detail-decoded { flex-basis: 100%; display: flex; flex-direction: column; font-family: ui-monospace, monospace; font-size: 11px; white-space: pre; user-select: text; }

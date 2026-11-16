@@ -12,9 +12,11 @@
 //     the field as deferred instead of faking a local timer.
 //   · RTR: the structured can.send form has no rtr → the checkbox is shown disabled.
 //   · Count = sends accepted by the gate from this panel (request id received), not bus echoes.
-//   · Entries live in panel memory only (no daemon/shared persistence).
+//   · Persistence (B1, CAN-3): the panel saves the list per channel in this browser (txStore.ts);
+//     count / last request / last error are session-only and never saved.
 
 import { FD_LENGTHS, MAX_EFF_ID, MAX_SFF_ID, parseSendLine, type CanSendParams } from './sendLine';
+import type { TxImportItem } from './txStore';
 
 export const TX_LIST_MAX = 32;
 export const COMMENT_MAX = 80;
@@ -39,6 +41,8 @@ export interface TxEntry {
   /** canonical text (formatFrame) */
   text: string;
   comment: string;
+  /** B1: 0 = manual; > 0 = periodic period ms (carried for CAN-2, saved) */
+  cycleMs: number;
   /** sends accepted by the gate (request id received) */
   count: number;
   lastRequestId: string | null;
@@ -88,6 +92,8 @@ export class TxList {
   private nextUid = 1;
   selected: number | null = null;
   version = 0;
+  /** B1: bumps only on saved content (upsert / remove / load) — persistence trigger */
+  contentVersion = 0;
 
   get entries(): readonly Readonly<TxEntry>[] {
     return this.items;
@@ -96,7 +102,14 @@ export class TxList {
     return this.items.find((e) => e.uid === uid);
   }
   /** add (uid null) or replace an entry; returns its uid or an error when full */
-  upsert(uid: number | null, params: CanSendParams, text: string, comment: string): { ok: true; uid: number } | { ok: false; error: string } {
+  /** B3: `cycleMs` given → stored (0 = manual); omitted → kept for an edit, 0 for a new entry */
+  upsert(
+    uid: number | null,
+    params: CanSendParams,
+    text: string,
+    comment: string,
+    cycleMs?: number,
+  ): { ok: true; uid: number } | { ok: false; error: string } {
     const c = comment.slice(0, COMMENT_MAX);
     if (uid !== null) {
       const e = this.get(uid);
@@ -104,15 +117,18 @@ export class TxList {
         e.params = params;
         e.text = text;
         e.comment = c;
+        if (cycleMs !== undefined) e.cycleMs = cycleMs;
         this.version++;
+        this.contentVersion++;
         return { ok: true, uid };
       }
     }
     if (this.items.length >= TX_LIST_MAX) return { ok: false, error: `송신 목록은 최대 ${TX_LIST_MAX}개 — 항목을 지우세요` };
-    const e: TxEntry = { uid: this.nextUid++, params, text, comment: c, count: 0, lastRequestId: null, lastError: null };
+    const e: TxEntry = { uid: this.nextUid++, params, text, comment: c, cycleMs: cycleMs ?? 0, count: 0, lastRequestId: null, lastError: null };
     this.items.push(e);
     this.selected = e.uid;
     this.version++;
+    this.contentVersion++;
     return { ok: true, uid: e.uid };
   }
   remove(uid: number): void {
@@ -121,6 +137,7 @@ export class TxList {
     this.items.splice(i, 1);
     if (this.selected === uid) this.selected = this.items[Math.min(i, this.items.length - 1)]?.uid ?? null;
     this.version++;
+    this.contentVersion++;
   }
   select(uid: number | null): void {
     if (uid !== null && !this.get(uid)) return;
@@ -135,6 +152,37 @@ export class TxList {
     const i = this.items.findIndex((e) => e.uid === this.selected);
     const j = i < 0 ? (delta > 0 ? 0 : this.items.length - 1) : Math.max(0, Math.min(this.items.length - 1, i + delta));
     this.select(this.items[j]!.uid);
+  }
+  /** B1: import / restore. replace = clear then add; append = add until TX_LIST_MAX. */
+  load(items: readonly TxImportItem[], mode: 'replace' | 'append'): { added: number; dropped: number } {
+    if (mode === 'replace') this.items = [];
+    let added = 0;
+    let dropped = 0;
+    let firstAdded: number | null = null;
+    for (const it of items) {
+      if (this.items.length < TX_LIST_MAX) {
+        const uid = this.nextUid++;
+        this.items.push({
+          uid,
+          params: it.params,
+          text: it.text,
+          comment: it.comment.slice(0, COMMENT_MAX),
+          cycleMs: it.cycleMs,
+          count: 0,
+          lastRequestId: null,
+          lastError: null,
+        });
+        firstAdded ??= uid;
+        added++;
+      } else dropped++;
+    }
+    if (mode === 'replace') this.selected = this.items[0]?.uid ?? null;
+    else if (this.selected === null || !this.get(this.selected)) this.selected = firstAdded;
+    if (mode === 'replace' || added > 0) {
+      this.version++;
+      this.contentVersion++;
+    }
+    return { added, dropped };
   }
   noteSent(uid: number, requestId: string | null): void {
     const e = this.get(uid);

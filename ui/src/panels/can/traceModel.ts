@@ -12,7 +12,8 @@
 //   request and shown on all its rows.
 //
 // Storage = column ring of typed arrays (no row objects on the main thread):
-//   seq f64 · mono_ms f64 · id u32 · flags u16 (dir/ext/fd/brs/origin/hidden/echo/
+//   seq f64 · mono_ms f64 · wall_ms f64 (ts.wall_ns, 0 = unknown) · clock u16 (ts.clock_id index,
+//   NO_CLOCK = unknown) · id u32 · flags u16 (dir/ext/fd/brs/origin/hidden/echo/
 //   no-data/rtr/no-id) · kind u8 (frame | tx request | gap) · len u8 · dlc u8 ·
 //   fidx u16 (frame_index) · wstate u8 · risk u8 · aux u32 (request slot / gap slot) ·
 //   data 8 B inline (> 8 B → FD slot ring).
@@ -39,6 +40,10 @@
 // not reachable by a session counter). mono is kept in ms (f64 keeps µs precision).
 
 import type { LoomEvent } from '../../sdk';
+// B1 (CAN-1): per-row wall clock + clock id — FUNCTIONS.md §B1-MODEL
+import { ClockDict, NO_CLOCK, wallMsOf, type TimeInputs, type TimeRef } from './timeFmt';
+// B2 (CAN-8): id filter with ranges — a ReadonlySet<number> still satisfies IdMatch
+import type { IdMatch } from './idFilter';
 
 export const ROWS_DEFAULT = 100_000;
 export const ROWS_MIN = 1_000;
@@ -55,7 +60,7 @@ const FD_SLOT_BYTES = 64;
 
 /** bytes this model allocates for `capacity` rows (manifest memory share) */
 export function bytesForRows(capacity: number): number {
-  const perRow = 8 + 8 + 4 + 2 + 1 + 1 + 1 + 2 + 1 + 1 + 4 + 8 + 8; // columns + display index
+  const perRow = 8 + 8 + 4 + 2 + 1 + 1 + 1 + 2 + 1 + 1 + 4 + 8 + 8 + 8 + 2; // columns + display index
   return capacity * perRow + fdSlotsFor(capacity) * (FD_SLOT_BYTES + 8);
 }
 const fdSlotsFor = (cap: number) => Math.max(1_024, Math.ceil(cap / 16));
@@ -172,8 +177,8 @@ export interface AgentRange {
 }
 
 export interface TraceFilter {
-  /** CAN ids to show (null = all) */
-  ids: ReadonlySet<number> | null;
+  /** CAN ids to show (null = all); B2: IdFilter (ranges) or any Set */
+  ids: IdMatch | null;
   dir: 'all' | 'rx' | 'tx';
   /** origins to show (null = all) */
   origins: ReadonlySet<Origin> | null;
@@ -203,6 +208,11 @@ export class CanTraceModel {
   // ---- row columns ----
   private seq: Float64Array;
   private mono: Float64Array;
+  /** B1: ts.wall_ns as ms (0 = unknown) */
+  private wall: Float64Array;
+  /** B1: ClockDict index of ts.clock_id (NO_CLOCK = unknown) */
+  private clk: Uint16Array;
+  private readonly clocks = new ClockDict();
   private ids: Uint32Array;
   private flags: Uint16Array;
   private kinds: Uint8Array;
@@ -252,6 +262,8 @@ export class CanTraceModel {
   /** bumps on any change a renderer must reflect */
   version = 0;
   readonly agentRanges: AgentRange[] = [];
+  /** B1: first non-gap row ever ingested (relative-time default reference); null before any */
+  firstFrameRef: TimeRef | null = null;
   private readonly now: () => number;
   private readonly recordOk: () => boolean;
 
@@ -261,6 +273,8 @@ export class CanTraceModel {
     const c = this.capacity;
     this.seq = new Float64Array(c);
     this.mono = new Float64Array(c);
+    this.wall = new Float64Array(c);
+    this.clk = new Uint16Array(c).fill(NO_CLOCK);
     this.ids = new Uint32Array(c);
     this.flags = new Uint16Array(c);
     this.kinds = new Uint8Array(c);
@@ -330,6 +344,8 @@ export class CanTraceModel {
         // merge into the request row: time and bytes are the echo's
         const i = info.txRow % this.capacity;
         this.mono[i] = monoMs(ev);
+        this.wall[i] = wallMsOf(ev);
+        this.clk[i] = this.clocks.index(ev.ts?.clock_id);
         const keep = (this.flags[i] as number) & ((3 << F_ORIGIN_SHIFT) | F_HIDDEN | F_REQ);
         this.flags[i] = keep | F_TX | F_ECHO | frameFlags(fr);
         if (fr.id !== null) this.ids[i] = fr.id >>> 0;
@@ -463,7 +479,7 @@ export class CanTraceModel {
     } else if (visible) {
       this.omitSlot = -1; // a shown row ends the omission run
     }
-    const abs = this.push(kind, seq, monoMs(ev), fl);
+    const abs = this.push(kind, seq, monoMs(ev), fl, ev);
     const i = abs % this.capacity;
     this.ids[i] = id >>> 0;
     this.wstate[i] = NO_STATE;
@@ -552,13 +568,14 @@ export class CanTraceModel {
       },
       numOf(ev.seq) ?? 0,
       monoMs(ev),
+      ev,
     );
   }
 
   /** Gap rows from outside the event stream (batch display_gap summary, resync). */
-  addGap(g: GapInfo, seq = 0, mono = 0): void {
+  addGap(g: GapInfo, seq = 0, mono = 0, src: LoomEvent | null = null): void {
     this.omitSlot = -1;
-    const abs = this.push(K_GAP, seq, mono, 0);
+    const abs = this.push(K_GAP, seq, mono, 0, src);
     this.bindGap(abs, g);
     this.dispPush(abs); // gaps are never filtered
   }
@@ -616,7 +633,7 @@ export class CanTraceModel {
     this.version++;
   }
 
-  private push(kind: number, seq: number, mono: number, flags: number): number {
+  private push(kind: number, seq: number, mono: number, flags: number, src: LoomEvent | null = null): number {
     const abs = this.total++;
     const i = abs % this.capacity;
     if (this.count === this.capacity) this.evicted++;
@@ -632,6 +649,11 @@ export class CanTraceModel {
     this.wstate[i] = NO_STATE;
     this.risk[i] = NO_RISK;
     this.aux[i] = 0;
+    this.wall[i] = src ? wallMsOf(src) : 0;
+    this.clk[i] = src ? this.clocks.index(src.ts?.clock_id) : NO_CLOCK;
+    if (kind !== K_GAP && this.firstFrameRef === null) {
+      this.firstFrameRef = { monoMs: mono, clock: this.clk[i] as number, seq, kind: 'start' };
+    }
     this.version++;
     return abs;
   }
@@ -754,6 +776,23 @@ export class CanTraceModel {
   }
   monoAt(abs: number): number {
     return this.mono[abs % this.capacity] as number;
+  }
+  /** B1: wall clock of the row (ms since epoch UTC), 0 = unknown */
+  wallAt(abs: number): number {
+    return this.wall[abs % this.capacity] as number;
+  }
+  /** B1: clock index of the row (NO_CLOCK = unknown) */
+  clockAt(abs: number): number {
+    return this.clk[abs % this.capacity] as number;
+  }
+  /** B1: clock id text for a clock index (null = unknown) */
+  clockIdOf(index: number): string | null {
+    return this.clocks.idOf(index);
+  }
+  /** B1: the row's time facts for timeCell */
+  timeAt(abs: number): TimeInputs {
+    const clock = this.clockAt(abs);
+    return { monoMs: this.monoAt(abs), wallMs: this.wallAt(abs), clock, clockId: this.clockIdOf(clock), seq: this.seqAt(abs) };
   }
   idAt(abs: number): number {
     return this.ids[abs % this.capacity] as number;

@@ -17,6 +17,8 @@
 import type { LoomEvent } from '../../sdk';
 import { readFrame } from './traceModel';
 import { fmtId } from './sendLine';
+// B1 (CAN-1): wall clock of the latest frame
+import { wallMsOf } from './timeFmt';
 
 export const RX_SUMMARY_MAX_IDS = 1_024;
 
@@ -39,6 +41,8 @@ export interface RxRow {
   count: number;
   firstMonoMs: number;
   lastMonoMs: number;
+  /** B1: ts.wall_ns (ms) of the latest frame, 0 = unknown */
+  lastWallMs: number;
   /** last inter-arrival time (ms) of this id; null until 2 gap-free frames */
   cycleMs: number | null;
   /** gap marks seen since this row was created → count is a lower bound */
@@ -124,7 +128,7 @@ export class RxSummary {
       }
       r = {
         key, channel, id: fr.id, ext: fr.ext, fd: false, brs: false, esi: false, rtr: false, len: 0, dlc: null, data: null,
-        count: 0, firstMonoMs: t, lastMonoMs: t, cycleMs: null, gapsSince: 0, lastSeq: '', origin: '', changed: false, gapEpoch: this.win.gaps,
+        count: 0, firstMonoMs: t, lastMonoMs: t, lastWallMs: 0, cycleMs: null, gapsSince: 0, lastSeq: '', origin: '', changed: false, gapEpoch: this.win.gaps,
       };
       this.rows.set(key, r);
       this.sorted = null;
@@ -144,6 +148,7 @@ export class RxSummary {
     r.dlc = fr.dlc;
     r.count++;
     r.lastMonoMs = t;
+    r.lastWallMs = wallMsOf(ev);
     r.lastSeq = String(ev.seq);
     r.origin = ev.origin ?? '';
     r.gapEpoch = this.win.gaps;

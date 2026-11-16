@@ -26,11 +26,17 @@ import {
   type WState,
 } from './traceModel';
 import { fmtId } from './sendLine';
+// B1 (CAN-1): time column modes + reference row — FUNCTIONS.md §B1-VIEW
+import { DELTA_LOOKBACK, refLabel, TIME_HEAD, timeCell, type TimeMode, type TimeRef } from './timeFmt';
+// B2 (CAN-7): full data in the cell title; keyboard selection + detail — FUNCTIONS.md §B2-VIEW
+import { fullDataText } from './rowDetail';
 
 export const ROW_H = 18;
 export const MAX_SPACER_PX = 8_000_000;
 const OVERSCAN = 6;
 const FALLBACK_ROWS = 40;
+/** B2: ↑/↓ walks over at most this many consecutive gap rows looking for a frame row */
+export const SELECT_SKIP_MAX = 64;
 
 const ORG: Record<string, [string, string]> = {
   agent: ['AGT', 'org org-agt'],
@@ -65,10 +71,10 @@ interface PoolRow {
   cache: string[];
 }
 
-// columns: bar · t(s) · dir · origin · id · len · data · state · note
+// columns: bar · time (wall | rel s | Δ ms, timeFmt.ts) · dir · origin · id · len · data · state · note
 // `len` = byte count (schema v1 payload.len); the DLC code (payload.dlc) is in its tooltip.
 const COLS = ['bar', 't', 'dir', 'org', 'id', 'len', 'data', 'st', 'note'] as const;
-const HEAD = ['', '시각(s)', 'dir', '출처', 'id', 'len', 'data', '상태', '비고'];
+const HEAD = ['', TIME_HEAD.wall, 'dir', '출처', 'id', 'len', 'data', '상태', '비고'];
 
 export interface TraceViewOptions {
   onNeedRender(): void;
@@ -76,6 +82,12 @@ export interface TraceViewOptions {
   rowState?(requestId: string): WState | null;
   /** ms clock for "N s 전" labels */
   now?(): number;
+  /** B1: time column mode (default 'wall') */
+  timeMode?(): TimeMode;
+  /** B1: reference for 'rel' (default null) */
+  timeRef?(): TimeRef | null;
+  /** B2: open the row detail for `abs` (Enter on the selected row, double-click on a row) */
+  onOpenDetail?(abs: number): void;
 }
 
 export class TraceView {
@@ -85,6 +97,10 @@ export class TraceView {
   private readonly topNote: HTMLDivElement;
   private readonly newBtn: HTMLButtonElement;
   private readonly emptyEl: HTMLDivElement;
+  /** B1: header cell of the time column (text follows the mode) */
+  private readonly tHead: HTMLSpanElement;
+  /** B1: selected row (abs), -1 = none */
+  private selAbs = -1;
   private pool: PoolRow[] = [];
   follow = true;
   private anchorAbs = -1;
@@ -113,6 +129,8 @@ export class TraceView {
       s.setAttribute('role', 'columnheader');
       head.append(s);
     }
+    this.tHead = head.children[1] as HTMLSpanElement;
+    this.tHead.dataset.testid = 'can-time-head';
     this.topNote = el('div', 'ct-topnote muted');
     this.topNote.hidden = true;
     this.scroll = el('div', 'ct-scroll');
@@ -131,6 +149,9 @@ export class TraceView {
     this.root.append(head, this.topNote, this.scroll, this.newBtn);
     container.append(this.root);
     this.scroll.addEventListener('scroll', this.onScroll);
+    this.scroll.addEventListener('click', this.onClick);
+    this.scroll.addEventListener('keydown', this.onKey);
+    this.scroll.addEventListener('dblclick', this.onDbl);
   }
 
   setPaused(p: boolean): void {
@@ -207,6 +228,14 @@ export class TraceView {
     this.ensurePool(count);
     this.firstVisible = Math.min(n, Math.floor(virtualTop / ROW_H));
     const nowMs = (this.o.now ?? (() => performance.now()))();
+    const tmode = this.o.timeMode?.() ?? 'wall';
+    setText(this.tHead, TIME_HEAD[tmode]);
+    this.tHead.title =
+      tmode === 'wall'
+        ? '벽시계 (ts.wall_ns, 로컬 표시) — 툴팁에 UTC·mono·clock'
+        : tmode === 'rel'
+          ? `${refLabel(this.o.timeRef?.() ?? null)} — 같은 clock_id 행만`
+          : '직전 표시 행과의 간격 ms (필터 적용 후, 같은 clock_id만)';
 
     for (let k = 0; k < this.pool.length; k++) {
       const p = this.pool[k]!;
@@ -220,7 +249,7 @@ export class TraceView {
       if (p.el.hidden) p.el.hidden = false;
       const top = scrollTop + idx * ROW_H - virtualTop;
       p.el.style.transform = `translateY(${top}px)`;
-      this.fillRow(p, abs, nowMs);
+      this.fillRow(p, abs, nowMs, idx);
     }
 
     // "보관 범위 밖" marker at the top of the kept range
@@ -234,12 +263,12 @@ export class TraceView {
     if (showNew) setText(this.newBtn, `새 행 ${nr.toLocaleString('ko-KR')} ↓`);
   }
 
-  private fillRow(p: PoolRow, abs: number, nowMs: number): void {
+  private fillRow(p: PoolRow, abs: number, nowMs: number, idx: number): void {
     const m = this.m;
     const kind = m.kindAt(abs);
     const vals: string[] = new Array<string>(COLS.length).fill('');
     const cls: string[] = new Array<string>(COLS.length).fill('');
-    const attrs: Record<string, string> = { 'data-seq': String(m.seqAt(abs)) };
+    const attrs: Record<string, string> = { 'data-seq': String(m.seqAt(abs)), 'data-abs': String(abs) };
     let rowCls = 'ct-row ct-grid';
     let title = '';
     const titles: string[] = new Array<string>(COLS.length).fill('');
@@ -262,7 +291,13 @@ export class TraceView {
       const fl = m.flagsAt(abs);
       const origin = m.originAt(abs);
       const req = m.reqAt(abs);
-      vals[1] = (m.monoAt(abs) / 1000).toFixed(3);
+      const mode = this.o.timeMode?.() ?? 'wall';
+      const pv = mode === 'delta' ? this.prevShownFrame(idx) : null;
+      const cell = timeCell(mode, m.timeAt(abs), this.o.timeRef?.() ?? null, pv ? m.timeAt(pv.abs) : null, pv?.acrossGap ?? false);
+      vals[1] = cell.text;
+      cls[1] = cell.cls;
+      titles[1] = cell.title;
+      attrs['aria-selected'] = String(abs === this.selAbs);
       vals[2] = fl & F_TX ? 'tx' : 'rx';
       cls[2] = fl & F_TX ? 'ct-tx' : 'ct-rx';
       const [ot, oc] = ORG[origin] ?? ['?', 'org'];
@@ -279,6 +314,7 @@ export class TraceView {
       const data = fl & F_RTR ? 'RTR' : m.dataHexAt(abs);
       vals[6] = data ?? '(FD 데이터 보관 범위 밖)';
       cls[6] = data === null || fl & F_RTR ? 'muted' : 'mono';
+      titles[6] = fl & F_RTR ? '원격 프레임(RTR) — 데이터 없음' : fullDataText(data);
       attrs['data-origin'] = origin;
       attrs['data-dir'] = fl & F_TX ? 'tx' : 'rx';
       attrs['data-id'] = vals[4];
@@ -327,6 +363,39 @@ export class TraceView {
     else p.cells[0]!.removeAttribute('title');
     setAttrs(p.el, attrs);
   }
+
+  /** B1: select a frame row (gap / evicted / unknown abs → no change) */
+  select(abs: number): void {
+    if (!Number.isInteger(abs) || !this.m.has(abs) || this.m.kindAt(abs) === K_GAP) return;
+    this.selAbs = abs;
+    this.o.onNeedRender();
+  }
+
+  /** B1: selected abs row still in the ring, else -1 */
+  get selected(): number {
+    return this.selAbs >= 0 && this.m.has(this.selAbs) ? this.selAbs : -1;
+  }
+
+  /** B1: previous non-gap display entry before display index `idx` (≤ DELTA_LOOKBACK back) */
+  private prevShownFrame(idx: number): { abs: number; acrossGap: boolean } | null {
+    let crossed = false;
+    for (let k = idx - 1; k >= Math.max(0, idx - DELTA_LOOKBACK); k--) {
+      const a = this.m.dispAt(k);
+      if (this.m.kindAt(a) === K_GAP) {
+        crossed = true;
+        continue;
+      }
+      return { abs: a, acrossGap: crossed };
+    }
+    return null;
+  }
+
+  /** B1: click on a row selects it */
+  private onClick = (e: MouseEvent): void => {
+    const row = (e.target as HTMLElement).closest<HTMLElement>('.ct-row');
+    if (!row || row.dataset.gap !== undefined) return;
+    this.select(Number(row.dataset.abs));
+  };
 
   private ensurePool(count: number): void {
     while (this.pool.length < count) {
@@ -378,8 +447,66 @@ export class TraceView {
     this.o.onNeedRender();
   }
 
+  /** B2: move the selection to the previous (-1) / next (+1) shown frame row and keep it visible */
+  moveSelection(step: -1 | 1): void {
+    const n = this.count();
+    if (n === 0) return;
+    const rowsInView = Math.max(1, Math.floor(this.viewH() / ROW_H));
+    const sel = this.selected;
+    let idx: number;
+    if (sel >= 0) {
+      idx = this.m.dispIndexOf(sel);
+      if (step > 0 && (idx >= n || this.m.dispAt(idx) !== sel)) idx -= 1;
+    } else {
+      idx = step > 0 ? this.firstVisible - 1 : Math.min(n, this.firstVisible + rowsInView);
+    }
+    for (let k = idx + step, skipped = 0; k >= 0 && k < n && skipped <= SELECT_SKIP_MAX; k += step) {
+      const a = this.m.dispAt(k);
+      if (this.m.kindAt(a) === K_GAP) {
+        skipped++;
+        continue;
+      }
+      this.select(a);
+      this.ensureVisible(k);
+      return;
+    }
+  }
+
+  /** B2: scroll (unfollowing) only when display index `idx` is outside the visible rows */
+  private ensureVisible(idx: number): void {
+    const rows = Math.max(1, Math.floor(this.viewH() / ROW_H));
+    if (idx < this.firstVisible) this.scrollToIndex(idx);
+    else if (idx >= this.firstVisible + rows) this.scrollToIndex(idx - rows + 1);
+  }
+
+  /** B2: grid keydown — ArrowUp/ArrowDown select, Enter opens the detail */
+  private onKey = (e: KeyboardEvent): void => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      this.moveSelection(e.key === 'ArrowUp' ? -1 : 1);
+    } else if (e.key === 'Enter') {
+      const s = this.selected;
+      if (s >= 0) {
+        e.preventDefault();
+        this.o.onOpenDetail?.(s);
+      }
+    }
+  };
+
+  /** B2: double-click on a frame row selects it and opens the detail */
+  private onDbl = (e: MouseEvent): void => {
+    const row = (e.target as HTMLElement).closest<HTMLElement>('.ct-row');
+    if (!row || row.dataset.gap !== undefined) return;
+    const abs = Number(row.dataset.abs);
+    this.select(abs);
+    if (this.selected === abs) this.o.onOpenDetail?.(abs);
+  };
+
   dispose(): void {
     this.scroll.removeEventListener('scroll', this.onScroll);
+    this.scroll.removeEventListener('click', this.onClick);
+    this.scroll.removeEventListener('keydown', this.onKey);
+    this.scroll.removeEventListener('dblclick', this.onDbl);
     this.root.remove();
     this.pool = [];
   }

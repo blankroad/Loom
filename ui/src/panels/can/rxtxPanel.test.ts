@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LoomEvent } from '../../sdk';
 import { ev, mountPanel, type Harness } from '../../sdk/testing/harness';
 import { registerCanPanels } from './index';
@@ -8,10 +8,13 @@ import { DRY_RUN_DEBOUNCE_MS } from './canTrace';
 registerCanPanels();
 
 let h: Harness | null = null;
+// B1 (CAN-3): panels persist the TX list per channel in localStorage — isolate every test
+beforeEach(() => localStorage.clear());
 afterEach(() => {
   h?.dispose();
   h = null;
   vi.useRealTimers();
+  localStorage.clear();
 });
 
 let seq = 1;
@@ -154,7 +157,7 @@ describe('Transmit list: structured editor, selection, gated send', () => {
     expect(tid('can-pause').getAttribute('aria-pressed')).not.toBe('true');
   });
 
-  it('FD toggles the length list (64 allowed), BRS only with FD; RTR and cycle time are present but disabled', () => {
+  it('FD toggles the length list (64 allowed), BRS only with FD; RTR disabled; cycle time editable (B3)', () => {
     h = mountPanel('can.trace', { channel: 'ch0', view: 'rxtx' });
     tid('can-tx-new').click();
     const lens = () => [...q<HTMLSelectElement>('[data-testid=can-tx-len]').options].map((o) => Number(o.value));
@@ -166,8 +169,9 @@ describe('Transmit list: structured editor, selection, gated send', () => {
     expect(lens()).toContain(64);
     expect(tid<HTMLInputElement>('can-tx-brs').disabled).toBe(false);
     expect(tid<HTMLInputElement>('can-tx-rtr').disabled).toBe(true);
-    expect(tid<HTMLInputElement>('can-tx-cycle').disabled).toBe(true);
-    expect(tid('can-tx-periodic-deferred').textContent).toMatch(/미지원/);
+    // B3 (CAN-2): periodic send is wired to daemon jobs — the input is live, the old "unsupported" label is gone
+    expect(tid<HTMLInputElement>('can-tx-cycle').disabled).toBe(false);
+    expect(h.host.querySelector('[data-testid="can-tx-periodic-deferred"]')).toBeNull();
   });
 
   it('editor draft drives the same dry-run risk preview as the send line', async () => {

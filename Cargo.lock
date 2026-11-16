@@ -920,6 +920,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "loom-can-dbc",
+ "loom-can-export",
  "loom-can-frame",
  "loom-can-isotp",
  "loom-can-periodic",

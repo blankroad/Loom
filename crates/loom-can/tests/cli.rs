@@ -981,3 +981,101 @@ fn isotp_cancel_recv_barrier_cli() {
         "barrier tp1 epoch 3: NOT complete (uncertain)  covered_ingest_seq=41 transport_event_seq=17\n"
     );
 }
+
+// ---- B4 spec (Opus): `loom can export` (CAN-4), FUNCTIONS.md §B4-CLI ------------------------------
+
+#[test]
+fn export_conversion() {
+    let c = call(&["export"]).unwrap();
+    assert_eq!(c.method, loom_can::RPC_EXPORT);
+    assert_eq!(c.params, json!({"format": "blf"}));
+    assert_eq!(c.wait, Some(Duration::from_secs(602)));
+
+    let c = call(&[
+        "export",
+        "-c",
+        "ch0",
+        "--since",
+        "-5m",
+        "--until",
+        "seq:900",
+        "--ids",
+        "0x300,0x7e0-0x7ef",
+        "--origin",
+        "device",
+        "--dir",
+        "rx",
+        "--format",
+        "asc",
+        "-o",
+        "/tmp/x.asc",
+    ])
+    .unwrap();
+    assert_eq!(
+        c.params,
+        json!({"channel": "ch0", "since": "-5m", "until": "seq:900", "ids": ["0x300", "0x7E0-0x7EF"],
+               "origins": ["device"], "dir": "rx", "format": "asc", "path": "/tmp/x.asc"})
+    );
+
+    // a relative --out is resolved against this shell's directory (the daemon requires absolute)
+    let c = call(&["export", "--out", "cap.blf"]).unwrap();
+    let want = std::env::current_dir().unwrap().join("cap.blf");
+    assert_eq!(c.params["path"], json!(want.to_string_lossy()));
+
+    for bad in [
+        &["export", "--format", "csv"][..],
+        &["export", "--dir", "up"][..],
+        &["export", "--ids", "0x900-0x100"][..],
+        &["export", "--origin", "robot"][..],
+        &["export", "--out", ""][..],
+    ] {
+        assert!(call(bad).is_err(), "{bad:?}");
+    }
+}
+
+#[test]
+fn export_render_golden() {
+    let ok = json!({"channel": "ch0", "format": "blf", "location": "daemon", "path": "/tmp/a.blf",
+        "sidecar": "/tmp/a.blf.loom.jsonl", "frames": 3, "gaps": 0, "gaps_dropped": 0, "truncated": false,
+        "truncated_reason": null, "next_cursor": null, "complete": true, "range": {"from": "1", "to": "3"},
+        "clock_id": "c", "wall_anchor_known": true});
+    assert_eq!(
+        render(loom_can::RPC_EXPORT, ok),
+        "exported 3 frames (blf) → /tmp/a.blf  [daemon machine]\n\
+         sidecar /tmp/a.blf.loom.jsonl\n\
+         seq 1–3 · clock c · gaps 0\n"
+    );
+
+    let cut = json!({"channel": "ch0", "format": "asc", "location": "daemon", "path": "/tmp/b.asc",
+        "sidecar": "/tmp/b.asc.loom.jsonl", "frames": 2, "gaps": 1, "gaps_dropped": 2, "truncated": true,
+        "truncated_reason": "clock_change", "next_cursor": "e1:seq:3", "complete": false,
+        "range": {"from": "1", "to": "2"}, "clock_id": "c", "wall_anchor_known": false});
+    assert_eq!(
+        render(loom_can::RPC_EXPORT, cut),
+        "exported 2 frames (asc) → /tmp/b.asc  [daemon machine]\n\
+         sidecar /tmp/b.asc.loom.jsonl\n\
+         seq 1–2 · clock c · gaps 1 (+2 not listed) · wall clock unknown (times relative)\n\
+         TRUNCATED (clock_change) — continue: --since e1:seq:3\n\
+         INCOMPLETE — journal gaps inside the range (gap records in the file and sidecar)\n"
+    );
+
+    let scan = json!({"channel": "ch0", "format": "blf", "location": "daemon", "path": "/tmp/c.blf",
+        "sidecar": "/tmp/c.blf.loom.jsonl", "frames": 1, "gaps": 0, "gaps_dropped": 0, "truncated": false,
+        "truncated_reason": null, "next_cursor": null, "complete": false, "range": {"from": "9", "to": "9"},
+        "clock_id": null, "wall_anchor_known": true});
+    assert_eq!(
+        render(loom_can::RPC_EXPORT, scan),
+        "exported 1 frames (blf) → /tmp/c.blf  [daemon machine]\n\
+         sidecar /tmp/c.blf.loom.jsonl\n\
+         seq 9–9 · gaps 0\n\
+         INCOMPLETE — the journal scan did not cover the whole range\n"
+    );
+
+    let empty = json!({"channel": "ch0", "format": "blf", "location": "daemon", "path": null, "sidecar": null,
+        "frames": 0, "gaps": 0, "gaps_dropped": 0, "truncated": false, "truncated_reason": null,
+        "next_cursor": null, "complete": true, "range": null, "clock_id": null, "wall_anchor_known": false});
+    assert_eq!(
+        render(loom_can::RPC_EXPORT, empty),
+        "no frames in the selection — no file written\n"
+    );
+}

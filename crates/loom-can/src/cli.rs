@@ -22,6 +22,8 @@ use crate::{
     RPC_PERIODIC_LIST, RPC_PERIODIC_RENEW, RPC_PERIODIC_START, RPC_PERIODIC_STOP, RPC_PERIODIC_TAKEOVER,
     RPC_PERIODIC_UPDATE, RPC_SEND, RPC_SIG_GET, RPC_SIG_SET, RPC_SIG_WAIT_FOR, RPC_STATUS, RPC_TRACE_QUERY,
 };
+// B4 (CAN-4)
+use crate::RPC_EXPORT;
 
 /// The `can` CLI fragment.
 #[derive(Debug, Default)]
@@ -31,6 +33,8 @@ pub struct CanCli;
 pub const DEFAULT_SEND_EXPECT_MS: u32 = 100;
 /// Extra time the CLI waits beyond a wait command's own deadline.
 const WAIT_MARGIN: Duration = Duration::from_secs(2);
+/// `loom can export`: the daemon bounds the call at 600 s (export::EXPORT_MAX_WAIT); the CLI waits that + margin.
+pub const EXPORT_WAIT: Duration = Duration::from_secs(600);
 
 fn channel_arg() -> clap::Arg {
     clap::Arg::new("channel")
@@ -545,6 +549,41 @@ impl DomainCli for CanCli {
                     .arg(decode_arg()),
             )
             .subcommand(
+                clap::Command::new("export")
+                    .about("Journal frames → BLF/ASC file + .loom.jsonl provenance sidecar ON THE DAEMON MACHINE")
+                    .arg(channel_arg())
+                    .arg(cursor_arg("since"))
+                    .arg(cursor_arg("until"))
+                    .arg(
+                        clap::Arg::new("ids")
+                            .long("ids")
+                            .value_delimiter(',')
+                            .value_parser(parse_id_range)
+                            .help("Ids or ranges: 0x300,0x7E0-0x7EF"),
+                    )
+                    .arg(
+                        clap::Arg::new("origin")
+                            .long("origin")
+                            .value_delimiter(',')
+                            .value_parser(parse_origin)
+                            .help("agent,user,device,script"),
+                    )
+                    .arg(clap::Arg::new("dir").long("dir").value_parser(["rx", "tx"]))
+                    .arg(
+                        clap::Arg::new("format")
+                            .long("format")
+                            .value_parser(["blf", "asc"])
+                            .default_value("blf")
+                            .help("blf (default) or asc"),
+                    )
+                    .arg(
+                        clap::Arg::new("out")
+                            .short('o')
+                            .long("out")
+                            .help("New file path (relative = this shell's directory). Default: a new daemon temp file"),
+                    ),
+            )
+            .subcommand(
                 clap::Command::new("last")
                     .about("Last frame per id in a recent window (Fixed view)")
                     .arg(channel_arg())
@@ -771,6 +810,7 @@ impl DomainCli for CanCli {
                 }
                 Ok(RpcCall::new(RPC_TRACE_QUERY, Value::Object(p)))
             }
+            "export" => export_call(s, p),
             "last" => {
                 set(&mut p, "id", s.get_one::<String>("id").map(|v| json!(v)));
                 set(&mut p, "window_ms", s.get_one::<u32>("window").map(|v| json!(v)));
@@ -1052,6 +1092,7 @@ impl DomainCli for CanCli {
             match call.method.as_str() {
                 RPC_SEND => render_send(d, out)?,
                 RPC_TRACE_QUERY => render_trace(d, out)?,
+                RPC_EXPORT => render_export(d, out)?,
                 RPC_LAST => render_last(d, out)?,
                 RPC_EXPECT => render_expect(d, out)?,
                 RPC_DB_LOAD | RPC_DB_INFO => render_db(d, out)?,
@@ -1597,6 +1638,91 @@ fn can_id_text(id: &Value, ext: &Value) -> String {
     } else {
         format!("0x{id:03X}")
     }
+}
+
+/// B4: `loom can export` arguments → `can.export` call (FUNCTIONS.md §B4-CLI).
+fn export_call(s: &clap::ArgMatches, mut p: Map<String, Value>) -> Result<RpcCall, UsageError> {
+    set(&mut p, "since", cursor_param(s, "since").map(Value::from));
+    set(&mut p, "until", cursor_param(s, "until").map(Value::from));
+    if let Some(ids) = s.get_many::<String>("ids") {
+        p.insert("ids".into(), json!(ids.collect::<Vec<_>>()));
+    }
+    if let Some(o) = s.get_many::<String>("origin") {
+        p.insert("origins".into(), json!(o.collect::<Vec<_>>()));
+    }
+    set(&mut p, "dir", s.get_one::<String>("dir").map(|d| json!(d)));
+    set(&mut p, "format", s.get_one::<String>("format").map(|f| json!(f)));
+    if let Some(out) = s.get_one::<String>("out") {
+        if out.is_empty() {
+            return Err(UsageError::new("--out needs a file path"));
+        }
+        let path = std::path::Path::new(out);
+        let full = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            std::env::current_dir()
+                .map_err(|_| UsageError::new("cannot resolve a relative --out; give an absolute path"))?
+                .join(path)
+        };
+        p.insert("path".into(), json!(full.to_string_lossy()));
+    }
+    let mut call = RpcCall::new(RPC_EXPORT, Value::Object(p));
+    call.wait = Some(EXPORT_WAIT + WAIT_MARGIN);
+    Ok(call)
+}
+
+/// B4: human rendering of a `can.export` result (FUNCTIONS.md §B4-CLI golden).
+fn render_export(d: &Value, out: &mut dyn io::Write) -> io::Result<()> {
+    let gaps = d["gaps"].as_u64().unwrap_or(0);
+    let dropped = d["gaps_dropped"].as_u64().unwrap_or(0);
+    let truncated = d["truncated"].as_bool() == Some(true);
+    let incomplete = |out: &mut dyn io::Write| -> io::Result<()> {
+        if gaps > 0 || dropped > 0 {
+            writeln!(
+                out,
+                "INCOMPLETE — journal gaps inside the range (gap records in the file and sidecar)"
+            )
+        } else if d["complete"].as_bool() == Some(false) && !truncated {
+            writeln!(out, "INCOMPLETE — the journal scan did not cover the whole range")
+        } else {
+            Ok(())
+        }
+    };
+    let Some(path) = d["path"].as_str() else {
+        writeln!(out, "no frames in the selection — no file written")?;
+        return incomplete(out);
+    };
+    writeln!(
+        out,
+        "exported {} frames ({}) → {path}  [daemon machine]",
+        d["frames"],
+        d["format"].as_str().unwrap_or("?")
+    )?;
+    writeln!(out, "sidecar {}", d["sidecar"].as_str().unwrap_or("?"))?;
+    let mut line = match (d["range"]["from"].as_str(), d["range"]["to"].as_str()) {
+        (Some(a), Some(b)) if d["range"].is_object() => format!("seq {a}–{b}"),
+        _ => "seq ?".to_owned(),
+    };
+    if let Some(c) = d["clock_id"].as_str() {
+        line.push_str(&format!(" · clock {c}"));
+    }
+    line.push_str(&format!(" · gaps {gaps}"));
+    if dropped > 0 {
+        line.push_str(&format!(" (+{dropped} not listed)"));
+    }
+    if d["wall_anchor_known"].as_bool() != Some(true) {
+        line.push_str(" · wall clock unknown (times relative)");
+    }
+    writeln!(out, "{line}")?;
+    if truncated {
+        writeln!(
+            out,
+            "TRUNCATED ({}) — continue: --since {}",
+            d["truncated_reason"].as_str().unwrap_or("?"),
+            d["next_cursor"].as_str().unwrap_or("?")
+        )?;
+    }
+    incomplete(out)
 }
 
 fn render_periodic(call: &RpcCall, d: &Value, out: &mut dyn io::Write) -> io::Result<()> {

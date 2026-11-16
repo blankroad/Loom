@@ -35,6 +35,7 @@ fn registry_probe_passes() {
             RPC_LAST,
             RPC_EXPECT,
             RPC_STATUS,
+            "can.export",
             "can.open",
             "can.close",
             "can.isotp.open",
@@ -1301,5 +1302,22 @@ fn isotp_event_pointers_for_uds() {
             assert!(v.contains(&"CANCELLED".to_owned()) && v.contains(&"N_BS_TIMEOUT".to_owned()))
         }
         other => panic!("{other:?}"),
+    }
+}
+
+// ---- B5 (Opus, CAN-5): the registered schemas accept every field the handlers read ------------------
+
+#[test]
+fn trace_and_last_schemas_accept_decode() {
+    let (reg, _) = RegistryProbe::assert_ok(&Can);
+    for m in [RPC_TRACE_QUERY, RPC_LAST] {
+        let c = reg.commands().iter().find(|c| c.method == m).unwrap();
+        let s = serde_json::to_value(&c.params).unwrap();
+        assert_eq!(s["additionalProperties"], json!(false), "{m}");
+        assert_eq!(
+            s["properties"]["decode"],
+            json!({"type": "boolean"}),
+            "{m}: `--decode` must pass schema validation"
+        );
     }
 }

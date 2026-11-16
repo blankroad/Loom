@@ -21,13 +21,15 @@ loom-can-sim = { path = "../loom-can-sim", optional = true }
 loom-can-dbc = { path = "../loom-can-dbc", optional = true }
 loom-can-isotp = { path = "../loom-can-isotp" }
 loom-can-periodic = { path = "../loom-can-periodic", optional = true }
+# can.export (CAN-4): streaming BLF/ASC writer + provenance sidecar
+loom-can-export = { path = "../loom-can-export", optional = true }
 # UDS virtual ECU as an ISO-TP server model (sim only).
 loom-uds-sim = { path = "../loom-uds-sim", optional = true }
 
 [features]
 default = ["runtime", "cli", "uds-sim"]
 cli = ["dep:loom-cli-kit", "dep:clap"]
-runtime = ["dep:loom-worker-sdk", "dep:loom-can-sim", "dep:loom-can-dbc", "dep:loom-can-periodic"]
+runtime = ["dep:loom-worker-sdk", "dep:loom-can-sim", "dep:loom-can-dbc", "dep:loom-can-periodic", "dep:loom-can-export"]
 
 uds-sim = ["dep:loom-uds-sim"]
 

@@ -5,11 +5,19 @@
 import { CLASSIC_LENGTHS, draftToParams, emptyDraft, FD_LENGTH_LIST, paramsToDraft, type TxDraft, type TxList } from './txList';
 import { fmtData, fmtRxId, typeFlags, type RxRow, type RxSummary } from './rxSummary';
 import type { CanSendParams } from './sendLine';
+// B1 (CAN-1 / CAN-3)
+import { fmtWall } from '../../sdk';
+import { TX_LIST_MAX } from './txList';
+import { parseTxDoc, txDoc, txDocText } from './txStore';
+// B2 (CAN-8)
+import type { IdMatch } from './idFilter';
+// B3 (CAN-2): Cycle Time + periodic start/stop from the transmit list — FUNCTIONS.md §B3-RXTX
+import { jobStateText, parseCycle } from './periodicJobs';
 
 export interface RxTxHooks {
   channel: string;
   /** current trace id filter (null = all) — the Receive list honours it for display only */
-  idFilter(): ReadonlySet<number> | null;
+  idFilter(): IdMatch | null;
   /** send the selected transmit entry through the gated path */
   sendEntry(uid: number): void;
   /** open the chronological trace filtered to this id */
@@ -18,6 +26,20 @@ export interface RxTxHooks {
   draftChanged(params: CanSendParams | null): void;
   /** panel clock (ms) */
   now(): number;
+  /** B1: the view changed TxList content (editor commit, delete, import) — the panel persists on its next frame */
+  listChanged(): void;
+  /** B1: wall clock ms (export saved_at) */
+  wallNow(): number;
+  /** B1: copy text to the clipboard; rejects when unavailable */
+  copyText(text: string): Promise<void>;
+  /** B3: start the entry's cycle as a daemon periodic job */
+  startPeriodic(uid: number): void;
+  /** B3: stop the job this panel started for the entry */
+  stopPeriodic(uid: number): void;
+  /** B3: the job this panel started for the entry (null = none) */
+  periodicOf(uid: number): { job: string; state: string; reason: string | null } | null;
+  /** B5: DBC message name for a received id (null = none / no DB / not read) */
+  msgName(id: number, ext: boolean): string | null;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -35,7 +57,8 @@ const tid = <T extends HTMLElement>(e: T, id: string): T => {
 };
 const fmtN = (n: number) => n.toLocaleString('ko-KR');
 
-const RX_COLS = ['CAN-ID', '유형', 'Len', 'Data', '주기 ms', '횟수', '마지막 s'] as const;
+// B5 (CAN-5): message name from the channel's DBC is the LAST column (earlier indexes unchanged)
+const RX_COLS = ['CAN-ID', '유형', 'Len', 'Data', '주기 ms', '횟수', '마지막 s (창 시작 기준)', '메시지 (DB)'] as const;
 const TX_COLS = ['CAN-ID', '유형', 'Len', 'Data', '주기', '횟수', '트리거', '메모'] as const;
 
 export class RxTxView {
@@ -46,7 +69,8 @@ export class RxTxView {
   private rxEls = new Map<string, HTMLDivElement>();
   private rxOrder: string[] = [];
   private rxVersion = -1;
-  private rxFilterKey = '';
+  /** B2: filter object of the last Receive render (identity; applyFilter makes a new one per apply); undefined = not rendered yet */
+  private rxFilterRef: IdMatch | null | undefined = undefined;
   private rxSelected: string | null = null;
 
   private txBody: HTMLDivElement;
@@ -57,6 +81,17 @@ export class RxTxView {
   private delBtn: HTMLButtonElement;
   private newBtn: HTMLButtonElement;
   private txMsg: HTMLSpanElement;
+  // B1 (CAN-3): persistence status + JSON exchange box
+  private exportBtn: HTMLButtonElement;
+  private importBtn: HTMLButtonElement;
+  private persistEl: HTMLSpanElement;
+  private io: HTMLDivElement;
+  private ioText: HTMLTextAreaElement;
+  private ioCopy: HTMLButtonElement;
+  private ioAppend: HTMLButtonElement;
+  private ioReplace: HTMLButtonElement;
+  private ioClose: HTMLButtonElement;
+  private ioMsg: HTMLSpanElement;
 
   private editor: HTMLFormElement;
   private edId: HTMLInputElement;
@@ -71,6 +106,15 @@ export class RxTxView {
   private editing: number | null = null; // uid being edited, null = new
   private draft: TxDraft = emptyDraft();
   private writable = true;
+  /** B3: Cycle Time ms input of the editor */
+  private edCycle: HTMLInputElement;
+  /** B3: toolbar */
+  private perStartBtn: HTMLButtonElement;
+  private perStopBtn: HTMLButtonElement;
+  /** B3: the panel appends the PeriodicView here (below the transmit list) */
+  readonly periodicHost: HTMLDivElement;
+  /** B3: STOP latch (new starts disabled) */
+  private latched = false;
 
   constructor(
     private readonly rx: RxSummary,
@@ -146,15 +190,35 @@ export class RxTxView {
     this.sendBtn.title = '선택한 메시지를 1회 송신 — 송신 줄과 같은 ActionGate·권한·dry-run 경로';
     this.txMsg = tid(el('span', 'crx-txmsg muted'), 'can-tx-msg');
     this.txMsg.setAttribute('aria-live', 'polite');
-    const defer = tid(el('span', 'crx-defer muted', '주기 송신: 이 패널에서 미지원'), 'can-tx-periodic-deferred');
-    defer.title = '주기 작업은 daemon can.periodic.* 소유 — 이 패널은 아직 연결하지 않았고 로컬 타이머로 흉내 내지 않습니다';
-    txTools.append(this.newBtn, this.editBtn, this.delBtn, this.sendBtn, defer, this.txMsg);
+    this.perStartBtn = tid(el('button', undefined, '주기 시작'), 'can-tx-periodic-start');
+    this.perStartBtn.type = 'button';
+    this.perStartBtn.title = '선택 항목을 데몬 주기 송신 작업으로 시작 (Cycle Time > 0)';
+    this.perStartBtn.addEventListener('click', () => {
+      if (this.tx.selected !== null) this.hooks.startPeriodic(this.tx.selected);
+    });
+    this.perStopBtn = tid(el('button', undefined, '주기 정지'), 'can-tx-periodic-stop');
+    this.perStopBtn.type = 'button';
+    this.perStopBtn.title = '이 보기가 시작한 선택 항목의 주기 작업 정지';
+    this.perStopBtn.addEventListener('click', () => {
+      if (this.tx.selected !== null) this.hooks.stopPeriodic(this.tx.selected);
+    });
+    this.exportBtn = tid(el('button', undefined, 'JSON 내보내기'), 'can-tx-export');
+    this.exportBtn.type = 'button';
+    this.exportBtn.title = '송신 목록을 JSON 문서로 보기·복사 (파일 다운로드 아님)';
+    this.importBtn = tid(el('button', undefined, 'JSON 가져오기'), 'can-tx-import');
+    this.importBtn.type = 'button';
+    this.importBtn.title = '붙여 넣은 JSON(문서 또는 ["300#01", …])을 검증해 추가/교체';
+    this.persistEl = tid(el('span', 'crx-persist'), 'can-tx-persist');
+    this.persistEl.setAttribute('aria-live', 'polite');
+    this.persistEl.dataset.state = 'off';
+    txTools.append(this.newBtn, this.editBtn, this.delBtn, this.sendBtn, this.perStartBtn, this.perStopBtn, this.exportBtn, this.importBtn, this.txMsg, this.persistEl);
     this.newBtn.addEventListener('click', () => this.openEditor(null));
     this.editBtn.addEventListener('click', () => {
       if (this.tx.selected !== null) this.openEditor(this.tx.selected);
     });
     this.delBtn.addEventListener('click', () => {
       if (this.tx.selected !== null) this.tx.remove(this.tx.selected);
+      this.hooks.listChanged();
       this.render();
     });
     this.sendBtn.addEventListener('click', () => this.sendSelected());
@@ -198,6 +262,7 @@ export class RxTxView {
       } else if (e.key === 'Delete' && this.tx.selected !== null) {
         e.preventDefault();
         this.tx.remove(this.tx.selected);
+        this.hooks.listChanged();
         this.render();
       }
     });
@@ -216,10 +281,11 @@ export class RxTxView {
     this.edBytes = tid(el('div', 'crx-bytes'), 'can-tx-bytes');
     row1.append(this.labeled('ID (hex)', this.edId), this.labeled('Length', this.edLen), this.labeled('Data (hex)', this.edBytes));
     const row2 = el('div', 'crx-edrow');
-    const cycle = tid(el('input', 'crx-cycle'), 'can-tx-cycle');
-    cycle.value = '0';
-    cycle.disabled = true;
-    cycle.title = '주기 송신 미지원 (daemon can.periodic 미연결) — 0 = 수동 송신만';
+    this.edCycle = tid(el('input', 'crx-cycle'), 'can-tx-cycle');
+    this.edCycle.value = '0';
+    this.edCycle.inputMode = 'numeric';
+    this.edCycle.title = '0 = 수동 · 1–60000 ms = 데몬 주기 송신 (목록에서 "주기 시작")';
+    this.edCycle.addEventListener('input', () => this.validate());
     this.edExt = this.check('Extended (29bit)', 'can-tx-ext');
     this.edFd = this.check('CAN FD', 'can-tx-fd');
     this.edBrs = this.check('Bit Rate Switch', 'can-tx-brs');
@@ -228,7 +294,7 @@ export class RxTxView {
     rtr.parentElement!.title = 'RTR 송신은 can.send 구조형에 없음 — 미지원';
     const types = el('fieldset', 'crx-types');
     types.append(el('legend', undefined, 'Message Type'), this.edExt.parentElement!, this.edFd.parentElement!, rtr.parentElement!, this.edBrs.parentElement!);
-    row2.append(this.labeled('Cycle Time ms', cycle), types);
+    row2.append(this.labeled('Cycle Time ms', this.edCycle), types);
     const row3 = el('div', 'crx-edrow');
     this.edComment = tid(el('input', 'crx-comment'), 'can-tx-comment');
     this.edComment.maxLength = 80;
@@ -262,7 +328,42 @@ export class RxTxView {
       this.readEditor(true);
     });
 
-    txMain.append(txTools, txHead, this.txBody, this.editor);
+    this.io = tid(el('div', 'crx-io'), 'can-tx-io');
+    this.io.hidden = true;
+    this.io.setAttribute('aria-label', '송신 목록 JSON');
+    this.ioText = tid(el('textarea', 'crx-io-text'), 'can-tx-io-text');
+    this.ioText.spellcheck = false;
+    const ioRow = el('div', 'crx-io-row');
+    this.ioCopy = tid(el('button', undefined, '복사'), 'can-tx-io-copy');
+    this.ioAppend = tid(el('button', undefined, '목록에 추가'), 'can-tx-io-append');
+    this.ioReplace = tid(el('button', undefined, '목록 바꾸기'), 'can-tx-io-replace');
+    this.ioClose = tid(el('button', undefined, '닫기'), 'can-tx-io-close');
+    for (const b of [this.ioCopy, this.ioAppend, this.ioReplace, this.ioClose]) b.type = 'button';
+    this.ioMsg = tid(el('span', 'crx-io-msg'), 'can-tx-io-msg');
+    this.ioMsg.setAttribute('aria-live', 'polite');
+    ioRow.append(this.ioCopy, this.ioAppend, this.ioReplace, this.ioClose, this.ioMsg);
+    this.io.append(this.ioText, ioRow);
+    this.exportBtn.addEventListener('click', () => this.openExport());
+    this.importBtn.addEventListener('click', () => this.openImport());
+    this.ioClose.addEventListener('click', () => this.closeIo());
+    this.ioAppend.addEventListener('click', () => this.applyImport('append'));
+    this.ioReplace.addEventListener('click', () => this.applyImport('replace'));
+    this.ioCopy.addEventListener('click', () => {
+      void this.hooks.copyText(this.ioText.value).then(
+        () => this.sayIo('JSON을 클립보드에 복사함', false),
+        () => this.sayIo('복사 실패 — 상자에서 직접 선택해 복사하세요', true),
+      );
+    });
+    this.io.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.closeIo();
+      }
+      e.stopPropagation(); // typing in the box never toggles pause / sends
+    });
+
+    this.periodicHost = el('div', 'crx-periodic-host');
+    txMain.append(txTools, txHead, this.txBody, this.editor, this.io, this.periodicHost);
     txSec.append(txSide, txMain);
     this.root.append(rxSec, txSec);
   }
@@ -288,10 +389,9 @@ export class RxTxView {
 
   private renderRx(): void {
     const f = this.hooks.idFilter();
-    const fk = f ? [...f].join(',') : '';
-    if (this.rx.version === this.rxVersion && fk === this.rxFilterKey) return;
+    if (this.rx.version === this.rxVersion && f === this.rxFilterRef) return;
     this.rxVersion = this.rx.version;
-    this.rxFilterKey = fk;
+    this.rxFilterRef = f;
     const w = this.rx.window;
     const parts = [`집계 창 ${fmtN(w.frames)} 프레임 · ID ${fmtN(w.ids)}/${fmtN(w.maxIds)}`];
     if (w.untrackedFrames) parts.push(`상한 초과 미집계 ${fmtN(w.untrackedFrames)}`);
@@ -340,7 +440,8 @@ export class RxTxView {
       c[5]!.title = lower ? `이 ID 집계 중 gap ${r.gapsSince}건 — 실제 수는 이보다 많을 수 있음` : '이 집계 창에서 받은 수';
       const rel = w.startMonoMs === null ? 0 : (r.lastMonoMs - w.startMonoMs) / 1000;
       setText(c[6]!, rel.toFixed(4));
-      c[6]!.title = `마지막 수신: 집계 창 시작 기준 · seq ${r.lastSeq}`;
+      setText(c[7]!, this.hooks.msgName(r.id, r.ext) ?? '');
+      c[6]!.title = `마지막 수신: 집계 창 시작 기준 · 벽시계 ${r.lastWallMs > 0 ? `${fmtWall(r.lastWallMs)} (${new Date(r.lastWallMs).toISOString()})` : '없음'} · seq ${r.lastSeq}`;
       e.dataset.count = String(r.count);
       e.dataset.flags = flags.join(',');
       e.dataset.data = r.data ?? '';
@@ -361,6 +462,12 @@ export class RxTxView {
     this.delBtn.disabled = sel === null;
     this.sendBtn.disabled = sel === null || !this.writable;
     this.newBtn.disabled = false;
+    const se = sel === null ? undefined : this.tx.get(sel);
+    const pj = sel === null ? null : this.hooks.periodicOf(sel);
+    const running = pj !== null && pj.state !== 'stopped';
+    this.perStartBtn.disabled = !se || se.cycleMs <= 0 || !this.writable || this.latched || running;
+    this.perStopBtn.disabled = !running;
+    this.perStartBtn.title = this.latched ? 'STOP 중 — 새 주기 송신 불가' : '선택 항목을 데몬 주기 송신 작업으로 시작 (Cycle Time > 0)';
     if (this.tx.version === this.txVersion) return;
     this.txVersion = this.tx.version;
     for (const n of [...this.txBody.querySelectorAll('.crx-txrow')]) n.remove();
@@ -374,7 +481,19 @@ export class RxTxView {
       row.dataset.count = String(e.count);
       row.setAttribute('aria-selected', String(e.uid === sel));
       const flags = typeFlags({ ext: p.ext, fd: p.fd, brs: p.brs === true, esi: false, rtr: false });
-      const cells = [fmtRxId(p), flags.join(' '), String(p.data.length / 2), fmtData(p.data, false), '수동', fmtN(e.count), '수동', e.comment];
+      const pjr = this.hooks.periodicOf(e.uid);
+      const on = pjr !== null && pjr.state !== 'stopped';
+      row.dataset.job = on ? pjr.job : '';
+      const cells = [
+        fmtRxId(p),
+        flags.join(' '),
+        String(p.data.length / 2),
+        fmtData(p.data, false),
+        e.cycleMs > 0 ? `${e.cycleMs} ms` : '수동',
+        fmtN(e.count),
+        on ? `주기 ${pjr.job} · ${jobStateText(pjr)}` : e.cycleMs > 0 ? '주기 (정지)' : '수동',
+        e.comment,
+      ];
       for (const t of cells) row.append(el('span', 'crx-td', t));
       if (e.lastError) row.title = `마지막 실패: ${e.lastError}`;
       else if (e.lastRequestId) row.title = `마지막 request_id ${e.lastRequestId}`;
@@ -408,6 +527,7 @@ export class RxTxView {
     this.edFd.checked = this.draft.fd;
     this.edBrs.checked = this.draft.brs;
     this.edComment.value = this.draft.comment;
+    this.edCycle.value = String(e ? e.cycleMs : 0);
     this.fillLengths();
     this.edLen.value = String(this.draft.len);
     this.buildByteCells();
@@ -479,6 +599,14 @@ export class RxTxView {
     this.edBrs.disabled = !this.edFd.checked;
     const r = draftToParams(this.draft, this.hooks.channel);
     if (r.ok) {
+      const c = parseCycle(this.edCycle.value);
+      if (!c.ok) {
+        setText(this.edErr, c.error);
+        this.edErr.classList.add('err');
+        this.edOk.disabled = true;
+        this.hooks.draftChanged(r.params);
+        return;
+      }
       setText(this.edErr, `→ ${r.canonical}`);
       this.edErr.classList.remove('err');
       this.edOk.disabled = false;
@@ -495,13 +623,16 @@ export class RxTxView {
     this.readEditor();
     const r = draftToParams(this.draft, this.hooks.channel);
     if (!r.ok) return;
-    const res = this.tx.upsert(this.editing, r.params, r.canonical, this.draft.comment);
+    const c = parseCycle(this.edCycle.value);
+    if (!c.ok) return;
+    const res = this.tx.upsert(this.editing, r.params, r.canonical, this.draft.comment, c.ms);
     if (!res.ok) {
       setText(this.edErr, res.error);
       this.edErr.classList.add('err');
       return;
     }
     this.tx.select(res.uid);
+    this.hooks.listChanged();
     this.closeEditor();
     this.render();
   }
@@ -509,6 +640,85 @@ export class RxTxView {
   /** test/integration hook: the editor's current draft */
   get currentDraft(): Readonly<TxDraft> {
     return this.draft;
+  }
+
+  // ---------------- B1: persistence status / JSON exchange ----------------
+  /** status line for the panel's save/load result */
+  setPersist(text: string, state: 'ok' | 'err' | 'off'): void {
+    setText(this.persistEl, text);
+    this.persistEl.title = text;
+    this.persistEl.dataset.state = state;
+    this.persistEl.classList.toggle('err', state === 'err');
+  }
+  /** show the export document (read-only box + copy) */
+  openExport(): void {
+    this.ioText.value = txDocText(txDoc(this.hooks.channel, this.tx.entries, this.hooks.wallNow()));
+    this.ioText.readOnly = true;
+    this.io.dataset.mode = 'export';
+    this.ioCopy.hidden = false;
+    this.ioAppend.hidden = this.ioReplace.hidden = true;
+    this.sayIo('', false);
+    this.io.hidden = false;
+    this.ioText.focus();
+    this.ioText.select();
+  }
+  /** show the empty import box (append / replace) */
+  openImport(): void {
+    this.ioText.value = '';
+    this.ioText.readOnly = false;
+    this.ioText.placeholder = '{"format":"loom.can.txlist",…} 또는 ["300#01", …]';
+    this.io.dataset.mode = 'import';
+    this.ioCopy.hidden = true;
+    this.ioAppend.hidden = this.ioReplace.hidden = false;
+    setText(this.ioReplace, `목록 바꾸기 (현재 ${this.tx.entries.length}개 삭제)`);
+    this.sayIo('', false);
+    this.io.hidden = false;
+    this.ioText.focus();
+  }
+  closeIo(): void {
+    this.io.hidden = true;
+    this.ioText.value = '';
+    this.sayIo('', false);
+    this.txBody.focus();
+  }
+  /** validate the box text and load it into the list */
+  applyImport(mode: 'replace' | 'append'): void {
+    const r = parseTxDoc(this.ioText.value, this.hooks.channel);
+    if (!r.ok) {
+      this.sayIo(`가져오기 실패: ${r.error}`, true);
+      return;
+    }
+    const res = this.tx.load(r.items, mode);
+    let msg = mode === 'replace' ? `목록을 ${res.added}개로 바꿈` : `${res.added}개 추가`;
+    if (r.skipped.length) msg += ` · ${r.skipped.length}개 건너뜀 (#${r.skipped[0]!.index + 1}: ${r.skipped[0]!.reason})`;
+    const d = r.dropped + res.dropped;
+    if (d) msg += ` · 상한 ${TX_LIST_MAX}개 초과 ${d}개 제외`;
+    if (r.sourceChannel && r.sourceChannel !== this.hooks.channel) msg += ` · 원래 채널 ${r.sourceChannel}`;
+    this.sayIo(msg, false);
+    this.hooks.listChanged();
+    this.render();
+  }
+  private sayIo(text: string, err: boolean): void {
+    setText(this.ioMsg, text);
+    this.ioMsg.classList.toggle('err', err);
+  }
+
+  /** B3: STOP latch → disable 주기 시작 (stop stays enabled) */
+  setLatched(l: boolean): void {
+    if (l !== this.latched) {
+      this.latched = l;
+      this.txVersion = -1;
+    }
+  }
+
+  /** B5: DBC names changed → the receive rows redraw on the next render */
+  namesChanged(): void {
+    this.rxVersion = -1;
+  }
+
+  /** B3: job states changed → the transmit rows redraw on the next render */
+  periodicChanged(): void {
+    this.txVersion = -1;
   }
 
   setWritable(w: boolean): void {
