@@ -32,6 +32,12 @@ pub enum LinkState {
     Up,
     Down,
     Connecting,
+    /// Closed on purpose (`uds.disconnect`, U6): no reconnect; `uds.connect` opens a fresh link.
+    Closed,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 /// How sure Loom is about a believed ECU state.
@@ -73,6 +79,12 @@ pub struct TesterPresentPayload {
     pub interval_ms: u32,
     /// Positive / suppressed-ok TesterPresent exchanges since it was started.
     pub ok_count: u32,
+    /// `3E 80` (true) or `3E 00` (false). Absent from producers older than the U1 scheduler.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub suppress: Option<bool>,
+    /// Who started the keep-alive job (U1). Absent from producers older than the U1 scheduler.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner: Option<LeasePayload>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -101,7 +113,27 @@ pub struct StatePayload {
     pub p2_ms: u16,
     pub p2_star_ms: u32,
     pub lease: Option<LeasePayload>,
+    /// Why the last TesterPresent job stopped by itself or by someone (U1), until a new one starts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tp_stop_cause: Option<String>,
+    /// Final state of a target removed with `uds.forget` (U6): consumers drop the target.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub forgotten: bool,
+    /// U5: the diagnostic DB attached with `uds.db.set` (decoding only; never risk). Absent: ISO table only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db: Option<crate::diagdb::DbInfo>,
 }
+
+/// Link route of a request row, stamped once when the row is created (U8). Never back-filled.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RouteStamp {
+    pub generation: u32,
+    pub backend: Option<String>,
+    pub addr: Option<String>,
+}
+
+/// `RowPayload::purpose` of daemon TesterPresent keep-alive rows (U1).
+pub const PURPOSE_TESTER_PRESENT: &str = "tester_present";
 
 /// Why a request was refused before sending.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -205,6 +237,21 @@ pub struct RowPayload {
     pub decoded: Option<Vec<DecodedDid>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dtcs: Option<Vec<DtcItem>>,
+    // ---- provenance (U8): stamped at row creation, constant over the row's events ----
+    /// Link generation the request was issued on. Absent: unknown (older producer / gateway fallback row).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backend: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub addr: Option<String>,
+    /// [`PURPOSE_TESTER_PRESENT`] for daemon keep-alive rows; absent for every other request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purpose: Option<String>,
+    /// U5: `DbInfo::hash` of the diagnostic DB attached to the target when this row was created (the DB that
+    /// decodes it). Absent: ISO table only, or an older producer. Stamped once like the route.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_hash: Option<String>,
 }
 
 /// One-line summary of a request (shown in the row's summary column).
@@ -288,7 +335,20 @@ impl RowPayload {
             t_final_rx_mono_ns: None,
             decoded: None,
             dtcs: None,
+            generation: None,
+            backend: None,
+            addr: None,
+            purpose: None,
+            db_hash: None,
         }
+    }
+
+    /// B2-F1 (Sonnet body): copy `route` into `generation`/`backend`/`addr`.
+    pub fn with_route(mut self, route: &RouteStamp) -> Self {
+        self.generation = Some(route.generation);
+        self.backend = route.backend.clone();
+        self.addr = route.addr.clone();
+        self
     }
 
     /// Set the NRC and its ISO name together.

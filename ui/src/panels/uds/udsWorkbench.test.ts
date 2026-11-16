@@ -51,7 +51,7 @@ function deferred<T = unknown>() {
   return { p, res, rej };
 }
 
-describe('connect (uds.connect from a local preset; no disconnect RPC)', () => {
+describe('connect (uds.connect from a local preset; U6: disconnect is a separate explicit control)', () => {
   it('SIM preset → exactly one uds.connect even on rapid double click; up → disabled "연결됨"', async () => {
     h = mountPanel('uds.console');
     h.frame();
@@ -76,8 +76,11 @@ describe('connect (uds.connect from a local preset; no disconnect RPC)', () => {
     h.batch([up('ecu1')]);
     expect(q('.link-st').textContent).toBe('연결됨');
     expect(btn.disabled).toBe(true);
-    expect(btn.title).toContain('연결 해제 RPC가 없어');
-    expect(h.host.textContent).not.toContain('연결 해제');
+    // operator upgrade U6 (B4-D7) replaced "no disconnect RPC": [연결] stays disabled while up and points at the
+    // explicit [연결 해제] (uds.disconnect); connecting itself never disconnects anything.
+    expect(btn.title).toContain('[연결 해제]');
+    expect(q<HTMLButtonElement>('[data-cmd="disconnect"]').hidden).toBe(false);
+    expect(h.net.calls.filter((c) => c.method === 'uds.disconnect')).toHaveLength(0);
     expect(h.host.textContent).not.toContain('폴링 정지'); // uds.poll.stop is not a daemon RPC
     expect(sends(h)).toHaveLength(0); // connecting sends no request
   });

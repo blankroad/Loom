@@ -3,6 +3,7 @@
 // catalogue, saved commands and layout. No history, no link state, no values: a reload never
 // connects, sends, polls or retries. Every list is validated on load; corrupt data → defaults.
 import { loadJson, saveJson } from '../../workbench/eth/bench';
+import { laFromAddr } from './udsModel';
 
 export const PREFS_KEY = 'loom.uds.workbench.v1';
 
@@ -22,7 +23,25 @@ export interface ConnPreset {
   testerLa: string;
   activation: number;
   timeoutMs: number;
+  /** U1: TesterPresent interval for this ECU (500–30000 ms; absent → DEFAULT_TP_INTERVAL_MS, shown) */
+  tpIntervalMs?: number;
+  /** U2: loom.toml [[uds.key_providers]] name used by [자동 해제] (the provider itself is never in the UI) */
+  keyProvider?: string;
+  /** U2: requestSeed sub-function for [자동 해제] (odd 0x01–0x7D) */
+  unlockLevel?: number;
 }
+
+/** U5: a diagnostic DB kept in the project file (attached per target with uds.db.set). */
+export interface SavedDb {
+  id: string;
+  name: string;
+  /** the loom_diag JSON text exactly as imported (≤ MAX_DB_TEXT_BYTES) */
+  json: string;
+}
+export const MAX_SAVED_DBS = 8;
+/** same limit as the daemon (crates/loom-uds/src/diagdb.rs MAX_INLINE_DB_BYTES) */
+export const MAX_DB_TEXT_BYTES = 48 * 1024;
+export const DEFAULT_TP_INTERVAL_MS = 2000;
 
 export interface DidDef {
   did: string;
@@ -57,6 +76,8 @@ export interface UdsPrefs {
   didCollapsed: boolean;
   valsCollapsed: boolean;
   histScope: 'all' | 'ecu';
+  /** U5 (optional so older stored prefs stay valid) */
+  diagDbs?: SavedDb[];
 }
 
 /** ISO 14229-1 Annex C standard identifiers (names only — values always come from the ECU). */
@@ -109,6 +130,61 @@ export function presetIssues(p: ConnPreset): string[] {
   if (!Number.isInteger(p.activation) || p.activation < 0 || p.activation > 255) out.push('활성화 타입 0–255');
   if (!Number.isInteger(p.timeoutMs) || p.timeoutMs < 100 || p.timeoutMs > 60000) out.push('연결 타임아웃 100–60000 ms');
   return out;
+}
+
+/** What the daemon reported for a target (uds.state backend/addr) — the only inputs a new profile may be prefilled from. */
+export interface ReportedRoute {
+  backend: string;
+  addr: string | null;
+}
+
+/** FUNCTIONS.md B1-F9 (U7): new, unsaved local profile for a target that has none. Never copies another profile. */
+export function profileDraftForTarget(ecu: string, reported: ReportedRoute | undefined, id: string): ConnPreset {
+  return {
+    id,
+    ecu,
+    label: `${ecu} (daemon 보고에서)`,
+    sim: reported?.backend === 'sim',
+    host: '',
+    port: 13400,
+    la: laFromAddr(reported?.addr ?? null) ?? '',
+    testerLa: '0x0E80',
+    activation: 0,
+    timeoutMs: 5000,
+  };
+}
+
+/** FUNCTIONS.md B4-P1: the preset's TesterPresent interval, or the default when absent/invalid. */
+export function tpIntervalOf(p: ConnPreset | null): number {
+  const v = p?.tpIntervalMs;
+  return typeof v === 'number' && Number.isInteger(v) && v >= 500 && v <= 30000 ? v : DEFAULT_TP_INTERVAL_MS;
+}
+
+/** FUNCTIONS.md B4-P2 (U6 "재연결 필요"): the profile no longer matches what the up link was opened with. */
+export function profileNeedsReconnect(p: ConnPreset, reported: ReportedRoute & { link: string }): boolean {
+  if (reported.link !== 'up') return false;
+  if (p.sim !== (reported.backend === 'sim')) return true;
+  if (p.sim) return false;
+  const la = laFromAddr(reported.addr);
+  if (la === null) return false;
+  return parseLa(p.la) !== parseInt(la.slice(2), 16);
+}
+
+/** FUNCTIONS.md B4-P3 (U5): local pre-check of a DB text before uds.db.set (full validation is the daemon's). */
+export function checkDbText(text: string): { db: Record<string, unknown> | null; err: string | null; bytes: number } {
+  const bytes = new TextEncoder().encode(text).length;
+  if (bytes > MAX_DB_TEXT_BYTES) return { db: null, err: `DB가 너무 큼 (${bytes} B, 최대 ${MAX_DB_TEXT_BYTES} B)`, bytes };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    return { db: null, err: `JSON 구문 오류: ${e instanceof Error ? e.message : String(e)}`, bytes };
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return { db: null, err: 'loom_diag DB 객체가 아님', bytes };
+  const db = parsed as Record<string, unknown>;
+  if (db.loom_diag !== 1) return { db: null, err: 'loom_diag 1 형식이 아님', bytes };
+  if ('dids' in db && db.dids !== undefined && !Array.isArray(db.dids)) return { db: null, err: 'dids: 배열이 아님', bytes };
+  return { db, err: null, bytes };
 }
 
 /** uds.connect params (crates/loom-uds/src/handlers.rs `connect`). */
@@ -167,8 +243,25 @@ export function sanitizePrefs(v: unknown): UdsPrefs {
   // a sequence naming a missing command is dropped whole (never run a partial plan)
   const seqs = Array.isArray(o.seqs) ? uniq(o.seqs.filter(isSeq)).filter((q) => q.steps.every((id) => cmdIds.has(id))).slice(0, 100) : null;
   const num = (x: unknown, d: number, lo: number, hi: number) => (typeof x === 'number' && x >= lo && x <= hi ? x : d);
+  const cleanPreset = (p: ConnPreset): ConnPreset => {
+    const c: ConnPreset = { ...p };
+    if (!int(c.tpIntervalMs, 500, 30000)) delete c.tpIntervalMs;
+    if (!(isStr(c.keyProvider) && NAME.test(c.keyProvider))) delete c.keyProvider;
+    if (!(int(c.unlockLevel, 1, 0x7d) && (c.unlockLevel as number) % 2 === 1)) delete c.unlockLevel;
+    return c;
+  };
+  const enc = new TextEncoder();
+  const diagDbs = Array.isArray(o.diagDbs)
+    ? uniq(
+        (o.diagDbs as unknown[]).filter((x): x is SavedDb => {
+          const d = x as Record<string, unknown> | null;
+          return !!d && isStr(d.id) && ID.test(d.id) && isStr(d.name) && d.name.trim().length > 0 && d.name.length <= 80 &&
+            isStr(d.json) && enc.encode(d.json).length <= MAX_DB_TEXT_BYTES;
+        }),
+      ).slice(0, MAX_SAVED_DBS)
+    : [];
   return {
-    presets: presets && presets.length ? presets : DEFAULT_PREFS.presets.map((p) => ({ ...p })),
+    presets: presets && presets.length ? presets.map(cleanPreset) : DEFAULT_PREFS.presets.map((p) => ({ ...p })),
     dids: dids ?? DEFAULT_PREFS.dids.map((d) => ({ ...d })),
     cmds: cmds ?? [],
     seqs: seqs ?? [],
@@ -179,6 +272,7 @@ export function sanitizePrefs(v: unknown): UdsPrefs {
     didCollapsed: o.didCollapsed === true,
     valsCollapsed: o.valsCollapsed === true,
     histScope: o.histScope === 'ecu' ? 'ecu' : 'all',
+    ...(diagDbs.length ? { diagDbs: diagDbs.map((d) => ({ id: d.id, name: d.name, json: d.json })) } : {}),
   };
 }
 

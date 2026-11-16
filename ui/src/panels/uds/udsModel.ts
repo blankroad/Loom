@@ -159,6 +159,21 @@ export interface TargetView {
   leaseActor: string | null;
   /** conn_id of the lease holder (canonical `lease.client_id`) */
   leaseClient: string | null;
+  // ---- operator upgrade B4 (U1/U5/U6/U8); null = not reported by this producer ----
+  /** link generation of the last uds.state */
+  generation: number | null;
+  /** running TesterPresent job interval (ms) */
+  tpIntervalMs: number | null;
+  /** 3E 80 (true) / 3E 00 (false) */
+  tpSuppress: boolean | null;
+  /** owner_origin of the running TesterPresent job */
+  tpOwner: string | null;
+  /** why the last TesterPresent job stopped */
+  tpStopCause: string | null;
+  /** attached diagnostic DB (uds.state.db) */
+  dbHash: string | null;
+  dbEcu: string | null;
+  dbDids: number | null;
 }
 
 export function emptyTarget(target: string): TargetView {
@@ -166,7 +181,81 @@ export function emptyTarget(target: string): TargetView {
     target, link: '?', linkCause: null, backend: '?', addr: null, session: '?', sessionConfidence: null,
     security: '?', securityConfidence: null, tpOn: false, tpOk: 0, p2: null, p2Star: null,
     leaseOrigin: null, leaseActor: null, leaseClient: null,
+    generation: null, tpIntervalMs: null, tpSuppress: null, tpOwner: null, tpStopCause: null, dbHash: null, dbEcu: null, dbDids: null,
   };
+}
+
+/** U8: how a row's route is shown. Unstamped rows stay unknown (never filled from current state). */
+export interface RowRoute {
+  text: string;
+  title: string;
+  known: boolean;
+  generation: number | null;
+}
+export const ROUTE_UNRECORDED_TITLE = '요청 이벤트에 경로 미기록';
+
+/** FUNCTIONS.md B4-F1 */
+export function rowRoute(p: Readonly<Record<string, unknown>>): RowRoute {
+  const g = p.generation;
+  if (typeof g === 'number' && Number.isInteger(g) && g >= 0) {
+    const backend = s(p.backend) ?? '?';
+    const addr = s(p.addr);
+    return {
+      text: `${backend}${addr ? ' ' + addr : ''} · g${g}`,
+      title: `요청 시점에 daemon이 기록한 경로 (generation ${g})`,
+      known: true,
+      generation: g,
+    };
+  }
+  return { text: '?', title: ROUTE_UNRECORDED_TITLE, known: false, generation: null };
+}
+
+/** FUNCTIONS.md B4-F2: final state of a target removed with uds.forget. */
+export function isForgotten(payload: unknown): boolean {
+  return obj(payload).forgotten === true;
+}
+
+/** FUNCTIONS.md B4-F3a: successful keep-alives to show. Daemon jobs (B2: `suppress` reported) count each exchange both
+ *  in `ok_count` and as a folded row → max; legacy producers (`tp{on,ok_count}` without rows for the same exchanges) → sum. */
+export function tpOkCount(t: TargetView, tpFolded: number): number {
+  return t.tpSuppress !== null ? Math.max(t.tpOk, tpFolded) : t.tpOk + tpFolded;
+}
+
+/** FUNCTIONS.md B4-F3: TesterPresent cell text (no double counting of state ok_count and folded rows). */
+export function tpCellText(t: TargetView, tpFolded: number): string {
+  if (t.tpOn) {
+    const ok = tpOkCount(t, tpFolded);
+    return t.tpIntervalMs !== null ? `on ${(t.tpIntervalMs / 1000).toFixed(1)}s ✓×${ok}` : `on ✓×${ok}`;
+  }
+  if (t.tpStopCause) return `off (${t.tpStopCause})${tpFolded ? ` ×${tpFolded}` : ''}`;
+  return tpFolded > 0 ? `off ×${tpFolded}` : 'off';
+}
+
+/** U2 minimum: a confirmed `27 xx` (odd) row answered `67 xx seed…`. */
+export interface SeedInfo {
+  level: number;
+  seedHex: string;
+  /** all-zero seed = already unlocked (ISO 14229-1) */
+  zero: boolean;
+}
+
+/** FUNCTIONS.md B4-F4 */
+export function seedFromRow(r: RowLike): SeedInfo | null {
+  if (!isFinal(r.state) || r.state === 'failed') return null;
+  const req = reqHexOf(r);
+  const m = req ? /^27([0-9A-F]{2})$/.exec(req) : null;
+  if (!m) return null;
+  const level = parseInt(m[1]!, 16);
+  if (level % 2 === 0 || level < 0x01 || level > 0x7d) return null;
+  const resp = respHexOf(r);
+  if (!resp || !resp.startsWith(`67${m[1]}`) || resp.length < 6) return null;
+  const seedHex = resp.slice(4);
+  return { level, seedHex, zero: /^(00)+$/.test(seedHex) };
+}
+
+/** FUNCTIONS.md B4-F5: composer text for the matching sendKey; the `<key>` placeholder keeps it unsendable until typed. */
+export function keyTemplate(level: number): string {
+  return `27 ${((level + 1) & 0xff).toString(16).toUpperCase().padStart(2, '0')} <key>`;
 }
 
 /** Canonical numeric level (null = locked) or legacy display string. */
@@ -195,10 +284,25 @@ export function reduceTargetState(prev: TargetView | undefined, payload: unknown
   // TesterPresent: canonical `tester_present` (null = off) wins over legacy `tp{on}`
   let tpOn = prev?.tpOn ?? false;
   let tpOk = prev?.tpOk ?? 0;
+  let tpIntervalMs = prev?.tpIntervalMs ?? null;
+  let tpSuppress = prev?.tpSuppress ?? null;
+  let tpOwner = prev?.tpOwner ?? null;
+  let tpStopCause = prev?.tpStopCause ?? null;
+  let dbHash = prev?.dbHash ?? null;
+  let dbEcu = prev?.dbEcu ?? null;
+  let dbDids = prev?.dbDids ?? null;
   if ('tester_present' in p) {
     const tp = obj(p.tester_present);
     tpOn = tp.active === true;
     tpOk = n(tp.ok_count) ?? 0;
+    tpIntervalMs = tpOn ? n(tp.interval_ms) : null;
+    tpSuppress = tpOn && typeof tp.suppress === 'boolean' ? tp.suppress : null;
+    tpOwner = tpOn ? s(obj(tp.owner).owner_origin) : null;
+    tpStopCause = s(p.tp_stop_cause);
+    const db = 'db' in p && typeof p.db === 'object' && p.db !== null ? obj(p.db) : null;
+    dbHash = db ? s(db.hash) : null;
+    dbEcu = db ? s(db.ecu) : null;
+    dbDids = db ? n(db.dids) : null;
   } else if ('tp' in p) {
     const tp = obj(p.tp);
     if (typeof tp.on === 'boolean') tpOn = tp.on;
@@ -222,6 +326,14 @@ export function reduceTargetState(prev: TargetView | undefined, payload: unknown
     leaseOrigin: 'lease' in p ? s(lease.owner_origin) : (prev?.leaseOrigin ?? null),
     leaseActor: 'lease' in p ? (s(lease.actor_id) ?? s(lease.actor)) : (prev?.leaseActor ?? null),
     leaseClient: 'lease' in p ? s(lease.client_id) : (prev?.leaseClient ?? null),
+    generation: n(p.generation) ?? prev?.generation ?? null,
+    tpIntervalMs,
+    tpSuppress,
+    tpOwner,
+    tpStopCause,
+    dbHash,
+    dbEcu,
+    dbDids,
   };
 }
 
@@ -235,7 +347,7 @@ export function targetLine(t: TargetView, tpFolded: number, env: string): string
   // never paint an unreported link as up; down/connecting carry their cause
   const link = t.link === 'up' ? '●' : t.link === '?' ? '?' : `${LINK[t.link] ?? '?'} ${t.link}${t.linkCause ? `(${t.linkCause})` : ''}`;
   const p2 = t.p2 !== null ? ` P2 ${t.p2}/${t.p2Star ?? '?'}` : '';
-  const tp = t.tpOn ? ` TP ✓×${t.tpOk + tpFolded}` : tpFolded ? ` TP ×${tpFolded}` : ' TP off';
+  const tp = t.tpOn ? ` TP ✓×${tpOkCount(t, tpFolded)}` : tpFolded ? ` TP ×${tpFolded}` : ' TP off';
   return `${t.target} ${link} ${t.backend}${t.addr ? ` ${t.addr}` : ''} sess=${t.session}${conf} sec=${t.security}${secConf}${tp}${p2} [${env.toUpperCase()}]`;
 }
 
@@ -476,7 +588,7 @@ export function targetCells(t: TargetView, tpFolded: number, env: string): Targe
     addr: t.addr ?? '—',
     session: `${t.session}${confMark(t.sessionConfidence)}`,
     security: `${t.security}${confMark(t.securityConfidence)}`,
-    testerPresent: t.tpOn ? `on ✓×${t.tpOk + tpFolded}` : tpFolded ? `off ×${tpFolded}` : 'off',
+    testerPresent: tpCellText(t, tpFolded),
     p2: t.p2 !== null ? `${t.p2}/${t.p2Star ?? '?'}ms` : '—',
     env: env.toUpperCase(),
   };
@@ -531,15 +643,112 @@ export function detailPairs(r: RowLike, target: TargetView | undefined): [string
   return out;
 }
 
-// ---- DTC pane (benchmark: Quick Test "Errors"; MAIN D2: raw code + status byte only) ----
+// ---- DTC pane (benchmark: Quick Test "Errors" / DTC Inspector). Codes stay raw (never SAE re-mapped);
+// the status byte is additionally decoded into the 8 ISO 14229-1 DTCStatusMask bits (U3). ----
 export interface DtcEntry {
   dtc: string;
+  /** "0x09" or "—" (unchanged legacy text) */
   status: string;
+  /** numeric status byte 0..255, null when the payload carried none / an unparsable value */
+  statusByte: number | null;
+  /** abbreviations of the SET bits in bit order 0→7 (e.g. ['TF','CDTC']); [] when statusByte is null */
+  flags: string[];
 }
 export interface DtcView {
   requestId: string;
   target: string;
   entries: DtcEntry[];
+  /** DTCStatusAvailabilityMask = 3rd byte of a `59 02 …` response; null when absent / not a 59 02 response */
+  availabilityMask: number | null;
+}
+
+/** One ISO 14229-1 DTCStatusMask bit. */
+export interface DtcStatusBit {
+  bit: number;
+  abbr: string;
+  name: string;
+}
+/** Bit 0..7 in order. Abbreviations are fixed UI labels (contract-tested). */
+export const DTC_STATUS_BITS: readonly DtcStatusBit[] = [
+  { bit: 0, abbr: 'TF', name: 'testFailed' },
+  { bit: 1, abbr: 'TFTOC', name: 'testFailedThisOperationCycle' },
+  { bit: 2, abbr: 'PDTC', name: 'pendingDTC' },
+  { bit: 3, abbr: 'CDTC', name: 'confirmedDTC' },
+  { bit: 4, abbr: 'TNCSLC', name: 'testNotCompletedSinceLastClear' },
+  { bit: 5, abbr: 'TFSLC', name: 'testFailedSinceLastClear' },
+  { bit: 6, abbr: 'TNCTOC', name: 'testNotCompletedThisOperationCycle' },
+  { bit: 7, abbr: 'WIR', name: 'warningIndicatorRequested' },
+];
+
+/** Per-bit decode of a status byte. `supported` = availability bit (null when the mask is unknown). */
+export interface DtcFlag {
+  bit: number;
+  abbr: string;
+  name: string;
+  set: boolean;
+  supported: boolean | null;
+}
+
+/** DTC pane filter (U3). 'all' keeps response order and every entry. */
+export type DtcFilter = 'all' | 'confirmed' | 'testFailed' | 'pending';
+
+/** FUNCTIONS.md B1-F1 */
+export function dtcStatusFlags(status: number, availability: number | null): DtcFlag[] {
+  return DTC_STATUS_BITS.map((b) => ({
+    bit: b.bit,
+    abbr: b.abbr,
+    name: b.name,
+    set: ((status >> b.bit) & 1) === 1,
+    supported: availability === null ? null : ((availability >> b.bit) & 1) === 1,
+  }));
+}
+
+/** FUNCTIONS.md B1-F2 */
+export function dtcAvailabilityMask(r: RowLike): number | null {
+  const hex = respHexOf(r);
+  if (hex === null || hex.length < 6 || hex.slice(0, 2) !== '59') return null;
+  if ((parseInt(hex.slice(2, 4), 16) & 0x7f) !== 0x02) return null;
+  return parseInt(hex.slice(4, 6), 16);
+}
+
+/** FUNCTIONS.md B1-F3 */
+export function filterDtcs(entries: readonly DtcEntry[], filter: DtcFilter): DtcEntry[] {
+  if (filter === 'all') return entries.slice();
+  const bit = filter === 'confirmed' ? 3 : filter === 'testFailed' ? 0 : 2;
+  return entries.filter((e) => e.statusByte !== null && ((e.statusByte >> bit) & 1) === 1);
+}
+
+/** FUNCTIONS.md B1-F4: tooltip text of one DTC status cell (all 8 bits, one per line). */
+export function dtcStatusTitle(status: number | null, availability: number | null): string {
+  if (status === null) return 'status 미보고';
+  const lines = [`status 0x${status.toString(16).toUpperCase().padStart(2, '0')} = 0b${status.toString(2).padStart(8, '0')}`];
+  for (const f of dtcStatusFlags(status, availability)) {
+    lines.push(`bit${f.bit} ${f.abbr} ${f.name}: ${f.set ? 1 : 0}${f.supported === false ? ' (ECU 미지원)' : ''}`);
+  }
+  lines.push(availability === null ? 'availability mask 미상' : `availability mask 0x${availability.toString(16).toUpperCase().padStart(2, '0')}`);
+  return lines.join('\n');
+}
+
+// ---- U4 / U7 helpers ----
+
+/** FUNCTIONS.md B1-F6: bytes per hex-dump row for a pane width in CSS px (0/unknown → 16). */
+export function hexRowWidth(paneWidthPx: number): 8 | 16 {
+  if (!Number.isFinite(paneWidthPx) || paneWidthPx <= 0) return 16;
+  return paneWidthPx < 520 ? 8 : 16;
+}
+
+/** FUNCTIONS.md B1-F7: ECU logical address text from a daemon `addr` ("DoIP 0x1001" → "0x1001"), else null. */
+export function laFromAddr(addr: string | null): string | null {
+  if (!addr) return null;
+  const m = /(?:^|\s)0x([0-9a-f]{1,4})$/i.exec(addr.trim());
+  return m ? `0x${m[1]!.toUpperCase().padStart(4, '0')}` : null;
+}
+
+/** FUNCTIONS.md B1-F8: request-composer warning when the selected target's link is reported and not up. */
+export function linkDownMessage(link: string, hasProfile: boolean): string {
+  return hasProfile
+    ? `링크 ${link} — 읽기 전용 (기록은 유지). [연결]로 다시 연결`
+    : `링크 ${link} — 읽기 전용 (기록은 유지). 이 대상의 프로필 없음 — [이 대상으로 프로필 만들기] 후 [연결]`;
 }
 
 /** Latest final, non-failed row carrying `payload.dtcs` for a target (raw, never re-mapped). */
@@ -555,8 +764,11 @@ export function latestDtcs(rows: readonly RowLike[], target: string | null): Dtc
       entries: (r.payload.dtcs as unknown[]).map((d) => {
         const o = obj(d);
         const st = hexByte(o.status);
-        return { dtc: s(o.dtc) ?? '?', status: st ? `0x${st}` : '—' };
+        const statusByte = st !== null && /^[0-9A-F]{2}$/.test(st) ? parseInt(st, 16) : null;
+        const flags = statusByte === null ? [] : dtcStatusFlags(statusByte, null).filter((f) => f.set).map((f) => f.abbr);
+        return { dtc: s(o.dtc) ?? '?', status: st ? `0x${st}` : '—', statusByte, flags };
       }),
+      availabilityMask: dtcAvailabilityMask(r),
     };
   }
   return null;

@@ -250,6 +250,82 @@ pub fn abort(m: Arc<UdsManager>) -> Arc<dyn Handler> {
     })
 }
 
+/// B2-H1 (Sonnet body): `uds.disconnect {target, abort?}` → [`UdsManager::disconnect`].
+pub fn disconnect(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let target = str_arg(&p, "target").ok_or_else(|| usage("disconnect needs target"))?;
+            let abort = p.get("abort").and_then(Value::as_bool).unwrap_or(false);
+            m.disconnect(ctx, target, abort).await
+        })
+    })
+}
+
+/// B2-H2 (Sonnet body): `uds.forget {target}` → [`UdsManager::forget`].
+pub fn forget(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let target = str_arg(&p, "target").ok_or_else(|| usage("forget needs target"))?;
+            m.forget(ctx, target).await
+        })
+    })
+}
+
+/// B2-H3 (Sonnet body): `uds.tester_present {target?, on, interval_ms?, suppress?}`
+/// → [`crate::tester_present::parse_tp_params`] + [`UdsManager::tester_present`].
+pub fn tester_present(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let req = crate::tester_present::parse_tp_params(&p).map_err(usage)?;
+            m.tester_present(ctx, target_arg(&p), req)
+        })
+    })
+}
+
+/// B3-H1 (Sonnet body): `uds.security_unlock {target?, level, provider, timeout_ms?}`
+/// → [`UdsManager::security_unlock`].
+pub fn security_unlock(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let level = p
+                .get("level")
+                .and_then(Value::as_u64)
+                .and_then(|n| u8::try_from(n).ok())
+                .ok_or_else(|| usage("security_unlock needs level"))?;
+            encode_typed("uds.security_unlock", &p).map_err(usage)?;
+            let provider = str_arg(&p, "provider")
+                .filter(|s| !s.is_empty())
+                .ok_or_else(|| usage("security_unlock needs provider"))?;
+            m.security_unlock(ctx, target_arg(&p), level, provider, timeout_arg(&p))
+                .await
+        })
+    })
+}
+
+/// B3-H2 (Sonnet body): `uds.db.set {target, db}` → [`UdsManager::db_set`].
+pub fn db_set(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let target = str_arg(&p, "target").ok_or_else(|| usage("db.set needs target"))?;
+            let db = p
+                .get("db")
+                .filter(|v| !v.is_null())
+                .ok_or_else(|| usage("db.set needs db"))?;
+            m.db_set(ctx, target, db)
+        })
+    })
+}
+
+/// B3-H3 (Sonnet body): `uds.db.clear {target}` → [`UdsManager::db_clear`].
+pub fn db_clear(m: Arc<UdsManager>) -> Arc<dyn Handler> {
+    mk(m, |m, ctx, p| {
+        Box::pin(async move {
+            let target = str_arg(&p, "target").ok_or_else(|| usage("db.clear needs target"))?;
+            m.db_clear(ctx, target)
+        })
+    })
+}
+
 pub fn lease_takeover(m: Arc<UdsManager>) -> Arc<dyn Handler> {
     mk(m, |m, ctx, p| {
         Box::pin(async move { m.lease_takeover(ctx, target_arg(&p)) })

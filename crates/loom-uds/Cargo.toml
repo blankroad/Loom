@@ -13,7 +13,8 @@ loom-uds-codec = { path = "../loom-uds-codec" }
 loom-uds-sim = { path = "../loom-uds-sim", optional = true }
 loom-uds-doip = { path = "../loom-uds-doip", optional = true }
 loom-uds-runner = { path = "../loom-uds-runner", optional = true, features = ["doip"] }
-tokio = { workspace = true, optional = true }
+# `process`: U2 seed→key provider child (bounded, kill_on_drop). Same workspace tokio, no new crate.
+tokio = { workspace = true, optional = true, features = ["process"] }
 tracing = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

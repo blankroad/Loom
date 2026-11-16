@@ -8,8 +8,8 @@
 //  .wsp      DID 목록 | request composer (DID / Raw) + transaction history + 응답 순서 | 해석 | 바이트 | 확정 값
 //
 // Nothing here is simulated: rows, link/session state and decoded values come from the daemon.
-// Presets and local edits never imply a live connection. There is no disconnect and no polling RPC,
-// so neither is offered. Selection / template / catalogue clicks never send; sending is [읽기]/[전송],
+// Presets and local edits never imply a live connection. [연결 해제] (uds.disconnect) closes a link on
+// purpose and [목록에서 제거] (uds.forget) removes a closed target; there is no polling RPC. Selection / template / catalogue clicks never send; sending is [읽기]/[전송],
 // Enter in the DID field or Ctrl/⌘+Enter in Raw, and R2+ previews need a second press (F1: the daemon
 // policy decides). Single-letter keys (T, !) only when the panel has focus and no input field does.
 
@@ -35,13 +35,20 @@ import {
   defaultValues,
   detailPairs,
   didSidText,
+  dtcStatusFlags,
+  dtcStatusTitle,
   emptyTarget,
   filterCatalog,
+  filterDtcs,
   findTemplate,
+  hexRowWidth,
   isDenied,
+  isForgotten,
   isTesterPresent,
+  keyTemplate,
   latestDtcs,
   leaseText,
+  linkDownMessage,
   needsSecondEnter,
   normalizeHex,
   paramIssues,
@@ -54,6 +61,8 @@ import {
   respHexOf,
   resultSymbol,
   rowDid,
+  rowRoute,
+  seedFromRow,
   seqEvents,
   SERVICE_GROUPS,
   spacedHex,
@@ -62,14 +71,33 @@ import {
   targetLine,
   templateLabel,
   timingText,
+  tpCellText,
   updateLastValues,
+  type DtcFilter,
   type LastValue,
   type ParamValues,
   type SeqEvent,
   type ServiceTemplate,
   type TargetView,
 } from './udsModel';
-import { connectParams, loadPrefs, normalizeDid, normalizeRaw, presetIssues, savePrefs, type ConnPreset, type UdsPrefs } from './udsPrefs';
+import {
+  checkDbText,
+  connectParams,
+  DEFAULT_TP_INTERVAL_MS,
+  loadPrefs,
+  MAX_DB_TEXT_BYTES,
+  MAX_SAVED_DBS,
+  normalizeDid,
+  normalizeRaw,
+  presetIssues,
+  profileDraftForTarget,
+  profileNeedsReconnect,
+  savePrefs,
+  tpIntervalOf,
+  type ConnPreset,
+  type SavedDb,
+  type UdsPrefs,
+} from './udsPrefs';
 import { createTools, type ToolsApi } from './udsTools';
 
 export const PREVIEW_DEBOUNCE_MS = 150;
@@ -180,7 +208,6 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
 
   // ---- per-request projections (first sight; rows never carry the route) ----
   const rowNo = new Map<string, number>();
-  const routeAt = new Map<string, string>();
   let nextNo = 1;
   const hidden = new Set<string>(); // 기록 지우기: local display only, daemon history stays
   let histScope: 'all' | 'ecu' = prefs.histScope;
@@ -252,7 +279,18 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   cfgBtn.append(cfgDirty);
   const riBtn = button('', 'btn ghost disc');
   riBtn.append(icon('chev'), '주소 상세');
-  ctxRow.append(ecuLab, ecuSel, ecuName, el('span', 'vdiv'), routeLab, routeSeg.root, routeSum, cfgProv, linkSt, connectBtn, el('span', 'grow'), cfgBtn, riBtn);
+  // U6: close on purpose / remove a closed target / profile differs from the live link
+  const discBtn = button('', 'btn ghost');
+  discBtn.dataset.cmd = 'disconnect';
+  const discLabel = el('span', undefined, '연결 해제');
+  discBtn.append(icon('x'), discLabel);
+  const forgetBtn = button('목록에서 제거', 'btn sm ghost', '닫힌 대상을 daemon 목록에서 제거 (uds.forget) — 기록은 남음');
+  forgetBtn.dataset.cmd = 'forget';
+  forgetBtn.hidden = true;
+  const reconnNote = el('span', 'reconn-note', '재연결 필요');
+  reconnNote.setAttribute('data-testid', 'uds-reconnect-needed');
+  reconnNote.hidden = true;
+  ctxRow.append(ecuLab, ecuSel, ecuName, el('span', 'vdiv'), routeLab, routeSeg.root, routeSum, cfgProv, linkSt, connectBtn, discBtn, forgetBtn, reconnNote, el('span', 'grow'), cfgBtn, riBtn);
 
   const ctxTools = el('div', 'ctx-tools');
   const connOv = el('span', 'conn-ov');
@@ -428,7 +466,12 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const msgText = el('span');
   const preview = el('span', 'uds-preview req-pv');
   preview.setAttribute('data-testid', 'uds-preview');
-  reqMsg.append(msgText, preview);
+  // U7 (B1-P3a): profile-less daemon target → explicit local draft (never sends, never saves)
+  const mkProfileBtn = button('이 대상으로 프로필 만들기', 'btn sm', 'daemon이 보고한 대상 이름·논리 주소로 새 로컬 프로필 초안 — 저장·연결하지 않음');
+  mkProfileBtn.dataset.cmd = 'make-profile';
+  mkProfileBtn.hidden = true;
+  mkProfileBtn.addEventListener('click', onMakeProfile);
+  reqMsg.append(msgText, mkProfileBtn, preview);
   req.append(reqTarget, reqRow, rawRow, reqMsg);
 
   // history
@@ -439,8 +482,8 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     histScope = v;
     setPrefs({ ...prefs, histScope: v });
   });
-  const expJson = ibtn('down', '기록 JSON 내보내기', 'JSON');
-  const expCsv = ibtn('down', '기록 CSV 내보내기', 'CSV');
+  const expJson = ibtn('down', '기록 JSON 내보내기', 'JSON', 'ibtn exp');
+  const expCsv = ibtn('down', '기록 CSV 내보내기', 'CSV', 'ibtn exp');
   const clearBtn = ibtn('trash', '완료된 기록 지우기 (표시에서만 — daemon 기록·진행 중 요청은 유지)', undefined, 'ibtn danger');
   histH.append(el('span', undefined, '트랜잭션'), histCount, el('span', 'grow'), scopeSeg.root, expJson, expCsv, clearBtn);
   const histHost = el('div', 'hist-host');
@@ -466,6 +509,16 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const fields = el('div', 'fields');
   fields.setAttribute('data-testid', 'uds-fields');
   fieldsPane.append(fieldsH, fields);
+  // U2 minimum: seed of a selected positive 67 xx row → copy / key template (never sends; renderDetail places it)
+  const seedBar = el('div', 'seed-bar');
+  seedBar.setAttribute('data-testid', 'uds-seed');
+  const seedCode = el('code', 'seed-hex');
+  const seedCopy = button('', 'btn sm', 'seed hex 복사');
+  seedCopy.dataset.cmd = 'seed-copy';
+  seedCopy.append(icon('copy'), '복사');
+  const seedTpl = button('키 요청 템플릿 → Raw', 'btn sm', 'sendKey 템플릿을 Raw 편집기에 채움 — <key>를 직접 입력하기 전에는 전송 불가');
+  seedTpl.dataset.cmd = 'seed-template';
+  seedBar.append(el('span', 'k', 'seed'), seedCode, seedCopy, seedTpl);
   const bytesPane = el('div', 'dt-bytes pane');
   bytesPane.setAttribute('aria-label', 'UDS PDU 바이트');
   const copyHex = ibtn('copy', '선택 PDU hex 복사');
@@ -496,12 +549,6 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   root.append(createLatchLine(ctx), mod);
 
   // =============================== history table ===============================
-  const ROUTE_UNKNOWN = '?';
-  const routeText = (t: string): string => {
-    const v = targets.get(t);
-    if (!v) return ROUTE_UNKNOWN;
-    return `${v.backend}${v.addr ? ` ${v.addr}` : ''}`;
-  };
   const didNameOf = (did: string) => prefs.dids.find((d) => d.did === did)?.name ?? null;
   const cell = (text: string, cls: string, title?: string): Cell => ({ text, cls, title: title ?? (text.length > 12 ? text : undefined) });
   const statusText = (r: RowLike, now: number) => {
@@ -514,9 +561,14 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     rowHeight: 22,
     columns: [
       { key: 'no', header: '#', width: '44px', cell: (it) => (it.t === 'row' ? cell(String(rowNo.get(it.row.requestId) ?? ''), 'c-no') : cell('손실', 'c-no')) },
-      { key: 't', header: '시각', width: '96px', cell: (it) => (it.t === 'row' ? cell(fmtClock(it.row.firstWallMs), 'c-t') : cell(`${it.gap.kind}`, 'c-t')) },
-      { key: 'ecu', header: 'ECU', width: '52px', cell: (it) => (it.t === 'row' ? cell(rowTarget(it.row), 'c-ecu') : cell('', 'c-ecu')) },
-      { key: 'rt', header: '경로', width: '132px', cell: (it) => (it.t === 'row' ? cell(routeAt.get(it.row.requestId) ?? ROUTE_UNKNOWN, 'c-rt', '요청을 처음 본 시점의 대상 경로 (uds.state)') : cell('', 'c-rt')) },
+      { key: 't', header: '시각', width: '108px', cell: (it) => (it.t === 'row' ? cell(fmtClock(it.row.firstWallMs), 'c-t', it.row.firstWallMs ? new Date(it.row.firstWallMs).toISOString() : undefined) : cell(`${it.gap.kind}`, 'c-t')) },
+      { key: 'ecu', header: 'ECU', width: '72px', cell: (it) => (it.t === 'row' ? cell(rowTarget(it.row), 'c-ecu', rowTarget(it.row) || undefined) : cell('', 'c-ecu')) },
+      { key: 'rt', header: '경로', width: '132px', cell: (it) => {
+          if (it.t !== 'row') return cell('', 'c-rt');
+          const rr = rowRoute(it.row.payload);
+          return cell(rr.text, rr.known ? 'c-rt' : 'c-rt na', rr.title);
+        },
+      },
       { key: 'did', header: 'DID · SID', width: '112px', cell: (it) => (it.t === 'row' ? cell(didSidText(it.row, didNameOf), 'c-did', str(it.row.payload.service) || undefined) : cell('', 'c-did')) },
       {
         key: 'req', header: '요청', width: '84px',
@@ -526,6 +578,10 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
           return h ? cell(spacedHex(h.length > 128 ? h.slice(0, 128) : h) + (h.length > 128 ? ' …' : ''), 'c-req', `${spacedHex(h)} (${h.length / 2} B)`) : cell('—', 'c-req na');
         },
       },
+      { key: 'st', header: '상태', width: '136px', cell: (it, now) => (it.t === 'row' ? cell(statusText(it.row, now), 'c-st') : cell('', 'c-st')) },
+      { key: 'p', header: '78', width: '30px', cell: (it) => (it.t === 'row' ? cell(String(Number(it.row.payload.pending_count) || '') || '', 'c-p', 'responsePending (0x78) 횟수') : cell('', 'c-p')) },
+      { key: 'el', header: '경과', width: '64px', cell: (it, now) => (it.t === 'row' ? cell(elapsedText(it.row, now), 'c-el') : cell('', 'c-el')) },
+      // U4: the only flexible track is last, so a long response never shifts status / 78 / elapsed
       {
         key: 'rsp', header: '최종 응답', width: 'minmax(170px, 1fr)',
         cell: (it) => {
@@ -534,9 +590,6 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
           return h ? cell(spacedHex(h), 'c-rsp') : cell('—', 'c-rsp na');
         },
       },
-      { key: 'st', header: '상태', width: '136px', cell: (it, now) => (it.t === 'row' ? cell(statusText(it.row, now), 'c-st') : cell('', 'c-st')) },
-      { key: 'p', header: '78', width: '30px', cell: (it) => (it.t === 'row' ? cell(String(Number(it.row.payload.pending_count) || '') || '', 'c-p', 'responsePending (0x78) 횟수') : cell('', 'c-p')) },
-      { key: 'el', header: '경과', width: '64px', cell: (it, now) => (it.t === 'row' ? cell(elapsedText(it.row, now), 'c-el') : cell('', 'c-el')) },
     ],
     keyOf: (it) => (it.t === 'row' ? it.row.requestId : it.key),
     rowAttrs: (it): Record<string, string> =>
@@ -768,12 +821,89 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const dtcReadBtn = button('읽기 템플릿 19 02 FF', 'btn', 'ReadDTCInformation reportDTCByStatusMask를 요청 편집기에 채움 (전송 없음)');
   const dtcClearBtn = button('지우기 템플릿 14 FF FF FF', 'btn', 'ClearDiagnosticInformation 전체 그룹을 요청 편집기에 채움 (전송 없음, dry-run 등급 확인 필요)');
   dtcActions.append(dtcReadBtn, dtcClearBtn);
+  // U3 (B1-P2): panel-local status-bit filter (not persisted); response order is kept
+  let dtcFilter: DtcFilter = 'all';
+  const DTC_FILTERS: { v: DtcFilter; label: string; title: string }[] = [
+    { v: 'all', label: '전체', title: '응답 순서 그대로 모든 DTC' },
+    { v: 'confirmed', label: 'confirmed', title: 'bit3 confirmedDTC (CDTC)' },
+    { v: 'testFailed', label: 'testFailed', title: 'bit0 testFailed (TF)' },
+    { v: 'pending', label: 'pending', title: 'bit2 pendingDTC (PDTC)' },
+  ];
+  const dtcFilterSeg = segGroup('sm dtc-filter', 'DTC 상태 필터', DTC_FILTERS, onDtcFilter);
+  const dtcCount = el('span', 'hcount dtc-count');
+  const dtcFbar = el('div', 'dtc-fbar');
+  dtcFbar.append(dtcFilterSeg.root, dtcCount);
   const dtcBody = el('div', 'sv-dtc');
-  dtcSec.append(el('h3', undefined, 'DTC'), dtcActions, dtcBody);
+  dtcSec.append(el('h3', undefined, 'DTC'), dtcActions, dtcFbar, dtcBody);
   const tpSec = el('section', 'sv-sec');
+  tpSec.setAttribute('data-testid', 'uds-session');
   const tpKv = el('dl', 'sv-kv');
-  tpSec.append(el('h3', undefined, '세션 · 보안 · TesterPresent'), tpKv, el('p', 'sv-note', '세션 전환은 [10] DiagnosticSessionControl 템플릿 → [전송]. TesterPresent 주기 제어 RPC는 daemon에 없어 상태만 표시합니다.'));
-  svcRoot.append(svcTarget, catSec, setSec, dtcSec, tpSec);
+  // U1: daemon TesterPresent job (default off; interval from the profile or the visible default)
+  const tpRow = el('div', 'sv-row tp-row');
+  const tpBtn = button('', 'btn sm');
+  tpBtn.dataset.cmd = 'tp';
+  const tpIv = el('input', 'fld tp-iv');
+  tpIv.type = 'number';
+  tpIv.min = '500';
+  tpIv.max = '30000';
+  tpIv.step = '100';
+  tpIv.setAttribute('aria-label', 'TesterPresent 주기 (ms)');
+  const tpInfo = el('span', 'sv-note tp-info');
+  tpRow.append(tpBtn, tpIv, el('span', 'unit', 'ms'), tpInfo);
+  // U2: security unlock with a loom.toml key provider (R3 sendKey, second click)
+  const secRow = el('div', 'sv-row sec-row');
+  const secLevel = el('input', 'fld sec-level');
+  secLevel.setAttribute('aria-label', 'requestSeed 레벨 (홀수 hex 01–7D)');
+  secLevel.placeholder = '01';
+  secLevel.maxLength = 4;
+  secLevel.spellcheck = false;
+  const secProv = el('input', 'fld sec-prov');
+  secProv.setAttribute('aria-label', '키 제공자 이름 (loom.toml [[uds.key_providers]])');
+  secProv.placeholder = 'provider 이름';
+  secProv.maxLength = 64;
+  secProv.spellcheck = false;
+  const unlockBtn = button('', 'btn sm');
+  unlockBtn.dataset.cmd = 'unlock';
+  const unlockLabel = el('span', undefined, '자동 해제');
+  unlockBtn.append(unlockLabel);
+  secRow.append(el('span', 'k', '보안'), secLevel, secProv, unlockBtn);
+  const secMsg = el('p', 'sv-note sec-msg');
+  secMsg.setAttribute('role', 'status');
+  tpSec.append(
+    el('h3', undefined, '세션 · 보안 · TesterPresent'),
+    tpKv,
+    tpRow,
+    secRow,
+    secMsg,
+    el('p', 'sv-note', '세션 전환은 [10] DiagnosticSessionControl 템플릿 → [전송]. TesterPresent는 daemon 작업 (유휴 시에만 3E 80, 링크·STOP·제어권 변경 시 자동 중지, 자동 재시작 없음). 자동 해제는 loom.toml에 사용자가 등록한 키 제공자만 이름으로 사용하며 실패 시 재시도하지 않습니다.'),
+  );
+  // U5: diagnostic DB (decode only; never risk)
+  const dbSec = el('section', 'sv-sec');
+  dbSec.setAttribute('data-testid', 'uds-db');
+  const dbInfo = el('p', 'sv-note db-info');
+  const dbText = el('textarea', 'fld db-text');
+  dbText.rows = 5;
+  dbText.spellcheck = false;
+  dbText.placeholder = '{"loom_diag": 1, "ecu": "…", "dids": [ … ]}';
+  dbText.setAttribute('aria-label', 'loom_diag DB JSON');
+  const dbFile = el('input');
+  dbFile.type = 'file';
+  dbFile.accept = '.json,application/json';
+  dbFile.hidden = true;
+  const dbPick = button('파일…', 'btn sm', 'JSON 파일을 읽어 아래 편집기에 채움 (전송 없음)');
+  dbPick.dataset.cmd = 'db-file';
+  const dbSaved = el('select', 'fld db-saved');
+  dbSaved.setAttribute('aria-label', '저장된 DB');
+  const dbApply = button('대상에 적용', 'btn sm', 'uds.db.set — 선택한 대상의 DID 이름·단위 해석만 바뀜 (위험 등급 불변)');
+  dbApply.dataset.cmd = 'db-set';
+  const dbClearBtn = button('해제', 'btn sm ghost', 'uds.db.clear — ISO DID 표만 사용');
+  dbClearBtn.dataset.cmd = 'db-clear';
+  const dbRow = el('div', 'sv-row');
+  dbRow.append(dbPick, dbSaved, el('span', 'grow'), dbApply, dbClearBtn);
+  const dbMsg = el('p', 'sv-note db-msg');
+  dbMsg.setAttribute('role', 'status');
+  dbSec.append(el('h3', undefined, '진단 DB (loom_diag)'), dbInfo, dbText, dbFile, dbRow, dbMsg);
+  svcRoot.append(svcTarget, catSec, setSec, dtcSec, tpSec, dbSec);
   tdPanels.get('services')!.append(svcRoot);
 
   let tpl: ServiceTemplate | null = null;
@@ -916,35 +1046,63 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   let dtcKey = '';
   const renderDtc = () => {
     const cur = target();
-    const key = `${rowsVersion}|${cur}|${editable()}`;
+    const key = `${rowsVersion}|${cur}|${editable()}|${dtcFilter}`;
     if (key === dtcKey) return;
     dtcKey = key;
     dtcReadBtn.disabled = dtcClearBtn.disabled = !editable(); // templates fill the composer (no send)
+    dtcFilterSeg.set(dtcFilter);
     const dv = latestDtcs(rows.list(), cur);
     const grid = el('div', 'uds-ds-grid uds-ds-dtcgrid');
     grid.setAttribute('role', 'table');
     grid.setAttribute('aria-label', 'DTC');
     const head = el('div', 'uds-ds-row uds-ds-head');
     head.setAttribute('role', 'row');
-    for (const h of ['DTC (hex)', '상태 바이트']) head.append(colHead(h));
+    for (const h of ['DTC (hex)', '상태', '상태 비트 (ISO 14229-1)']) head.append(colHead(h));
     grid.append(head);
-    if (!dv) grid.append(el('div', 'uds-ds-empty', `${cur ?? '대상'}: 확정된 0x19 응답 없음`));
-    else if (dv.entries.length === 0) grid.append(el('div', 'uds-ds-empty', '없음 (응답에 DTC 0개)'));
-    else
-      for (const d of dv.entries) {
+    if (!dv) {
+      dtcCount.textContent = '';
+      grid.append(el('div', 'uds-ds-empty', `${cur ?? '대상'}: 확정된 0x19 응답 없음`));
+    } else if (dv.entries.length === 0) {
+      dtcCount.textContent = '표시 0/0';
+      grid.append(el('div', 'uds-ds-empty', '없음 (응답에 DTC 0개)'));
+    } else {
+      const shown = filterDtcs(dv.entries, dtcFilter);
+      dtcCount.textContent = `표시 ${shown.length}/${dv.entries.length}`;
+      if (shown.length === 0) {
+        const label = DTC_FILTERS.find((f) => f.v === dtcFilter)?.label ?? dtcFilter;
+        grid.append(el('div', 'uds-ds-empty', `필터 ${label}: 해당 DTC 없음 (전체 ${dv.entries.length})`));
+      }
+      for (const d of shown) {
         const row = el('div', 'uds-ds-row');
         row.setAttribute('role', 'row');
         row.dataset.dtc = d.dtc;
-        row.append(el('span', 'mono', d.dtc), el('span', 'mono', d.status));
+        const st = el('span', 'mono', d.status);
+        st.dataset.cell = 'status';
+        st.title = dtcStatusTitle(d.statusByte, dv.availabilityMask);
+        const bits = el('span', 'dtc-bits');
+        if (d.statusByte === null) bits.textContent = '?';
+        else {
+          const set = dtcStatusFlags(d.statusByte, dv.availabilityMask).filter((f) => f.set);
+          if (set.length === 0) bits.textContent = '—';
+          for (const f of set) {
+            const ab = el('abbr', `dtc-bit b${f.bit}${f.supported === false ? ' na' : ''}`, f.abbr);
+            ab.title = f.name + (f.supported === false ? ' — availability mask에 없음' : '');
+            bits.append(ab);
+          }
+        }
+        if (d.statusByte === null) bits.classList.add('na');
+        row.append(el('span', 'mono', d.dtc), st, bits);
         grid.append(row);
       }
+    }
     const src = el('div', 'uds-ds-note');
     if (dv) {
       src.append('출처 ');
       const a = button(dv.requestId, 'lnk');
       a.addEventListener('click', () => revealRow(dv.requestId));
-      src.append(a, ' · payload.dtcs 원시값 (재매핑·상태 비트 해석 없음)');
-    } else src.textContent = 'payload.dtcs 원시값만 표시';
+      const mk = dv.availabilityMask === null ? 'availability mask 미상' : `availability mask 0x${dv.availabilityMask.toString(16).toUpperCase().padStart(2, '0')}`;
+      src.append(a, ` · DTC 코드 원시값 (재매핑 없음) · 상태 비트 ISO 14229-1 · ${mk}`);
+    } else src.textContent = 'DTC 코드·상태 원시값 + ISO 14229-1 상태 비트';
     dtcBody.replaceChildren(grid, src);
   };
 
@@ -967,6 +1125,303 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       });
   });
   ecuSel.addEventListener('change', () => selectTarget(ecuSel.value || null));
+
+  // =============================== U6 disconnect / forget · U1 TP · U2 unlock · U5 DB (B4-D*) ===============================
+  /** operations in flight per target (`${op}:${target}`): one of each at a time, cleared when the RPC settles */
+  const pendingOps = new Set<string>();
+  /** U6: E_BUSY answer armed a second click that aborts and closes (same target, within SECOND_ENTER_MS) */
+  let discArm: { target: string; until: number } | null = null;
+  /** U2: first click armed the R3 unlock for exactly this target/level/provider (within SECOND_ENTER_MS) */
+  let unlockArm: { key: string; until: number } | null = null;
+  /** U5: local pre-check of the DB editor text (checkDbText), refreshed on every edit */
+  let dbCheck: ReturnType<typeof checkDbText> | null = null;
+  /** B4-D1 (Sonnet body): [연결 해제] → uds.disconnect; E_BUSY arms a second click with abort:true. */
+  function onDisconnect(): void {
+    const t = target();
+    if (!t || !targets.has(t) || !canOperate()) return;
+    const key = `disconnect:${t}`;
+    if (pendingOps.has(key)) return;
+    const abort = discArm?.target === t && performance.now() < discArm.until;
+    discArm = null;
+    pendingOps.add(key);
+    void (async () => {
+      try {
+        await ctx.act('disconnect', abort ? { target: t, abort: true } : { target: t });
+      } catch (e) {
+        if ((e as { code?: unknown } | null)?.code === 'E_BUSY' && !abort) {
+          discArm = { target: t, until: performance.now() + SECOND_ENTER_MS };
+          ctx.ui.toast(`${t}: 진행 중 요청 있음 — [연결 해제]를 ${SECOND_ENTER_MS / 1000}초 안에 다시 누르면 요청을 중단하고 해제 (쓰기는 결과 불확정이 될 수 있음)`);
+        } else ctx.ui.toast(`uds.disconnect 실패: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        pendingOps.delete(key);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D2 (Sonnet body): [목록에서 제거] → uds.forget. */
+  function onForget(): void {
+    const t = target();
+    if (!t || !canOperate()) return;
+    const key = `forget:${t}`;
+    if (pendingOps.has(key)) return;
+    pendingOps.add(key);
+    void (async () => {
+      try {
+        await ctx.act('forget', { target: t });
+      } catch (e) {
+        ctx.ui.toast(`uds.forget 실패: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        pendingOps.delete(key);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D3 (Sonnet body): TP toggle → uds.tester_present on (interval) / off. */
+  function onTpToggle(): void {
+    const t = target();
+    const tv = t ? targets.get(t) : undefined;
+    if (!t || !tv) return;
+    const key = `tp:${t}`;
+    if (pendingOps.has(key)) return;
+    let iv = 0;
+    if (!tv.tpOn) {
+      if (!(canOperate() && tv.link === 'up')) return;
+      iv = Number(tpIv.value);
+      if (!Number.isInteger(iv) || iv < 500 || iv > 30000) {
+        ctx.ui.toast('TesterPresent 주기: 500–30000 ms 정수 (ECU S3보다 짧게)');
+        return;
+      }
+    }
+    pendingOps.add(key);
+    void (async () => {
+      try {
+        if (tv.tpOn) await ctx.act('tp_off', { target: t, on: false });
+        else {
+          await ctx.act('tp_on', { target: t, on: true, interval_ms: iv });
+          const p = presetOf(t);
+          if (p && p.tpIntervalMs !== iv) setPrefs({ ...prefs, presets: prefs.presets.map((x) => (x.id === p.id ? { ...p, tpIntervalMs: iv } : x)) });
+        }
+      } catch (e) {
+        ctx.ui.toast(`uds.tester_present 실패: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        pendingOps.delete(key);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D4 (Sonnet body): [자동 해제] → second click → uds.security_unlock. */
+  function onUnlock(): void {
+    const t = target();
+    const tv = t ? targets.get(t) : undefined;
+    if (!t || !tv || !canOperate() || tv.link !== 'up') return;
+    const opKey = `unlock:${t}`;
+    if (pendingOps.has(opKey)) return;
+    const base = 'sv-note sec-msg';
+    const hh = (n: number) => n.toString(16).toUpperCase().padStart(2, '0');
+    const lv = secLevel.value.trim().replace(/^0x/i, '');
+    const level = /^[0-9A-Fa-f]{1,2}$/.test(lv) ? parseInt(lv, 16) : -1;
+    if (level < 1 || level > 0x7d || level % 2 === 0) {
+      secMsg.className = `${base} err`;
+      secMsg.textContent = '레벨: 홀수 hex 01–7D (requestSeed)';
+      unlockArm = null;
+      return;
+    }
+    const prov = secProv.value.trim();
+    if (!/^[A-Za-z0-9_.-]{1,64}$/.test(prov)) {
+      secMsg.className = `${base} err`;
+      secMsg.textContent = '키 제공자 이름: 영문·숫자·_.- 1–64자 (loom.toml [[uds.key_providers]])';
+      unlockArm = null;
+      return;
+    }
+    const key = `${t}|${level}|${prov}`;
+    if (!(unlockArm?.key === key && performance.now() < unlockArm.until)) {
+      unlockArm = { key, until: performance.now() + SECOND_ENTER_MS };
+      secMsg.className = `${base} warn`;
+      secMsg.textContent = `R3 보안 해제: ${t} 레벨 ${hh(level)} · 제공자 ${prov} — ${SECOND_ENTER_MS / 1000}초 안에 다시 누르면 실행 (실패 시 재시도 없음)`;
+      uiKey = '';
+      ctx.scheduler.invalidate();
+      return;
+    }
+    unlockArm = null;
+    secMsg.className = base;
+    secMsg.textContent = '';
+    pendingOps.add(opKey);
+    void (async () => {
+      try {
+        const h = await ctx.act('unlock', { target: t, level, provider: prov });
+        const d = (typeof h.result === 'object' && h.result !== null ? h.result : {}) as Record<string, unknown>;
+        secMsg.className = base;
+        secMsg.textContent = d.already_unlocked === true ? `레벨 ${hh(level)} 이미 해제됨 (seed 0 — 키 전송 없음)` : `레벨 ${hh(level)} 해제됨`;
+        const p = presetOf(t);
+        if (p && (p.keyProvider !== prov || p.unlockLevel !== level)) {
+          setPrefs({ ...prefs, presets: prefs.presets.map((x) => (x.id === p.id ? { ...p, keyProvider: prov, unlockLevel: level } : x)) });
+        }
+      } catch (e) {
+        secMsg.className = `${base} err`;
+        secMsg.textContent = `해제 실패: ${e instanceof Error ? e.message : String(e)} — 자동 재시도 없음`;
+      } finally {
+        pendingOps.delete(opKey);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D5a (Sonnet body): DB editor text changed → dbCheck + message. */
+  function onDbInput(): void {
+    dbCheck = dbText.value.trim() ? checkDbText(dbText.value) : null;
+    const base = 'sv-note db-msg';
+    if (!dbCheck) {
+      dbMsg.className = base;
+      dbMsg.textContent = '';
+    } else if (dbCheck.err !== null) {
+      dbMsg.className = `${base} err`;
+      dbMsg.textContent = dbCheck.err;
+    } else {
+      const dids = dbCheck.db?.dids;
+      dbMsg.className = base;
+      dbMsg.textContent = `${dbCheck.bytes} B · DID ${Array.isArray(dids) ? dids.length : 0}개 — [대상에 적용]하면 daemon이 검증`;
+    }
+    uiKey = '';
+    ctx.scheduler.invalidate();
+  }
+  /** B4-D5b (Sonnet body): file picked → read text (≤ limit) into the editor. */
+  function onDbFile(): void {
+    const f = dbFile.files?.[0];
+    if (!f) return;
+    const fail = (text: string) => {
+      dbMsg.className = 'sv-note db-msg err';
+      dbMsg.textContent = text;
+    };
+    if (f.size > MAX_DB_TEXT_BYTES) {
+      fail(`파일이 너무 큼 (${f.size} B, 최대 ${MAX_DB_TEXT_BYTES} B)`);
+      dbFile.value = '';
+      return;
+    }
+    void f
+      .text()
+      .then((text) => {
+        dbText.value = text;
+        onDbInput();
+      })
+      .catch(() => fail('파일을 읽을 수 없음'))
+      .finally(() => {
+        dbFile.value = '';
+      });
+  }
+  /** B4-D5c (Sonnet body): saved DB picked → editor. */
+  function onDbSaved(): void {
+    const s0 = prefs.diagDbs?.find((x) => x.id === dbSaved.value);
+    if (s0) {
+      dbText.value = s0.json;
+      onDbInput();
+    }
+    dbSaved.value = '';
+  }
+  /** B4-D5d (Sonnet body): [대상에 적용] → uds.db.set; remember the DB in prefs.diagDbs. */
+  function onDbApply(): void {
+    const t = target();
+    const tv = t ? targets.get(t) : undefined;
+    if (!t || !tv || !canOperate() || tv.link === 'closed') return;
+    const key = `db_set:${t}`;
+    if (pendingOps.has(key)) return;
+    const base = 'sv-note db-msg';
+    const db = dbCheck?.db;
+    if (!db) {
+      dbMsg.className = `${base} err`;
+      dbMsg.textContent = dbCheck?.err ?? 'DB JSON을 입력하세요';
+      return;
+    }
+    pendingOps.add(key);
+    void (async () => {
+      try {
+        const h = await ctx.act('db_set', { target: t, db });
+        const d = (typeof h.result === 'object' && h.result !== null ? h.result : {}) as Record<string, unknown>;
+        const rdb = (typeof d.db === 'object' && d.db !== null ? d.db : {}) as Record<string, unknown>;
+        const hash = String(rdb.hash);
+        const ecu = typeof rdb.ecu === 'string' ? rdb.ecu : null;
+        const warnings = Array.isArray(d.warnings) ? d.warnings.filter((w): w is string => typeof w === 'string') : [];
+        dbMsg.className = base;
+        dbMsg.textContent = `${t}: DB ${hash} 적용 (${ecu ?? '-'}, DID ${String(rdb.dids)}개)${warnings.length ? ` · ${warnings.join(' · ')}` : ''}`;
+        const entry: SavedDb = { id: `db-${hash}`, name: ecu ?? hash, json: dbText.value };
+        const list = [entry, ...(prefs.diagDbs ?? []).filter((x) => x.id !== entry.id)].slice(0, MAX_SAVED_DBS);
+        setPrefs({ ...prefs, diagDbs: list });
+      } catch (e) {
+        dbMsg.className = `${base} err`;
+        dbMsg.textContent = `적용 실패: ${e instanceof Error ? e.message : String(e)}`;
+      } finally {
+        pendingOps.delete(key);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D5e (Sonnet body): [해제] → uds.db.clear. */
+  function onDbClear(): void {
+    const t = target();
+    if (!t || !canOperate()) return;
+    const key = `db_clear:${t}`;
+    if (pendingOps.has(key)) return;
+    const base = 'sv-note db-msg';
+    pendingOps.add(key);
+    void (async () => {
+      try {
+        const h = await ctx.act('db_clear', { target: t });
+        const d = (typeof h.result === 'object' && h.result !== null ? h.result : {}) as Record<string, unknown>;
+        dbMsg.className = base;
+        dbMsg.textContent = `${t}: ${d.cleared === true ? 'DB 해제 — ISO DID 표만 사용' : '적용된 DB 없음'}`;
+      } catch (e) {
+        dbMsg.className = `${base} err`;
+        dbMsg.textContent = `해제 실패: ${e instanceof Error ? e.message : String(e)}`;
+      } finally {
+        pendingOps.delete(key);
+        uiKey = '';
+        ctx.scheduler.invalidate();
+      }
+    })();
+  }
+  /** B4-D6a (Sonnet body): copy the selected row's seed hex. */
+  function onSeedCopy(): void {
+    const r = rowById(table.selected);
+    const sd = r ? seedFromRow(r) : null;
+    if (!sd) return;
+    const cb = navigator.clipboard as Clipboard | undefined;
+    if (!cb?.writeText) {
+      ctx.ui.toast('클립보드 사용 불가');
+      return;
+    }
+    cb.writeText(sd.seedHex).then(
+      () => ctx.ui.toast('seed 복사됨'),
+      () => ctx.ui.toast('클립보드 사용 불가'),
+    );
+  }
+  /** B4-D6b (Sonnet body): key template of the selected row's level → Raw composer (no send). */
+  function onSeedTemplate(): void {
+    const r = rowById(table.selected);
+    const sd = r ? seedFromRow(r) : null;
+    if (!sd) return;
+    setMode('raw');
+    modeSeg.set('raw');
+    rawInput.value = keyTemplate(sd.level);
+    persistComposer();
+    reqChanged();
+    rawInput.focus();
+  }
+  discBtn.addEventListener('click', onDisconnect);
+  forgetBtn.addEventListener('click', onForget);
+  tpBtn.addEventListener('click', onTpToggle);
+  unlockBtn.addEventListener('click', onUnlock);
+  dbText.addEventListener('input', onDbInput);
+  dbPick.addEventListener('click', () => dbFile.click());
+  dbFile.addEventListener('change', onDbFile);
+  dbSaved.addEventListener('change', onDbSaved);
+  dbApply.addEventListener('click', onDbApply);
+  dbClearBtn.addEventListener('click', onDbClear);
+  seedCopy.addEventListener('click', onSeedCopy);
+  seedTpl.addEventListener('click', onSeedTemplate);
+
   function selectTarget(t: string | null) {
     if (selectedTarget === t) return;
     selectedTarget = t;
@@ -980,12 +1435,41 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   const draftDirty = () => draft !== null && JSON.stringify(draft) !== draftBase;
   const newId = (pfx: string) => `${pfx}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
   function openCfg(presetId?: string) {
-    const p = (presetId && prefs.presets.find((x) => x.id === presetId)) || presetOf(target()) || prefs.presets[0] || null;
-    draft = p ? { ...p } : { id: newId('p'), ecu: target() ?? 'ecu', label: '새 프로필', sim: false, host: '', port: 13400, la: '0x1001', testerLa: '0x0E80', activation: 0, timeoutMs: 5000 };
-    draftBase = p ? JSON.stringify(p) : '';
+    // re-selecting the unsaved draft keeps it (no silent loss of edits)
+    if (presetId && draft && presetId === draft.id && !prefs.presets.some((p) => p.id === presetId)) {
+      cfgOpen = true;
+      buildCfg();
+      uiKey = '';
+      ctx.scheduler.invalidate();
+      return;
+    }
+    const t = target();
+    const explicit = presetId ? (prefs.presets.find((x) => x.id === presetId) ?? null) : null;
+    const p = explicit ?? presetOf(t) ?? (t === null ? (prefs.presets[0] ?? null) : null); // never presets[0] when a target is selected
+    if (p) {
+      draft = { ...p };
+      draftBase = JSON.stringify(p);
+    } else if (t !== null) {
+      const tv = targets.get(t);
+      draft = profileDraftForTarget(t, tv ? { backend: tv.backend, addr: tv.addr } : undefined, newId('p'));
+      draftBase = '';
+    } else {
+      draft = { id: newId('p'), ecu: 'ecu', label: '새 프로필', sim: false, host: '', port: 13400, la: '0x1001', testerLa: '0x0E80', activation: 0, timeoutMs: 5000 };
+      draftBase = '';
+    }
     cfgOpen = true;
     buildCfg();
     uiKey = '';
+    ctx.scheduler.invalidate();
+  }
+  /** B1-P3d (Sonnet body): [이 대상으로 프로필 만들기] click. */
+  function onMakeProfile(): void {
+    openCfg();
+  }
+  /** B1-P2b (Sonnet body): DTC status filter pick. */
+  function onDtcFilter(v: DtcFilter): void {
+    dtcFilter = v;
+    dtcKey = '';
     ctx.scheduler.invalidate();
   }
   function closeCfg(discard: boolean) {
@@ -1263,12 +1747,19 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
 
   // =============================== history header actions ===============================
   const exportRows = () =>
-    visibleRows().map((r) => ({
+    visibleRows().map((r) => {
+      const rr = rowRoute(r.payload);
+      const sn = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+      return {
       no: rowNo.get(r.requestId) ?? null,
       request_id: r.requestId,
       time: new Date(r.firstWallMs || 0).toISOString(),
       target: rowTarget(r),
-      route_first_seen: routeAt.get(r.requestId) ?? null,
+      generation: rr.generation,
+      backend: rr.known ? sn(r.payload.backend) : null,
+      addr: rr.known ? sn(r.payload.addr) : null,
+      db_hash: sn(r.payload.db_hash),
+      purpose: sn(r.payload.purpose),
       origin: r.origin,
       state: r.state,
       service: str(r.payload.service) || null,
@@ -1278,15 +1769,16 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       pending_count: Number(r.payload.pending_count) || 0,
       rtt_ms: typeof r.payload.rtt_ms === 'number' ? r.payload.rtt_ms : null,
       result: resultSymbol(r).text,
-    }));
+      };
+    });
   const stamp = () => new Date().toISOString().replace(/[:.]/g, '-');
   expJson.addEventListener('click', () => {
-    const ok = download(`uds-history-${stamp()}.json`, JSON.stringify({ format: 'loom.uds.history', version: 1, rows: exportRows() }, null, 2), 'application/json');
+    const ok = download(`uds-history-${stamp()}.json`, JSON.stringify({ format: 'loom.uds.history', version: 2, rows: exportRows() }, null, 2), 'application/json');
     if (!ok) ctx.ui.toast('내보내기 실패: 이 환경에서 다운로드를 만들 수 없음');
   });
   expCsv.addEventListener('click', () => {
     const rs = exportRows();
-    const cols = Object.keys(rs[0] ?? { no: 0, request_id: '', time: '', target: '', route_first_seen: '', origin: '', state: '', service: '', request: '', response: '', nrc: '', pending_count: 0, rtt_ms: 0, result: '' });
+    const cols = Object.keys(rs[0] ?? { no: 0, request_id: '', time: '', target: '', generation: 0, backend: '', addr: '', db_hash: '', purpose: '', origin: '', state: '', service: '', request: '', response: '', nrc: '', pending_count: 0, rtt_ms: 0, result: '' });
     const q = (v: unknown) => {
       const s0 = v === null || v === undefined ? '' : String(v);
       return /[",\n]/.test(s0) ? `"${s0.replace(/"/g, '""')}"` : s0;
@@ -1306,9 +1798,10 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
   let detailKey = '';
   const DIR_CLS: Record<SeqEvent['kind'], string> = { tx: 'k-tx', pending: 'k-pending', positive: 'k-positive', nrc: 'k-nrc', timeout: 'k-timeout', link: 'k-link', cancel: 'k-cancel', late: 'k-late', wait: 'k-pending' };
   const renderDetail = (now: number) => {
+    const cols = hexRowWidth(hexEl.clientWidth);
     const r = rowById(table.selected);
     const evs = r ? seqEvents(r, now) : [];
-    const key = r ? `${r.requestId}|${r.updates}|${r.state}|${selEv}|${selField}|${isFinal(r.state) ? '' : Math.floor(now / 500)}` : 'none';
+    const key = r ? `${r.requestId}|${r.updates}|${r.state}|${selEv}|${selField}|${isFinal(r.state) ? '' : Math.floor(now / 500)}|${cols}` : `none|${cols}`;
     if (key === detailKey) return;
     detailKey = key;
     if (!r) {
@@ -1319,7 +1812,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       return;
     }
     const no = rowNo.get(r.requestId);
-    seqHead.textContent = `#${no ?? '?'} · ${rowTarget(r)} · ${routeAt.get(r.requestId) ?? '?'}`;
+    seqHead.textContent = `#${no ?? '?'} · ${rowTarget(r)} · ${rowRoute(r.payload).text}`;
     // the detail follows the latest PDU unless the user picked an event
     const withBytes = evs.map((e, i) => (e.hex ? i : -1)).filter((i) => i >= 0);
     const pick = selEv >= 0 && evs[selEv]?.hex ? selEv : (withBytes[withBytes.length - 1] ?? 0);
@@ -1379,6 +1872,12 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       out.push(tab);
     }
     out.push(appliedNote(r));
+    const sd = seedFromRow(r);
+    if (sd) {
+      seedCode.textContent = spacedHex(sd.seedHex) + (sd.zero ? ' (0 — 이미 해제됨)' : '');
+      seedTpl.disabled = sd.zero;
+      out.push(seedBar);
+    }
     fields.replaceChildren(...out);
     // bytes
     if (!ev.hex) {
@@ -1390,11 +1889,11 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     const on = (o: number) => !!sf && sf.len > 0 && o >= sf.off && o < sf.off + sf.len;
     const b = ev.hex.match(/../g) ?? [];
     const kids: HTMLElement[] = [el('div', 'hx-cap', `${ev.label} · ${b.length} B · UDS PDU (DoIP/TCP 프레임 아님)`)];
-    for (let o = 0; o < b.length; o += 16) {
+    for (let o = 0; o < b.length; o += cols) {
       const rowEl = el('div', 'hx-row');
       const hh = el('span', 'hx-h');
       const aa = el('span', 'hx-a');
-      b.slice(o, o + 16).forEach((x, j) => {
+      b.slice(o, o + cols).forEach((x, j) => {
         const n = parseInt(x, 16);
         const hb = el('b', on(o + j) ? 'on' : undefined, x);
         hb.dataset.o = String(o + j);
@@ -1493,7 +1992,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
           a.dataset.goto = v.requestId;
           a.title = '출처 트랜잭션 선택';
           a.addEventListener('click', () => revealRow(v.requestId));
-          p.append('출처 ', a, ` · ${fmtClock(v.wallMs)} · ${routeAt.get(v.requestId) ?? '?'} · ${v.origin}`);
+          p.append('출처 ', a, ` · ${fmtClock(v.wallMs)} · ${rowRoute(rowById(v.requestId)?.payload ?? {}).text} · ${v.origin}`);
           c.append(p);
         } else c.append(el('div', 'cv-v none', '확정 값 없음'));
         const latest = latestFor(did);
@@ -1598,6 +2097,14 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       return false;
     }
     if (seq <= (targetSeq.get(name) ?? -1n)) return false;
+    if (isForgotten(ev.payload)) {
+      targets.delete(name);
+      targetSeq.set(name, seq);
+      if (selectedTarget === name) selectedTarget = null;
+      uiKey = '';
+      linksKey = '';
+      return true;
+    }
     noteTarget(name);
     const next = reduceTarget(targets.get(name), ev);
     if (!next || !targets.has(name)) return false;
@@ -1744,7 +2251,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     const pr = presetOf(cur);
     const inflight = inflightFor(cur);
     const comp = composed();
-    const key = JSON.stringify([cur, tv, pr, [...targets.keys()], prefs.presets.map((p) => p.ecu), inflight.map((r) => r.requestId), [...sending], mode, comp, submitted, writable(), editable(), canOperate(), [...connecting], cfgOpen, draftDirty(), routeInfo.hidden, ctx.latch.on, tpBy.get(cur ?? '') ?? 0, Math.floor(now / 1000)]);
+    const key = JSON.stringify([cur, tv, pr, [...targets.keys()], prefs.presets.map((p) => p.ecu), inflight.map((r) => r.requestId), [...sending], mode, comp, submitted, writable(), editable(), canOperate(), [...connecting], [...pendingOps], discArm, unlockArm, prefs.diagDbs?.length ?? 0, cfgOpen, draftDirty(), routeInfo.hidden, ctx.latch.on, tpBy.get(cur ?? '') ?? 0, Math.floor(now / 1000)]);
     if (key === uiKey) return;
     uiKey = key;
     // ECU select: live targets first, then preset-only and scoped names
@@ -1787,23 +2294,71 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
     } else if (link === '?') {
       linkSt.className = 'link-st off';
       linkSt.textContent = tv ? '링크 미보고' : '연결 안 됨';
+    } else if (link === 'closed') {
+      linkSt.className = 'link-st closed';
+      linkSt.textContent = `해제됨${tv?.linkCause ? ` (${tv.linkCause})` : ''}`;
     } else {
       linkSt.className = 'link-st lost';
       linkSt.textContent = `끊김${tv?.linkCause ? ` (${tv.linkCause})` : ''}`;
     }
-    // [연결]: uds.connect with the preset; no disconnect RPC exists
+    // [연결]: uds.connect with the preset (a live link is closed with [연결 해제] first)
     const issues = pr ? presetIssues(pr) : [];
     connectBtn.disabled = !canOperate() || !cur || !pr || issues.length > 0 || link === 'up' || connecting.has(cur);
     connectLabel.textContent = link === 'up' ? '연결됨' : '연결';
+    mkProfileBtn.hidden = !(cur !== null && presetOf(cur) === null && targets.has(cur));
     connectBtn.title = link === 'up'
-      ? '연결됨 — daemon에 연결 해제 RPC가 없어 해제할 수 없습니다 (재연결은 daemon auto_reconnect)'
+      ? '연결됨 — 새 설정을 적용하려면 [연결 해제] 후 [연결]'
       : !pr
-        ? '이 대상의 프로필이 없음 — 연결 설정에서 추가'
+        ? '이 대상의 프로필이 없음 — [이 대상으로 프로필 만들기] 후 [연결]'
         : issues.length
           ? `프로필 오류: ${issues.join(' · ')}`
           : !canOperate()
             ? '쓰기 잠금 또는 권한 없음'
             : `uds.connect ${pr.sim ? 'sim:bench' : `${pr.host}:${pr.port}`} — 요청은 보내지 않음`;
+    // U6 disconnect / forget / reconnect note
+    discBtn.hidden = !(tv && ['up', 'down', 'connecting'].includes(link));
+    discBtn.disabled = !canOperate() || pendingOps.has(`disconnect:${cur}`);
+    const discArmed = discArm?.target === cur && performance.now() < discArm.until;
+    discBtn.classList.toggle('armed', discArmed);
+    discLabel.textContent = discArmed ? '중단 후 해제' : '연결 해제';
+    discBtn.title = discArmed
+      ? '다시 누르면 진행 중 요청을 중단하고 연결 해제 (uds.disconnect abort)'
+      : 'uds.disconnect — 의도적으로 링크를 닫음 (자동 재연결 없음, UDS 바이트 전송 없음)';
+    forgetBtn.hidden = !(tv && (link === 'closed' || link === 'down'));
+    forgetBtn.disabled = !canOperate() || pendingOps.has(`forget:${cur}`);
+    reconnNote.hidden = !(pr && tv && profileNeedsReconnect(pr, { backend: tv.backend, addr: tv.addr, link: tv.link }));
+    reconnNote.title = '프로필이 현재 연결과 다름 — [연결 해제] 후 [연결]로 새 설정 적용';
+    // U1 TesterPresent job
+    tpBtn.textContent = tv?.tpOn ? 'TP 중지' : 'TP 시작';
+    tpBtn.disabled = !tv || pendingOps.has(`tp:${cur}`) || (!tv.tpOn && !(canOperate() && link === 'up'));
+    if (document.activeElement !== tpIv) tpIv.value = String(tv?.tpOn && tv.tpIntervalMs !== null ? tv.tpIntervalMs : tpIntervalOf(pr));
+    tpIv.disabled = !!tv?.tpOn || !canOperate();
+    tpInfo.textContent = tv
+      ? tpCellText(tv, tpBy.get(tv.target) ?? 0) +
+        (tv.tpOn && tv.tpOwner ? ` · ${tv.tpOwner}` : '') +
+        (!tv.tpOn && !(pr && pr.tpIntervalMs) ? ` · 기본 주기 ${DEFAULT_TP_INTERVAL_MS} ms (프로필 미설정)` : '')
+      : '';
+    // U2 security unlock
+    if (!secLevel.value && document.activeElement !== secLevel && pr?.unlockLevel !== undefined) secLevel.value = pr.unlockLevel.toString(16).toUpperCase().padStart(2, '0');
+    if (!secProv.value && document.activeElement !== secProv && pr?.keyProvider) secProv.value = pr.keyProvider;
+    secLevel.disabled = secProv.disabled = !canOperate();
+    unlockBtn.disabled = !canOperate() || !tv || link !== 'up' || pendingOps.has(`unlock:${cur}`);
+    const unlockArmed = unlockArm !== null && cur !== null && unlockArm.key.startsWith(`${cur}|`) && performance.now() < unlockArm.until;
+    unlockBtn.classList.toggle('armed', unlockArmed);
+    unlockLabel.textContent = unlockArmed ? 'R3 실행 확인' : '자동 해제';
+    // U5 diagnostic DB
+    if (tv?.dbHash) dbInfo.replaceChildren('적용됨 ', el('b', undefined, tv.dbHash), ` · ${tv.dbEcu ?? '-'} · DID ${tv.dbDids ?? '?'}개`);
+    else dbInfo.textContent = '적용된 DB 없음 — ISO DID 표만 사용';
+    const dbOptKey = (prefs.diagDbs ?? []).map((d) => `${d.id}\u0000${d.name}`).join('\u0001');
+    if (dbSaved.dataset.k !== dbOptKey) {
+      dbSaved.dataset.k = dbOptKey;
+      dbSaved.replaceChildren(
+        Object.assign(el('option', undefined, '저장된 DB…'), { value: '' }),
+        ...(prefs.diagDbs ?? []).map((d) => Object.assign(el('option', undefined, `${d.name}`), { value: d.id })),
+      );
+    }
+    dbApply.disabled = !canOperate() || !tv || link === 'closed' || !dbCheck?.db || pendingOps.has(`db_set:${cur}`);
+    dbClearBtn.disabled = !canOperate() || !tv?.dbHash || pendingOps.has(`db_clear:${cur}`);
     cfgBtn.setAttribute('aria-expanded', String(cfgOpen));
     cfgPanel.hidden = !cfgOpen;
     cfgDirty.hidden = !draftDirty();
@@ -1890,7 +2445,7 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
       text = ctx.writeLocked ? '쓰기 잠금 (STALLED·연결 끊김) — 취소만 가능' : '권한 없음 (operate 필요)';
     } else if (!linkAllowsWrite()) {
       cls = 'warn';
-      text = `링크 ${link} — 읽기 전용 (기록은 유지). [연결]로 다시 연결`;
+      text = linkDownMessage(link, presetOf(cur) !== null);
     } else if (needsConnect()) {
       cls = 'warn';
       text = `${cur}: daemon에 연결된 대상 아님 — 위의 [연결]로 연결한 뒤 전송. 요청 편집·DID 선택은 전송하지 않습니다.`;
@@ -1950,7 +2505,6 @@ export function createUdsConsole(ctx: PanelContext): PanelInstance {
         if (t && (!targetScope || targetScope.has(t))) noteTarget(t);
         if (!rowNo.has(r.requestId)) {
           rowNo.set(r.requestId, nextNo++);
-          routeAt.set(r.requestId, routeText(t));
         }
         updateLastValues(lastValues, r, now);
       }
@@ -2026,6 +2580,14 @@ registerPanel(
       { id: 'connect', rpc: 'uds.connect', class: 'request', right: 'operate', confirm: 'none', label: 'UDS 연결' },
       { id: 'takeover', rpc: 'uds.lease.takeover', class: 'request', right: 'operate', confirm: 'none', label: '제어 가져오기' },
       { id: 'abort', rpc: 'uds.abort', class: 'request', right: 'operate', confirm: 'none', safetyDirection: 'reduce', label: '중단' },
+      // U6/U1/U2/U5 (operator upgrade B4)
+      { id: 'disconnect', rpc: 'uds.disconnect', class: 'request', right: 'operate', confirm: 'none', label: '연결 해제' },
+      { id: 'forget', rpc: 'uds.forget', class: 'request', right: 'operate', confirm: 'none', label: '대상 제거' },
+      { id: 'tp_on', rpc: 'uds.tester_present', class: 'request', right: 'operate', confirm: 'none', label: 'TesterPresent 시작' },
+      { id: 'tp_off', rpc: 'uds.tester_present', class: 'request', right: 'operate', confirm: 'none', safetyDirection: 'reduce', label: 'TesterPresent 중지' },
+      { id: 'unlock', rpc: 'uds.security_unlock', class: 'request', right: 'operate', confirm: 'none', label: '보안 해제 (R3)' },
+      { id: 'db_set', rpc: 'uds.db.set', class: 'request', right: 'operate', confirm: 'none', label: '진단 DB 적용' },
+      { id: 'db_clear', rpc: 'uds.db.clear', class: 'request', right: 'operate', confirm: 'none', label: '진단 DB 해제' },
     ],
     memory: { maxBytes: 32 * 1024 * 1024 },
     render: { maxHz: 20, budgetMs: 4, lagTargetMs: 100 },

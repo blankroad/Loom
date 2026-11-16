@@ -497,7 +497,8 @@ describe('fidelity: logical-link grid (TesterPresent ≠ CAN-TP, honest confiden
     expect(cell('tester-present')).toBe('off');
     h.batch([envelope(extended)]);
     expect(cell('session')).toBe('extended✓');
-    expect(cell('tester-present')).toBe('on ✓×1');
+    // operator upgrade U1 (B4-F3): the reported interval_ms is shown (fixture: 2000 ms, ok_count 1)
+    expect(cell('tester-present')).toBe('on 2.0s ✓×1');
     const header = [...h.host.querySelectorAll('[data-testid="uds-targets"] [role="columnheader"]')].map((c) => c.textContent);
     expect(header).toContain('TesterPresent');
     const tpHead = [...h.host.querySelectorAll<HTMLElement>('[role="columnheader"]')].find((c) => c.textContent === 'TesterPresent')!;
@@ -561,17 +562,22 @@ describe('fidelity: transaction block + DTC pane from canonical fixtures', () =>
     expect(m['응답']).toBe('—');
   });
 
-  it('DTC pane shows raw payload.dtcs only; read/clear buttons fill templates and never send', async () => {
+  it('DTC pane: raw codes + status byte + ISO 14229-1 status bits; read/clear buttons fill templates and never send', async () => {
     vi.useFakeTimers();
     h = mountPanel('uds.console', { targets: 'ecu1' });
     h.net.responders.set('uds.request', (p) => ((p as { dry_run?: boolean }).dry_run ? { service: 'ClearDiagnosticInformation', risk: 'R2' } : {}));
     h.batch([envelope(fixture('state')[0]!), ...fixture('dtc_list').map(envelope)]);
     h.frame();
     const pane = h.host.querySelector<HTMLElement>('[data-testid="uds-dtc"]')!;
-    const rowsTxt = [...pane.querySelectorAll<HTMLElement>('[data-dtc]')].map((r) => [...r.children].map((c) => c.textContent));
+    // U3: code and status byte stay raw in the first two cells; the third cell decodes the set bits
+    const rowsTxt = [...pane.querySelectorAll<HTMLElement>('[data-dtc]')].map((r) => [...r.children].slice(0, 2).map((c) => c.textContent));
     expect(rowsTxt).toEqual([['923400', '0x09'], ['C10000', '0x2F']]);
+    const bits = (dtc: string) => [...pane.querySelectorAll<HTMLElement>(`[data-dtc="${dtc}"] .dtc-bit`)].map((b) => b.textContent);
+    expect(bits('923400')).toEqual(['TF', 'CDTC']); // 0x09 = bit0 | bit3
+    expect(bits('C10000')).toEqual(['TF', 'TFTOC', 'PDTC', 'CDTC', 'TFSLC']); // 0x2F
     expect(pane.textContent).toContain('r-8');
-    expect(pane.textContent).not.toMatch(/testFailed|MIL|confirmedDTC|warningIndicator|[PBCU]\d{4}-/); // MAIN D2: no status-bit / SAE decoding (codes stay raw, e.g. C10000)
+    expect(pane.textContent).toContain('availability mask 0xFF'); // 3rd byte of 59 02 FF …
+    expect(pane.textContent).not.toMatch(/[PBCU]\d{4}-/); // codes are never SAE re-mapped (C10000 stays C10000)
 
     [...pane.querySelectorAll('button')].find((b) => b.textContent!.startsWith('지우기'))!.click();
     expect(pduInput(h.host).value).toBe('14 FF FF FF');

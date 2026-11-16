@@ -136,7 +136,10 @@ pub const RULES: &[RiskRule] = &[
     rule(0x23, Any, R1, "ReadMemoryByAddress (may expose memory, audited)"),
     rule(0x24, Any, R0, "ReadScalingDataByIdentifier"),
     rule(0x27, Odd, R1, "SecurityAccess requestSeed"),
-    rule(0x27, Even, R3, "SecurityAccess sendKey (no automatic retry)"),
+    typed(
+        rule(0x27, Even, R3, "SecurityAccess sendKey (no automatic retry)"),
+        "uds.security_unlock",
+    ),
     rule(0x28, Subs(&[0x00]), R1, "CommunicationControl enableRxAndTx"),
     rule(0x28, Any, R2, "CommunicationControl disable"),
     rule(0x29, Any, R3, "Authentication"),

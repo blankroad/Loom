@@ -231,6 +231,16 @@ pub fn encode_typed(method: &str, args: &Value) -> Result<Vec<u8>, String> {
             };
             Ok(request::read_dtc_by_status_mask(mask))
         }
+        "uds.security_unlock" => {
+            let level = args
+                .get("level")
+                .and_then(Value::as_u64)
+                .ok_or("security_unlock needs level")?;
+            match u8::try_from(level) {
+                Ok(l) if l % 2 == 1 && l <= 0x7D => Ok(vec![0x27, l + 1]),
+                _ => Err("level must be an odd requestSeed sub-function 0x01–0x7D".to_string()),
+            }
+        }
         other => Err(format!("{other} sends no UDS request")),
     }
 }

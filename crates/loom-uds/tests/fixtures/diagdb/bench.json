@@ -1,0 +1,5 @@
+{"loom_diag": 1, "ecu": "bench", "dids": [
+  {"id": 61856, "name": "Supply voltage", "length": 1, "codec": {"type": "uint", "scale": 0.5, "unit": "V"}, "writable": true},
+  {"id": 257, "name": "Relay", "length": 1, "codec": {"type": "enum", "map": [{"value": 0, "name": "off"}, {"value": 1, "name": "on"}]}},
+  {"id": 61836, "name": "Bench serial", "codec": {"type": "ascii"}}
+]}

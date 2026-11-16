@@ -22,7 +22,7 @@
 use std::any::Any;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
@@ -30,7 +30,7 @@ use loom_domain_api::{CallCtx, DomainError, EventDraft};
 use loom_proto::error::ErrorCode;
 use loom_proto::event::{Env, Origin, PayloadBytes, Risk, WriteState};
 use loom_proto::num::U64;
-use loom_uds_codec::response::{parse_dtc_by_status_response, parse_read_did_response};
+use loom_uds_codec::response::parse_dtc_by_status_response;
 use loom_uds_codec::{DidLookup, NEGATIVE_RESPONSE_SID, StandardDids, classify_response, nrc_name};
 use loom_uds_doip::{ActivationType, ClientConfig, DoipEntity, EntityConfig};
 use loom_uds_runner::{
@@ -44,12 +44,22 @@ use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
+use crate::diagdb::{AttachedDb, db_warnings, decode_dids_with, parse_inline_db};
 use crate::events;
+use crate::keyprovider::{provider_from_config, run_provider};
 use crate::lanes::{GateError, Lane, PriorityGate};
-use crate::payload::{DecodedDid, DtcItem, RowPayload, RxKind, RxPayload};
+use crate::payload::{DtcItem, PURPOSE_TESTER_PRESENT, RowPayload, RxKind, RxPayload};
 use crate::risk::classify_pdu;
 use crate::session::{Lease, TargetSession};
+use crate::tester_present::{
+    TP_BUSY_RECHECK, TP_EXCHANGE_TIMEOUT, TP_MAX_CONSECUTIVE_FAILURES, TpCancel, TpConfig, TpRequest, TpTick,
+    tp_decide, tp_exchange_outcome,
+};
 use crate::{KIND_PENDING, KIND_RESULT, KIND_TX};
+
+/// Bounded wait of `uds.disconnect` for the request in flight to end after `abort` (runner
+/// deadline ≤ [`MAX_REQUEST_TIMEOUT`] plus margin). Registered RPC max_wait is larger.
+pub const DISCONNECT_DRAIN_TIMEOUT: Duration = Duration::from_secs(35);
 
 /// Most connected targets. A new `connect` beyond this is refused (`E_BUSY`).
 pub const MAX_TARGETS: usize = 16;
@@ -163,6 +173,11 @@ impl PresendState {
         lock(&self.targets).get(target).cloned()
     }
 
+    /// B2-M1 (Sonnet body): drop the snapshot of a forgotten target (U6).
+    fn remove(&self, target: &str) {
+        lock(&self.targets).remove(target);
+    }
+
     fn update(&self, target: &str, f: impl FnOnce(&mut PresendSnap)) {
         let mut m = lock(&self.targets);
         if let Some(s) = m.get_mut(target) {
@@ -253,6 +268,29 @@ pub struct Target {
     sim: Option<SimSide>,
     clock: HubClock,
     presend: Arc<PresendState>,
+    /// The manager's STOP latch (same mutex as `UdsManager::stopped`), for the TesterPresent job.
+    stopped: Arc<Mutex<bool>>,
+    /// U1: the running TesterPresent job, at most one.
+    tp: Mutex<Option<TpJob>>,
+    /// U1: a TesterPresent exchange holds the gate right now (not "real" traffic for disconnect).
+    tp_in_flight: AtomicBool,
+    /// U6: disconnect/replace started: no reconnect, no new requests.
+    closing: AtomicBool,
+    /// Link watcher task (aborted on disconnect/replace).
+    watch: Mutex<Option<JoinHandle<()>>>,
+    /// U5: diagnostic DB attached with `uds.db.set` (decode only). A replaced target starts without one.
+    db: Mutex<Option<Arc<AttachedDb>>>,
+}
+
+/// U1 job bookkeeping (the task owns its own `CallCtx` clone for publishing rows).
+#[derive(Debug)]
+pub struct TpJob {
+    pub cfg: TpConfig,
+    pub owner: Lease,
+    /// Link generation it was started on; a different generation means the job must end.
+    pub generation: u32,
+    pub cancel: Arc<TpCancel>,
+    pub task: JoinHandle<()>,
 }
 
 /// Parameters of one request handed to [`UdsManager::request`].
@@ -326,26 +364,49 @@ fn response_sid(data: &[u8]) -> Option<u8> {
     }
 }
 
-fn decode_dids(pdu: &[u8], resp: &[u8]) -> Option<Vec<DecodedDid>> {
-    let recs = parse_read_did_response(pdu, resp, &StandardDids).ok()?;
-    Some(
-        recs.iter()
-            .map(|r| {
-                match StandardDids
-                    .did_def(r.did)
-                    .and_then(|d| d.decode(&r.data).ok().map(|v| (d.name, v)))
-                {
-                    Some((name, v)) => DecodedDid::new(r.did, Some(name), &v),
-                    None => DecodedDid {
-                        did: format!("{:04X}", r.did),
-                        name: None,
-                        value: json!(hex::encode_upper(&r.data)),
-                        unit: None,
-                    },
+/// `lookup`: the DB snapshot taken when the row was created (B3-M2), else `&StandardDids`.
+fn finish_row(pdu: &[u8], res: &TxnResult, row: &mut RowPayload, lookup: &dyn DidLookup) {
+    row.write_state = res.write_state;
+    row.pending_count = res.pending_count;
+    row.timeout = res.timeout;
+    row.ok_suppressed = matches!(res.status, TxnStatus::OkSuppressed);
+    if let Some(n) = res.nrc {
+        *row = row.clone().with_nrc(n);
+    }
+    let t = res.times;
+    row.t_send_mono_ns = t.sent_mono_ns.map(U64).or(row.t_send_mono_ns);
+    row.t_first_rx_mono_ns = t.first_rx_mono_ns.map(U64).or(row.t_first_rx_mono_ns);
+    row.t_final_rx_mono_ns = t.final_rx_mono_ns.map(U64);
+    row.first_rx_ms = ms_between(t.sent_mono_ns, t.first_rx_mono_ns);
+    row.rtt_ms = ms_between(t.sent_mono_ns, t.final_rx_mono_ns);
+    if let Some(resp) = &res.response {
+        row.resp_bytes = Some(PayloadBytes::hex(resp));
+        if matches!(res.status, TxnStatus::Positive) {
+            match pdu.first() {
+                Some(0x22) => row.decoded = decode_dids_with(lookup, pdu, resp),
+                Some(0x19) if pdu.get(1).map(|b| b & 0x7F) == Some(0x02) => {
+                    row.dtcs = parse_dtc_by_status_response(resp).ok().map(|r| {
+                        r.dtcs
+                            .iter()
+                            .map(|d| DtcItem {
+                                dtc: format!("{:06X}", d.dtc),
+                                status: d.status,
+                            })
+                            .collect()
+                    });
                 }
-            })
-            .collect(),
-    )
+                _ => {}
+            }
+        }
+    }
+    if let TxnStatus::Rejected(reason) = &res.status {
+        row.reason = match reason {
+            RejectReason::Quarantine { sid } => {
+                format!("quarantine: SID 0x{sid:02X} may still answer late")
+            }
+            other => format!("not sent: {other:?}"),
+        };
+    }
 }
 
 impl Target {
@@ -389,7 +450,9 @@ impl Target {
 
     /// `uds.state` payload now.
     pub fn state(&self) -> crate::payload::StatePayload {
-        lock(&self.session).state_payload()
+        let mut p = lock(&self.session).state_payload();
+        p.db = self.db_snapshot().map(|d| d.info.clone());
+        p
     }
 
     /// Read a DID straight from the simulated ECU (tests, sim only).
@@ -503,6 +566,153 @@ impl Target {
         self.publish(ctx, events::rx(owner.as_deref(), self.generation(), self.env, &p));
     }
 
+    /// B3-M1 (Sonnet body): the attached DB, one snapshot (lookup + hash) per request.
+    pub(crate) fn db_snapshot(&self) -> Option<Arc<AttachedDb>> {
+        lock(&self.db).clone()
+    }
+
+    /// B2-M2 (Sonnet body): stop the TesterPresent job (sync, never awaits, no device I/O).
+    /// Returns `true` if a job was running.
+    pub(crate) fn stop_tp(&self, cause: &str) -> bool {
+        let Some(job) = lock(&self.tp).take() else {
+            return false;
+        };
+        job.cancel.cancel();
+        drop(job); // detached: the task ends by itself after at most one in-flight exchange
+        let changed = lock(&self.session).tp_stop(cause);
+        if changed {
+            self.publish_bg(self.state_draft());
+        }
+        true
+    }
+
+    /// B2-M2b (Sonnet body): like [`Target::stop_tp`] but only if the running job is the one
+    /// owning `cancel` (a job ending itself must never stop its replacement).
+    fn stop_tp_job(&self, cancel: &Arc<TpCancel>, cause: &str) -> bool {
+        let job = {
+            let mut slot = lock(&self.tp);
+            if slot.as_ref().is_some_and(|j| Arc::ptr_eq(&j.cancel, cancel)) {
+                slot.take()
+            } else {
+                None
+            }
+        };
+        let Some(job) = job else {
+            return false;
+        };
+        job.cancel.cancel();
+        drop(job);
+        let changed = lock(&self.session).tp_stop(cause);
+        if changed {
+            self.publish_bg(self.state_draft());
+        }
+        true
+    }
+
+    /// B2-M3 (Sonnet body): after any lease change, stop a job whose owner no longer matches.
+    fn tp_on_lease_change(&self) {
+        let Some(owner) = lock(&self.tp).as_ref().map(|j| j.owner.client_id.clone()) else {
+            return;
+        };
+        let holder = lock(&self.session).lease().map(|l| l.client_id.clone());
+        if let Some(holder) = holder
+            && holder != owner
+        {
+            self.stop_tp(&format!("lease taken by {holder}"));
+        }
+    }
+
+    /// B2-M4 (Sonnet body): disconnect/replace has started or finished for this target.
+    pub fn is_closing(&self) -> bool {
+        self.closing.load(Ordering::SeqCst)
+    }
+
+    /// B2-M4 (Sonnet body): may `uds.connect` replace / `uds.forget` remove this target?
+    pub fn is_replaceable(&self) -> bool {
+        if self.is_closing() {
+            return true;
+        }
+        let link = lock(&self.session).link();
+        link == crate::payload::LinkState::Closed
+            || (link == crate::payload::LinkState::Down
+                && lock(&self.watch).as_ref().is_none_or(JoinHandle::is_finished))
+    }
+
+    /// B2-M5 (Sonnet body): stop TP and watcher, wait for the runner to finish, close the link.
+    /// Idempotent. Does not change the published link state (callers do).
+    async fn retire(&self) {
+        self.closing.store(true, Ordering::SeqCst);
+        self.stop_tp("target closed");
+        let watcher = lock(&self.watch).take();
+        if let Some(w) = watcher {
+            w.abort();
+        }
+        let _permit = self.lanes.acquire(Lane::Control, Origin::Script, "retire").await;
+        let mut gate = self.gate.lock().await;
+        drop(lock(&self.ctl_handle).take());
+        drop(gate.handle.take());
+        if let Some(task) = gate.task.take() {
+            let _ = tokio::time::timeout(DISCONNECT_DRAIN_TIMEOUT, task).await;
+        }
+        drop(gate.link.take()); // closes the DoIP TCP connection
+    }
+
+    /// B2-M6 (Sonnet body): one TesterPresent exchange through the gate holder's runner.
+    /// Caller holds a gate permit. Publishes nothing except late responses; fills `row`.
+    async fn tp_exchange(&self, ctx: &CallCtx, txn: TxnRequest, row: &mut RowPayload) -> TxnResult {
+        let clock = MonoClock::new(self.clock.at, self.clock.base_ns);
+        // Keep-alive publishes nothing except late responses: no tx / pending / rx rows.
+        let apply = |row: &mut RowPayload, ev: OwnedEvent, stale: bool| match ev {
+            OwnedEvent::Sent { mono_ns } if !stale => {
+                row.write_state = WriteState::Sent;
+                row.t_send_mono_ns = Some(U64(mono_ns));
+            }
+            OwnedEvent::Pending { count, .. } if !stale => row.pending_count = count,
+            OwnedEvent::Late { data, mono_ns } => self.publish_late(ctx, &data, mono_ns),
+            OwnedEvent::Released => {
+                lock(&self.timed_out).clear();
+                self.presend.update(&self.name, |p| p.quarantined.clear());
+            }
+            OwnedEvent::Sent { .. } | OwnedEvent::Pending { .. } => {}
+        };
+        let mut gate = self.gate.lock().await;
+        while let Ok(ev) = gate.events.try_recv() {
+            apply(row, ev, true);
+        }
+        let Some(handle) = gate.handle.clone() else {
+            return TxnResult::rejected(&txn, RejectReason::RunnerStopped, &clock, 0);
+        };
+        let probe = txn.clone();
+        // STOP check and runner submission under one lock (see `UdsManager::stopped`).
+        let submitted = {
+            let stopped = lock(&self.stopped);
+            (!*stopped).then(|| handle.try_submit(txn))
+        };
+        let Some(submitted) = submitted else {
+            return TxnResult::aborted(&probe, AbortKind::Stop, &clock, 0);
+        };
+        let res = match submitted {
+            Err(rejected) => *rejected,
+            Ok(rx) => {
+                tokio::pin!(rx);
+                loop {
+                    tokio::select! {
+                        biased;
+                        Some(ev) = gate.events.recv() => apply(row, ev, false),
+                        r = &mut rx => break r.unwrap_or_else(|_| {
+                            TxnResult::rejected(&probe, RejectReason::RunnerStopped, &clock, 0)
+                        }),
+                    }
+                }
+            }
+        };
+        drop(handle);
+        while let Ok(ev) = gate.events.try_recv() {
+            apply(row, ev, false);
+        }
+        res
+    }
+
     fn on_link_down(&self, cause: &str) {
         lock(&self.session).link_down(cause);
         self.sync_presend();
@@ -581,12 +791,144 @@ async fn watch_link(target: Arc<Target>, mut events: Box<dyn LinkEvents>) {
             None => LINK_EVENTS_ENDED.to_owned(),
         };
         target.on_link_down(&reason);
-        if !target.auto_reconnect {
+        target.stop_tp("link down");
+        if target.is_closing() || !target.auto_reconnect {
             return;
         }
         match target.reconnect().await {
-            Some(next) => events = next,
+            Some(next) => {
+                if target.is_closing() {
+                    return;
+                }
+                events = next;
+            }
             None => return,
+        }
+    }
+}
+
+/// B2-M7 (Sonnet body): the TesterPresent job task (U1). `ctx` = the `uds.tester_present` call
+/// that started it (rows are published with its origin). Ends when `cancel` fires, the target
+/// generation differs from `generation`, or after [`TP_MAX_CONSECUTIVE_FAILURES`].
+async fn tp_loop(
+    target: Arc<Target>,
+    ctx: CallCtx,
+    cfg: TpConfig,
+    owner: Lease,
+    generation: u32,
+    cancel: Arc<TpCancel>,
+) {
+    use crate::payload::LinkState;
+    let mut n: u64 = 0;
+    let mut fails: u32 = 0;
+    loop {
+        if cancel.is_cancelled() {
+            return;
+        }
+        let (gen_now, link, owner_client, last) = {
+            let s = lock(&target.session);
+            (
+                s.generation(),
+                s.link(),
+                s.tp_owner().map(|l| l.client_id.clone()),
+                s.last_activity(),
+            )
+        };
+        if gen_now != generation {
+            target.stop_tp_job(&cancel, "generation changed");
+            return;
+        }
+        if link != LinkState::Up {
+            target.stop_tp_job(&cancel, "link down");
+            return;
+        }
+        if owner_client.as_deref() != Some(owner.client_id.as_str()) {
+            target.stop_tp_job(&cancel, "owner changed");
+            return;
+        }
+        let wait = match tp_decide(target.now(), last, cfg.interval, target.lanes.is_busy()) {
+            TpTick::Wait(d) => Some(d),
+            TpTick::Busy => Some(TP_BUSY_RECHECK),
+            TpTick::Send => None,
+        };
+        if let Some(d) = wait {
+            tokio::select! {
+                () = tokio::time::sleep(d) => {}
+                () = cancel.cancelled() => return,
+            }
+            continue;
+        }
+        let Some(permit) = target.lanes.try_acquire(Lane::Agent, owner.owner_origin, "tp") else {
+            tokio::select! {
+                () = tokio::time::sleep(TP_BUSY_RECHECK) => {}
+                () = cancel.cancelled() => return,
+            }
+            continue;
+        };
+        if cancel.is_cancelled() {
+            return;
+        }
+        n += 1;
+        let rid = format!("tp-{}-{}-{}", target.name, generation, n);
+        target.tp_in_flight.store(true, Ordering::SeqCst);
+        let pdu = cfg.pdu();
+        let (timing, stamp) = {
+            let s = lock(&target.session);
+            (s.timing(), s.route_stamp())
+        };
+        let mut row =
+            RowPayload::request(&target.name, &pdu, false, WriteState::Requested, timing).with_route(&stamp);
+        row.purpose = Some(PURPOSE_TESTER_PRESENT.into());
+        let txn = TxnRequest::new(pdu.clone(), Access::Read, cfg.interval.min(TP_EXCHANGE_TIMEOUT))
+            .with_priority(Priority::Agent)
+            .with_origin(owner.owner_origin)
+            .with_request_id(rid.clone());
+        let res = target.tp_exchange(&ctx, txn, &mut row).await;
+        target.tp_in_flight.store(false, Ordering::SeqCst);
+        drop(permit);
+
+        finish_row(&pdu, &res, &mut row, &StandardDids);
+        if res.timeout
+            || (res.sent && matches!(res.status, TxnStatus::LinkLost | TxnStatus::GenerationChanged))
+        {
+            {
+                let mut q = lock(&target.timed_out);
+                if q.len() >= MAX_TIMED_OUT_TRACKED {
+                    q.pop_front();
+                }
+                q.push_back((0x3E, rid.clone()));
+            }
+            target.presend.update(&target.name, |p| {
+                p.quarantined.insert(0x3E);
+            });
+        }
+        target.publish(
+            &ctx,
+            events::row(KIND_RESULT, &rid, stamp.generation, target.env, &row),
+        );
+
+        match tp_exchange_outcome(&res) {
+            Ok(()) => {
+                fails = 0;
+                lock(&target.session).on_tester_present_ok(target.now());
+            }
+            Err(e) => {
+                lock(&target.session).on_sent(target.now());
+                if matches!(
+                    res.status,
+                    TxnStatus::Aborted {
+                        kind: AbortKind::Stop
+                    }
+                ) {
+                    target.stop_tp_job(&cancel, "STOP");
+                    return;
+                }
+                fails += 1;
+                if fails >= TP_MAX_CONSECUTIVE_FAILURES {
+                    target.stop_tp_job(&cancel, &format!("{fails} consecutive failures: {e}"));
+                    return;
+                }
+            }
         }
     }
 }
@@ -626,8 +968,8 @@ pub struct UdsManager {
     /// CORE STOP latch as last reported through `WriteHooks::on_latch`. Agent/script requests
     /// check it under this lock right before entering the runner, so a request that passed the
     /// gateway's latch check just before STOP is either cancelled by [`UdsManager::stop_latch`]
-    /// or refused here — never sent after STOP.
-    stopped: Mutex<bool>,
+    /// or refused here — never sent after STOP. Shared with every [`Target`] (TesterPresent job).
+    stopped: Arc<Mutex<bool>>,
 }
 
 /// Origins STOP cancels (contract A3): agents and scripts. User traffic is never touched.
@@ -691,8 +1033,24 @@ impl UdsManager {
 
     /// Connect (or return the existing connection of) a target.
     pub async fn connect(&self, ctx: &CallCtx, spec: ConnectSpec) -> Result<Value, DomainError> {
-        if let Some(t) = lock(&self.targets).get(&spec.name).cloned() {
-            return Ok(json!({"target": t.name, "state": t.state(), "existing": true}));
+        let existing = lock(&self.targets).get(&spec.name).cloned();
+        let mut replaced: Option<u32> = None;
+        if let Some(t) = existing {
+            if !t.is_replaceable() {
+                let reconnecting = lock(&t.session).link() == crate::payload::LinkState::Down;
+                return Ok(
+                    json!({"target": t.name, "state": t.state(), "existing": true, "reconnecting": reconnecting}),
+                );
+            }
+            let prev = t.generation();
+            t.retire().await;
+            {
+                let mut m = lock(&self.targets);
+                if m.get(&spec.name).is_some_and(|x| Arc::ptr_eq(x, &t)) {
+                    m.remove(&spec.name);
+                }
+            }
+            replaced = Some(prev);
         }
         if lock(&self.targets).len() >= MAX_TARGETS {
             return Err(DomainError::new(
@@ -745,16 +1103,36 @@ impl UdsManager {
             auto_reconnect: spec.auto_reconnect,
             connector: Arc::new(DoipConnector::new(cfg, spec.la)),
         };
-        let mut data = self.attach(ctx, link, sim).await?;
+        let mut data = self.attach(ctx, link, sim, replaced.unwrap_or(0)).await?;
         data["entity"] = json!(addr.to_string());
+        if let Some(prev) = replaced {
+            data["replaced"] = json!(true);
+            data["previous_generation"] = json!(prev);
+        }
         Ok(data)
     }
 
     /// Connect (or return the existing connection of) a target over any [`Connector`]. Same
     /// request/lease/lane/runner/reconnect behaviour as `uds.connect`; only the link differs.
     pub async fn connect_link(&self, ctx: &CallCtx, spec: LinkSpec) -> Result<Value, DomainError> {
-        if let Some(t) = lock(&self.targets).get(&spec.name).cloned() {
-            return Ok(json!({"target": t.name, "state": t.state(), "existing": true}));
+        let existing = lock(&self.targets).get(&spec.name).cloned();
+        let mut replaced: Option<u32> = None;
+        if let Some(t) = existing {
+            if !t.is_replaceable() {
+                let reconnecting = lock(&t.session).link() == crate::payload::LinkState::Down;
+                return Ok(
+                    json!({"target": t.name, "state": t.state(), "existing": true, "reconnecting": reconnecting}),
+                );
+            }
+            let prev = t.generation();
+            t.retire().await;
+            {
+                let mut m = lock(&self.targets);
+                if m.get(&spec.name).is_some_and(|x| Arc::ptr_eq(x, &t)) {
+                    m.remove(&spec.name);
+                }
+            }
+            replaced = Some(prev);
         }
         if lock(&self.targets).len() >= MAX_TARGETS {
             return Err(DomainError::new(
@@ -762,17 +1140,24 @@ impl UdsManager {
                 format!("at most {MAX_TARGETS} UDS targets"),
             ));
         }
-        self.attach(ctx, spec, None).await
+        let mut data = self.attach(ctx, spec, None, replaced.unwrap_or(0)).await?;
+        if let Some(prev) = replaced {
+            data["replaced"] = json!(true);
+            data["previous_generation"] = json!(prev);
+        }
+        Ok(data)
     }
 
-    /// Open the first link (generation 1), start the runner, register and watch the target.
+    /// Open the first link (generation `generation_base + 1`), start the runner, register and
+    /// watch the target. `generation_base` = last generation of a replaced target (U6/U8), else 0.
     async fn attach(
         &self,
         ctx: &CallCtx,
         spec: LinkSpec,
         sim: Option<SimSide>,
+        generation_base: u32,
     ) -> Result<Value, DomainError> {
-        let link = open_link(spec.connector.as_ref(), 1)
+        let link = open_link(spec.connector.as_ref(), u64::from(generation_base) + 1)
             .await
             .map_err(|e| DomainError::new(ErrorCode::NotOpen, e))?;
         let Link {
@@ -786,7 +1171,7 @@ impl UdsManager {
             tx,
             dropped: AtomicU64::new(0),
         });
-        let mut session = TargetSession::new(spec.name.clone());
+        let mut session = TargetSession::new(spec.name.clone()).with_generation_base(generation_base);
         session.set_endpoint(spec.backend, spec.connector.endpoint());
         let clock = HubClock::from_ctx(ctx);
         session.link_up(Duration::from_nanos(clock.mono_ns()));
@@ -823,6 +1208,12 @@ impl UdsManager {
             sim,
             clock,
             presend: self.presend.clone(),
+            stopped: self.stopped.clone(),
+            tp: Mutex::new(None),
+            tp_in_flight: AtomicBool::new(false),
+            closing: AtomicBool::new(false),
+            watch: Mutex::new(None),
+            db: Mutex::new(None),
         });
         {
             let mut m = lock(&self.targets);
@@ -835,7 +1226,7 @@ impl UdsManager {
             m.insert(spec.name.clone(), target.clone());
         }
         target.sync_presend();
-        tokio::spawn(watch_link(target.clone(), link_events));
+        *lock(&target.watch) = Some(tokio::spawn(watch_link(target.clone(), link_events)));
         target.publish(ctx, target.state_draft());
         Ok(json!({"target": target.name, "state": target.state(), "existing": false}))
     }
@@ -843,6 +1234,15 @@ impl UdsManager {
     /// Run one request through lease → gate → runner, publishing every stage.
     pub async fn request(&self, ctx: &CallCtx, spec: ReqSpec) -> Result<Outcome, DomainError> {
         let target = self.target(&spec.target)?;
+        if target.is_closing() {
+            return Err(DomainError::new(
+                ErrorCode::NotOpen,
+                format!(
+                    "UDS target {:?} is closed (uds.connect opens it again)",
+                    spec.target
+                ),
+            ));
+        }
         let rid = spec
             .request_id
             .clone()
@@ -850,12 +1250,18 @@ impl UdsManager {
             .unwrap_or_else(|| self.next_request_id());
         let origin = ctx.origin();
         let class = classify_pdu(&spec.pdu, false);
-        let timing = lock(&target.session).timing();
+        let (timing, stamp) = {
+            let s = lock(&target.session);
+            (s.timing(), s.route_stamp())
+        };
+        let db = target.db_snapshot();
         // The gateway write path already published `requested` and `accepted` for the call's own
         // request id (contract 02 §2.3); repeating them would step the row back. Rows of
         // sub-requests (`<rid>.verify`) are ours from the start.
         let core_row = spec.request_id.is_none() && ctx.request_id().is_some();
-        let mut row = RowPayload::request(&target.name, &spec.pdu, false, WriteState::Requested, timing);
+        let mut row = RowPayload::request(&target.name, &spec.pdu, false, WriteState::Requested, timing)
+            .with_route(&stamp);
+        row.db_hash = db.as_ref().map(|d| d.info.hash.clone());
         if !core_row {
             target.publish(ctx, target.row_draft(KIND_TX, &rid, &row));
         }
@@ -900,6 +1306,7 @@ impl UdsManager {
                     target.sync_presend();
                     target.publish(ctx, target.state_draft());
                 }
+                target.tp_on_lease_change();
             } else if held_by_user {
                 drop(s);
                 finish_refused(&mut row, "target held by the user (lease)".into());
@@ -915,6 +1322,7 @@ impl UdsManager {
                 }));
                 drop(s);
                 target.publish(ctx, target.state_draft());
+                target.tp_on_lease_change();
             }
             lock(&self.writes).record(origin, ctx.client_id());
         }
@@ -1006,7 +1414,12 @@ impl UdsManager {
             self.on_event(ctx, &target, &mut row, &rid, ev, false);
         }
 
-        self.finish_row(&target, &spec.pdu, &res, &mut row);
+        finish_row(
+            &spec.pdu,
+            &res,
+            &mut row,
+            db.as_ref().map_or(&StandardDids as &dyn DidLookup, |d| &d.db),
+        );
         if let Some(resp) = &res.response {
             let mono = res
                 .times
@@ -1114,51 +1527,6 @@ impl UdsManager {
         }
     }
 
-    fn finish_row(&self, target: &Target, pdu: &[u8], res: &TxnResult, row: &mut RowPayload) {
-        row.write_state = res.write_state;
-        row.pending_count = res.pending_count;
-        row.timeout = res.timeout;
-        row.ok_suppressed = matches!(res.status, TxnStatus::OkSuppressed);
-        if let Some(n) = res.nrc {
-            *row = row.clone().with_nrc(n);
-        }
-        let t = res.times;
-        row.t_send_mono_ns = t.sent_mono_ns.map(U64).or(row.t_send_mono_ns);
-        row.t_first_rx_mono_ns = t.first_rx_mono_ns.map(U64).or(row.t_first_rx_mono_ns);
-        row.t_final_rx_mono_ns = t.final_rx_mono_ns.map(U64);
-        row.first_rx_ms = ms_between(t.sent_mono_ns, t.first_rx_mono_ns);
-        row.rtt_ms = ms_between(t.sent_mono_ns, t.final_rx_mono_ns);
-        if let Some(resp) = &res.response {
-            row.resp_bytes = Some(PayloadBytes::hex(resp));
-            if matches!(res.status, TxnStatus::Positive) {
-                match pdu.first() {
-                    Some(0x22) => row.decoded = decode_dids(pdu, resp),
-                    Some(0x19) if pdu.get(1).map(|b| b & 0x7F) == Some(0x02) => {
-                        row.dtcs = parse_dtc_by_status_response(resp).ok().map(|r| {
-                            r.dtcs
-                                .iter()
-                                .map(|d| DtcItem {
-                                    dtc: format!("{:06X}", d.dtc),
-                                    status: d.status,
-                                })
-                                .collect()
-                        });
-                    }
-                    _ => {}
-                }
-            }
-        }
-        if let TxnStatus::Rejected(reason) = &res.status {
-            row.reason = match reason {
-                RejectReason::Quarantine { sid } => {
-                    format!("quarantine: SID 0x{sid:02X} may still answer late")
-                }
-                other => format!("not sent: {other:?}"),
-            };
-        }
-        let _ = target;
-    }
-
     /// Publish an updated final row (e.g. read-back verification of a write).
     pub fn republish(&self, ctx: &CallCtx, target: &Target, rid: &str, row: &RowPayload) {
         target.publish(ctx, target.row_draft(KIND_RESULT, rid, row));
@@ -1172,6 +1540,7 @@ impl UdsManager {
             actor_id: ctx.client_id().to_owned(),
             client_id: ctx.client_id().to_owned(),
         }));
+        target.tp_on_lease_change();
         target.sync_presend();
         target.publish(ctx, target.state_draft());
         Ok(json!({"target": target.name, "state": target.state()}))
@@ -1225,6 +1594,323 @@ impl UdsManager {
         }))
     }
 
+    /// B2-M9 (Sonnet body): `uds.disconnect` (U6). See FUNCTIONS.md for the exact sequence.
+    pub async fn disconnect(&self, ctx: &CallCtx, name: &str, abort: bool) -> Result<Value, DomainError> {
+        let origin_str = |o: Origin| {
+            serde_json::to_value(o)
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .unwrap_or_default()
+        };
+        let t = self.target(name)?;
+        if lock(&t.session)
+            .lease()
+            .is_some_and(|l| l.owner_origin == Origin::User)
+            && ctx.origin() != Origin::User
+        {
+            return Err(DomainError::new(
+                ErrorCode::HeldByUser,
+                "target is held by the user",
+            ));
+        }
+        if t.is_closing() || lock(&t.session).link() == crate::payload::LinkState::Closed {
+            return Ok(json!({"target": t.name, "state": t.state(), "already_closed": true}));
+        }
+        let (wa, wu, wx, wc) = t.lanes.depth();
+        let waiting = wa + wu + wx + wc;
+        let busy = waiting > 0 || (t.lanes.is_busy() && !t.tp_in_flight.load(Ordering::SeqCst));
+        if busy && !abort {
+            return Err(DomainError::new(
+                ErrorCode::Busy,
+                "target has requests in progress; pass abort:true to abort them and close",
+            )
+            .with_detail(json!({"target": t.name, "waiting": waiting, "in_flight": t.lanes.is_busy()})));
+        }
+        let aborted = if abort {
+            let cw = t.lanes.cancel(AbortKind::User, |_, _| true, false);
+            let s = t.ctl().map(|h| h.abort(AbortScope::All));
+            json!({
+                "cancelled_waiting": cw + s.as_ref().map_or(0, |s| s.cancelled_waiting),
+                "in_flight": s.as_ref().is_some_and(|s| s.in_flight),
+            })
+        } else {
+            json!({"cancelled_waiting": 0, "in_flight": false})
+        };
+        t.retire().await;
+        lock(&t.session).link_closed(format!("disconnected by {}", origin_str(ctx.origin())));
+        t.sync_presend();
+        t.publish(ctx, t.state_draft());
+        Ok(json!({
+            "target": t.name,
+            "state": t.state(),
+            "aborted": aborted,
+            "others_since_last": self.others_since_last(ctx.client_id()),
+        }))
+    }
+
+    /// B2-M10 (Sonnet body): `uds.forget` (U6).
+    pub async fn forget(&self, ctx: &CallCtx, name: &str) -> Result<Value, DomainError> {
+        let t = self.target(name)?;
+        if lock(&t.session)
+            .lease()
+            .is_some_and(|l| l.owner_origin == Origin::User)
+            && ctx.origin() != Origin::User
+        {
+            return Err(DomainError::new(
+                ErrorCode::HeldByUser,
+                "target is held by the user",
+            ));
+        }
+        if !t.is_replaceable() {
+            return Err(DomainError::new(
+                ErrorCode::Busy,
+                format!("target {name} is not closed (uds.disconnect first)"),
+            ));
+        }
+        t.retire().await;
+        {
+            let mut m = lock(&self.targets);
+            if m.get(name).is_some_and(|x| Arc::ptr_eq(x, &t)) {
+                m.remove(name);
+            }
+        }
+        self.presend.remove(name);
+        let g = t.generation();
+        lock(&t.session).mark_forgotten();
+        t.publish(ctx, t.state_draft());
+        Ok(json!({"target": name, "forgotten": true, "last_generation": g}))
+    }
+
+    /// B2-M11 (Sonnet body): `uds.tester_present` (U1).
+    pub fn tester_present(
+        &self,
+        ctx: &CallCtx,
+        name: Option<&str>,
+        req: TpRequest,
+    ) -> Result<Value, DomainError> {
+        let origin_str = |o: Origin| {
+            serde_json::to_value(o)
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .unwrap_or_default()
+        };
+        let t = self.resolve(name)?;
+        let req_cfg = match req {
+            TpRequest::Off => {
+                let was = t.stop_tp(&format!("stopped by {}", origin_str(ctx.origin())));
+                return Ok(json!({"target": t.name, "state": t.state(), "was_active": was}));
+            }
+            TpRequest::On(cfg) => cfg,
+        };
+        if self.stopped() {
+            return Err(DomainError::new(
+                ErrorCode::Stopped,
+                "STOP is latched: TesterPresent not started",
+            ));
+        }
+        if t.is_closing() || lock(&t.session).link() != crate::payload::LinkState::Up {
+            return Err(DomainError::new(
+                ErrorCode::NotOpen,
+                format!("target {} link is not up", t.name),
+            ));
+        }
+        if lock(&t.session)
+            .lease()
+            .is_some_and(|l| l.owner_origin == Origin::User)
+            && ctx.origin() != Origin::User
+        {
+            return Err(DomainError::new(
+                ErrorCode::HeldByUser,
+                "target is held by the user",
+            ));
+        }
+        let owner = Lease {
+            owner_origin: ctx.origin(),
+            actor_id: ctx.client_id().to_owned(),
+            client_id: ctx.client_id().to_owned(),
+        };
+        t.stop_tp("replaced by a new TesterPresent job");
+        let generation = t.generation();
+        let cancel = Arc::new(TpCancel::default());
+        lock(&t.session).tp_start(req_cfg.interval, req_cfg.suppress, owner.clone());
+        {
+            // the slot is filled before the task can stop itself (stop_tp_job locks it too)
+            let mut slot = lock(&t.tp);
+            let task = tokio::spawn(tp_loop(
+                t.clone(),
+                ctx.clone(),
+                req_cfg,
+                owner.clone(),
+                generation,
+                cancel.clone(),
+            ));
+            *slot = Some(TpJob {
+                cfg: req_cfg,
+                owner,
+                generation,
+                cancel,
+                task,
+            });
+        }
+        t.publish(ctx, t.state_draft());
+        Ok(json!({"target": t.name, "state": t.state()}))
+    }
+
+    /// B3-M5 (Sonnet body): `uds.security_unlock` (U2). Provider config is resolved before any byte;
+    /// seed `27 level` as sub-request `<rid>.seed` (R1); the approved R3 sendKey `27 level+1 key` is the
+    /// call's own request. No retry of anything. See FUNCTIONS.md B3-M5 for the exact sequence.
+    pub async fn security_unlock(
+        &self,
+        ctx: &CallCtx,
+        name: Option<&str>,
+        level: u8,
+        provider: &str,
+        timeout: Option<Duration>,
+    ) -> Result<Value, DomainError> {
+        let t = self.resolve(name)?;
+        let cfg = provider_from_config(&ctx.config(), provider, level)
+            .map_err(|e| DomainError::new(e.code(), e.message()))?;
+        let rid = ctx
+            .request_id()
+            .map(str::to_owned)
+            .unwrap_or_else(|| self.next_request_id());
+        let seed_rid = format!("{rid}.seed");
+        let unexpected = |seed_rid: &str| {
+            DomainError::new(ErrorCode::Internal, "unexpected seed response")
+                .with_detail(json!({"seed_request_id": seed_rid}))
+        };
+        let out = self
+            .request(
+                ctx,
+                ReqSpec {
+                    target: t.name().into(),
+                    pdu: vec![0x27, level],
+                    timeout,
+                    request_id: Some(seed_rid.clone()),
+                    recovery: false,
+                },
+            )
+            .await?;
+        if !out
+            .result
+            .as_ref()
+            .is_some_and(|r| matches!(r.status, TxnStatus::Positive))
+        {
+            return match out.into_result() {
+                Err(e) => Err(e),
+                Ok(_) => Err(unexpected(&seed_rid)),
+            };
+        }
+        let resp = out
+            .result
+            .as_ref()
+            .and_then(|r| r.response.clone())
+            .unwrap_or_default();
+        let seed = match resp.as_slice() {
+            [0x67, l, seed @ ..] if *l == level && !seed.is_empty() => seed.to_vec(),
+            _ => return Err(unexpected(&seed_rid)),
+        };
+        if seed.iter().all(|b| *b == 0) {
+            return Ok(json!({
+                "target": t.name(),
+                "level": level,
+                "unlocked": true,
+                "already_unlocked": true,
+                "seed_request_id": seed_rid,
+                "others_since_last": self.others_since_last(ctx.client_id()),
+            }));
+        }
+        if stoppable(ctx.origin()) && self.stopped() {
+            return Err(DomainError::new(
+                ErrorCode::Stopped,
+                "STOP is latched: key provider not started, no key sent",
+            )
+            .with_detail(json!({"seed_request_id": seed_rid})));
+        }
+        let key = run_provider(&cfg, level, &seed).await.map_err(|e| {
+            DomainError::new(e.code(), e.message()).with_detail(json!({"seed_request_id": seed_rid}))
+        })?;
+        let mut pdu = vec![0x27, level + 1];
+        pdu.extend_from_slice(&key);
+        let out = self
+            .request(
+                ctx,
+                ReqSpec {
+                    target: t.name().into(),
+                    pdu,
+                    timeout,
+                    request_id: if ctx.request_id().is_some() {
+                        None
+                    } else {
+                        Some(rid)
+                    },
+                    recovery: false,
+                },
+            )
+            .await?;
+        let unlocked = out
+            .result
+            .as_ref()
+            .is_some_and(|r| matches!(r.status, TxnStatus::Positive));
+        let mut d = out.into_result()?;
+        d["target"] = json!(t.name());
+        d["level"] = json!(level);
+        d["unlocked"] = json!(unlocked);
+        d["already_unlocked"] = json!(false);
+        d["seed_request_id"] = json!(seed_rid);
+        Ok(d)
+    }
+
+    /// B3-M6 (Sonnet body): `uds.db.set` (U5): validate and attach an inline DB to an open target.
+    pub fn db_set(&self, ctx: &CallCtx, name: &str, db: &Value) -> Result<Value, DomainError> {
+        let t = self.target(name)?;
+        if lock(&t.session)
+            .lease()
+            .is_some_and(|l| l.owner_origin == Origin::User)
+            && ctx.origin() != Origin::User
+        {
+            return Err(DomainError::new(
+                ErrorCode::HeldByUser,
+                "target is held by the user",
+            ));
+        }
+        if t.is_closing() || lock(&t.session).link() == crate::payload::LinkState::Closed {
+            return Err(DomainError::new(
+                ErrorCode::NotOpen,
+                format!("target {name} is closed (uds.connect opens it again)"),
+            ));
+        }
+        let loaded = parse_inline_db(db).map_err(|m| DomainError::new(ErrorCode::Usage, m))?;
+        let warnings = db_warnings(&loaded);
+        let att = Arc::new(AttachedDb::new(loaded));
+        let info = att.info.clone();
+        let replaced = lock(&t.db).replace(att).is_some();
+        t.publish(ctx, t.state_draft());
+        Ok(
+            json!({"target": name, "db": info, "warnings": warnings, "replaced": replaced, "state": t.state()}),
+        )
+    }
+
+    /// B3-M7 (Sonnet body): `uds.db.clear` (U5).
+    pub fn db_clear(&self, ctx: &CallCtx, name: &str) -> Result<Value, DomainError> {
+        let t = self.target(name)?;
+        if lock(&t.session)
+            .lease()
+            .is_some_and(|l| l.owner_origin == Origin::User)
+            && ctx.origin() != Origin::User
+        {
+            return Err(DomainError::new(
+                ErrorCode::HeldByUser,
+                "target is held by the user",
+            ));
+        }
+        let cleared = lock(&t.db).take().is_some();
+        if cleared {
+            t.publish(ctx, t.state_draft());
+        }
+        Ok(json!({"target": name, "cleared": cleared, "state": t.state()}))
+    }
+
     /// CORE STOP latch is on (as last reported through `WriteHooks::on_latch`).
     pub fn stopped(&self) -> bool {
         *lock(&self.stopped)
@@ -1254,6 +1940,7 @@ impl UdsManager {
         *lock(&self.stopped) = true;
         let mut out = Vec::new();
         for t in self.targets() {
+            t.stop_tp("STOP");
             let waiting = t.lanes.cancel(AbortKind::Stop, |o, _| stoppable(o), false);
             let mut runner_waiting = 0;
             let mut in_flight = false;

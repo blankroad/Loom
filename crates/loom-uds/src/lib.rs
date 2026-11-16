@@ -16,12 +16,14 @@
 
 #[cfg(feature = "cli")]
 pub mod cli;
+pub mod diagdb;
 pub mod events;
 pub mod evidence;
 #[cfg(feature = "runtime")]
 pub mod handlers;
 #[cfg(feature = "runtime")]
 pub mod hooks;
+pub mod keyprovider;
 #[cfg(feature = "runtime")]
 pub mod lanes;
 #[cfg(feature = "runtime")]
@@ -32,6 +34,8 @@ pub mod payload;
 pub mod policy;
 pub mod risk;
 pub mod session;
+#[cfg(feature = "runtime")]
+pub mod tester_present;
 pub mod text;
 
 #[cfg(feature = "runtime")]

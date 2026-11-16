@@ -63,6 +63,13 @@ pub struct TargetSession {
     backend: Option<String>,
     addr: Option<String>,
     tp_ok: u32,
+    /// U1 job settings while `tester_present` is Some and the job was started by `tp_start`.
+    tp_suppress: Option<bool>,
+    tp_owner: Option<Lease>,
+    /// Why the last job stopped (cleared by `tp_start`).
+    tp_stop_cause: Option<String>,
+    /// U6: final state of a forgotten target.
+    forgotten: bool,
 }
 
 impl TargetSession {
@@ -85,6 +92,81 @@ impl TargetSession {
             backend: None,
             addr: None,
             tp_ok: 0,
+            tp_suppress: None,
+            tp_owner: None,
+            tp_stop_cause: None,
+            forgotten: false,
+        }
+    }
+
+    /// B2-S1 (Sonnet body): continue the generation numbering of a replaced target: the next
+    /// `link_up` yields `base + 1`. U6 replace / U8 provenance: generation numbers are never reused.
+    pub fn with_generation_base(mut self, base: u32) -> Self {
+        self.generation = base;
+        self
+    }
+
+    /// B2-S2 (Sonnet body): link closed on purpose (`uds.disconnect`).
+    pub fn link_closed(&mut self, cause: impl Into<String>) {
+        self.link = LinkState::Closed;
+        self.link_cause = Some(cause.into());
+        self.session_confidence = Confidence::Stale;
+        self.security_confidence = Confidence::Stale;
+        self.lease = None;
+        self.tp_stop("link closed");
+    }
+
+    /// B2-S3 (Sonnet body): a TesterPresent job starts (U1).
+    pub fn tp_start(&mut self, interval: Duration, suppress: bool, owner: Lease) {
+        self.tester_present = Some(interval);
+        self.tp_ok = 0;
+        self.tp_suppress = Some(suppress);
+        self.tp_owner = Some(owner);
+        self.tp_stop_cause = None;
+    }
+
+    /// B2-S4 (Sonnet body): the TesterPresent job stops. Returns `true` if one was active.
+    pub fn tp_stop(&mut self, cause: impl Into<String>) -> bool {
+        if self.tester_present.is_none() {
+            return false;
+        }
+        self.tester_present = None;
+        self.tp_suppress = None;
+        self.tp_owner = None;
+        self.tp_stop_cause = Some(cause.into());
+        true
+    }
+
+    /// B2-S5 (Sonnet body): owner of the running TesterPresent job.
+    pub fn tp_owner(&self) -> Option<&Lease> {
+        self.tp_owner.as_ref()
+    }
+
+    /// B2-S5 (Sonnet body): interval of the running TesterPresent job (any source).
+    pub fn tp_interval(&self) -> Option<Duration> {
+        self.tester_present
+    }
+
+    /// B2-S5 (Sonnet body): hub time of the last exchange with the ECU (requests and TP).
+    pub fn last_activity(&self) -> Option<Duration> {
+        self.last_activity
+    }
+
+    /// B2-S6 (Sonnet body): route stamp for a row created now (U8).
+    pub fn route_stamp(&self) -> crate::payload::RouteStamp {
+        crate::payload::RouteStamp {
+            generation: self.generation,
+            backend: self.backend.clone(),
+            addr: self.addr.clone(),
+        }
+    }
+
+    /// B2-S7 (Sonnet body): mark the final state of a forgotten target (U6).
+    pub fn mark_forgotten(&mut self) {
+        self.forgotten = true;
+        if self.link != LinkState::Closed {
+            self.link = LinkState::Closed;
+            self.link_cause = Some("forgotten".into());
         }
     }
 
@@ -121,7 +203,7 @@ impl TargetSession {
         self.session_confidence = Confidence::Assumed;
         self.security = None;
         self.security_confidence = Confidence::Assumed;
-        self.tester_present = None;
+        self.tp_stop("session reset to default");
         self.p2_ms = DEFAULT_P2_MS;
         self.p2_star_ms = DEFAULT_P2_STAR_MS;
     }
@@ -149,11 +231,13 @@ impl TargetSession {
 
     /// Link lost: what we believed about the session can no longer be trusted.
     pub fn link_down(&mut self, cause: impl Into<String>) {
+        let cause = cause.into();
+        let tp_cause = format!("link down ({cause})");
         self.link = LinkState::Down;
-        self.link_cause = Some(cause.into());
+        self.link_cause = Some(cause);
         self.session_confidence = Confidence::Stale;
         self.security_confidence = Confidence::Stale;
-        self.tester_present = None;
+        self.tp_stop(tp_cause);
     }
 
     pub fn set_tester_present(&mut self, interval: Option<Duration>) {
@@ -296,6 +380,12 @@ impl TargetSession {
                 active: true,
                 interval_ms: u32::try_from(d.as_millis()).unwrap_or(u32::MAX),
                 ok_count: self.tp_ok,
+                suppress: self.tp_suppress,
+                owner: self.tp_owner.as_ref().map(|l| LeasePayload {
+                    owner_origin: l.owner_origin,
+                    actor_id: l.actor_id.clone(),
+                    client_id: l.client_id.clone(),
+                }),
             }),
             p2_ms: self.p2_ms,
             p2_star_ms: self.p2_star_ms,
@@ -304,6 +394,10 @@ impl TargetSession {
                 actor_id: l.actor_id.clone(),
                 client_id: l.client_id.clone(),
             }),
+            tp_stop_cause: self.tp_stop_cause.clone(),
+            forgotten: self.forgotten,
+            // The DB lives on the manager's `Target` (one snapshot with the lookup): `Target::state()` fills it (B3-M3).
+            db: None,
         }
     }
 }

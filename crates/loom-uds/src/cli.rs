@@ -54,6 +54,31 @@ pub fn parse_hex_u8(s: &str) -> Result<u8, String> {
     u8::from_str_radix(b, 16).map_err(|_| format!("bad byte {s:?} (hex 00–FF)"))
 }
 
+/// Largest DB file `loom uds db set` reads (the daemon's inline limit).
+pub const MAX_DB_FILE_BYTES: usize = crate::diagdb::MAX_INLINE_DB_BYTES;
+
+/// B3-C3 (Sonnet body): clap value parser of `db set --file`: read the file on the CLI side (the
+/// daemon never opens paths), refuse > [`MAX_DB_FILE_BYTES`] before parsing, parse JSON → the `db` param.
+/// The file content is never echoed in errors (only its path, size or the JSON error position).
+pub fn read_db_file(path: &str) -> Result<Value, String> {
+    use io::Read;
+    let too_big = |len: u64| format!("{path} is {len} bytes; the DB limit is {MAX_DB_FILE_BYTES}");
+    let meta = std::fs::metadata(path).map_err(|e| format!("cannot read {path}: {e}"))?;
+    if meta.len() > MAX_DB_FILE_BYTES as u64 {
+        return Err(too_big(meta.len()));
+    }
+    let file = std::fs::File::open(path).map_err(|e| format!("cannot read {path}: {e}"))?;
+    let mut buf = Vec::new();
+    file.take(MAX_DB_FILE_BYTES as u64 + 1)
+        .read_to_end(&mut buf)
+        .map_err(|e| format!("cannot read {path}: {e}"))?;
+    if buf.len() > MAX_DB_FILE_BYTES {
+        return Err(too_big(buf.len() as u64));
+    }
+    serde_json::from_slice(&buf)
+        .map_err(|e| format!("{path}: not JSON (line {}, column {})", e.line(), e.column()))
+}
+
 /// Shape check with the gateway's own pure encoder ([`text::encode_typed`]): the CLI refuses
 /// exactly what `loomd` would refuse as `E_USAGE`, and never decides risk.
 fn check(method: &str, p: &Map<String, Value>) -> Result<(), UsageError> {
@@ -280,6 +305,90 @@ impl DomainCli for UdsCli {
                             .help("viewers: all (default) or agent; agents abort only their own"),
                     ),
             )
+            .subcommand(
+                Command::new("disconnect")
+                    .about("Close a target's link on purpose (no reconnect; sends no UDS bytes)")
+                    .arg(target().required(true))
+                    .arg(
+                        Arg::new("abort")
+                            .long("abort")
+                            .action(ArgAction::SetTrue)
+                            .help("abort queued/in-flight requests first (in-flight writes end outcome_unknown)"),
+                    ),
+            )
+            .subcommand(
+                Command::new("forget")
+                    .about("Remove a closed (or dead, not reconnecting) target from the daemon")
+                    .arg(target().required(true)),
+            )
+            .subcommand(
+                Command::new("tp")
+                    .about("Periodic TesterPresent keep-alive job (default off; R0)")
+                    .arg(
+                        Arg::new("state")
+                            .value_name("on|off")
+                            .required(true)
+                            .value_parser(["on", "off"]),
+                    )
+                    .arg(
+                        Arg::new("interval_ms")
+                            .long("interval-ms")
+                            .value_name("MS")
+                            .value_parser(value_parser!(u64).range(500..=30_000))
+                            .help("interval, required with `on` (500–30000 ms; choose below the ECU's S3)"),
+                    )
+                    .arg(
+                        Arg::new("no_suppress")
+                            .long("no-suppress")
+                            .action(ArgAction::SetTrue)
+                            .help("send 3E 00 (wait for 7E 00) instead of 3E 80"),
+                    )
+                    .arg(target()),
+            )
+            .subcommand(
+                Command::new("unlock")
+                    .about("SecurityAccess: requestSeed → key provider from loom.toml → sendKey (R3; never retried)")
+                    .arg(
+                        Arg::new("level")
+                            .long("level")
+                            .value_name("HEX")
+                            .required(true)
+                            .value_parser(parse_hex_u8)
+                            .help("requestSeed sub-function, odd 01–7D (sendKey = level + 1)"),
+                    )
+                    .arg(
+                        Arg::new("provider")
+                            .long("provider")
+                            .value_name("NAME")
+                            .required(true)
+                            .help("[[uds.key_providers]] name in loom.toml (the user configures the command)"),
+                    )
+                    .arg(target())
+                    .arg(timeout_ms()),
+            )
+            .subcommand(
+                Command::new("db")
+                    .about("Diagnostic DB (loom_diag v1) for DID names/units; never changes risk")
+                    .subcommand_required(true)
+                    .subcommand(
+                        Command::new("set")
+                            .about("Attach a DB file (read here, sent inline, ≤ 48 KiB)")
+                            .arg(
+                                Arg::new("file")
+                                    .long("file")
+                                    .value_name("PATH")
+                                    .required(true)
+                                    .value_parser(read_db_file)
+                                    .help("loom_diag JSON file"),
+                            )
+                            .arg(target().required(true)),
+                    )
+                    .subcommand(
+                        Command::new("clear")
+                            .about("Detach the target's DB (ISO DID table only)")
+                            .arg(target().required(true)),
+                    ),
+            )
     }
 
     fn to_call(m: &ArgMatches) -> Result<RpcCall, UsageError> {
@@ -372,6 +481,55 @@ impl DomainCli for UdsCli {
                 }
                 Ok(call("uds.abort", s, p, 0))
             }
+            "disconnect" => {
+                if s.get_flag("abort") {
+                    p.insert("abort".into(), json!(true));
+                }
+                let mut c = RpcCall::new("uds.disconnect", Value::Object(p));
+                c.wait = Some(Duration::from_secs(40).min(MAX_WAIT));
+                Ok(c)
+            }
+            "forget" => Ok(RpcCall::new("uds.forget", Value::Object(p))),
+            "tp" => {
+                let on = s.get_one::<String>("state").is_some_and(|v| v == "on");
+                p.insert("on".into(), json!(on));
+                if let Some(v) = s.get_one::<u64>("interval_ms") {
+                    p.insert("interval_ms".into(), json!(v));
+                }
+                if s.get_flag("no_suppress") {
+                    p.insert("suppress".into(), json!(false));
+                }
+                if on && !p.contains_key("interval_ms") {
+                    return Err(UsageError::new("tp on needs --interval-ms (500–30000)"));
+                }
+                Ok(RpcCall::new("uds.tester_present", Value::Object(p)))
+            }
+            "unlock" => {
+                let level = s
+                    .get_one::<u8>("level")
+                    .ok_or_else(|| UsageError::new("unlock needs --level"))?;
+                p.insert("level".into(), json!(level));
+                let provider = s
+                    .get_one::<String>("provider")
+                    .ok_or_else(|| UsageError::new("unlock needs --provider"))?;
+                p.insert("provider".into(), json!(provider));
+                check("uds.security_unlock", &p)?;
+                let mut c = RpcCall::new("uds.security_unlock", Value::Object(p));
+                c.wait = Some(Duration::from_secs(45).min(MAX_WAIT));
+                Ok(c)
+            }
+            "db" => match s.subcommand() {
+                Some(("set", l)) => {
+                    let mut p = params(l);
+                    let db = l
+                        .get_one::<Value>("file")
+                        .ok_or_else(|| UsageError::new("db set needs --file"))?;
+                    p.insert("db".into(), db.clone());
+                    Ok(RpcCall::new("uds.db.set", Value::Object(p)))
+                }
+                Some(("clear", l)) => Ok(RpcCall::new("uds.db.clear", Value::Object(params(l)))),
+                _ => Err(UsageError::new("expected `db set` or `db clear`")),
+            },
             _ => Err(help()),
         }
     }
@@ -549,6 +707,106 @@ fn render_data(call: &RpcCall, d: &Value, out: &mut dyn io::Write) -> io::Result
                 ""
             }
         ),
+        "uds.disconnect" => {
+            let link = &d["state"]["link"];
+            let tail = if d["already_closed"] == true {
+                " (already closed)".to_owned()
+            } else {
+                link["cause"]
+                    .as_str()
+                    .map(|c| format!(" ({c})"))
+                    .unwrap_or_default()
+            };
+            writeln!(out, "{}  link {}{tail}", s(&d["target"]), s(&link["state"]))?;
+            let waiting = d["aborted"]["cancelled_waiting"].as_u64().unwrap_or(0);
+            let in_flight = d["aborted"]["in_flight"] == true;
+            if waiting > 0 || in_flight {
+                writeln!(
+                    out,
+                    "  aborted: {waiting} waiting{}",
+                    if in_flight {
+                        ", in-flight request aborted (outcome unknown)"
+                    } else {
+                        ""
+                    }
+                )?;
+            }
+            Ok(())
+        }
+        "uds.forget" => writeln!(
+            out,
+            "{}  forgotten (last generation {})",
+            s(&d["target"]),
+            s(&d["last_generation"])
+        ),
+        "uds.tester_present" => {
+            let tp = &d["state"]["tester_present"];
+            if tp.is_object() {
+                writeln!(
+                    out,
+                    "{}  TesterPresent on every {} ms ({})",
+                    s(&d["target"]),
+                    s(&tp["interval_ms"]),
+                    if tp["suppress"] == false { "3E 00" } else { "3E 80" }
+                )
+            } else {
+                writeln!(
+                    out,
+                    "{}  TesterPresent off{}",
+                    s(&d["target"]),
+                    d["state"]["tp_stop_cause"]
+                        .as_str()
+                        .map(|c| format!(" ({c})"))
+                        .unwrap_or_default()
+                )
+            }
+        }
+        "uds.security_unlock" => {
+            if d["row"].is_object() {
+                render_row(d, out)?;
+            }
+            let level = d["level"].as_u64().unwrap_or(0);
+            if d["already_unlocked"] == true {
+                writeln!(
+                    out,
+                    "{}  security level {level:02X} already unlocked (zero seed; no key sent)",
+                    s(&d["target"])
+                )
+            } else {
+                writeln!(
+                    out,
+                    "{}  security level {level:02X} unlocked (seed {})",
+                    s(&d["target"]),
+                    s(&d["seed_request_id"])
+                )
+            }
+        }
+        "uds.db.set" => {
+            writeln!(
+                out,
+                "{}  DB {} attached ({}, {} DIDs{})",
+                s(&d["target"]),
+                s(&d["db"]["hash"]),
+                s(&d["db"]["ecu"]),
+                s(&d["db"]["dids"]),
+                if d["replaced"] == true {
+                    "; replaced the previous DB"
+                } else {
+                    ""
+                }
+            )?;
+            for w in d["warnings"].as_array().into_iter().flatten() {
+                writeln!(out, "  warning: {}", s(w))?;
+            }
+            Ok(())
+        }
+        "uds.db.clear" => {
+            if d["cleared"] == true {
+                writeln!(out, "{}  DB cleared (ISO DID table only)", s(&d["target"]))
+            } else {
+                writeln!(out, "{}  no DB attached", s(&d["target"]))
+            }
+        }
         _ if d.get("row").is_some() => render_row(d, out),
         _ => writeln!(out, "{}", serde_json::to_string_pretty(d).unwrap_or_default()),
     }

@@ -26,6 +26,10 @@ gap or server loss): read [references/live-logs.md](references/live-logs.md). In
 | `loom uds dtc list [--mask 09] -t T` | `uds.dtc.list` | R0 |
 | `loom uds raw '22 F1 90' -t T [--dry-run]` | `uds.request` | from the bytes |
 | `loom uds trace -t T --tail N` / `abort` / `help --json` | `uds.trace` / `uds.abort` / `uds.help` | — |
+| `loom uds tp on --interval-ms 2000 -t T` / `tp off -t T` | `uds.tester_present` | R0 (3E 80) |
+| `loom uds disconnect -t T [--abort]` / `forget -t T` | `uds.disconnect` / `uds.forget` | — (no UDS bytes) |
+| `loom uds unlock --level 01 --provider NAME -t T` | `uds.security_unlock` | R3 (sendKey) |
+| `loom uds db set --file X.json -t T` / `db clear -t T` | `uds.db.set` / `uds.db.clear` | — (decoding only) |
 
 ## Procedure
 1. `loom uds status` — target, link, session (+confidence), lease. Connect only to addresses the user gave.
@@ -33,6 +37,38 @@ gap or server loss): read [references/live-logs.md](references/live-logs.md). In
 3. Write, then read back to verify. `--dry-run` previews bytes, service and risk without sending.
 4. If a result has `others_since_last.count > 0`, read `loom events --since <from_cursor> --domain uds --channel <target>` before the next write.
 5. When done with a non-default session, `session default`.
+
+## Session keep-alive, disconnect, forget
+- TesterPresent is **off** until someone starts it. `tp on` needs `--interval-ms` (500–30000) below the
+  ECU's S3; there is no default. It sends only while the target is idle, and never between a request and its response.
+- It stops by itself on link loss, STOP, `disconnect`, a lease taken by someone else, a session reset or 3 failures, and
+  **never restarts by itself**. `uds.state.tester_present` = null plus `tp_stop_cause` tells you why. Restart it only if
+  the task still needs the session.
+- `disconnect` closes the link on purpose: no reconnect, and `link.state = closed`. A busy target is refused (`E_BUSY`)
+  unless you pass `--abort`, which aborts queued and in-flight requests. In-flight writes end `outcome_unknown`.
+- `connect` again with new parameters replaces a closed target, and its generation continues. `forget` removes a closed
+  target.
+- Every row carries `generation`/`backend`/`addr` of the link it used. Evidence from different generations is
+  different links.
+
+## Security unlock (0x27)
+- Use `loom uds unlock --level LL --provider NAME`. The provider is a program **the user** configured in `loom.toml`
+  `[[uds.key_providers]]` (absolute path, fixed args, allowed levels). You can only name it. Never write or edit that
+  config, never compute keys yourself, and never pass a key on the command line.
+- One call = seed (`<rid>.seed`, R1), then the provider (bounded time and output, no shell, cleared environment), then
+  sendKey (the call's own row, R3). An all-zero seed means already unlocked: no key is sent.
+- **Never retry** after any failure: NRC 0x35 invalidKey, 0x36 exceededNumberOfAttempts, 0x37 requiredTimeDelayNotExpired,
+  or a provider error (`E_CONFIG`/`E_TIMEOUT`/`E_LIMIT`). Report it to the user. Repeated wrong keys lock the ECU out.
+- A provider must exit by itself. Loom kills the provider it started on timeout or oversized output, but not children
+  the provider starts. On Windows the provider is an `.exe` (`.bat`/`.cmd` are refused because they run through
+  cmd.exe).
+
+## Diagnostic DB
+- `db set --file X.json` attaches a `loom_diag` v1 DB (≤ 48 KiB, read by the CLI, sent inline) for DID names, units and
+  scaling. DIDs missing from it fall back to the ISO table, then to raw hex.
+- It **never changes risk**: risk comes from the bytes, and `writable` flags are informational.
+- Rows decoded with a DB carry `db_hash`, and `uds.state.db` shows the attached DB. A replaced (reconnected with new
+  parameters) target starts without a DB.
 
 ## Risk and approvals (F1)
 - Every request is classified R0–R4 from its actual bytes and the class is always shown; by default
@@ -65,5 +101,6 @@ gap or server loss): read [references/live-logs.md](references/live-logs.md). In
 - No answer within the timeout is not proof that something did not happen; say `inconclusive`.
 
 ## Never
-- Talk to an ECU outside `loom uds`, resend `outcome_unknown` writes, retry 0x27 after a failure,
+- Talk to an ECU outside `loom uds`, resend `outcome_unknown` writes, retry 0x27 / `unlock` after a failure,
+  configure or run a seed/key provider yourself, leave a TesterPresent job running after the task,
   retake a target the user holds, write while STOP is on, or edit policy files to lower a risk class.

@@ -31,6 +31,25 @@ pub enum PolicyValue {
     Deny,
 }
 
+/// One seed→key provider (U2). Configured only by the user in `loom.toml` `[[uds.key_providers]]`;
+/// an RPC can only name it. Run without a shell, with a cleared environment, seed hex on stdin,
+/// one key hex line on stdout, bounded time and output, never retried.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct KeyProviderConfig {
+    /// `[A-Za-z0-9_.-]{1,64}`, referenced by `uds.security_unlock {provider}`.
+    pub name: String,
+    /// Absolute path of the executable (no shell, no PATH lookup).
+    pub command: String,
+    /// Fixed arguments (≤ 16, each ≤ 256 chars). The seed never goes on the command line.
+    #[serde(default)]
+    pub args: Vec<String>,
+    /// Default 2000, at most 10000.
+    pub timeout_ms: Option<u32>,
+    /// Allowed requestSeed sub-functions (odd, 0x01–0x7D).
+    pub levels: Vec<u8>,
+}
+
 /// `[uds]` in `loom.toml`.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 pub struct PolicySection {
@@ -41,4 +60,7 @@ pub struct PolicySection {
     /// Keys `"0xSID:*"` or `"0xSID:0xSUB"` (e.g. `"0x31:*" = "deny"`, `"0x10:0x02" = "approve"`).
     #[serde(default)]
     pub policy: BTreeMap<String, PolicyValue>,
+    /// Seed→key providers for `uds.security_unlock` (U2). Empty = unlock unavailable.
+    #[serde(default)]
+    pub key_providers: Vec<KeyProviderConfig>,
 }

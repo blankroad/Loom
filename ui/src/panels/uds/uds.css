@@ -63,6 +63,9 @@
 .uds-wb .pane-h { flex: none; height: 26px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 10px; background: var(--wb-sf); border-bottom: 1px solid var(--wb-line); font-size: 11.5px; font-weight: 600; color: var(--wb-muted); white-space: nowrap; min-width: 0; }
 .uds-wb .pane-h .bsel { font: 11px var(--wb-mono); color: var(--wb-text); font-weight: 400; padding-right: 6px; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .uds-wb .pane-h .hcount { font: 11px var(--wb-mono); font-weight: 400; color: var(--wb-muted); margin-left: 4px; }
+/* U4: labelled export buttons size to their label (no JSON/CSV overlap) */
+.uds-wb .pane-h .ibtn.exp { width: auto; min-width: 0; padding: 0 6px; gap: 3px; }
+.uds-wb .pane-h .ibtn.exp small { white-space: nowrap; line-height: 1; }
 .uds-wb .pane-note { margin: 0; padding: 6px 10px; font-size: 11px; color: var(--wb-muted); border-top: 1px solid var(--wb-line2); line-height: 1.4; flex: none; }
 .uds-wb .rail { border: 1px solid var(--wb-line); background: var(--wb-bg); border-radius: var(--wb-radius); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0; color: var(--wb-muted); font-size: 11px; min-height: 0; }
 .uds-wb .rail span { writing-mode: vertical-rl; white-space: nowrap; }
@@ -119,7 +122,7 @@
 .uds-wb .req-msg.err { color: var(--wb-err); }
 .uds-wb .req-msg.warn { color: var(--wb-warn); }
 .uds-wb .hist { min-height: 0; }
-.uds-wb .hist { --tcols: 44px 96px 52px 132px 112px 84px minmax(170px, 1fr) 136px 30px 64px; }
+.uds-wb .hist { --tcols: 44px 108px 72px 132px 112px 84px 136px 30px 64px minmax(170px, 1fr); }
 .uds-wb .divider { position: relative; z-index: 3; touch-action: none; }
 .uds-wb .divider.h { cursor: row-resize; }
 .uds-wb .divider::after { content: ""; position: absolute; left: 0; right: 0; top: 2px; bottom: 2px; border-radius: 2px; background: transparent; }
@@ -591,13 +594,23 @@
 .uds-wb .uds-ds-fixed { color: var(--wb-muted); }
 .uds-wb .uds-ds-issues { font-size: 11.5px; color: var(--wb-warn); margin: 4px 0 0; }
 .uds-wb .uds-ds-issues:empty { display: none; }
-.uds-wb .uds-ds-dtcgrid { grid-template-columns: minmax(7em, 1fr) 7em; border: 1px solid var(--wb-line2); border-radius: var(--wb-radius); background: var(--wb-bg); }
+.uds-wb .uds-ds-dtcgrid { grid-template-columns: minmax(7em, auto) 5em minmax(0, 1fr); border: 1px solid var(--wb-line2); border-radius: var(--wb-radius); background: var(--wb-bg); }
+/* U3: ISO 14229-1 status-bit badges (set bits only; dashed = not in the ECU's availability mask) */
+.uds-wb .dtc-bits { display: flex; flex-wrap: wrap; gap: 3px; min-width: 0; }
+.uds-wb .dtc-bit { font: 600 10px var(--wb-mono); padding: 0 4px; border-radius: 3px; background: var(--wb-sf2); color: var(--wb-text); text-decoration: none; }
+.uds-wb .dtc-bit.b0 { color: var(--wb-err); }
+.uds-wb .dtc-bit.b3 { color: var(--wb-warn); }
+.uds-wb .dtc-bit.b2 { color: var(--u-pend); }
+.uds-wb .dtc-bit.na { border: 1px dashed var(--wb-line); }
+.uds-wb .dtc-fbar { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
 .uds-wb .uds-ds-note { font-size: 11px; color: var(--wb-muted); margin: 4px 0 0; }
 
 /* history: VirtualTable with the reference columns (rowHeight 22) */
 .uds-wb .hist-host { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.uds-wb .hist .vt-head, .uds-wb .hist .vt-row { gap: 0; padding: 0; min-width: max-content; }
-.uds-wb .hist .vt-th, .uds-wb .hist .vt-td { padding: 0 7px; border-right: 1px solid var(--wb-line2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* U4: one fixed width for header and every row (sum of fixed tracks 782px + response min 170px), so all rows share
+   the header's tracks; a long response is clipped in its own (last) cell instead of widening its row */
+.uds-wb .hist .vt-head, .uds-wb .hist .vt-row { gap: 0; padding: 0; min-width: 952px; }
+.uds-wb .hist .vt-th, .uds-wb .hist .vt-td { padding: 0 7px; border-right: 1px solid var(--wb-line2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .uds-wb .hist .vt-row { font: 12px/var(--u-row) var(--wb-mono); background: var(--wb-bg); border-bottom: 1px solid var(--wb-line2); }
 .uds-wb .hist .vt-td.c-no, .uds-wb .hist .vt-td.c-p, .uds-wb .hist .vt-td.c-el { text-align: right; }
 .uds-wb .hist .vt-td.c-ecu, .uds-wb .hist .vt-td.c-st { font-family: var(--wb-ui); font-size: 11.5px; }
@@ -624,3 +637,23 @@
 .uds-wb .wf-run .r-ok { color: var(--wb-ok); } .uds-wb .wf-run .r-bad { color: var(--wb-err); }
 .uds-wb .ct-tab th, .uds-wb .wt-tbl th { text-align: left; }
 .uds-wb .ct-tab td, .uds-wb .ct-tab th { padding: 2px 6px; border-bottom: 1px solid var(--wb-line2); }
+
+/* ---- operator upgrade B4: U6 disconnect/forget · U1 TP job · U2 unlock/seed · U5 diagnostic DB ---- */
+.uds-wb .link-st.closed { background: var(--u-late-bg); color: var(--u-late); }
+.uds-wb .link-st.closed::before { content: "⊘ "; }
+.uds-wb .reconn-note { font-size: 11px; padding: 1px 6px; border-radius: 3px; background: var(--wb-warn-bg); color: var(--wb-warn); white-space: nowrap; }
+.uds-wb [data-cmd="disconnect"].armed, .uds-wb [data-cmd="unlock"].armed { background: var(--wb-err-bg); color: var(--wb-err); border-color: var(--wb-err); }
+.uds-wb .tp-row .tp-iv { width: 78px; }
+.uds-wb .tp-row .unit { font-size: 11px; color: var(--wb-muted); }
+.uds-wb .sec-row .k { font-size: 12px; color: var(--wb-muted); }
+.uds-wb .sec-row .sec-level { width: 46px; font-family: var(--wb-mono); text-transform: uppercase; }
+.uds-wb .sec-row .sec-prov { width: 132px; min-width: 0; flex: 1 1 96px; }
+.uds-wb .sec-msg.err, .uds-wb .db-msg.err { color: var(--wb-err); }
+.uds-wb .sec-msg.warn { color: var(--wb-warn); }
+.uds-wb .db-text { display: block; width: 100%; box-sizing: border-box; min-height: 64px; max-height: 180px; resize: vertical; font: 11px/1.35 var(--wb-mono); margin: 4px 0; }
+.uds-wb .db-saved { max-width: 150px; min-width: 0; }
+.uds-wb .db-info b { font-family: var(--wb-mono); font-weight: 600; color: inherit; }
+.uds-wb .seed-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0 0; padding: 4px 6px; border: 1px dashed var(--wb-line); border-radius: 4px; font-size: 12px; }
+.uds-wb .seed-bar .k { color: var(--wb-muted); }
+.uds-wb .seed-bar .seed-hex { font-family: var(--wb-mono); overflow-wrap: anywhere; min-width: 0; }
+.uds-wb .hist .vt-td.c-rt.gen-old { color: var(--wb-muted); }

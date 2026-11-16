@@ -121,6 +121,23 @@ impl PriorityGate {
         }
     }
 
+    /// B2-L1 (Sonnet body): take the gate only if it is free AND nobody waits (TesterPresent must
+    /// never delay or overtake real traffic). Never queues.
+    pub fn try_acquire(&self, lane: Lane, origin: Origin, request_id: &str) -> Option<Permit<'_>> {
+        let _ = (lane, origin, request_id);
+        let mut q = lock(&self.q);
+        if q.busy || !q.waiters.is_empty() {
+            return None;
+        }
+        q.busy = true;
+        Some(Permit { gate: self })
+    }
+
+    /// B2-L2 (Sonnet body): a permit is held (a request is inside the runner or about to be).
+    pub fn is_busy(&self) -> bool {
+        lock(&self.q).busy
+    }
+
     /// Hand the gate to the next waiter whose caller is still waiting, or mark it free.
     fn release(&self) {
         let mut q = lock(&self.q);

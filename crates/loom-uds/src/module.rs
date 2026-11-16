@@ -136,6 +136,62 @@ mod params {
     /// `uds.help`.
     #[derive(JsonSchema)]
     pub struct Help {}
+
+    /// `uds.disconnect` (U6): close the link on purpose; no reconnect. Sends no UDS bytes.
+    #[derive(JsonSchema)]
+    pub struct Disconnect {
+        /// Target to close (required: never "the only target" implicitly).
+        pub target: String,
+        /// Abort waiting / in-flight requests first (in-flight writes end `outcome_unknown`).
+        /// Without it a busy target is refused with `E_BUSY` and nothing changes.
+        pub abort: Option<bool>,
+    }
+
+    /// `uds.forget` (U6): remove a closed (or dead, not reconnecting) target from the daemon.
+    #[derive(JsonSchema)]
+    pub struct Forget {
+        pub target: String,
+    }
+
+    /// `uds.tester_present` (U1): periodic TesterPresent keep-alive job, default off.
+    #[derive(JsonSchema)]
+    pub struct TesterPresent {
+        pub target: Option<String>,
+        /// `true` starts (or replaces) the job, `false` stops it.
+        pub on: bool,
+        /// Required when `on` is true: 500–30000 ms. No default (ECU S3 differs per ECU).
+        pub interval_ms: Option<u32>,
+        /// `3E 80` (default true) or `3E 00`.
+        pub suppress: Option<bool>,
+    }
+
+    /// `uds.security_unlock` (U2): requestSeed → key from a provider configured in `loom.toml` → sendKey.
+    /// Risk R3 (the sendKey `27 level+1`); never retried.
+    #[derive(JsonSchema)]
+    pub struct SecurityUnlock {
+        pub target: Option<String>,
+        /// requestSeed sub-function: odd, 0x01–0x7D (sendKey is level + 1).
+        pub level: u8,
+        /// Name of a `[[uds.key_providers]]` entry in the user's `loom.toml` (the command is never an RPC param).
+        pub provider: String,
+        /// Per-request timeout of the seed and of the key request (the provider's own timeout comes from loom.toml).
+        pub timeout_ms: Option<u32>,
+    }
+
+    /// `uds.db.set` (U5): attach an inline `loom_diag` v1 DB (≤ 48 KiB serialized) to an open target.
+    /// Decoding only: names/units of `0x62` rows; risk never changes.
+    #[derive(JsonSchema)]
+    pub struct DbSet {
+        pub target: String,
+        /// The DB object itself (`{"loom_diag": 1, "ecu"?, "dids": [...]}`); the daemon never reads a path.
+        pub db: serde_json::Value,
+    }
+
+    /// `uds.db.clear` (U5): detach the target's DB (back to the ISO table).
+    #[derive(JsonSchema)]
+    pub struct DbClear {
+        pub target: String,
+    }
 }
 
 /// The UDS domain module, as `loomd` registers it (`&loom_uds::UdsModule`).
@@ -299,6 +355,15 @@ pub fn help_spec() -> HelpSpec {
             ex("loom uds session extended -t ecu1", "enter the extended session (R1)"),
             ex("loom uds dtc list --mask 09 -t ecu1", "DTCs with testFailed|confirmed (R0)"),
             ex("loom uds raw '22 F1 90' -t ecu1 --dry-run", "preview bytes, service and risk without sending"),
+            ex("loom uds tp on --interval-ms 2000 -t ecu1", "keep a non-default session alive (3E 80 while idle)"),
+            ex("loom uds disconnect -t ecu1", "close the link on purpose (no reconnect); connect again with new params"),
+            ex("loom uds forget -t ecu1", "remove a closed target from the daemon"),
+            ex(
+                "loom uds unlock --level 01 --provider bench -t ecu1",
+                "SecurityAccess with a key provider from loom.toml (R3 sendKey; never retried)",
+            ),
+            ex("loom uds db set --file bench.json -t ecu1", "attach a loom_diag DB for DID names/units (no risk change)"),
+            ex("loom uds db clear -t ecu1", "back to the ISO DID table"),
         ],
         notes: vec![
             "Talk to ECUs only through `loom uds …`; never open UDS/DoIP libraries directly.".into(),
@@ -306,6 +371,16 @@ pub fn help_spec() -> HelpSpec {
             "0x2A ReadDataByPeriodicIdentifier and 0x86 ResponseOnEvent are not implemented (immutable_deny).".into(),
             "Never resend a write whose result is outcome_unknown; report it.".into(),
             "If others_since_last.count > 0, read the trace from from_cursor before the next write.".into(),
+            "TesterPresent is off unless started; it stops on link loss, STOP, disconnect, a lease taken by someone else \
+             or 3 failures, and never restarts by itself (check uds.state tester_present / tp_stop_cause)."
+                .into(),
+            "Rows carry generation/backend/addr of the link they were sent on; do not mix evidence across generations."
+                .into(),
+            "security_unlock: the key provider is chosen by name only and configured by the user in loom.toml \
+             [[uds.key_providers]]; on any failure (NRC 0x35 invalidKey, 0x36, provider error) report it, do not retry."
+                .into(),
+            "A diagnostic DB (uds.db.set) only names/scales DIDs; rows carry db_hash. Risk is always from the bytes."
+                .into(),
         ],
     }
 }
@@ -332,6 +407,10 @@ impl Reducer for StateReducer {
         let Some(target) = ev.payload.get("target").and_then(Value::as_str) else {
             return;
         };
+        if ev.payload.get("forgotten") == Some(&Value::Bool(true)) {
+            self.targets.remove(target);
+            return;
+        }
         self.counter += 1;
         if !self.targets.contains_key(target)
             && self.targets.len() >= MAX_SNAPSHOT_TARGETS
@@ -469,6 +548,54 @@ fn register_with(reg: &mut Registry, m: &Arc<UdsManager>) -> Result<(), Register
         h(handlers::lease_release),
     ))?
     .command(command(
+        "uds.disconnect",
+        schema_for!(Disconnect),
+        false,
+        w,
+        40,
+        h(handlers::disconnect),
+    ))?
+    .command(command(
+        "uds.forget",
+        schema_for!(Forget),
+        false,
+        w,
+        5,
+        h(handlers::forget),
+    ))?
+    .command(command(
+        "uds.tester_present",
+        schema_for!(TesterPresent),
+        false,
+        w,
+        5,
+        h(handlers::tester_present),
+    ))?
+    .command(command(
+        "uds.security_unlock",
+        schema_for!(SecurityUnlock),
+        true,
+        w,
+        45,
+        h(handlers::security_unlock),
+    ))?
+    .command(command(
+        "uds.db.set",
+        schema_for!(DbSet),
+        false,
+        w,
+        5,
+        h(handlers::db_set),
+    ))?
+    .command(command(
+        "uds.db.clear",
+        schema_for!(DbClear),
+        false,
+        w,
+        5,
+        h(handlers::db_clear),
+    ))?
+    .command(command(
         "uds.help",
         schema_for!(Help),
         false,
@@ -503,7 +630,7 @@ fn register_with(reg: &mut Registry, m: &Arc<UdsManager>) -> Result<(), Register
             ptr("/payload/generation", T::U32),
             ptr(
                 "/payload/link/state",
-                T::Enum(["up", "down", "connecting"].map(String::from).to_vec()),
+                T::Enum(["up", "down", "connecting", "closed"].map(String::from).to_vec()),
             ),
             ptr("/payload/session/id", T::U8),
             ptr("/payload/session/confidence", confidences()),

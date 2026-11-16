@@ -108,15 +108,21 @@ impl WriteHooks for UdsHooks {
             json!(format!("{:016x}", fnv1a64(&bytes))),
         );
         digest_fields.insert("functional".into(), json!(is_functional(req.args)));
+        let mut display = json!({
+            "service": c.service,
+            "req_hex": hex::encode(&bytes),
+            "risk": c.risk,
+            "reason": c.reason,
+            "functional": is_functional(req.args),
+        });
+        if req.method == "uds.security_unlock" {
+            let provider = json!(req.args["provider"].as_str());
+            digest_fields.insert("provider".into(), provider.clone());
+            display["provider"] = provider;
+        }
         Binding {
             digest_fields,
-            display: json!({
-                "service": c.service,
-                "req_hex": hex::encode(&bytes),
-                "risk": c.risk,
-                "reason": c.reason,
-                "functional": is_functional(req.args),
-            }),
+            display,
         }
     }
 
