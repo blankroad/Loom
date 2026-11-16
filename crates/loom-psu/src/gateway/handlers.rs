@@ -47,7 +47,9 @@ impl Handler for Forward {
             let ch = resolve_channel(&params, &self.1)?;
             let mut args = params;
             args["ch"] = json!(ch);
-            ctx.worker(WORKER_KIND)?.call(self.0, args, ctx.deadline()).await
+            ctx.worker_for(WORKER_KIND, &ch)?
+                .call(self.0, args, ctx.deadline())
+                .await
         })
     }
 }
@@ -95,7 +97,8 @@ impl Handler for Connect {
             if param_ch(&args).is_none() {
                 args["ch"] = json!("bench");
             }
-            ctx.worker(WORKER_KIND)?
+            let ch = param_ch(&args).unwrap_or("bench").to_owned();
+            ctx.worker_for(WORKER_KIND, &ch)?
                 .call("psu.connect", args, ctx.deadline())
                 .await
         })
@@ -111,7 +114,7 @@ impl Handler for Disconnect {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
             let ch = resolve_channel(&params, &self.0)?;
-            ctx.worker(WORKER_KIND)?
+            ctx.worker_for(WORKER_KIND, &ch)?
                 .call("psu.disconnect", json!({"ch": ch}), ctx.deadline())
                 .await
         })
@@ -141,8 +144,36 @@ fn preview(ctx: &CallCtx, hooks: &PsuHooks, method: &str, ch: &str, params: &Val
     json!({"dry_run": true, "risk": c.risk, "reason": c.reason, "blocked": c.block.is_some(), "op": op})
 }
 
-async fn write(ctx: &CallCtx, rid: &str, op: Value) -> Result<Value, DomainError> {
-    ctx.worker(WORKER_KIND)?.write(rid, op, ctx.deadline()).await
+/// B2-H1: write `op` through the worker instance of `ch` (PerChannel routing by the resolved
+/// channel — never the call's own, possibly absent, channel).
+async fn write_to(ctx: &CallCtx, ch: &str, rid: &str, op: Value) -> Result<Value, DomainError> {
+    ctx.worker_for(WORKER_KIND, ch)?
+        .write(rid, op, ctx.deadline())
+        .await
+}
+
+/// B2-H2: `targets` of an emergency OFF (`EmergencyOffSpec` sends `{"targets": ["*"]}`).
+/// Absent/null → `Ok(None)`; a list of non-empty strings → `Ok(Some(list))`; anything else → `E_USAGE`.
+pub fn targets_param(p: &Value) -> Result<Option<Vec<String>>, DomainError> {
+    let bad = || usage("targets must be a non-empty list of supply names or \"*\"");
+    match p.get("targets") {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::Array(items)) if !items.is_empty() => {
+            let mut out: Vec<String> = Vec::new();
+            for it in items {
+                match it.as_str() {
+                    Some(s) if !s.is_empty() => {
+                        if !out.iter().any(|o| o == s) {
+                            out.push(s.to_owned());
+                        }
+                    }
+                    _ => return Err(bad()),
+                }
+            }
+            Ok(Some(out))
+        }
+        Some(_) => Err(bad()),
+    }
 }
 
 /// `psu.set{ch, volt?, curr?, dry_run?}` (`v`/`i` accepted for the UI panel).
@@ -172,7 +203,7 @@ impl Handler for Set {
                 ));
             }
             let rid = ctx.request_id().unwrap_or("psu-set").to_owned();
-            write(ctx, &rid, op).await
+            write_to(ctx, &ch, &rid, op).await
         })
     }
 }
@@ -185,15 +216,39 @@ pub struct Out(pub PsuHooks);
 impl Handler for Out {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
+            let targets = targets_param(&params)?;
             let state = match params.get("state").and_then(Value::as_str) {
                 Some(s @ ("on" | "off")) => s.to_owned(),
+                None if targets.is_some() => "off".to_owned(),
                 _ => return Err(usage("out needs state on|off")),
             };
-            let chans = match (param_ch(&params), state.as_str()) {
-                (Some(c), _) => vec![c.to_owned()],
-                (None, "off") if !self.0.book.names().is_empty() => self.0.book.names(),
-                _ => vec![resolve_channel(&params, &self.0.book)?],
+            if targets.is_some() {
+                if state == "on" {
+                    return Err(usage("targets is for switching outputs off only"));
+                }
+                if param_ch(&params).is_some() {
+                    return Err(usage("give ch or targets, not both"));
+                }
+            }
+            let (chans, multi) = if let Some(t) = targets {
+                (
+                    if t.iter().any(|x| x == "*") {
+                        self.0.book.names()
+                    } else {
+                        t
+                    },
+                    true,
+                )
+            } else if let Some(c) = param_ch(&params) {
+                (vec![c.to_owned()], false)
+            } else if state == "off" && !self.0.book.names().is_empty() {
+                (self.0.book.names(), true)
+            } else {
+                (vec![resolve_channel(&params, &self.0.book)?], false)
             };
+            if chans.is_empty() {
+                return Ok(json!({"results": [], "note": "no supply connected"}));
+            }
             if dry(&params) {
                 let ch = chans.first().cloned().unwrap_or_default();
                 return Ok(preview(
@@ -206,19 +261,66 @@ impl Handler for Out {
                 ));
             }
             let rid = ctx.request_id().unwrap_or("psu-out").to_owned();
-            if let [ch] = chans.as_slice() {
-                return write(ctx, &rid, out_op(ch, &state)).await;
+            if !multi {
+                return write_to(ctx, &chans[0], &rid, out_op(&chans[0], &state)).await;
             }
             // Several supplies: one request id per supply keeps each write-row chain valid (E8).
             let mut results = Vec::new();
+            let mut failed: Vec<&str> = Vec::new();
             for ch in &chans {
-                let r = write(ctx, &format!("{rid}/{ch}"), out_op(ch, &state)).await;
+                let r = write_to(ctx, ch, &format!("{rid}/{ch}"), out_op(ch, &state)).await;
                 results.push(match r {
                     Ok(v) => json!({"ch": ch, "ok": true, "result": v}),
-                    Err(e) => json!({"ch": ch, "ok": false, "error": e.to_string()}),
+                    Err(e) => {
+                        failed.push(ch);
+                        json!({"ch": ch, "ok": false, "error": e.to_string(), "code": e.code})
+                    }
                 });
             }
-            Ok(json!({"results": results}))
+            if failed.is_empty() {
+                return Ok(json!({"results": results}));
+            }
+            Err(DomainError::new(
+                ErrorCode::Partial,
+                format!(
+                    "{}/{} supplies not confirmed off: {}",
+                    failed.len(),
+                    chans.len(),
+                    failed.join(", ")
+                ),
+            )
+            .with_detail(json!({"results": results})))
+        })
+    }
+}
+
+/// `psu.off{ch, dry_run?}` — fixed-OFF endpoint (B5-H1): one named supply OFF, never ON. Roles
+/// `RoleSet::READ` (watch viewers' emergency OFF), normal write pipeline (STOP/interlock rules as `psu.out` off).
+#[derive(Debug)]
+pub struct Off(pub PsuHooks);
+
+impl Handler for Off {
+    fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
+        Box::pin(async move {
+            if !params.is_object() {
+                return Err(usage("psu.off takes {ch}"));
+            }
+            if params.as_object().is_some_and(|o| {
+                o.keys()
+                    .any(|k| !matches!(k.as_str(), "ch" | "channel" | "dry_run"))
+            }) {
+                return Err(usage(
+                    "psu.off only switches one supply OFF: give ch (state/targets are not accepted)",
+                ));
+            }
+            let ch = param_ch(&params)
+                .ok_or_else(|| usage("psu.off needs ch"))?
+                .to_owned();
+            if dry(&params) {
+                return Ok(preview(ctx, &self.0, "psu.off", &ch, &params, out_op(&ch, "off")));
+            }
+            let rid = ctx.request_id().unwrap_or("psu-off").to_owned();
+            write_to(ctx, &ch, &rid, out_op(&ch, "off")).await
         })
     }
 }
@@ -243,7 +345,7 @@ impl Handler for Cycle {
                 return Ok(preview(ctx, &self.0, "psu.cycle", &ch, &params, op));
             }
             let rid = ctx.request_id().unwrap_or("psu-cycle").to_owned();
-            write(ctx, &rid, op).await
+            write_to(ctx, &ch, &rid, op).await
         })
     }
 }

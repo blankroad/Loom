@@ -3,8 +3,10 @@
 //! Scope (CONTRACT.md): a narrow generic SCPI line profile — `*IDN?`, `VOLT`/`VOLT?`,
 //! `CURR`/`CURR?`, `OUTP`/`OUTP?`, `MEAS:VOLT?`, `MEAS:CURR?`, `SYST:ERR?` — to a **loopback**
 //! software endpoint. Not VISA, USB-TMC, GPIB or LAN instruments; no vendor compatibility is
-//! claimed. Reset, cycle, lists and protection handling are refused by the worker, never
-//! simulated.
+//! claimed. Reset, lists and protection handling are refused by the worker, never simulated.
+//! `cycle` (PSU-04, operator upgrade B2) is `OUTP OFF` → verified OFF → monotonic wait on the IO
+//! thread (polling continues) → `OUTP ON` → verified; once OFF, STOP (agent/script), a later
+//! output write, link loss or disconnect means ON is never sent (terminal row says why).
 //!
 //! One dedicated thread owns the socket. Callbacks hand it work over a bounded queue and await a
 //! thread-signalled reply; STOP (`LatchFlag`) is read by the thread before every agent/script
@@ -393,6 +395,8 @@ struct Shared {
     set_v: Option<f64>,
     set_i: Option<f64>,
     out: Option<bool>,
+    /// A cycle is in its OFF phase (`psu.state.cycling`, interlock `psu.cycling`).
+    cycling: bool,
     last: Option<Sample>,
     samples: u64,
     timeouts: u64,
@@ -426,6 +430,21 @@ pub enum Act {
     Set(Option<f64>, Option<f64>),
     /// `OUTP ON|OFF`.
     Out(bool),
+    /// Power cycle: `OUTP OFF`, wait `off_ms` (1..=MAX_CYCLE_OFF_MS, monotonic), `OUTP ON`.
+    Cycle(u64),
+}
+
+/// The ON half of a cycle whose OFF was verified (FUNCTIONS.md B2-S1).
+#[derive(Debug)]
+struct PendingOn {
+    /// When ON is due (monotonic).
+    on_at: Instant,
+    /// When the OFF read-back confirmed OFF (start of the measured off time).
+    off_confirmed_at: Instant,
+    /// Requested off time.
+    off_ms: u64,
+    /// The cycle request (terminal row chains to it).
+    cause: Cause,
 }
 
 #[derive(Debug, Clone)]
@@ -456,6 +475,8 @@ struct Io {
     shared: Arc<Mutex<Shared>>,
     closing: Arc<AtomicBool>,
     rx: Receiver<Cmd>,
+    /// OFF-verified cycle waiting for its ON (at most one).
+    pending: Option<PendingOn>,
 }
 
 fn ts_now(em: &Emitter) -> Ts {
@@ -474,10 +495,10 @@ impl Io {
         };
         json!({
             "ch": self.ch, "backend": BACKEND, "address": self.address.to_string(), "idn": s.idn,
-            "set_v": s.set_v, "set_i": s.set_i, "out": s.out.unwrap_or(false), "out_known": s.out.is_some(),
+            "set_v": s.set_v, "set_i": s.set_i, "out": s.out.unwrap_or(false), "out_known": s.out.is_some() && s.link == LinkState::Up, "out_last_verified": s.out,
             "prot": "unknown", "mode": mode, "vmax": self.limits.vmax, "imax": self.limits.imax,
             "connected": s.link == LinkState::Up, "link": s.link.as_str(), "lost_why": s.lost_why,
-            "cycling": false, "generation": self.generation,
+            "cycling": s.cycling, "generation": self.generation,
         })
     }
 
@@ -650,6 +671,7 @@ impl Io {
         let action = match act {
             Act::Set(..) => "set",
             Act::Out(_) => "out",
+            Act::Cycle(_) => "cycle",
         };
         let failed = |io: &Io, code: ErrorCode, msg: String, extra: Value| {
             let mut p = json!({"action": action, "error": {"code": code, "message": msg}});
@@ -680,6 +702,10 @@ impl Io {
                 json!({"sent": false}),
             );
         }
+        // A write that will be sent replaces a pending ON of an earlier cycle (never both).
+        if matches!(act, Act::Out(_) | Act::Cycle(_)) {
+            self.supersede_cycle(cause);
+        }
         let cmds: Vec<(String, &str, Value)> = match act {
             Act::Set(v, i) => {
                 if let Some(why) = self.limits.violation(v, i) {
@@ -699,10 +725,12 @@ impl Io {
                 "OUTP?",
                 json!(on),
             )],
+            Act::Cycle(off_ms) => return self.cycle_off(off_ms, cause, until),
         };
         let sent_payload = match act {
             Act::Set(v, i) => json!({"action": "set", "volt": v, "curr": i}),
             Act::Out(on) => json!({"action": "out", "state": if on { "on" } else { "off" }}),
+            Act::Cycle(off_ms) => json!({"action": "cycle", "off_ms": off_ms}),
         };
         let mut readback = serde_json::Map::new();
         let mut lines = Vec::new();
@@ -825,6 +853,225 @@ impl Io {
         }
     }
 
+    /// B2-S3: OFF half of a cycle (FUNCTIONS.md). Returns `Sent` once OFF is verified and the ON is
+    /// pending; any other outcome is terminal and ON is never sent.
+    fn cycle_off(&mut self, off_ms: u64, cause: &Cause, until: Instant) -> WriteOutcome {
+        let failed = |io: &Io, code: ErrorCode, msg: String, extra: Value| {
+            let mut p = json!({"action": "cycle", "error": {"code": code, "message": msg}});
+            if let (Some(o), Value::Object(e)) = (p.as_object_mut(), extra) {
+                o.extend(e);
+            }
+            io.row(cause, WriteState::Failed, p);
+            WriteOutcome {
+                state: WriteState::Failed,
+                detail: Value::Null,
+                error: Some(err(code, msg)),
+            }
+        };
+        if Instant::now() >= until {
+            return failed(
+                self,
+                ErrorCode::Timeout,
+                "request deadline passed before the command was sent".into(),
+                json!({"sent": false}),
+            );
+        }
+        if let Err(e) = self.link.send("OUTP OFF") {
+            let not_sent = matches!(e, IoFail::NotSent(_));
+            self.fail_io(&e);
+            if not_sent {
+                return failed(self, ErrorCode::Disconnected, e.text(), json!({"sent": false}));
+            }
+            return self.unknown(cause, "cycle", &e, &[]);
+        }
+        self.row(
+            cause,
+            WriteState::Sent,
+            json!({"action": "cycle", "off_ms": off_ms, "phase": "off"}),
+        );
+        let lines = vec!["OUTP OFF".to_owned()];
+        let e = match self.link.query("SYST:ERR?") {
+            Ok(r) => r,
+            Err(e) => {
+                self.fail_io(&e);
+                return self.unknown(cause, "cycle", &e, &lines);
+            }
+        };
+        match parse_err(&e) {
+            Some((0, _)) => {}
+            Some((code, msg)) => {
+                self.state_after_readback();
+                return failed(
+                    self,
+                    ErrorCode::Denied,
+                    format!("supply refused \"OUTP OFF\": {code},{msg}"),
+                    json!({"device_error": {"code": code, "message": msg}}),
+                );
+            }
+            None => {
+                let f = IoFail::Broken(format!("unparsable SYST:ERR? reply {e:?}"));
+                self.fail_io(&f);
+                return self.unknown(cause, "cycle", &f, &lines);
+            }
+        }
+        let r = match self.link.query("OUTP?") {
+            Ok(r) => r,
+            Err(e) => {
+                self.fail_io(&e);
+                return self.unknown(cause, "cycle", &e, &lines);
+            }
+        };
+        let b = parse_bool(&r);
+        if let Some(b) = b {
+            self.sh().out = Some(b);
+        }
+        if b != Some(false) {
+            self.row(
+                cause,
+                WriteState::EffectUnverified,
+                json!({"action": "cycle", "phase": "off", "readback": {"out": b}, "on_sent": false,
+                       "note": "output not confirmed OFF; ON not sent"}),
+            );
+            self.state_if_changed(cause);
+            return WriteOutcome {
+                state: WriteState::EffectUnverified,
+                detail: json!({"phase": "off", "readback": {"out": b}, "on_sent": false}),
+                error: None,
+            };
+        }
+        let t = Instant::now();
+        self.sh().cycling = true;
+        self.pending = Some(PendingOn {
+            on_at: t + Duration::from_millis(off_ms),
+            off_confirmed_at: t,
+            off_ms,
+            cause: cause.clone(),
+        });
+        self.state_if_changed(cause);
+        WriteOutcome {
+            state: WriteState::Sent,
+            detail: json!({"phase": "off", "off_ms": off_ms, "readback": {"out": false},
+                           "on_at_mono_ns": U64(self.em.clock().mono_ns() + off_ms * 1_000_000)}),
+            error: None,
+        }
+    }
+
+    /// B2-S4: a later output/cycle write that will be sent supersedes a pending ON (terminal row for
+    /// the old cycle; ON not sent).
+    fn supersede_cycle(&mut self, by: &Cause) {
+        let Some(p) = self.pending.take() else { return };
+        self.sh().cycling = false;
+        self.row(
+            &p.cause,
+            WriteState::EffectUnverified,
+            json!({"action": "cycle", "phase": "on", "sent": false, "superseded_by": by.request_id}),
+        );
+        self.state_if_changed(by);
+    }
+
+    /// B2-S5: ends a pending cycle without sending ON (terminal `failed` row with `code`/`message`).
+    fn drop_cycle(&mut self, code: ErrorCode, message: &str) {
+        let Some(p) = self.pending.take() else { return };
+        self.sh().cycling = false;
+        self.row(
+            &p.cause,
+            WriteState::Failed,
+            json!({"action": "cycle", "phase": "on", "sent": false, "error": {"code": code, "message": message}}),
+        );
+        self.state_if_changed(&p.cause);
+    }
+
+    /// B2-S6: ON half of a due cycle (re-checks STOP/link/closing first).
+    fn finish_cycle(&mut self) {
+        let Some(origin) = self.pending.as_ref().map(|p| p.cause.origin) else {
+            return;
+        };
+        if self.closing.load(Ordering::Acquire) {
+            return self.drop_cycle(
+                ErrorCode::Disconnected,
+                "disconnected during the off phase; ON not sent; last verified output OFF (link closed, current state not observed)",
+            );
+        }
+        if self.latch.is_on() && origin != Origin::User {
+            return self.drop_cycle(
+                ErrorCode::Stopped,
+                "STOP latched during the off phase; ON not sent, output left OFF",
+            );
+        }
+        if self.sh().link != LinkState::Up {
+            return self.drop_cycle(
+                ErrorCode::Disconnected,
+                "link lost during the off phase; ON not sent; last verified output OFF, current state unknown",
+            );
+        }
+        let Some(p) = self.pending.take() else { return };
+        self.sh().cycling = false;
+        self.link.cap = Some(Instant::now() + WRITE_BUDGET);
+        'on: {
+            let on_sent = Instant::now();
+            if let Err(e) = self.link.send("OUTP ON") {
+                self.fail_io(&e);
+                let _ = self.unknown(&p.cause, "cycle", &e, &[]);
+                break 'on;
+            }
+            let lines = vec!["OUTP ON".to_owned()];
+            let e = match self.link.query("SYST:ERR?") {
+                Ok(r) => r,
+                Err(e) => {
+                    self.fail_io(&e);
+                    let _ = self.unknown(&p.cause, "cycle", &e, &lines);
+                    break 'on;
+                }
+            };
+            match parse_err(&e) {
+                Some((0, _)) => {}
+                Some((code, msg)) => {
+                    self.state_after_readback();
+                    self.row(
+                        &p.cause,
+                        WriteState::Failed,
+                        json!({"action": "cycle", "phase": "on",
+                               "error": {"code": ErrorCode::Denied, "message": format!("supply refused \"OUTP ON\": {code},{msg}")},
+                               "device_error": {"code": code, "message": msg}}),
+                    );
+                    break 'on;
+                }
+                None => {
+                    let f = IoFail::Broken(format!("unparsable SYST:ERR? reply {e:?}"));
+                    self.fail_io(&f);
+                    let _ = self.unknown(&p.cause, "cycle", &f, &lines);
+                    break 'on;
+                }
+            }
+            let r = match self.link.query("OUTP?") {
+                Ok(r) => r,
+                Err(e) => {
+                    self.fail_io(&e);
+                    let _ = self.unknown(&p.cause, "cycle", &e, &lines);
+                    break 'on;
+                }
+            };
+            let b = parse_bool(&r);
+            if let Some(b) = b {
+                self.sh().out = Some(b);
+            }
+            let st = if b == Some(true) {
+                WriteState::EffectiveVerified
+            } else {
+                WriteState::EffectUnverified
+            };
+            self.row(
+                &p.cause,
+                st,
+                json!({"action": "cycle", "phase": "on", "readback": {"out": b}, "off_ms": p.off_ms,
+                       "off_ms_actual": u64::try_from(on_sent.duration_since(p.off_confirmed_at).as_millis()).unwrap_or(u64::MAX),
+                       "lines": lines}),
+            );
+        }
+        self.link.cap = None;
+        self.state_if_changed(&p.cause);
+    }
+
     /// Best-effort refresh of set values after a device error (no-op if it fails: link lost).
     fn state_after_readback(&mut self) {
         for q in ["VOLT?", "CURR?"] {
@@ -869,11 +1116,14 @@ impl Io {
                 break;
             }
             let up = self.sh().link == LinkState::Up;
-            let wait = if up {
+            let mut wait = if up {
                 next.saturating_duration_since(Instant::now())
             } else {
                 Duration::from_millis(200)
             };
+            if let Some(p) = &self.pending {
+                wait = wait.min(p.on_at.saturating_duration_since(Instant::now()));
+            }
             match self.rx.recv_timeout(wait) {
                 Ok(Cmd::Write(act, cause, until, tx)) => {
                     {
@@ -885,19 +1135,26 @@ impl Io {
                     self.link.cap = None;
                     tx.send(o);
                 }
-                Err(RecvTimeoutError::Timeout) if up => {
-                    self.poll();
-                    next += period;
-                    let now = Instant::now();
-                    if next <= now {
-                        // Behind (slow answers): one outstanding query, the actual rate drops.
-                        next = now + period;
-                    }
-                }
                 Err(RecvTimeoutError::Timeout) => {}
                 Err(RecvTimeoutError::Disconnected) => break,
             }
+            if self.pending.as_ref().is_some_and(|p| p.on_at <= Instant::now()) {
+                self.finish_cycle();
+            }
+            if self.sh().link == LinkState::Up && Instant::now() >= next {
+                self.poll();
+                next += period;
+                let now = Instant::now();
+                if next <= now {
+                    // Behind (slow answers): one outstanding query, the actual rate drops.
+                    next = now + period;
+                }
+            }
         }
+        self.drop_cycle(
+            ErrorCode::Disconnected,
+            "disconnected during the off phase; ON not sent; last verified output OFF (link closed, current state not observed)",
+        );
         // Commands still queued get a truthful answer; nothing is sent.
         while let Ok(Cmd::Write(_, cause, _, tx)) = self.rx.try_recv() {
             let o = WriteOutcome {
@@ -984,6 +1241,7 @@ pub fn connect(
             set_v: parse_f(&rb[0]),
             set_i: parse_f(&rb[1]),
             out: parse_bool(&rb[2]),
+            cycling: false,
             last: None,
             samples: 0,
             timeouts: 0,
@@ -1006,6 +1264,7 @@ pub fn connect(
             shared: Arc::clone(&shared),
             closing: Arc::clone(&closing),
             rx: crx,
+            pending: None,
         };
         io.state_if_changed(&Cause {
             origin: Origin::Device,
@@ -1130,11 +1389,16 @@ impl ScpiDevice {
         };
         json!({
             "ch": self.ch, "backend": BACKEND, "address": self.address.to_string(), "idn": s.idn,
-            "set_v": s.set_v, "set_i": s.set_i, "out": s.out.unwrap_or(false), "out_known": s.out.is_some(),
+            "set_v": s.set_v, "set_i": s.set_i, "out": s.out.unwrap_or(false), "out_known": s.out.is_some() && s.link == LinkState::Up, "out_last_verified": s.out,
             "prot": "unknown", "mode": mode, "vmax": self.limits.vmax, "imax": self.limits.imax,
             "connected": s.link == LinkState::Up, "link": s.link.as_str(), "lost_why": s.lost_why,
-            "cycling": false, "generation": self.generation,
+            "cycling": s.cycling, "generation": self.generation,
         })
+    }
+
+    /// B5-S1: the connected limits (F1 same-alias config check).
+    pub fn limits(&self) -> Limits {
+        self.limits
     }
 
     /// Non-blocking snapshot (`psu.status`).

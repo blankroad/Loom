@@ -46,6 +46,8 @@ pub struct Inject {
 
 #[derive(Debug)]
 struct PendingCycle {
+    /// Worker mono ns when the output went OFF (measured off time = ON time − this).
+    off_at_ns: u64,
     on_at_ns: u64,
     request_id: String,
     origin: Origin,
@@ -248,16 +250,31 @@ impl Device {
 
     fn finish_cycle(&mut self, cx: &WorkerCtx, at_ns: u64) {
         let Some(c) = self.cycle.take() else { return };
+        let cause = Cause {
+            origin: c.origin,
+            request_id: Some(&c.request_id),
+            client_id: c.client_id.as_deref(),
+        };
+        // STOP during the OFF phase: ON is never sent for agent/script cycles (user cycles are not latched, A3).
+        if cx.latch().is_on() && c.origin != Origin::User {
+            write_row(
+                self,
+                cx,
+                &cause,
+                at_ns,
+                WriteState::Failed,
+                json!({"action": "cycle", "phase": "on", "sent": false,
+                       "error": {"code": ErrorCode::Stopped,
+                                 "message": "STOP latched during the off phase; ON not sent, output left OFF"}}),
+            );
+            self.state_if_changed(cx, at_ns, &cause);
+            return;
+        }
         self.sim.output(true, c.on_at_ns);
         let st = if self.sim.out {
             WriteState::EffectiveVerified
         } else {
             WriteState::EffectUnverified
-        };
-        let cause = Cause {
-            origin: c.origin,
-            request_id: Some(&c.request_id),
-            client_id: c.client_id.as_deref(),
         };
         write_row(
             self,
@@ -265,7 +282,8 @@ impl Device {
             &cause,
             at_ns,
             st,
-            json!({"action": "cycle", "phase": "on", "readback": {"out": self.sim.out, "prot": self.sim.prot.as_str()}}),
+            json!({"action": "cycle", "phase": "on", "readback": {"out": self.sim.out, "prot": self.sim.prot.as_str()},
+                   "off_ms_actual": at_ns.saturating_sub(c.off_at_ns) / 1_000_000}),
         );
         self.state_if_changed(cx, at_ns, &cause);
     }
@@ -344,6 +362,25 @@ fn outcome(state: WriteState, detail: Value, error: Option<WorkerError>) -> Writ
 }
 
 impl PsuWorker {
+    /// B2-W1: `E_NOT_OPEN` when `args` names a channel (`ch`/`channel`) other than the supply this
+    /// worker process drives (a misrouted PerChannel call must never touch this supply).
+    fn foreign_ch(&self, args: &Value) -> Option<WorkerError> {
+        let asked = param_ch(args)?;
+        let own = if let Some(e) = &self.ext {
+            e.ch.as_str()
+        } else if let Some(d) = &self.dev {
+            d.ch.as_str()
+        } else {
+            return None;
+        };
+        (asked != own).then(|| {
+            err(
+                ErrorCode::NotOpen,
+                format!("this worker drives {own}, not {asked}"),
+            )
+        })
+    }
+
     fn dev(&mut self) -> Result<&mut Device, WorkerError> {
         self.dev.as_mut().ok_or_else(|| {
             err(
@@ -354,6 +391,7 @@ impl PsuWorker {
     }
 
     fn connect(&mut self, cx: &WorkerCtx, args: &Value) -> Result<Value, WorkerError> {
+        let limits = Limits::requested(args).map_err(|m| err(ErrorCode::Usage, m))?;
         let ch = param_ch(args).unwrap_or("bench").to_owned();
         if let Some(e) = &self.ext {
             return Err(err(
@@ -366,14 +404,23 @@ impl PsuWorker {
         }
         if let Some(d) = &self.dev {
             if d.ch == ch {
-                return Ok(d.status());
+                if let Some(why) = config_mismatch(&d.sim.limits, args, &["seed", "load"]) {
+                    return Err(err(
+                        ErrorCode::PortBusy,
+                        format!("{ch} is already connected: {why}; disconnect first"),
+                    ));
+                }
+                let mut st = d.status();
+                if let Some(o) = st.as_object_mut() {
+                    o.insert("already_connected".into(), json!(true));
+                }
+                return Ok(st);
             }
             return Err(err(
                 ErrorCode::PortBusy,
                 format!("this worker already drives {}", d.ch),
             ));
         }
-        let limits = Limits::from_value(args);
         let mut sim = SimPsu::new(limits, args.get("seed").and_then(Value::as_u64).unwrap_or(0x5EED));
         if let Some(l) = args.get("load") {
             sim.load = load_from(l, sim.load);
@@ -402,6 +449,7 @@ impl PsuWorker {
     /// generation after the old IO thread is joined (bounded).
     async fn connect_scpi(&mut self, cx: &WorkerCtx, call: &Call) -> Result<Value, WorkerError> {
         let args = &call.args;
+        let limits = Limits::requested(args).map_err(|m| err(ErrorCode::Usage, m))?;
         let ch = param_ch(args).unwrap_or("bench").to_owned();
         if self.dev.is_some() {
             return Err(err(
@@ -430,7 +478,17 @@ impl PsuWorker {
             }
             if e.link() == LinkState::Up {
                 if e.address == addr {
-                    return Ok(e.status(now));
+                    if let Some(why) = config_mismatch(&e.limits(), args, &[]) {
+                        return Err(err(
+                            ErrorCode::PortBusy,
+                            format!("{ch} is already connected: {why}; disconnect first"),
+                        ));
+                    }
+                    let mut st = e.status(now);
+                    if let Some(o) = st.as_object_mut() {
+                        o.insert("already_connected".into(), json!(true));
+                    }
+                    return Ok(st);
                 }
                 return Err(err(
                     ErrorCode::PortBusy,
@@ -457,7 +515,7 @@ impl PsuWorker {
             ch.clone(),
             addr,
             generation,
-            Limits::from_value(args),
+            limits,
             cx.emitter(&ch),
             cx.latch().clone(),
             until,
@@ -574,12 +632,12 @@ impl PsuWorker {
                 Some("off") => Act::Out(false),
                 _ => return refuse(ErrorCode::Usage, "out needs state on|off".into()),
             },
-            "cycle" => {
-                return refuse(
-                    ErrorCode::NotImplemented,
-                    "cycle is not implemented for scpi-tcp (refused, not simulated)".into(),
-                );
-            }
+            "cycle" => match w.op.get("off_ms").and_then(Value::as_u64) {
+                Some(ms) if (1..=MAX_CYCLE_OFF_MS).contains(&ms) => Act::Cycle(ms),
+                _ => {
+                    return refuse(ErrorCode::Usage, format!("off_ms must be 1..={MAX_CYCLE_OFF_MS}"));
+                }
+            },
             other => return refuse(ErrorCode::Usage, format!("unknown action {other:?}")),
         };
         let until = until_of(cx, w.deadline_mono_ns.get(), scpi::WRITE_BUDGET);
@@ -663,6 +721,11 @@ impl Worker for PsuWorker {
             if call.method == "psu.disconnect" {
                 return self.disconnect(cx, &call).await;
             }
+            if call.method != "psu.connect"
+                && let Some(e) = self.foreign_ch(&call.args)
+            {
+                return Err(e);
+            }
             if let Some(e) = &self.ext {
                 return match call.method.as_str() {
                     "psu.status" => Ok(e.status(now)),
@@ -711,6 +774,9 @@ impl Worker for PsuWorker {
 
     fn on_write<'a>(&'a mut self, cx: &'a WorkerCtx, w: Write) -> BoxFuture<'a, WriteOutcome> {
         Box::pin(async move {
+            if let Some(e) = self.foreign_ch(&w.op) {
+                return outcome(WriteState::Failed, json!({"sent": false}), Some(e));
+            }
             if self.ext.is_some() {
                 return self.write_scpi(cx, w).await;
             }
@@ -799,8 +865,24 @@ impl Worker for PsuWorker {
                     if off_ms == 0 || off_ms > MAX_CYCLE_OFF_MS {
                         return fail(d, ErrorCode::Usage, format!("off_ms 1..={MAX_CYCLE_OFF_MS}"));
                     }
+                    if let Some(old) = d.cycle.take() {
+                        let oc = Cause {
+                            origin: old.origin,
+                            request_id: Some(&old.request_id),
+                            client_id: old.client_id.as_deref(),
+                        };
+                        write_row(
+                            d,
+                            cx,
+                            &oc,
+                            now,
+                            WriteState::EffectUnverified,
+                            json!({"action": "cycle", "phase": "on", "sent": false, "superseded_by": w.request_id}),
+                        );
+                    }
                     d.sim.output(false, now);
                     d.cycle = Some(PendingCycle {
+                        off_at_ns: now,
                         on_at_ns: now + off_ms * 1_000_000,
                         request_id: w.request_id.clone(),
                         origin: w.origin,

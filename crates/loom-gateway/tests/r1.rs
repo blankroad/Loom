@@ -50,12 +50,12 @@ impl D {
         c
     }
     fn viewer(&self) -> Client {
+        self.viewer_rights(loom_proto::rpc::Rights::Operate)
+    }
+    /// A viewer with exactly `rights` (watch: see + STOP + emergency OFF only).
+    fn viewer_rights(&self, rights: loom_proto::rpc::Rights) -> Client {
         let port = self.run().addr.port();
-        let code = self
-            .run()
-            .daemon
-            .auth
-            .issue_code(loom_proto::rpc::Rights::Operate);
+        let code = self.run().daemon.auth.issue_code(rights);
         let (session, _) = self.run().daemon.auth.redeem(&code).unwrap();
         let mut c = Client::connect(
             port,
@@ -539,10 +539,125 @@ fn stop_reports_observed_held_outputs_without_switching_them_off() {
         std::thread::sleep(Duration::from_millis(100));
     };
     let h = held.as_array().unwrap_or_else(|| panic!("{held}"));
-    let bench = h.iter().find(|o| o["domain"] == "psu" && o["channel"] == "bench").unwrap_or_else(|| panic!("{held}"));
+    let bench = h
+        .iter()
+        .find(|o| o["domain"] == "psu" && o["channel"] == "bench")
+        .unwrap_or_else(|| panic!("{held}"));
     let text = bench["description"].as_str().unwrap();
-    assert!(text.contains("out ON") && text.contains("last reported") && text.contains("not re-measured"), "{text}");
+    assert!(
+        text.contains("out ON") && text.contains("last reported") && text.contains("not re-measured"),
+        "{text}"
+    );
     // STOP did not switch the output off: the device still reports it on
     let m = a.request("psu.meas", json!({"ch": "bench"}));
     assert_ne!(m["result"]["data"]["out"], false, "{m}");
+}
+
+/// PSU operator upgrade R2 (work/reports/operator-upgrade/psu/PLAN.md §3): with PerChannel psu workers
+/// (one process per alias), switching "every supply off" must reach EVERY instance, not one.
+fn psu_two_on(d: &D) -> Client {
+    let mut a = d.agent("agent-alloff");
+    for ch in ["pa", "pb"] {
+        let r = a.request("psu.connect", json!({"ch": ch, "backend": "sim"}));
+        assert_eq!(r["result"]["ok"], true, "{r}");
+        let r = a.request("psu.out", json!({"ch": ch, "state": "on"}));
+        assert_eq!(r["result"]["ok"], true, "{ch} on: {r}");
+    }
+    assert_eq!(psu_outs(&mut a), (json!(true), json!(true)));
+    a
+}
+
+fn psu_outs(a: &mut Client) -> (Value, Value) {
+    let mut o = |ch: &str| {
+        let r = a.request("psu.status", json!({"ch": ch}));
+        assert_eq!(r["result"]["ok"], true, "{ch}: {r}");
+        r["result"]["data"]["out"].clone()
+    };
+    (o("pa"), o("pb"))
+}
+
+/// Declared emergency OFF (`psu.emergency_off`, daemon sends `psu.out{targets:["*"]}`) from a viewer.
+#[test]
+fn psu_emergency_off_reaches_every_per_channel_worker() {
+    let d = D::start(Duration::from_millis(300));
+    let mut a = psu_two_on(&d);
+    // the safe-state runner is the user's path (emergency OFF: any viewer), not an agent's
+    let mut v = d.viewer();
+    let r = v.request("core.safe_state.run", json!({"ids": ["psu.emergency_off"]}));
+    assert_eq!(
+        r["result"]["items"][0]["outcome"], "sent",
+        "emergency OFF outcome: {r}"
+    );
+    assert_eq!(
+        psu_outs(&mut a),
+        (json!(false), json!(false)),
+        "emergency OFF must reach both aliases: {r}"
+    );
+    drop((a, v));
+    d.shutdown();
+}
+
+/// Channel-less `psu.out{state:"off"}` (gateway Out handler: every known supply, one request id each).
+#[test]
+fn psu_channelless_out_off_reaches_every_per_channel_worker() {
+    let d = D::start(Duration::from_millis(300));
+    let mut a = psu_two_on(&d);
+    let r = a.request("psu.out", json!({"state": "off"}));
+    assert_eq!(r["result"]["ok"], true, "{r}");
+    let res = r["result"]["data"]["results"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(res.len(), 2, "one result per supply: {r}");
+    assert!(res.iter().all(|x| x["ok"] == true), "{r}");
+    assert_eq!(psu_outs(&mut a), (json!(false), json!(false)), "{r}");
+    drop(a);
+    d.shutdown();
+}
+
+/// PSU operator upgrade B5 (ROOT-UI-OFF-FAILURE.md): the gauge `!` is a **watch** right action. The real
+/// daemon role guard refused it on `psu.out` (operate). `psu.off{ch}` is the fixed-OFF endpoint:
+/// watch may switch exactly the named alias OFF (also under STOP), never ON; `psu.out` stays operate-only.
+#[test]
+fn psu_watch_viewer_fixed_off_is_alias_scoped() {
+    let d = D::start(Duration::from_millis(300));
+    let mut a = psu_two_on(&d);
+    let mut v = d.viewer_rights(loom_proto::rpc::Rights::Watch);
+    let denied = v.request("psu.out", json!({"channel": "pa", "state": "off"}));
+    assert_eq!(denied["result"]["ok"], false, "{denied}");
+    assert_eq!(
+        denied["result"]["error"]["code"], "E_DENIED",
+        "psu.out stays operate-only: {denied}"
+    );
+    let on = v.request("psu.off", json!({"channel": "pa", "state": "on"}));
+    assert_eq!(
+        on["result"]["error"]["code"], "E_USAGE",
+        "psu.off never takes a state: {on}"
+    );
+    assert_eq!(
+        psu_outs(&mut a),
+        (json!(true), json!(true)),
+        "nothing switched yet"
+    );
+    let off = v.request("psu.off", json!({"channel": "pa"}));
+    assert_eq!(off["result"]["ok"], true, "{off}");
+    assert_eq!(off["result"]["data"]["state"], "effective_verified", "{off}");
+    assert_eq!(
+        psu_outs(&mut a),
+        (json!(false), json!(true)),
+        "alias-scoped: pb stays ON"
+    );
+    // under STOP the agent is refused, the watch viewer's OFF still works
+    assert_eq!(
+        a.request("core.stop", json!({"reason": "b5 fixed-off under STOP"}))["result"]["on"],
+        true
+    );
+    let ag = a.request("psu.off", json!({"ch": "pb"}));
+    assert_eq!(ag["result"]["error"]["code"], "E_STOPPED", "{ag}");
+    assert_eq!(psu_outs(&mut a), (json!(false), json!(true)));
+    let off = v.request("psu.off", json!({"channel": "pb"}));
+    assert_eq!(off["result"]["ok"], true, "{off}");
+    assert_eq!(psu_outs(&mut a), (json!(false), json!(false)));
+    drop((a, v));
+    d.shutdown();
 }

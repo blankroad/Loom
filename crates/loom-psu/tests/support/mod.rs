@@ -61,9 +61,19 @@ fn ready<F: Future>(f: F) -> F::Output {
 #[derive(Default)]
 pub struct FakeJournal {
     pub events: Mutex<Vec<PublishedRecord>>,
+    /// B5 F5: when set, each scan reads at most this many bytes and a reached byte budget is
+    /// reported exactly as the daemon does (`core_rpc.rs` `journal_read_bounded`):
+    /// `Err(E_SCAN_LIMIT, detail {resume_from, partial, scanned_bytes})`.
+    pub limit_err: Mutex<Option<u64>>,
+    /// With `limit_err`: `""` = the daemon's shape, `"malformed"` = detail without `resume_from`,
+    /// `"stuck"` = resume_from equal to the query's `from` and no partial (non-advancing).
+    pub limit_err_shape: Mutex<&'static str>,
 }
 
 impl FakeJournal {
+    pub fn scan_limit_error(&self, cap_bytes: u64) {
+        *self.limit_err.lock().expect("lock") = Some(cap_bytes);
+    }
     pub fn all(&self) -> Vec<PublishedRecord> {
         self.events.lock().expect("lock").clone()
     }
@@ -82,9 +92,23 @@ impl JournalReader for FakeJournal {
         q: &'a JournalQuery,
         _limit: u64,
     ) -> BoxFuture<'a, Result<ScanResult, DomainError>> {
+        let cap = *self.limit_err.lock().expect("lock");
+        let shape = *self.limit_err_shape.lock().expect("lock");
+        let _limit = cap.map_or(_limit, |c| c.min(_limit));
         Box::pin(async move {
+            if cap.is_some() && shape == "stuck" {
+                return Err(DomainError::new(
+                    loom_proto::error::ErrorCode::ScanLimit,
+                    "scan budget reached — continue from resume_from",
+                )
+                .with_detail(
+                    json!({"resume_from": q.from.to_string(), "partial": [], "scanned_bytes": "0"}),
+                ));
+            }
             let from = match &q.from {
                 Cursor::Seq { seq, .. } => *seq,
+                // as the daemon ring: `now` = after the current high-water mark
+                Cursor::Now => self.last_seq() + 1,
                 _ => 0,
             };
             let until = match &q.until {
@@ -121,6 +145,24 @@ impl JournalReader for FakeJournal {
                 if matching {
                     out.push(e.clone());
                 }
+            }
+            // as the daemon ring: a complete read has examined everything up to the upper bound
+            if resume_from.is_none() {
+                scanned_through = scanned_through.max(all.last().map_or(0, |e| e.seq.get()).min(until));
+            }
+            // byte budget (not the row cap) stopped this scan
+            if let (Some(_), Some(r)) = (cap, &resume_from)
+                && out.len() < q.max_events as usize
+            {
+                return Err(DomainError::new(
+                    loom_proto::error::ErrorCode::ScanLimit,
+                    "scan budget reached — continue from resume_from",
+                )
+                .with_detail(if shape == "malformed" {
+                    json!({"partial": out, "scanned_bytes": scanned_bytes.to_string()})
+                } else {
+                    json!({"resume_from": r.to_string(), "partial": out, "scanned_bytes": scanned_bytes.to_string()})
+                }));
             }
             Ok(ScanResult {
                 events: out,
@@ -300,6 +342,25 @@ pub struct Services {
     pub journal: Arc<FakeJournal>,
     pub bridge: Bridge,
     approvals: NoApprovals,
+    /// Channels handlers asked for via `worker_for` (PerChannel routing, R2).
+    pub routed: Mutex<Vec<String>>,
+}
+
+/// `worker_for` handle: records the channel, forwards to the single test bridge.
+pub struct Routed<'a>(&'a Bridge);
+
+impl WorkerHandle for Routed<'_> {
+    fn call<'a>(
+        &'a self,
+        method: &'a str,
+        args: Value,
+        d: Instant,
+    ) -> BoxFuture<'a, Result<Value, DomainError>> {
+        self.0.call(method, args, d)
+    }
+    fn write<'a>(&'a self, rid: &'a str, op: Value, d: Instant) -> BoxFuture<'a, Result<Value, DomainError>> {
+        self.0.write(rid, op, d)
+    }
 }
 
 impl Services {
@@ -313,6 +374,7 @@ impl Services {
                 ops: Mutex::new(vec![]),
             },
             approvals: NoApprovals,
+            routed: Mutex::new(Vec::new()),
         })
     }
 
@@ -324,6 +386,10 @@ impl Services {
 impl CtxServices for Services {
     fn worker(&self, _kind: &str) -> Result<&dyn WorkerHandle, DomainError> {
         Ok(&self.bridge)
+    }
+    fn worker_for(&self, _kind: &str, channel: &str) -> Result<Box<dyn WorkerHandle + '_>, DomainError> {
+        self.routed.lock().expect("lock").push(channel.to_owned());
+        Ok(Box::new(Routed(&self.bridge)))
     }
     fn publish(&self, _d: GwDraft) -> Result<(), DomainError> {
         Ok(())

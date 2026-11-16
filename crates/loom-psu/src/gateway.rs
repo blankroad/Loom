@@ -3,6 +3,7 @@
 pub mod common;
 pub mod evidence;
 pub mod handlers;
+pub mod history;
 pub mod hooks;
 
 use std::sync::Arc;
@@ -14,9 +15,10 @@ use loom_proto::policy::WriteClass;
 use schemars::{Schema, json_schema};
 use serde_json::{Value, json};
 
-use self::common::ChannelBook;
+use self::common::{ChannelBook, TimeIndex};
 use self::evidence::{PsuEvidence, PsuReducer, PsuSummarizer};
 use self::handlers::*;
+use self::history::History;
 use self::hooks::{InterlockView, PsuHooks, no_interlocks};
 use crate::model::*;
 use crate::{DOMAIN, KIND_MEAS, KIND_STATE, KIND_WRITE, MAX_CHANNELS, WORKER_KIND};
@@ -179,6 +181,12 @@ fn risk_table() -> RiskTable {
                 "output OFF; interlocks refuse agent/script, warn the user",
             ),
             row(
+                "psu.off",
+                None,
+                Risk::R3,
+                "output OFF (fixed-OFF endpoint; any viewer incl. watch); interlocks as output OFF",
+            ),
+            row(
                 "psu.cycle",
                 None,
                 Risk::R3,
@@ -196,12 +204,13 @@ pub fn panel_manifest() -> Value {
         // No default channel: an unbound gauge (PSU module tab) subscribes to nothing and sends nothing.
         "topics": [{"key": "psu", "filter": {"domains": [DOMAIN], "channelParam": "channel"},
                     "encoding": "json", "snapshot": "required", "mirrorRows": 1000}],
-        "queries": ["psu.status", "psu.meas"],
+        "queries": ["psu.status", "psu.meas", "psu.history"],
         "actions": [
-            {"id": "emergencyOff", "rpc": "psu.out", "class": "request", "right": "watch", "confirm": "none",
+            {"id": "emergencyOff", "rpc": "psu.off", "class": "request", "right": "watch", "confirm": "none",
              "safetyDirection": "reduce", "label": "비상 OFF"},
             {"id": "output", "rpc": "psu.out", "class": "request", "right": "operate", "confirm": "none", "label": "출력 토글"},
             {"id": "set", "rpc": "psu.set", "class": "request", "right": "operate", "confirm": "none", "label": "설정"},
+            {"id": "cycle", "rpc": "psu.cycle", "class": "request", "right": "operate", "confirm": "none", "label": "전원 사이클"},
             {"id": "connect", "rpc": "psu.connect", "class": "request", "right": "operate", "confirm": "none", "label": "PSU 연결"},
             {"id": "disconnect", "rpc": "psu.disconnect", "class": "request", "right": "operate", "confirm": "none", "label": "PSU 연결 해제"}
         ],
@@ -232,15 +241,21 @@ pub fn help() -> HelpSpec {
             ex("loom psu out bench on", "output ON (R3)"),
             ex("loom psu wait-for bench --curr-lt 0.005 --hold 5s --timeout 60s", "sleep current held 5 s"),
             ex("loom psu watch bench --for 10s", "min/max/mean over 10 s"),
+            ex(
+                "loom psu history bench --last 8h",
+                "journaled samples over the last 8 h: stats page + next_cursor (repeat with --cursor until null)",
+            ),
             ex("loom psu cycle bench --off 2s", "power cycle (R3)"),
         ],
         notes: vec![
             format!("Profile limits (default {DEFAULT_VMAX} V / {DEFAULT_IMAX} A) are refused with exit 4, never clamped; only the user raises them in loom.toml."),
-            "Wait with wait-for, never sleep. Exit 3 timeout, 6 the user switched the output off (emergency OFF) — stop and ask.".into(),
+            "Wait with wait-for, never sleep; after a write (out on, cycle, set) pass --since now, or the hold may match samples from before the write. Exit 3 timeout, 6 the user switched the output off (emergency OFF) — stop and ask.".into(),
+            "psu.off{ch} is the viewer emergency OFF of one supply (watch allowed, OFF only); agents use `out <name> off`.".into(),
             "Emergency OFF and STOP belong to the user: never switch the output back on after one without asking.".into(),
             format!("Interlocks {} refuse agent `out off`/`cycle` (exit 6 E_LOCKED).", RESPECTED_INTERLOCKS.join(", ")),
             "Read-back is the supply's average; inrush needs a scope. Unanswered polls are gaps, never interpolated.".into(),
-            "scpi-tcp: loopback only; VOLT/CURR/OUTP/MEAS:VOLT?/MEAS:CURR?/SYST:ERR? only. cycle, sim inject, reset, lists and \
+            "scpi-tcp: loopback only; VOLT/CURR/OUTP/MEAS:VOLT?/MEAS:CURR?/SYST:ERR? only. cycle = OUTP OFF, verified OFF, wait, OUTP ON \
+             (ON is never sent after STOP, a later output write, link loss or disconnect). Sim inject, reset, lists and \
              protection are refused. A timeout or broken reply marks the link lost (no retry, no auto reconnect): \
              check, then connect again (new generation). Connect/STOP/disconnect never switch the output."
                 .into(),
@@ -254,6 +269,7 @@ impl DomainModule for Psu {
 
     fn register(&self, reg: &mut Registry) -> Result<(), RegisterError> {
         let book = ChannelBook::default();
+        let index = TimeIndex::default();
         let hooks = PsuHooks {
             book: book.clone(),
             interlocks: self.interlocks.clone(),
@@ -320,6 +336,18 @@ impl DomainModule for Psu {
                 Duration::from_millis(MAX_WATCH_MS) + DEFAULT_WAIT,
             ),
             spec(
+                "psu.history",
+                false,
+                Arc::new(History(book.clone(), index.clone())),
+                obj(
+                    json!({"ch": ch, "from_ms": {"type": "integer", "minimum": 0}, "last_ms": {"type": "integer", "minimum": 1},
+                           "to_ms": {"type": "integer", "minimum": 0}, "rows": {"type": "integer", "minimum": 0, "maximum": HISTORY_MAX_ROWS},
+                           "cursor": {"type": "string"}}),
+                    &[],
+                ),
+                DEFAULT_WAIT,
+            ),
+            spec(
                 "psu.wait_for",
                 false,
                 Arc::new(WaitFor(book.clone())),
@@ -346,6 +374,17 @@ impl DomainModule for Psu {
                 ),
                 DEFAULT_WAIT,
             ),
+            CommandSpec {
+                // Fixed-OFF endpoint: can never switch ON, so any viewer (watch) may call it.
+                roles: RoleSet::READ,
+                ..spec(
+                    "psu.off",
+                    true,
+                    Arc::new(Off(hooks.clone())),
+                    obj(json!({"ch": ch, "dry_run": dry}), &["ch"]),
+                    DEFAULT_WAIT,
+                )
+            },
             spec(
                 "psu.cycle",
                 true,
@@ -371,7 +410,7 @@ impl DomainModule for Psu {
         for c in commands {
             reg.command(c)?;
         }
-        for method in ["psu.set", "psu.out", "psu.cycle"] {
+        for method in ["psu.set", "psu.out", "psu.off", "psu.cycle"] {
             reg.dry_run_preview(method, RoleSet::READ)?;
         }
         for k in event_kinds() {
@@ -392,7 +431,7 @@ impl DomainModule for Psu {
                 arch: Arch::Native,
                 platforms: vec![Platform::Windows, Platform::Linux, Platform::Macos],
             })?
-            .reducer(Box::new(PsuReducer::new(book)))?
+            .reducer(Box::new(PsuReducer::with_index(book, index)))?
             .evidence_verifier(Arc::new(PsuEvidence))?
             .display_summarizer(Arc::new(PsuSummarizer))?
             // Same server action as the panel `!` and `psu.out{state:"off"}` (A3: no confirmation).

@@ -1,4 +1,4 @@
-//! CLI piece: `loom psu connect|status|meas|watch|wait-for|set|out|cycle|sim` (plan §5.1 d).
+//! CLI piece: `loom psu connect|status|meas|watch|history|wait-for|set|out|cycle|sim` (plan §5.1 d).
 
 use std::io;
 use std::time::Duration;
@@ -10,7 +10,7 @@ use loom_proto::envelope::Envelope;
 use serde_json::{Value, json};
 
 use crate::DOMAIN;
-use crate::model::MAX_CYCLE_OFF_MS;
+use crate::model::{HISTORY_MAX_SPAN_MS, MAX_CYCLE_OFF_MS};
 
 /// The `psu` CLI fragment.
 #[derive(Debug, Default)]
@@ -129,6 +129,40 @@ impl DomainCli for PsuCli {
                 Command::new("disconnect")
                     .about("Close the supply link; the output is held as-is (never switched)")
                     .arg(name()),
+            )
+            .subcommand(
+                Command::new("history")
+                    .about("Journaled samples over a wall-clock window: one stats page (+ rows); follow next_cursor")
+                    .arg(name())
+                    .arg(dur("last", "window ending now (≤ 24 h)").conflicts_with("from-ms"))
+                    .arg(
+                        Arg::new("from-ms")
+                            .long("from-ms")
+                            .value_name("EPOCH_MS")
+                            .value_parser(value_parser!(u64))
+                            .help("window start, unix epoch ms"),
+                    )
+                    .arg(
+                        Arg::new("to-ms")
+                            .long("to-ms")
+                            .value_name("EPOCH_MS")
+                            .value_parser(value_parser!(u64))
+                            .requires("from-ms")
+                            .help("window end, unix epoch ms (default now)"),
+                    )
+                    .group(ArgGroup::new("window").args(["last", "from-ms"]).required(true))
+                    .arg(
+                        Arg::new("rows")
+                            .long("rows")
+                            .value_parser(value_parser!(u32).range(0..=5000))
+                            .help("raw rows in this page (0 = stats only)"),
+                    )
+                    .arg(
+                        Arg::new("cursor")
+                            .long("cursor")
+                            .value_name("CURSOR")
+                            .help("next_cursor of the previous page (same window)"),
+                    ),
             )
             .subcommand(
                 Command::new("watch")
@@ -265,6 +299,29 @@ impl DomainCli for PsuCli {
                     json!({"ch": get_name(s)?, "backend": backend, "visa": s.get_one::<String>("visa"),
                            "vmax": s.get_one::<f64>("vmax"), "imax": s.get_one::<f64>("imax"), "seed": s.get_one::<u64>("seed")}),
                 ))
+            }
+            Some(("history", s)) => {
+                let mut p = json!({"ch": get_name(s)?});
+                if let Some(d) = s.get_one::<Duration>("last") {
+                    let m = ms(*d);
+                    if m == 0 || m > HISTORY_MAX_SPAN_MS {
+                        return Err(UsageError::new("--last must be between 1ms and 24h"));
+                    }
+                    p["last_ms"] = json!(m);
+                }
+                if let Some(v) = s.get_one::<u64>("from-ms") {
+                    p["from_ms"] = json!(v);
+                }
+                if let Some(v) = s.get_one::<u64>("to-ms") {
+                    p["to_ms"] = json!(v);
+                }
+                if let Some(v) = s.get_one::<u32>("rows") {
+                    p["rows"] = json!(v);
+                }
+                if let Some(v) = s.get_one::<String>("cursor") {
+                    p["cursor"] = json!(v);
+                }
+                Ok(RpcCall::new("psu.history", p))
             }
             Some(("status", s)) => Ok(RpcCall::new("psu.status", json!({"ch": get_name(s)?}))),
             Some(("meas", s)) => Ok(RpcCall::new("psu.meas", json!({"ch": get_name(s)?}))),

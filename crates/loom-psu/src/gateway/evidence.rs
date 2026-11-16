@@ -15,7 +15,9 @@ use loom_proto::event::PublishedRecord;
 use loom_proto::rpc::SubFilter;
 use serde_json::{Value, json};
 
-use super::common::{ChannelBook, DEFAULT_MAX_GAP_MS, Step, channel_of, find_hold, ref_range, series};
+use super::common::{
+    Anchor, ChannelBook, DEFAULT_MAX_GAP_MS, Step, TimeIndex, channel_of, find_hold, ref_range, series,
+};
 use crate::model::{Condition, Quantity, metric};
 use crate::{KIND_MEAS, KIND_STATE};
 
@@ -222,16 +224,33 @@ struct ChanView {
 #[derive(Debug, Default)]
 pub struct PsuReducer {
     pub(crate) book: ChannelBook,
+    /// PSU-03: time→seq anchors for `psu.history` (shared with the handler).
+    pub(crate) index: TimeIndex,
     chans: BTreeMap<String, ChanView>,
 }
 
 impl PsuReducer {
     /// Reducer feeding the shared channel book.
     pub fn new(book: ChannelBook) -> PsuReducer {
+        PsuReducer::with_index(book, TimeIndex::default())
+    }
+
+    /// Reducer feeding the channel book and the `psu.history` anchor index.
+    pub fn with_index(book: ChannelBook, index: TimeIndex) -> PsuReducer {
         PsuReducer {
             book,
+            index,
             chans: BTreeMap::new(),
         }
+    }
+}
+
+/// B3-R1: the anchor of a `psu.meas` record (wall, epoch, seq). Used by `apply`.
+fn anchor_of(ev: &PublishedRecord) -> Anchor {
+    Anchor {
+        wall_ns: ev.ts.wall_ns.get(),
+        epoch: ev.epoch.get(),
+        seq: ev.seq.get(),
     }
 }
 
@@ -262,6 +281,7 @@ impl Reducer for PsuReducer {
                 self.book.update(&ch, &ev.payload, ev.generation);
             }
             KIND_MEAS => {
+                self.index.note(&ch, anchor_of(ev));
                 let (Some(v), Some(i)) = (metric(&ev.metrics, "voltage"), metric(&ev.metrics, "current"))
                 else {
                     return;

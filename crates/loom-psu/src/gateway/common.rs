@@ -1,7 +1,7 @@
 //! Shared gateway helpers: channel book (reducer writes, hooks/handlers read), bounded journal
 //! scan, a runtime-agnostic delay, and hold evaluation used by `wait_for` and evidence.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -12,11 +12,13 @@ use std::time::{Duration, Instant};
 use loom_domain_api::{CallCtx, DomainError, JournalQuery};
 use loom_proto::cursor::Cursor;
 use loom_proto::error::ErrorCode;
-use loom_proto::event::{Origin, PublishedRecord};
+use loom_proto::event::{GapData, Origin, PublishedRecord};
 use loom_proto::rpc::SubFilter;
 use serde_json::{Value, json};
 
-use crate::model::{Condition, Limits, POLL_PERIOD_NS, metric, param_ch};
+use crate::model::{
+    Condition, HISTORY_ANCHOR_EVERY_NS, HISTORY_ANCHORS_MAX, Limits, POLL_PERIOD_NS, metric, param_ch,
+};
 use crate::{DOMAIN, KIND_MEAS, KIND_STATE, KIND_WRITE};
 
 /// Supplies remembered by the gateway.
@@ -99,6 +101,182 @@ impl ChannelBook {
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// PSU-03 history: time→seq anchor index (fed by the reducer) and one bounded journal page.
+
+/// One anchor: a `psu.meas` record's wall time and stream position.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Anchor {
+    /// Record `ts.wall_ns`.
+    pub wall_ns: u64,
+    /// Stream epoch.
+    pub epoch: u64,
+    /// Stream seq.
+    pub seq: u64,
+}
+
+/// Where a history window can start reading.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Seek {
+    /// Latest anchor at or before the requested start.
+    At(Anchor),
+    /// The requested start is older than every anchor kept: start at the oldest one.
+    BeforeIndex(Anchor),
+    /// No anchor for this supply.
+    Empty,
+}
+
+#[derive(Debug, Default)]
+struct IndexCh {
+    anchors: VecDeque<Anchor>,
+    /// Anchors were dropped (cap reached or wall clock went backwards).
+    dropped: bool,
+}
+
+/// Bounded per-supply anchor index (≤ HISTORY_ANCHORS_MAX per supply, ≤ MAX_BOOK_CHANNELS supplies).
+#[derive(Debug, Clone, Default)]
+pub struct TimeIndex(Arc<Mutex<BTreeMap<String, IndexCh>>>);
+
+impl TimeIndex {
+    /// B3-I1: records `a` for `ch` when it is due (first, ≥ HISTORY_ANCHOR_EVERY_NS after the last, or a new epoch).
+    pub fn note(&self, ch: &str, a: Anchor) {
+        let Ok(mut map) = self.0.lock() else { return };
+        if !map.contains_key(ch) && map.len() >= MAX_BOOK_CHANNELS {
+            return;
+        }
+        let e = map.entry(ch.to_owned()).or_default();
+        match e.anchors.back() {
+            None => e.anchors.push_back(a),
+            Some(l) if a.wall_ns < l.wall_ns => {
+                // the wall clock stepped back: older anchors no longer order by time
+                e.anchors.clear();
+                e.dropped = true;
+                e.anchors.push_back(a);
+            }
+            Some(l) if a.epoch != l.epoch || a.wall_ns - l.wall_ns >= HISTORY_ANCHOR_EVERY_NS => {
+                e.anchors.push_back(a)
+            }
+            _ => {}
+        }
+        if e.anchors.len() > HISTORY_ANCHORS_MAX {
+            e.anchors.pop_front();
+            e.dropped = true;
+        }
+    }
+
+    /// B3-I2: where a window starting at `from_wall_ns` begins.
+    pub fn seek(&self, ch: &str, from_wall_ns: u64) -> Seek {
+        let Ok(map) = self.0.lock() else {
+            return Seek::Empty;
+        };
+        let Some(e) = map.get(ch) else { return Seek::Empty };
+        let Some(front) = e.anchors.front() else {
+            return Seek::Empty;
+        };
+        // ms resolution: window params are whole ms, anchors carry ns
+        let f = from_wall_ns / 1_000_000;
+        if front.wall_ns / 1_000_000 > f {
+            return Seek::BeforeIndex(*front);
+        }
+        let n = e.anchors.partition_point(|a| a.wall_ns / 1_000_000 <= f);
+        // key(front) <= f, so n >= 1
+        Seek::At(e.anchors[n - 1])
+    }
+
+    /// B3-I3: oldest anchor kept and whether anchors were ever dropped for `ch`.
+    pub fn coverage(&self, ch: &str) -> (Option<Anchor>, bool) {
+        let Ok(map) = self.0.lock() else {
+            return (None, false);
+        };
+        map.get(ch)
+            .map_or((None, false), |e| (e.anchors.front().copied(), e.dropped))
+    }
+}
+
+/// One bounded journal page for one supply.
+#[derive(Debug, Clone, Default)]
+pub struct ScanPage {
+    /// Matching events in stream order.
+    pub events: Vec<PublishedRecord>,
+    /// Where the next page starts (byte budget reached), with its epoch.
+    pub resume: Option<Cursor>,
+    /// Journal losses reported inside the scanned range (ring eviction, unreadable producer…).
+    pub gaps: Vec<GapData>,
+    /// Bytes scanned.
+    pub scanned_bytes: u64,
+}
+
+/// B3-P1: like [`scan`] but keeps the journal's own resume cursor (epoch included) and its gaps.
+pub async fn scan_page(ctx: &CallCtx, ch: &str, from: Cursor, budget: u64) -> Result<ScanPage, DomainError> {
+    let mut page = ScanPage::default();
+    let mut from = from;
+    let mut used = 0u64;
+    loop {
+        let q = JournalQuery {
+            from: from.clone(),
+            until: None,
+            filter: SubFilter {
+                channels: vec![ch.to_owned()],
+                kinds: SCAN_KINDS.iter().map(|k| (*k).to_owned()).collect(),
+                ..SubFilter::default()
+            },
+            request_id: None,
+            max_events: SCAN_EVENTS_PER_CALL,
+        };
+        let r = match ctx
+            .journal()
+            .scan(&q, SCAN_BYTES_PER_CALL.min(budget.saturating_sub(used)).max(1))
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                // B5-C1/C2: a reached daemon byte budget carries its partial page and resume cursor.
+                let usable = (e.code == ErrorCode::ScanLimit)
+                    .then(|| {
+                        let cur = e
+                            .detail
+                            .get("resume_from")
+                            .and_then(Value::as_str)
+                            .and_then(|c| c.parse::<Cursor>().ok())?;
+                        let partial = e
+                            .detail
+                            .get("partial")
+                            .and_then(|p| serde_json::from_value::<Vec<PublishedRecord>>(p.clone()).ok())?;
+                        Some((cur, partial))
+                    })
+                    .flatten();
+                let Some((cur, partial)) = usable else {
+                    return Err(e);
+                };
+                if partial.is_empty() && cur == from {
+                    return Err(e);
+                }
+                let bytes = match e.detail.get("scanned_bytes") {
+                    Some(Value::String(t)) => t.parse::<u64>().unwrap_or(0),
+                    Some(Value::Number(n)) => n.as_u64().unwrap_or(0),
+                    _ => 0,
+                };
+                used = used.saturating_add(bytes);
+                page.events.extend(partial);
+                page.scanned_bytes = used;
+                page.resume = Some(cur);
+                return Ok(page);
+            }
+        };
+        used = used.saturating_add(r.scanned_bytes);
+        page.scanned_bytes = used;
+        page.gaps.extend(r.gaps);
+        page.events.extend(r.events);
+        match r.resume_from {
+            Some(next) if used < budget => from = next,
+            other => {
+                page.resume = other;
+                return Ok(page);
+            }
+        }
+    }
+}
+
 /// Channel of a request: explicit, else the only known supply.
 pub fn resolve_channel(params: &Value, book: &ChannelBook) -> Result<String, DomainError> {
     if let Some(ch) = param_ch(params) {
@@ -160,6 +338,7 @@ pub async fn scan(
     let mut from = from;
     let mut used = 0u64;
     let mut gaps_seen = false;
+    let mut through = 0u64;
     loop {
         let q = JournalQuery {
             from: from.clone(),
@@ -172,21 +351,77 @@ pub async fn scan(
             request_id: None,
             max_events: SCAN_EVENTS_PER_CALL,
         };
-        let r = ctx
+        let r = match ctx
             .journal()
             .scan(&q, SCAN_BYTES_PER_CALL.min(budget.saturating_sub(used)).max(1))
-            .await?;
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                // B5-C1/C2: a reached daemon byte budget carries its partial page and resume cursor.
+                let usable = (e.code == ErrorCode::ScanLimit)
+                    .then(|| {
+                        let cur = e
+                            .detail
+                            .get("resume_from")
+                            .and_then(Value::as_str)
+                            .and_then(|c| c.parse::<Cursor>().ok())?;
+                        let partial = e
+                            .detail
+                            .get("partial")
+                            .and_then(|p| serde_json::from_value::<Vec<PublishedRecord>>(p.clone()).ok())?;
+                        Some((cur, partial))
+                    })
+                    .flatten();
+                let Some((cur, partial)) = usable else {
+                    return Err(e);
+                };
+                if partial.is_empty() && cur == from {
+                    return Err(e);
+                }
+                let bytes = match e.detail.get("scanned_bytes") {
+                    Some(Value::String(t)) => t.parse::<u64>().unwrap_or(0),
+                    Some(Value::Number(n)) => n.as_u64().unwrap_or(0),
+                    _ => 0,
+                };
+                used = used.saturating_add(bytes);
+                if let Some(l) = partial.last() {
+                    through = through.max(l.seq.get());
+                }
+                out.extend(partial);
+                if used < budget {
+                    from = cur;
+                    continue;
+                }
+                let last = out
+                    .last()
+                    .map(|e| e.seq.get() + 1)
+                    .or_else(|| (through > 0).then_some(through + 1))
+                    .or(match &cur {
+                        Cursor::Seq { seq, .. } => Some(*seq),
+                        _ => None,
+                    });
+                return Ok((out, last, true));
+            }
+        };
         used = used.saturating_add(r.scanned_bytes);
         gaps_seen |= !r.gaps.is_empty();
+        through = through.max(r.scanned_through);
         out.extend(r.events);
         match r.resume_from {
             Some(next) if used < budget => from = next,
             Some(_) => {
-                let last = out.last().map(|e| e.seq.get() + 1);
+                let last = out
+                    .last()
+                    .map(|e| e.seq.get() + 1)
+                    .or_else(|| (through > 0).then_some(through + 1));
                 return Ok((out, last, true));
             }
             None => {
-                let last = out.last().map(|e| e.seq.get() + 1);
+                let last = out
+                    .last()
+                    .map(|e| e.seq.get() + 1)
+                    .or_else(|| (through > 0).then_some(through + 1));
                 return Ok((out, last, gaps_seen));
             }
         }

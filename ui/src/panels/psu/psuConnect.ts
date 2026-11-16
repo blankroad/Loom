@@ -8,11 +8,17 @@
 //   "visa" / anything else → E_NOT_IMPLEMENTED (listed disabled here, never mapped to another backend).
 // vmax/imax may only LOWER the profile limits (model.rs Limits::from_value: min(default)). Connect only
 // queries the supply — it never switches the output (help notes); output ON stays a separate R3 action.
-// One supply per PSU worker: a second connect with another alias is refused by the daemon (E_PORT_BUSY).
+// One supply per PSU worker *process*; the daemon runs one worker per alias (PerChannel, ≤ MAX_CHANNELS = 4,
+// verified by loom-gateway tests/r1.rs channels_reducer_and_per_channel_workers). A second supply on the same alias
+// is refused (E_PORT_BUSY).
 
 import type { PanelContext } from '../../sdk';
 
 export const PSU_NAME_RE = /^[a-z][a-z0-9_-]{0,31}$/;
+/** PSU-01: profile default limits — mirror of crates/loom-psu/src/model.rs DEFAULT_VMAX / DEFAULT_IMAX.
+ *  Connect may only LOWER them (Limits::from_value takes min(value, default)); a higher value is refused here
+ *  instead of being silently clamped by the engine. */
+export const PSU_DEFAULT_LIMITS = { vmax: 16, imax: 5 } as const;
 export type PsuBackend = 'sim' | 'scpi-tcp';
 export const PSU_BACKENDS: readonly { value: string; label: string; implemented: boolean }[] = [
   { value: 'sim', label: 'sim · SimPsu (가상 전원)', implemented: true },
@@ -65,6 +71,8 @@ export function psuConnectParams(d: PsuConnectDraft): { ok: true; params: PsuCon
   const vmax = limit(d.vmax);
   const imax = limit(d.imax);
   if (!vmax.ok || !imax.ok) return { ok: false, error: '한도는 0보다 큰 숫자 (비우면 프로필 기본값)' };
+  if (vmax.v !== undefined && vmax.v > PSU_DEFAULT_LIMITS.vmax) return { ok: false, error: `전압 한도는 기본 ${PSU_DEFAULT_LIMITS.vmax} V 이하로만 낮출 수 있습니다` };
+  if (imax.v !== undefined && imax.v > PSU_DEFAULT_LIMITS.imax) return { ok: false, error: `전류 한도는 기본 ${PSU_DEFAULT_LIMITS.imax} A 이하로만 낮출 수 있습니다` };
   return {
     ok: true,
     params: {
@@ -80,7 +88,8 @@ export function psuConnectParams(d: PsuConnectDraft): { ok: true; params: PsuCon
 export function psuConnectCli(d: PsuConnectDraft): string {
   const r = psuConnectParams(d);
   if (!r.ok) return 'loom psu connect <별칭>';
-  return `loom psu connect ${r.params.ch}${r.params.address ? ` --scpi-tcp ${r.params.address}` : ''}`;
+  const p = r.params;
+  return `loom psu connect ${p.ch}${p.address ? ` --scpi-tcp ${p.address}` : ''}${p.vmax !== undefined ? ` --vmax ${String(p.vmax)}` : ''}${p.imax !== undefined ? ` --imax ${String(p.imax)}` : ''}`;
 }
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] => {
@@ -135,9 +144,9 @@ export function createPsuConnect(ctx: PanelContext): PsuConnectSection {
   }
   backSel.value = 'sim';
   const addrIn = text('psu-connect-address', '127.0.0.1:5025');
-  const vmaxIn = text('psu-connect-vmax', '프로필 기본');
+  const vmaxIn = text('psu-connect-vmax', `기본 ${PSU_DEFAULT_LIMITS.vmax}`);
   vmaxIn.inputMode = 'decimal';
-  const imaxIn = text('psu-connect-imax', '프로필 기본');
+  const imaxIn = text('psu-connect-imax', `기본 ${PSU_DEFAULT_LIMITS.imax}`);
   imaxIn.inputMode = 'decimal';
   const addrL = field('SCPI 주소 (루프백)', addrIn);
   const btn = tid(el('button', 'psu-apply', '연결'), 'psu-connect-open');
@@ -146,10 +155,13 @@ export function createPsuConnect(ctx: PanelContext): PsuConnectSection {
   const err = tid(el('div', 'psu-pending err'), 'psu-connect-error');
   err.setAttribute('role', 'status');
   const cli = tid(el('code', 'psu-connect-cli muted'), 'psu-connect-cli');
-  const note = el(
-    'div',
-    'psu-connect-note muted',
-    '지원: sim, scpi-tcp(루프백 소프트웨어 엔드포인트, VOLT/CURR/OUTP/MEAS만). VISA·USB·GPIB·LAN 계측기는 미구현. 데몬의 PSU 작업자는 한 번에 전원 1대만 구동합니다.',
+  const note = tid(
+    el(
+      'div',
+      'psu-connect-note muted',
+      '지원: sim, scpi-tcp(루프백 소프트웨어 엔드포인트, VOLT/CURR/OUTP/MEAS만). VISA·USB·GPIB·LAN 계측기는 미구현. 별칭마다 별도 PSU 작업자 (최대 4대) — 같은 별칭에 두 번째 전원은 연결되지 않습니다. 다출력 계측기의 출력 번호는 미지원.',
+    ),
+    'psu-connect-note',
   );
 
   const viewRow = el('div', 'psu-connect-grid');

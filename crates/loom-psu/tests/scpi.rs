@@ -44,6 +44,8 @@ struct Server {
     conn: Arc<Mutex<Option<TcpStream>>>,
     stop: Arc<AtomicBool>,
     meas_n: Arc<AtomicU32>,
+    /// Ignore `OUTP OFF` (output stays on; the read-back shows it).
+    stuck_on: Arc<AtomicBool>,
 }
 
 impl Server {
@@ -126,7 +128,9 @@ impl Server {
                 None
             }
             ("OUTP", Some(x)) => {
-                d.out = x == "ON";
+                if x == "ON" || !self.stuck_on.load(Ordering::Acquire) {
+                    d.out = x == "ON";
+                }
                 None
             }
             _ => {
@@ -494,9 +498,16 @@ fn unsupported_operations_are_refused_not_simulated() {
     let (srv, addr) = Server::start();
     let mut w = W::new();
     w.connect(&addr);
-    let o = w.write("r-cyc", json!({"action": "cycle", "off_ms": 500}), Origin::Agent);
-    assert_eq!(o.error.as_ref().map(|e| e.code), Some(ErrorCode::NotImplemented));
-    assert_eq!(w.rows("r-cyc"), vec!["failed"]);
+    // cycle is implemented since B2 (see b2_* tests); bad off_ms is refused before anything is sent
+    for (rid, off) in [
+        ("r-cyc0", json!(0)),
+        ("r-cyc-big", json!(60_001)),
+        ("r-cyc-none", Value::Null),
+    ] {
+        let o = w.write(rid, json!({"action": "cycle", "off_ms": off}), Origin::Agent);
+        assert_eq!(o.error.as_ref().map(|e| e.code), Some(ErrorCode::Usage), "{rid}");
+        assert_eq!(w.rows(rid), vec!["failed"], "{rid}");
+    }
     let e = w
         .call("psu.sim.inject", json!({"no_response": 1}))
         .expect_err("inject");
@@ -589,4 +600,318 @@ fn connect_refusals() {
     .expect_err("lan");
     assert_eq!(e.code, ErrorCode::Usage);
     assert!(reg.commands().iter().any(|c| c.method == "psu.disconnect"));
+}
+
+// --- operator upgrade batch 2: scpi-tcp power cycle (FUNCTIONS.md §Batch 2) --------------------
+
+fn wait_rows(w: &mut W, rid: &str, n: usize) -> Vec<String> {
+    let t = Instant::now();
+    loop {
+        let r = w.rows(rid);
+        if r.len() >= n {
+            return r;
+        }
+        assert!(
+            t.elapsed() < Duration::from_secs(5),
+            "timed out waiting for {n} rows of {rid}: {r:?}"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
+fn terminal(w: &mut W, rid: &str) -> Value {
+    w.kinds("psu.write")
+        .into_iter()
+        .rfind(|r| r["request_id"] == rid)
+        .expect("terminal row")
+}
+
+fn cycling(w: &mut W) -> Value {
+    w.call("psu.status", json!({})).expect("status")["cycling"].clone()
+}
+
+fn powered_ext() -> (Server, W) {
+    let (srv, addr) = Server::start();
+    let mut w = W::new();
+    w.connect(&addr);
+    assert_eq!(
+        w.write("r-on", json!({"action": "out", "state": "on"}), Origin::Agent)
+            .state,
+        WriteState::EffectiveVerified
+    );
+    (srv, w)
+}
+
+fn code(c: ErrorCode) -> Value {
+    serde_json::to_value(c).expect("code json")
+}
+
+#[test]
+fn b2_cycle_verifies_off_waits_on_the_monotonic_clock_then_verifies_on() {
+    let (srv, mut w) = powered_ext();
+    let t0 = Instant::now();
+    let o = w.write(
+        "r-cyc",
+        json!({"action": "cycle", "ch": "bench", "off_ms": 400}),
+        Origin::Agent,
+    );
+    assert_eq!(o.state, WriteState::Sent, "{o:?}");
+    assert_eq!(o.detail["phase"], "off");
+    assert!(
+        !srv.dev.lock().expect("lock").out,
+        "OFF verified before the call returns"
+    );
+    assert_eq!(cycling(&mut w), true);
+    let n0 = samples(&mut w);
+    let rows = wait_rows(&mut w, "r-cyc", 2);
+    assert!(t0.elapsed() >= Duration::from_millis(400), "{:?}", t0.elapsed());
+    assert_eq!(rows, vec!["sent", "effective_verified"]);
+    assert!(srv.dev.lock().expect("lock").out, "output back on");
+    assert!(samples(&mut w) > n0, "polling continued during the off time");
+    let t = terminal(&mut w, "r-cyc");
+    assert_eq!(t["payload"]["phase"], "on");
+    let actual = t["payload"]["off_ms_actual"].as_u64().expect("off_ms_actual");
+    assert!((400..1400).contains(&actual), "{actual}");
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF", "OUTP ON"]);
+    assert_eq!(cycling(&mut w), false);
+}
+
+#[test]
+fn b2_stop_during_off_phase_never_sends_on_for_an_agent_cycle() {
+    let (srv, mut w) = powered_ext();
+    assert_eq!(
+        w.write("r-cyc", json!({"action": "cycle", "off_ms": 400}), Origin::Agent)
+            .state,
+        WriteState::Sent
+    );
+    w.ctx.latch().set(true);
+    w.worker.on_latch(true);
+    let rows = wait_rows(&mut w, "r-cyc", 2);
+    assert_eq!(rows, vec!["sent", "failed"]);
+    let t = terminal(&mut w, "r-cyc");
+    assert_eq!(t["payload"]["error"]["code"], code(ErrorCode::Stopped));
+    assert_eq!(t["payload"]["sent"], false);
+    std::thread::sleep(Duration::from_millis(300));
+    assert!(!srv.dev.lock().expect("lock").out, "output left OFF");
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF"], "ON never sent");
+    assert_eq!(cycling(&mut w), false);
+}
+
+#[test]
+fn b2_user_cycle_is_not_latched_by_stop() {
+    let (srv, mut w) = powered_ext();
+    w.ctx.latch().set(true);
+    w.worker.on_latch(true);
+    assert_eq!(
+        w.write("r-cyc", json!({"action": "cycle", "off_ms": 300}), Origin::User)
+            .state,
+        WriteState::Sent
+    );
+    assert_eq!(wait_rows(&mut w, "r-cyc", 2), vec!["sent", "effective_verified"]);
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF", "OUTP ON"]);
+}
+
+#[test]
+fn b2_a_later_output_write_supersedes_the_pending_on() {
+    let (srv, mut w) = powered_ext();
+    assert_eq!(
+        w.write("r-cyc", json!({"action": "cycle", "off_ms": 400}), Origin::Agent)
+            .state,
+        WriteState::Sent
+    );
+    let o = w.write("r-off", json!({"action": "out", "state": "off"}), Origin::User);
+    assert_eq!(o.state, WriteState::EffectiveVerified);
+    let rows = wait_rows(&mut w, "r-cyc", 2);
+    assert_eq!(rows, vec!["sent", "effect_unverified"]);
+    let t = terminal(&mut w, "r-cyc");
+    assert_eq!(t["payload"]["superseded_by"], "r-off");
+    assert_eq!(t["payload"]["sent"], false);
+    std::thread::sleep(Duration::from_millis(700));
+    assert_eq!(
+        srv.writes(),
+        vec!["OUTP ON", "OUTP OFF", "OUTP OFF"],
+        "no ON after the supersede"
+    );
+    assert!(!srv.dev.lock().expect("lock").out);
+    assert_eq!(cycling(&mut w), false);
+}
+
+#[test]
+fn b2_off_not_confirmed_never_sends_on() {
+    let (srv, mut w) = powered_ext();
+    srv.stuck_on.store(true, Ordering::Release);
+    let o = w.write("r-cyc", json!({"action": "cycle", "off_ms": 300}), Origin::Agent);
+    assert_eq!(o.state, WriteState::EffectUnverified, "{o:?}");
+    assert_eq!(o.detail["on_sent"], false);
+    assert_eq!(w.rows("r-cyc"), vec!["sent", "effect_unverified"]);
+    std::thread::sleep(Duration::from_millis(700));
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF"]);
+    assert_eq!(cycling(&mut w), false);
+}
+
+#[test]
+fn b2_disconnect_during_off_phase_leaves_the_output_off() {
+    let (srv, mut w) = powered_ext();
+    assert_eq!(
+        w.write("r-cyc", json!({"action": "cycle", "off_ms": 400}), Origin::Agent)
+            .state,
+        WriteState::Sent
+    );
+    w.call("psu.disconnect", json!({"ch": "bench"}))
+        .expect("disconnect");
+    let rows = wait_rows(&mut w, "r-cyc", 2);
+    assert_eq!(rows, vec!["sent", "failed"]);
+    let t = terminal(&mut w, "r-cyc");
+    assert_eq!(t["payload"]["error"]["code"], code(ErrorCode::Disconnected));
+    assert!(
+        t["payload"]["error"]["message"]
+            .as_str()
+            .unwrap_or("")
+            .contains("ON not sent"),
+        "{t}"
+    );
+    assert_eq!(
+        t["payload"]["error"]["message"],
+        "disconnected during the off phase; ON not sent; last verified output OFF (link closed, current state not observed)",
+        "B5-S3 (F4)"
+    );
+    std::thread::sleep(Duration::from_millis(600));
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF"]);
+    assert!(!srv.dev.lock().expect("lock").out);
+}
+
+#[test]
+fn b2_link_lost_during_off_phase_never_sends_on() {
+    let (srv, mut w) = powered_ext();
+    assert_eq!(
+        w.write("r-cyc", json!({"action": "cycle", "off_ms": 400}), Origin::Agent)
+            .state,
+        WriteState::Sent
+    );
+    srv.drop_client();
+    let rows = wait_rows(&mut w, "r-cyc", 2);
+    assert_eq!(rows, vec!["sent", "failed"]);
+    let t = terminal(&mut w, "r-cyc");
+    assert_eq!(t["payload"]["error"]["code"], code(ErrorCode::Disconnected));
+    assert_eq!(
+        t["payload"]["error"]["message"],
+        "link lost during the off phase; ON not sent; last verified output OFF, current state unknown",
+        "B5-S3 (F4)"
+    );
+    assert_eq!(srv.writes(), vec!["OUTP ON", "OUTP OFF"]);
+    assert_eq!(srv.accepts.load(Ordering::Acquire), 1, "no reconnect");
+}
+
+// --- operator upgrade batch 5: FIRST3 runtime corrections (FUNCTIONS.md §Batch 5) ----------------
+
+/// F1 (RUNTIME.md, request w4): same alias + same address with other limits used to answer
+/// `confirmed` with the old limits. Now refused; nothing is sent, no second connection.
+#[test]
+fn b5_f1_reconnect_changed_limits_is_refused_without_a_second_connection() {
+    let (srv, addr) = Server::start();
+    let mut w = W::new();
+    let args = |extra: Value| {
+        let mut a = json!({"ch": "bench", "backend": "scpi-tcp", "address": addr});
+        a.as_object_mut()
+            .expect("obj")
+            .extend(extra.as_object().expect("obj").clone());
+        a
+    };
+    let st = w
+        .call("psu.connect", args(json!({"vmax": 12.0, "imax": 2.0})))
+        .expect("connect");
+    let g = st["generation"].clone();
+    assert!(st.get("already_connected").is_none(), "{st}");
+    let e = w
+        .call("psu.connect", args(json!({"vmax": 10.0})))
+        .expect_err("changed vmax");
+    assert_eq!(e.code, ErrorCode::PortBusy, "{e:?}");
+    assert!(
+        e.message.contains("vmax 10 differs from the connected 12 V")
+            && e.message.contains("disconnect first"),
+        "{}",
+        e.message
+    );
+    let st = w
+        .call("psu.connect", args(json!({"vmax": 12.0, "imax": 2.0})))
+        .expect("same");
+    assert_eq!(
+        (st["already_connected"].clone(), st["generation"].clone()),
+        (json!(true), g.clone()),
+        "{st}"
+    );
+    let st = w
+        .call("psu.connect", args(json!({})))
+        .expect("omitted = no requirement");
+    assert_eq!(
+        (st["vmax"].clone(), st["imax"].clone()),
+        (json!(12.0), json!(2.0)),
+        "{st}"
+    );
+    assert_eq!(
+        srv.accepts.load(Ordering::Acquire),
+        1,
+        "never a second connection"
+    );
+    assert!(srv.writes().is_empty(), "nothing written");
+}
+
+/// F2: above-profile limits are E_USAGE before any TCP connect (was: silently capped to 16 V).
+#[test]
+fn b5_f2_above_profile_is_refused_before_any_tcp_connect() {
+    let (srv, addr) = Server::start();
+    let mut w = W::new();
+    let e = w
+        .call(
+            "psu.connect",
+            json!({"ch": "bench", "backend": "scpi-tcp", "address": addr, "vmax": 20.0}),
+        )
+        .expect_err("above profile");
+    assert_eq!(e.code, ErrorCode::Usage);
+    assert_eq!(
+        e.message,
+        "vmax 20 V is above the profile limit 16 V; only loom.toml raises it"
+    );
+    std::thread::sleep(Duration::from_millis(100));
+    assert_eq!(
+        srv.accepts.load(Ordering::Acquire),
+        0,
+        "no TCP connection was made"
+    );
+    assert_eq!(
+        w.call("psu.status", json!({})).expect_err("none").code,
+        ErrorCode::NotOpen
+    );
+}
+
+/// F4: after a link loss the status no longer presents the last read-back as the current state.
+#[test]
+fn b5_f4_link_lost_reports_last_verified_not_current() {
+    let (srv, mut w) = powered_ext();
+    let st = w.call("psu.status", json!({})).expect("status");
+    assert_eq!(
+        (
+            st["out"].clone(),
+            st["out_known"].clone(),
+            st["out_last_verified"].clone()
+        ),
+        (json!(true), json!(true), json!(true))
+    );
+    srv.drop_client();
+    let t = Instant::now();
+    while !w.worker_link_lost() {
+        assert!(t.elapsed() < Duration::from_secs(5), "timed out waiting for lost");
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let st = w.call("psu.status", json!({})).expect("status");
+    assert_eq!(st["link"], "lost");
+    assert_eq!(
+        st["out_known"], false,
+        "no current reading without a live link: {st}"
+    );
+    assert_eq!(st["out_last_verified"], true, "{st}");
+    let states = w.kinds("psu.state");
+    let last = states.last().expect("state row");
+    assert_eq!(last["payload"]["out_known"], false, "{last}");
+    assert_eq!(last["payload"]["out_last_verified"], true, "{last}");
 }

@@ -26,6 +26,47 @@ export interface PsuState {
   /** device link: false = disconnected → `out` is the last confirmed value, current output unknown */
   connected?: boolean | null;
   link?: string | null;
+  /** PSU-01: active profile limits as reported in psu.state/psu.status (`vmax` V, `imax` A; finite > 0). null = not reported */
+  vmax?: number | null;
+  imax?: number | null;
+  /** PSU-04: a power cycle is in its OFF phase (`psu.state.cycling`). null = not reported */
+  cycling?: boolean | null;
+}
+
+/** PSU-01: result of checking one setpoint field against the reported limit (FUNCTIONS.md B1-M4). */
+export type SetpointCheck =
+  | { ok: true; value: number | null }
+  | { ok: false; reason: 'nan' | 'negative' | 'over'; message: string };
+
+/** PSU-02: per-sample provenance kept beside the measured values (FUNCTIONS.md B1-M9). */
+export interface SampleRef {
+  /** record `ts.wall_ns` in seconds (null when the record has no parsable wall time) */
+  wallS?: number | null;
+  /** setpoints last reported before this sample (never the user's draft) */
+  setV?: number | null;
+  setI?: number | null;
+}
+
+/** PSU-02: one row of the 60 s window for the cursor/latest readout (FUNCTIONS.md B1-M10). */
+export interface ReadoutRow {
+  tS: number;
+  wallS: number | null;
+  v: number | null;
+  i: number | null;
+  p: number | null;
+  setV: number | null;
+  setI: number | null;
+  /** every measured lane is null at this row (a loss break) */
+  gap: boolean;
+}
+
+/** PSU-02: canvas colours resolved from theme tokens (FUNCTIONS.md B1-M14). */
+export interface ChartColors {
+  axis: string;
+  grid: string;
+  tick: string;
+  /** `${axis}|${grid}|${tick}` — plots are rebuilt when it changes */
+  key: string;
 }
 
 export interface Meas {
@@ -50,6 +91,7 @@ export function reduceState(prev: PsuState, ev: LoomEvent): PsuState {
   const out = p.out_known === false
     ? (prev.out ?? null)
     : p.out === true || p.out === 'on' ? true : p.out === false || p.out === 'off' ? false : prev.out;
+  const posNum = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
   const str = (v: unknown, keep: string | null | undefined) => (typeof v === 'string' && v ? v : (keep ?? null));
   return {
     setV: num(p.set_v) ?? prev.setV,
@@ -62,6 +104,9 @@ export function reduceState(prev: PsuState, ev: LoomEvent): PsuState {
     idn: str(p.idn, prev.idn),
     connected: typeof p.connected === 'boolean' ? p.connected : (prev.connected ?? null),
     link: str(p.link, prev.link),
+    vmax: posNum(p.vmax) ?? prev.vmax ?? null,
+    imax: posNum(p.imax) ?? prev.imax ?? null,
+    cycling: typeof p.cycling === 'boolean' ? p.cycling : (prev.cycling ?? null),
   };
 }
 
@@ -79,13 +124,16 @@ export function readMetrics(ev: LoomEvent): { v: number | null; i: number | null
 /** Readback label for the reported operating mode. Only what the device said; never inferred. */
 export function modeLabel(mode: string | null): string | null {
   if (mode === null || mode.trim() === '') return null;
-  const m = mode.trim().toUpperCase();
-  return m === 'CV' || m === 'CC' ? m : mode;
+  const m = mode.trim();
+  const u = m.toUpperCase();
+  if (u === 'OFF') return null;
+  if (u === 'UNKNOWN') return '모드 미보고';
+  return u === 'CV' || u === 'CC' ? u : m;
 }
 
 /** Protection readback (`ok|ovp|ocp|otp|unknown`, gateway PROT_VALUES). */
 export function protLabel(prot: string | null): { text: string; warn: boolean } {
-  if (prot === null || prot === 'unknown') return { text: '보호 ?', warn: false };
+  if (prot === null || prot === 'unknown') return { text: '보호 미보고', warn: false };
   if (prot === 'ok') return { text: '보호 정상', warn: false };
   return { text: `보호 ${prot.toUpperCase()}`, warn: true };
 }
@@ -104,6 +152,144 @@ export function parseSetpoint(raw: string): { ok: true; value: number | null } |
   if (s === '') return { ok: true, value: null };
   const n = Number(s);
   return Number.isFinite(n) && n >= 0 ? { ok: true, value: n } : { ok: false };
+}
+
+/** PSU-01 B1-M2: limit digits — 2 decimals when exact at 0.01, otherwise the full JS number text. */
+export function limitNum(x: number): string {
+  return Number.isInteger(Math.round(x * 100 * 1e6) / 1e6) ? x.toFixed(2) : String(x);
+}
+
+/** PSU-01 B1-M3: `9.00 V / 2.50 A`, `9.00 V / — A`, or `미보고` when neither limit is known. */
+export function limitText(s: PsuState): string {
+  const v = s.vmax ?? null;
+  const i = s.imax ?? null;
+  if (v === null && i === null) return '미보고';
+  return `${v === null ? '—' : limitNum(v)} V / ${i === null ? '—' : limitNum(i)} A`;
+}
+
+/** PSU-01 B1-M4: parseSetpoint + strict `value > limit` check (the gateway's `Limits::violation` rule). */
+export function checkSetpoint(raw: string, limit: number | null, unit: 'V' | 'A'): SetpointCheck {
+  const r = parseSetpoint(raw);
+  if (!r.ok) {
+    const n = Number(raw.trim());
+    return { ok: false, reason: Number.isFinite(n) ? 'negative' : 'nan', message: '0 이상의 숫자를 입력하세요' };
+  }
+  if (r.value !== null && limit !== null && r.value > limit) {
+    return { ok: false, reason: 'over', message: `${raw.trim()} ${unit} — 한도 ${limitNum(limit)} ${unit} 초과` };
+  }
+  return r;
+}
+
+/** PSU-02 B1-M8: record `ts.wall_ns` → seconds (ms resolution), null when not a decimal string. */
+export function wallS(ev: LoomEvent): number | null {
+  return /^\d+$/.test(ev.ts.wall_ns) ? Number(BigInt(ev.ts.wall_ns) / 1_000_000n) / 1000 : null;
+}
+
+/** PSU-02 B1-M7: local wall clock `HH:MM:SS` (or `HH:MM:SS.mmm` with `ms`), 24 h, zero padded. */
+export function clockLabel(wallSec: number, ms = false): string {
+  const msInt = Math.floor(Math.round(wallSec * 1e6) / 1e3);
+  const d = new Date(msInt);
+  const two = (n: number) => String(n).padStart(2, '0');
+  const base = `${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`;
+  return ms ? `${base}.${String(d.getMilliseconds()).padStart(3, '0')}` : base;
+}
+
+/** PSU-02 B1-M10: the row at `idx` of the window, null when idx is not an in-range integer. */
+export function readoutAt(s: Series, idx: number): ReadoutRow | null {
+  if (!(Number.isInteger(idx) && idx >= 0 && idx < s.t.length)) return null;
+  const v = s.v[idx] ?? null;
+  const i = s.i[idx] ?? null;
+  const p = s.p[idx] ?? null;
+  return {
+    tS: s.t[idx] as number,
+    wallS: s.w[idx] ?? null,
+    v,
+    i,
+    p,
+    setV: s.sv[idx] ?? null,
+    setI: s.si[idx] ?? null,
+    gap: v === null && i === null && p === null,
+  };
+}
+
+/** PSU-02 B1-M11: `커서 20:38:17.200 · 13.490 V · 352.0 mA · 4.744 W · 설정 13.50 V / 2.00 A`. */
+export function readoutText(r: ReadoutRow | null, prefix: '커서' | '최신'): string {
+  if (r === null) return prefix === '최신' ? '측정 없음' : '';
+  const clock = r.wallS !== null ? clockLabel(r.wallS, true) : `t ${r.tS.toFixed(3)} s`;
+  if (r.gap) return `${prefix} ${clock} · 측정 손실 (선 끊김)`;
+  const q = (x: number | null, u: string) => {
+    const f = eng(x, u);
+    return `${f.num} ${f.unit}`;
+  };
+  const parts = [`${prefix} ${clock}`, q(r.v, 'V'), q(r.i, 'A'), q(r.p, 'W')];
+  if (r.setV !== null || r.setI !== null) parts.push(`설정 ${fmt(r.setV, 'V', 2)} / ${fmt(r.setI, 'A', 2)}`);
+  return parts.join(' · ');
+}
+
+/** PSU-02 B1-M12: x tick labels (x = daemon mono seconds) as wall clock from each point's own wall time. */
+export function xTickLabels(s: Series, splits: readonly number[]): string[] {
+  const n = s.t.length;
+  if (n === 0) return splits.map((x) => x.toFixed(0));
+  return splits.map((x) => {
+    // last index with t <= x (binary search); none → 0
+    let lo = 0;
+    let hi = n - 1;
+    let k = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if ((s.t[mid] as number) <= x) {
+        k = mid;
+        lo = mid + 1;
+      } else hi = mid - 1;
+    }
+    if (k < 0) k = 0;
+    let j = -1;
+    for (let a = k; a >= 0; a--) {
+      if (s.w[a] !== null && s.w[a] !== undefined) {
+        j = a;
+        break;
+      }
+    }
+    if (j < 0) {
+      for (let a = k + 1; a < n; a++) {
+        if (s.w[a] !== null && s.w[a] !== undefined) {
+          j = a;
+          break;
+        }
+      }
+    }
+    if (j >= 0) return clockLabel((s.w[j] as number) + (x - (s.t[j] as number)));
+    return `${(x - (s.t[n - 1] as number)).toFixed(0)} s`;
+  });
+}
+
+/** PSU-02 B1-M13: y scale range; never uPlot's 0–100 default for flat/zero data. */
+export function yRange(min: number | null, max: number | null, limit: number | null): [number, number] {
+  const L = limit !== null && Number.isFinite(limit) && limit > 0 ? limit : 1;
+  if (min === null || max === null || !Number.isFinite(min) || !Number.isFinite(max)) return [0, L];
+  let lo: number;
+  let hi: number;
+  if (max - min <= 1e-12) {
+    if (Math.abs(max) <= 1e-12) return [0, L];
+    const pad = Math.max(Math.abs(max) * 0.02, 1e-3);
+    lo = max - pad;
+    hi = max + pad;
+  } else {
+    const pad = (max - min) * 0.1;
+    lo = min - pad;
+    hi = max + pad;
+  }
+  if (min >= 0 && lo < 0) lo = 0;
+  return [lo, hi];
+}
+
+/** PSU-02 B1-M14: axis/grid/tick colours from theme tokens (`--muted`, `--line`), dark fallbacks. */
+export function chartColors(read: (token: string) => string): ChartColors {
+  const v = (t: string, fb: string) => read(t).trim() || fb;
+  const axis = v('--muted', '#a9b8c9');
+  const grid = v('--line', '#293849');
+  const tick = v('--line', '#405267');
+  return { axis, grid, tick, key: `${axis}|${grid}|${tick}` };
 }
 
 /** `source.gap.payload.cause` → footer label. Known causes are translated, others shown raw, missing → 원인 미상. */
@@ -126,16 +312,25 @@ export class Series {
   v: (number | null)[] = [];
   i: (number | null)[] = [];
   p: (number | null)[] = [];
-  push(tS: number, v: number | null, i: number | null, p: number | null = null): void {
+  /** PSU-02: per-point wall seconds / reported setpoints, index-aligned with `t` (B1-M9) */
+  w: (number | null)[] = [];
+  sv: (number | null)[] = [];
+  si: (number | null)[] = [];
+  // `at` fills w/sv/si (missing → null); prune keeps all seven arrays aligned.
+  push(tS: number, v: number | null, i: number | null, p: number | null = null, at: SampleRef = {}): void {
     this.t.push(tS);
     this.v.push(v);
     this.i.push(i);
     this.p.push(p);
+    this.w.push(at.wallS ?? null);
+    this.sv.push(at.setV ?? null);
+    this.si.push(at.setI ?? null);
     this.prune(tS);
   }
   /** gap: a null sample so the plot does not join across the loss (all lanes) */
-  gap(tS: number): void {
-    this.push(tS, null, null, null);
+  // a gap row carries its own wall time; setpoint refs are null at a gap.
+  gap(tS: number, wallSec: number | null = null): void {
+    this.push(tS, null, null, null, { wallS: wallSec });
   }
   private prune(nowS: number): void {
     let k = 0;
@@ -145,6 +340,9 @@ export class Series {
       this.v.splice(0, k);
       this.i.splice(0, k);
       this.p.splice(0, k);
+      this.w.splice(0, k);
+      this.sv.splice(0, k);
+      this.si.splice(0, k);
     }
   }
   data(): [number[], (number | null)[], (number | null)[]] {
@@ -152,6 +350,12 @@ export class Series {
   }
   lane(l: Lane): [number[], (number | null)[]] {
     return [this.t, this[l]];
+  }
+  /** B1-M9: uPlot data per lane — v: [t, v, sv], i: [t, i, si], p: [t, p] (same array objects, no copy) */
+  laneData(l: Lane): [number[], ...(number | null)[][]] {
+    if (l === 'v') return [this.t, this.v, this.sv];
+    if (l === 'i') return [this.t, this.i, this.si];
+    return [this.t, this.p];
   }
 }
 

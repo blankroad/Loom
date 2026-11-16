@@ -18,6 +18,14 @@ pub const MAX_WATCH_MS: u64 = 600_000;
 pub const MAX_WAIT_MS: u64 = 3_600_000;
 /// Longest hold of a wait/evidence condition.
 pub const MAX_HOLD_MS: u64 = 3_600_000;
+/// `psu.history` (PSU-03): spacing of the per-supply time→seq anchor index (ns of wall time).
+pub const HISTORY_ANCHOR_EVERY_NS: u64 = 10_000_000_000;
+/// `psu.history`: anchors kept per supply (24 h at one per 10 s); older ones are dropped.
+pub const HISTORY_ANCHORS_MAX: usize = 8_640;
+/// `psu.history`: longest window (`to - from`).
+pub const HISTORY_MAX_SPAN_MS: u64 = 86_400_000;
+/// `psu.history`: most raw rows one page returns (`rows` param upper bound).
+pub const HISTORY_MAX_ROWS: u32 = 5_000;
 /// Longest injected response delay.
 pub const MAX_INJECT_DELAY_MS: u64 = 10_000;
 /// Most queued no-response injections.
@@ -65,6 +73,33 @@ impl Limits {
         }
     }
 
+    /// B5-M1: limits a connect asks for (F2). Absent/null → default; not a positive finite number →
+    /// `Err("<k> must be a positive number")`; above the profile default → `Err` (only loom.toml raises it).
+    pub fn requested(v: &Value) -> Result<Limits, String> {
+        let one = |k: &str, unit: &str, def: f64| -> Result<f64, String> {
+            match v.get(k) {
+                None | Some(Value::Null) => Ok(def),
+                Some(x) => {
+                    let n = x
+                        .as_f64()
+                        .filter(|n| n.is_finite() && *n > 0.0)
+                        .ok_or_else(|| format!("{k} must be a positive number"))?;
+                    if n > def {
+                        return Err(format!(
+                            "{k} {n} {unit} is above the profile limit {def} {unit}; only loom.toml raises it"
+                        ));
+                    }
+                    Ok(n)
+                }
+            }
+        };
+        let d = Limits::default();
+        Ok(Limits {
+            vmax: one("vmax", "V", d.vmax)?,
+            imax: one("imax", "A", d.imax)?,
+        })
+    }
+
     /// Why `volt`/`curr` is over the limit, if it is.
     pub fn violation(&self, volt: Option<f64>, curr: Option<f64>) -> Option<String> {
         match (volt, curr) {
@@ -83,6 +118,22 @@ pub fn param_volt(p: &Value) -> Option<f64> {
 /// `curr` (or the UI's `i`).
 pub fn param_curr(p: &Value) -> Option<f64> {
     p.get("curr").or_else(|| p.get("i")).and_then(Value::as_f64)
+}
+
+/// B5-M2: why a connect to an already-connected alias asks for a different config (F1); `None` = same.
+/// Only keys the caller gave count (`vmax`, `imax` vs `have`), then each present non-null key of `new_only`.
+pub fn config_mismatch(have: &Limits, args: &Value, new_only: &[&str]) -> Option<String> {
+    for (k, unit, cur) in [("vmax", "V", have.vmax), ("imax", "A", have.imax)] {
+        if let Some(req) = args.get(k).and_then(Value::as_f64)
+            && req != cur
+        {
+            return Some(format!("{k} {req} differs from the connected {cur} {unit}"));
+        }
+    }
+    new_only
+        .iter()
+        .find(|k| args.get(**k).is_some_and(|x| !x.is_null()))
+        .map(|k| format!("{k} applies only to a new connection"))
 }
 
 /// `ch` (or the UI's `channel`).

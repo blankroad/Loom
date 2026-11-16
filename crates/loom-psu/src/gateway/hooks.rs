@@ -62,7 +62,9 @@ impl PsuHooks {
 
 /// Is this request switching an output off (out off / cycle)?
 pub fn is_power_cut(method: &str, args: &Value) -> bool {
-    method == "psu.cycle" || (method == "psu.out" && args.get("state").and_then(Value::as_str) != Some("on"))
+    method == "psu.cycle"
+        || method == "psu.off"
+        || (method == "psu.out" && args.get("state").and_then(Value::as_str) != Some("on"))
 }
 
 impl WriteHooks for PsuHooks {
@@ -85,6 +87,7 @@ impl WriteHooks for PsuHooks {
             }
             "psu.out" => (Risk::R3, "output OFF".to_owned(), None),
             "psu.cycle" => (Risk::R3, "power cycle".to_owned(), None),
+            "psu.off" => (Risk::R3, "output OFF (fixed-OFF endpoint)".to_owned(), None),
             m => (Risk::R0, format!("{m}: open the supply (audited)"), None),
         };
         if is_power_cut(req.method, req.args) {

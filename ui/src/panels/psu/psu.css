@@ -91,3 +91,24 @@
 .psu-connect-grid input { width: 10em; font-family: ui-monospace, monospace; }
 .psu-connect-cli, .psu-connect-note { font-size: 11px; overflow-wrap: anywhere; }
 .psu-connect .psu-pending:empty { display: none; }
+/* operator upgrade B1 (FUNCTIONS.md B1.4): author display rules must not un-hide (PSU-07 unbound collapse) */
+.psu-tile [hidden] { display: none !important; }
+.psu-tile .psu-placeholder { padding: 12px 10px; font-size: 12px; }
+.psu-tile .psu-limits .psu-setval { color: var(--muted); }
+.psu-tile .psu-readout { font: 11px ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--fg); overflow-wrap: anywhere; }
+/* operator upgrade B4: power cycle control (PSU-04) and journal history section (PSU-03) */
+.psu-tile .psu-cycle { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.psu-tile .psu-cycle input { width: 5.5em; font-family: ui-monospace, monospace; }
+.psu-tile .psu-cycle input[aria-invalid='true'] { outline: 1px solid var(--err); }
+.psu-tile .psu-history { border-top: 1px solid var(--line); padding: 4px 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.psu-tile .psu-hist-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.psu-tile .psu-hist-title { font-weight: 600; }
+.psu-tile .psu-hist-head input { font-family: ui-monospace, monospace; }
+/* B6.4: the setpoint width (6.5em) must not truncate the history range to year/month; wrap in narrow panes */
+.psu-tile .psu-hist-head .psu-field { flex-wrap: wrap; max-width: 100%; min-width: 0; }
+.psu-tile .psu-hist-head .psu-field input[type='datetime-local'] { width: 16em; max-width: 100%; min-width: 0; }
+.psu-tile .psu-hist-status, .psu-tile .psu-hist-coverage { font-size: 11px; overflow-wrap: anywhere; }
+.psu-tile .psu-hist-coverage.partial { color: var(--warn); }
+.psu-tile .psu-hist-stats { border-collapse: collapse; font: 12px ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.psu-tile .psu-hist-stats th, .psu-tile .psu-hist-stats td { padding: 1px 8px 1px 0; text-align: right; }
+.psu-tile .psu-hist-stats th:first-child, .psu-tile .psu-hist-stats td:first-child { text-align: left; color: var(--muted); }
