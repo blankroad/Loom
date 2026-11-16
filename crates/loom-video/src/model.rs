@@ -2,7 +2,7 @@
 //! MJPEG stream splitter, the bounded frame ring, `-progress` parsing, opaque ids and the
 //! artifact / media-socket path rules. No I/O except [`resolve_ffmpeg`]'s PATH lookup.
 
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -114,8 +114,13 @@ pub fn check_http_url(url: &str) -> Result<String, ModelError> {
     if url.is_empty() || url.len() > MAX_URL {
         return Err(usage(format!("url: expected 1..={MAX_URL} bytes")));
     }
-    if url.bytes().any(|b| b <= b' ' || b == 0x7f || b == b'\\' || b == b'#') {
-        return Err(usage("url: whitespace, control characters, '\\' and '#' are not allowed"));
+    if url
+        .bytes()
+        .any(|b| b <= b' ' || b == 0x7f || b == b'\\' || b == b'#')
+    {
+        return Err(usage(
+            "url: whitespace, control characters, '\\' and '#' are not allowed",
+        ));
     }
     let rest = url
         .strip_prefix("http://")
@@ -143,7 +148,10 @@ pub fn check_http_url(url: &str) -> Result<String, ModelError> {
             None => (authority, None),
         }
     };
-    if !matches!(host.to_ascii_lowercase().as_str(), "127.0.0.1" | "localhost" | "::1") {
+    if !matches!(
+        host.to_ascii_lowercase().as_str(),
+        "127.0.0.1" | "localhost" | "::1"
+    ) {
         return Err(usage(format!(
             "url: host {host:?} is not loopback (127.0.0.1, localhost, [::1] only)"
         )));
@@ -190,7 +198,9 @@ pub fn check_device_name(device: &str) -> Result<(), ModelError> {
         return Err(usage("device: control characters and ':' are not allowed"));
     }
     if device.eq_ignore_ascii_case("default") || device.eq_ignore_ascii_case("none") {
-        return Err(usage("device: implicit default/none selection is refused; name the device"));
+        return Err(usage(
+            "device: implicit default/none selection is refused; name the device",
+        ));
     }
     if device.bytes().all(|b| b.is_ascii_digit()) {
         return Err(usage(
@@ -219,9 +229,17 @@ pub struct OpenConfig {
 }
 
 /// Keys accepted by `video.open`.
-pub const OPEN_KEYS: &[&str] = &["source", "url", "name", "device", "width", "height", "fps", "quality"];
+pub const OPEN_KEYS: &[&str] = &[
+    "source", "url", "name", "device", "width", "height", "fps", "quality",
+];
 
-fn get_u32(o: &serde_json::Map<String, Value>, k: &str, lo: u32, hi: u32, def: u32) -> Result<u32, ModelError> {
+fn get_u32(
+    o: &serde_json::Map<String, Value>,
+    k: &str,
+    lo: u32,
+    hi: u32,
+    def: u32,
+) -> Result<u32, ModelError> {
     match o.get(k) {
         None | Some(Value::Null) => Ok(def),
         Some(v) => match v.as_u64() {
@@ -256,7 +274,11 @@ impl OpenConfig {
         let name = get_str(o, "name")?;
         let device = get_str(o, "device")?;
         let only = |want: &str| -> Result<(), ModelError> {
-            for (k, v) in [("url", url.is_some()), ("name", name.is_some()), ("device", device.is_some())] {
+            for (k, v) in [
+                ("url", url.is_some()),
+                ("name", name.is_some()),
+                ("device", device.is_some()),
+            ] {
                 if v && k != want {
                     return Err(usage(format!("{k}: not valid for source {kind}")));
                 }
@@ -277,7 +299,9 @@ impl OpenConfig {
                 only("name")?;
                 let name = name.ok_or_else(|| usage("name: required for replay"))?;
                 check_replay_name(name)?;
-                Source::Replay { name: name.to_owned() }
+                Source::Replay {
+                    name: name.to_owned(),
+                }
             }
             "avfoundation" => {
                 only("device")?;
@@ -345,27 +369,30 @@ impl OpenConfig {
         }
         match &self.source {
             Source::HttpMjpeg { url, .. } => {
-                push(&mut a, &[
-                    "-max_redirects",
-                    "0",
-                    "-reconnect",
-                    "0",
-                    "-reconnect_at_eof",
-                    "0",
-                    "-reconnect_streamed",
-                    "0",
-                    "-reconnect_on_network_error",
-                    "0",
-                    "-rw_timeout",
-                    "5000000",
-                    // multipart parts carry no timestamps: stamp arrival time so the fps filter
-                    // holds the declared output rate (its dup/drop counts are reported in health)
-                    "-use_wallclock_as_timestamps",
-                    "1",
-                    "-f",
-                    "mpjpeg",
-                    "-i",
-                ]);
+                push(
+                    &mut a,
+                    &[
+                        "-max_redirects",
+                        "0",
+                        "-reconnect",
+                        "0",
+                        "-reconnect_at_eof",
+                        "0",
+                        "-reconnect_streamed",
+                        "0",
+                        "-reconnect_on_network_error",
+                        "0",
+                        "-rw_timeout",
+                        "5000000",
+                        // multipart parts carry no timestamps: stamp arrival time so the fps filter
+                        // holds the declared output rate (its dup/drop counts are reported in health)
+                        "-use_wallclock_as_timestamps",
+                        "1",
+                        "-f",
+                        "mpjpeg",
+                        "-i",
+                    ],
+                );
                 a.push(url.clone());
             }
             Source::Replay { name } => {
@@ -420,7 +447,9 @@ pub fn recorder_args(fps: u32, out: &Path) -> Vec<String> {
     .map(|s| (*s).to_owned())
     .collect();
     a.push(fps.to_string());
-    for s in ["-i", "pipe:0", "-map", "0:v", "-c:v", "copy", "-f", "matroska", "-n"] {
+    for s in [
+        "-i", "pipe:0", "-map", "0:v", "-c:v", "copy", "-f", "matroska", "-n",
+    ] {
         a.push(s.to_owned());
     }
     a.push(out.display().to_string());
@@ -429,10 +458,19 @@ pub fn recorder_args(fps: u32, out: &Path) -> Vec<String> {
 
 /// Explicit local enumeration argv (`video.sources {local:true}` only; may trigger TCC).
 pub fn list_devices_args() -> Vec<String> {
-    ["-hide_banner", "-nostdin", "-f", "avfoundation", "-list_devices", "true", "-i", ""]
-        .iter()
-        .map(|s| (*s).to_owned())
-        .collect()
+    [
+        "-hide_banner",
+        "-nostdin",
+        "-f",
+        "avfoundation",
+        "-list_devices",
+        "true",
+        "-i",
+        "",
+    ]
+    .iter()
+    .map(|s| (*s).to_owned())
+    .collect()
 }
 
 /// Parse `-list_devices` stderr → video devices `[{index, name}]` (audio section ignored).
@@ -452,8 +490,12 @@ pub fn parse_avf_devices(stderr: &str) -> Vec<Value> {
             continue;
         }
         // `[AVFoundation indev @ 0x…] [0] Name`
-        let Some(rest) = line.rsplit_once("] [").map(|(_, r)| r) else { continue };
-        let Some((idx, name)) = rest.split_once("] ") else { continue };
+        let Some(rest) = line.rsplit_once("] [").map(|(_, r)| r) else {
+            continue;
+        };
+        let Some((idx, name)) = rest.split_once("] ") else {
+            continue;
+        };
         if let Ok(i) = idx.parse::<u32>() {
             out.push(json!({"index": i, "name": name.trim()}));
         }
@@ -488,12 +530,19 @@ pub fn resolve_ffmpeg(configured: Option<&str>, path_env: Option<&str>) -> Resul
 
 /// Opaque ids: `[a-z0-9-]{1,64}`.
 pub fn valid_id(s: &str) -> bool {
-    !s.is_empty() && s.len() <= 64 && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+    !s.is_empty()
+        && s.len() <= 64
+        && s.bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
 /// Capture id: `v` + 12 lowercase hex.
 pub fn valid_capture_id(s: &str) -> bool {
-    s.len() == 13 && s.starts_with('v') && s[1..].bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+    s.len() == 13
+        && s.starts_with('v')
+        && s[1..]
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
 }
 
 /// New capture id from entropy the caller supplies (time, pid, counter).
@@ -509,6 +558,8 @@ pub enum ArtifactKind {
     Snapshot,
     /// Matroska recording.
     Recording,
+    /// Before/after evidence bundle (JSON manifest with base64 JPEGs; operator upgrade B5b).
+    Evidence,
 }
 
 impl ArtifactKind {
@@ -517,6 +568,7 @@ impl ArtifactKind {
         match self {
             ArtifactKind::Snapshot => "snap",
             ArtifactKind::Recording => "rec",
+            ArtifactKind::Evidence => "evid",
         }
     }
     /// File extension.
@@ -524,6 +576,7 @@ impl ArtifactKind {
         match self {
             ArtifactKind::Snapshot => "jpg",
             ArtifactKind::Recording => "mkv",
+            ArtifactKind::Evidence => "json",
         }
     }
     /// HTTP content type.
@@ -531,11 +584,12 @@ impl ArtifactKind {
         match self {
             ArtifactKind::Snapshot => "image/jpeg",
             ArtifactKind::Recording => "video/x-matroska",
+            ArtifactKind::Evidence => "application/json",
         }
     }
 }
 
-/// `snap-<capture>-<n>` / `rec-<capture>-<n>`.
+/// `snap-<capture>-<n>` / `rec-<capture>-<n>` / `evid-<capture>-<n>`.
 pub fn artifact_id(kind: ArtifactKind, capture_id: &str, n: u64) -> String {
     format!("{}-{capture_id}-{n}", kind.prefix())
 }
@@ -549,6 +603,7 @@ pub fn parse_artifact_id(id: &str) -> Option<(ArtifactKind, &str)> {
     let kind = match it.next()? {
         "snap" => ArtifactKind::Snapshot,
         "rec" => ArtifactKind::Recording,
+        "evid" => ArtifactKind::Evidence,
         _ => return None,
     };
     let cap = it.next()?;
@@ -567,7 +622,10 @@ pub fn capture_dir(session: &Path, capture_id: &str) -> PathBuf {
 /// Final artifact file for an id (`None` for malformed ids).
 pub fn artifact_path(session: &Path, id: &str) -> Option<(ArtifactKind, PathBuf)> {
     let (kind, cap) = parse_artifact_id(id)?;
-    Some((kind, capture_dir(session, cap).join(format!("{id}.{}", kind.ext()))))
+    Some((
+        kind,
+        capture_dir(session, cap).join(format!("{id}.{}", kind.ext())),
+    ))
 }
 
 /// In-progress recording file (renamed to the final path when finalized).
@@ -647,13 +705,17 @@ pub struct Usage {
 }
 
 fn walk(dir: &Path, depth: u32, budget: &mut usize, files: &mut u64, bytes: &mut u64) -> bool {
-    let Ok(rd) = std::fs::read_dir(dir) else { return true };
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return true;
+    };
     for e in rd.flatten() {
         if *budget == 0 {
             return false;
         }
         *budget -= 1;
-        let Ok(m) = std::fs::symlink_metadata(e.path()) else { continue };
+        let Ok(m) = std::fs::symlink_metadata(e.path()) else {
+            continue;
+        };
         if m.is_file() {
             *files += 1;
             *bytes += m.len();
@@ -668,19 +730,33 @@ fn walk(dir: &Path, depth: u32, budget: &mut usize, files: &mut u64, bytes: &mut
 pub fn scan_usage(home: &Path, session: &Path) -> Usage {
     let mut budget = MAX_SCAN_ENTRIES;
     let mut u = Usage::default();
-    let ok_s = walk(&session.join("video"), 1, &mut budget, &mut u.session_files, &mut u.session_bytes);
+    let ok_s = walk(
+        &session.join("video"),
+        1,
+        &mut budget,
+        &mut u.session_files,
+        &mut u.session_bytes,
+    );
     let mut ok_h = ok_s;
     let mut files = 0;
     if let Ok(dates) = std::fs::read_dir(home.join("records")) {
         'outer: for d in dates.flatten() {
-            let Ok(sessions) = std::fs::read_dir(d.path()) else { continue };
+            let Ok(sessions) = std::fs::read_dir(d.path()) else {
+                continue;
+            };
             for s in sessions.flatten() {
                 if budget == 0 {
                     ok_h = false;
                     break 'outer;
                 }
                 budget -= 1;
-                if !walk(&s.path().join("video"), 1, &mut budget, &mut files, &mut u.home_bytes) {
+                if !walk(
+                    &s.path().join("video"),
+                    1,
+                    &mut budget,
+                    &mut files,
+                    &mut u.home_bytes,
+                ) {
                     ok_h = false;
                     break 'outer;
                 }
@@ -932,6 +1008,270 @@ impl Ring {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Pins (operator upgrade B2, FUNCTIONS.md §B2-M). Frames held past ring eviction for a bounded time
+// so a frozen/inspected frame stays exact evidence. Memory only; released on unpin, TTL or next open.
+
+/// Distinct frames one viewer/agent (`User`) may pin per capture.
+pub const MAX_USER_PINS: usize = 4;
+/// Bytes held by all pins of a capture (each frame counted once, whatever its owners).
+pub const PIN_BYTES: usize = 16 << 20;
+/// `video.pin` default retention.
+pub const PIN_TTL_DEFAULT_MS: u64 = 120_000;
+/// `video.pin` longest retention.
+pub const PIN_TTL_MAX_MS: u64 = 600_000;
+
+/// Who holds a pin.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PinOwner {
+    /// `video.pin` (UI freeze or agent).
+    User,
+    /// Evidence bundle `n` being collected (B5).
+    Evidence(u64),
+}
+
+/// Why a pin was refused.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PinRefusal {
+    /// [`MAX_USER_PINS`] distinct user-pinned frames already held.
+    UserLimit {
+        /// User-pinned frames held.
+        pinned: usize,
+    },
+    /// The frame does not fit in [`PIN_BYTES`].
+    Bytes {
+        /// Bytes the frame needs.
+        need: usize,
+        /// Bytes still free.
+        free: usize,
+    },
+}
+
+/// Result of a successful [`PinStore::pin`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PinInfo {
+    /// Frame id.
+    pub frame_id: u64,
+    /// SHA-256 hex of the held JPEG.
+    pub sha256: String,
+    /// JPEG bytes.
+    pub size: usize,
+    /// Retention left for this owner (ms, floor).
+    pub expires_in_ms: u64,
+    /// The same owner already held this frame (expiry refreshed).
+    pub refreshed: bool,
+}
+
+#[derive(Debug)]
+struct PinEntry {
+    frame: Frame,
+    /// owner → expiry (daemon monotonic ns).
+    owners: BTreeMap<PinOwner, u64>,
+}
+
+/// Bounded pinned-frame store of one capture.
+#[derive(Debug, Default)]
+pub struct PinStore {
+    entries: BTreeMap<u64, PinEntry>,
+    bytes: usize,
+    expired_total: u64,
+    released_total: u64,
+}
+
+impl PinOwner {
+    /// Wire label: `user` | `evidence-<n>`.
+    pub fn label(self) -> String {
+        match self {
+            PinOwner::User => "user".to_string(),
+            PinOwner::Evidence(n) => format!("evidence-{n}"),
+        }
+    }
+}
+
+impl PinRefusal {
+    /// Wire reason: `pin_user_limit` | `pin_bytes`.
+    pub fn reason(&self) -> &'static str {
+        match self {
+            PinRefusal::UserLimit { .. } => "pin_user_limit",
+            PinRefusal::Bytes { .. } => "pin_bytes",
+        }
+    }
+}
+
+impl PinStore {
+    /// Pin `frame` for `owner` until `now_mono_ns + ttl_ms` (ttl clamped to 1..=[`PIN_TTL_MAX_MS`]).
+    pub fn pin(
+        &mut self,
+        frame: &Frame,
+        owner: PinOwner,
+        now_mono_ns: u64,
+        ttl_ms: u64,
+    ) -> Result<PinInfo, PinRefusal> {
+        let ttl = ttl_ms.clamp(1, PIN_TTL_MAX_MS);
+        let expires = now_mono_ns.saturating_add(ttl.saturating_mul(1_000_000));
+        let len = frame.data.len();
+        let info = |refreshed: bool| PinInfo {
+            frame_id: frame.id,
+            sha256: frame.sha256.clone(),
+            size: len,
+            expires_in_ms: ttl,
+            refreshed,
+        };
+        if let Some(e) = self.entries.get_mut(&frame.id) {
+            if let Some(x) = e.owners.get_mut(&owner) {
+                *x = expires;
+                return Ok(info(true));
+            }
+            let user_count = self
+                .entries
+                .values()
+                .filter(|e| e.owners.contains_key(&PinOwner::User))
+                .count();
+            if owner == PinOwner::User && user_count >= MAX_USER_PINS {
+                return Err(PinRefusal::UserLimit { pinned: user_count });
+            }
+            if let Some(e) = self.entries.get_mut(&frame.id) {
+                e.owners.insert(owner, expires);
+            }
+            return Ok(info(false));
+        }
+        let user_count = self.user_count();
+        if owner == PinOwner::User && user_count >= MAX_USER_PINS {
+            return Err(PinRefusal::UserLimit { pinned: user_count });
+        }
+        if self.bytes + len > PIN_BYTES {
+            return Err(PinRefusal::Bytes {
+                need: len,
+                free: PIN_BYTES.saturating_sub(self.bytes),
+            });
+        }
+        let mut owners = BTreeMap::new();
+        owners.insert(owner, expires);
+        self.entries.insert(
+            frame.id,
+            PinEntry {
+                frame: frame.clone(),
+                owners,
+            },
+        );
+        self.bytes += len;
+        Ok(info(false))
+    }
+    /// Release one owner of one frame; true when that owner held it.
+    pub fn unpin(&mut self, frame_id: u64, owner: PinOwner) -> bool {
+        let Some(e) = self.entries.get_mut(&frame_id) else {
+            return false;
+        };
+        if e.owners.remove(&owner).is_none() {
+            return false;
+        }
+        self.released_total += 1;
+        if e.owners.is_empty()
+            && let Some(gone) = self.entries.remove(&frame_id)
+        {
+            self.bytes = self.bytes.saturating_sub(gone.frame.data.len());
+        }
+        true
+    }
+    /// Release every frame held by `owner`; returns owners released.
+    pub fn unpin_owner(&mut self, owner: PinOwner) -> usize {
+        let mut n = 0;
+        let mut freed = 0;
+        self.entries.retain(|_, e| {
+            if e.owners.remove(&owner).is_some() {
+                n += 1;
+            }
+            if e.owners.is_empty() {
+                freed += e.frame.data.len();
+                false
+            } else {
+                true
+            }
+        });
+        self.bytes = self.bytes.saturating_sub(freed);
+        self.released_total += n as u64;
+        n
+    }
+    /// Drop owners whose expiry ≤ `now_mono_ns`; returns owners expired.
+    pub fn expire(&mut self, now_mono_ns: u64) -> usize {
+        let mut n = 0;
+        let mut freed = 0;
+        self.entries.retain(|_, e| {
+            let before = e.owners.len();
+            e.owners.retain(|_, exp| *exp > now_mono_ns);
+            n += before - e.owners.len();
+            if e.owners.is_empty() {
+                freed += e.frame.data.len();
+                false
+            } else {
+                true
+            }
+        });
+        self.bytes = self.bytes.saturating_sub(freed);
+        self.expired_total += n as u64;
+        n
+    }
+    /// Held frame (no expiry check: callers [`PinStore::expire`] first).
+    pub fn get(&self, frame_id: u64) -> Option<&Frame> {
+        self.entries.get(&frame_id).map(|e| &e.frame)
+    }
+    /// Distinct frames with a `User` owner.
+    pub fn user_count(&self) -> usize {
+        self.entries
+            .values()
+            .filter(|e| e.owners.contains_key(&PinOwner::User))
+            .count()
+    }
+    /// Bytes held.
+    pub fn bytes(&self) -> usize {
+        self.bytes
+    }
+    /// Frames held.
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+    /// Nothing held?
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+    /// One frame's pin record, `null` when not held.
+    pub fn entry_json(&self, frame_id: u64, now_mono_ns: u64) -> Value {
+        let Some(e) = self.entries.get(&frame_id) else {
+            return Value::Null;
+        };
+        let owners: Vec<Value> = e
+            .owners
+            .iter()
+            .map(|(o, exp)| json!({"owner": o.label(), "expires_in_ms": exp.saturating_sub(now_mono_ns) / 1_000_000}))
+            .collect();
+        json!({"frame_id": frame_id, "sha256": e.frame.sha256, "size": e.frame.data.len(), "owners": owners})
+    }
+    /// Whole store (status / health / media META).
+    pub fn json(&self, now_mono_ns: u64) -> Value {
+        let frames: Vec<Value> = self
+            .entries
+            .keys()
+            .map(|id| self.entry_json(*id, now_mono_ns))
+            .collect();
+        json!({"count": self.len(), "user_count": self.user_count(), "bytes": self.bytes, "frames": frames,
+               "expired_total": self.expired_total, "released_total": self.released_total, "limits": pin_limits()})
+    }
+}
+
+/// Pin bounds and release rules (capabilities, status).
+pub fn pin_limits() -> Value {
+    json!({"max_user_pins": MAX_USER_PINS, "pin_bytes": PIN_BYTES, "ttl_default_ms": PIN_TTL_DEFAULT_MS,
+           "ttl_max_ms": PIN_TTL_MAX_MS, "released_on": ["unpin", "ttl", "next_open"], "memory_only": true})
+}
+
+/// Frame by id from the ring, else from the pins: `(frame, "ring" | "pin")`.
+pub fn lookup_frame<'a>(ring: &'a Ring, pins: &'a PinStore, id: u64) -> Option<(&'a Frame, &'static str)> {
+    if let Some(f) = ring.get(id) {
+        return Some((f, "ring"));
+    }
+    pins.get(id).map(|f| (f, "pin"))
+}
+
+// ---------------------------------------------------------------------------------------------
 // `-progress` parsing.
 
 /// Latest FFmpeg progress counters.
@@ -952,7 +1292,9 @@ pub struct Progress {
 impl Progress {
     /// Feed one stderr line; true if it was a progress key.
     pub fn line(&mut self, l: &str) -> bool {
-        let Some((k, v)) = l.trim().split_once('=') else { return false };
+        let Some((k, v)) = l.trim().split_once('=') else {
+            return false;
+        };
         let n = || v.trim().parse::<u64>().ok();
         match k {
             "frame" => self.frame = n().unwrap_or(self.frame),
@@ -960,7 +1302,8 @@ impl Progress {
             "dup_frames" => self.dup_frames = n().unwrap_or(self.dup_frames),
             "speed" => self.speed = Some(v.trim().to_owned()),
             "progress" => self.ended |= v.trim() == "end",
-            "fps" | "stream_0_0_q" | "bitrate" | "total_size" | "out_time_us" | "out_time_ms" | "out_time" => {}
+            "fps" | "stream_0_0_q" | "bitrate" | "total_size" | "out_time_us" | "out_time_ms"
+            | "out_time" => {}
             _ => return false,
         }
         true
@@ -980,7 +1323,14 @@ pub fn classify_exit(success: bool, frames: u64, stderr: &str) -> (&'static str,
         return ("failed", "source_not_found");
     }
     if s.contains("timed out") || s.contains("timeout") {
-        return ("failed", if frames > 0 { "stall_timeout" } else { "open_timeout" });
+        return (
+            "failed",
+            if frames > 0 {
+                "stall_timeout"
+            } else {
+                "open_timeout"
+            },
+        );
     }
     if frames > 0 {
         ("failed", "disconnect")
@@ -1018,6 +1368,7 @@ pub fn capabilities(ffmpeg: &Value) -> Value {
         "recording": {"container": "matroska", "codec": "mjpeg (copy of preview JPEGs, no H.264 encode)",
                       "size_note": "large: roughly 3 MB/s at 1280x720@30 q5", "lossless_claim": false},
         "quota": quota_limits(),
+        "pins": pin_limits(),
         "timestamps": {"kind": "receive", "source_pts": false},
         "media": {"frame": "/api/v1/video/{capture_id}/frame", "meta": "/api/v1/video/{capture_id}/meta",
                   "artifact": "/api/v1/video/artifact/{artifact_id}"},
@@ -1038,8 +1389,14 @@ mod tests {
 
     #[test]
     fn url_rules() {
-        assert_eq!(check_http_url("http://127.0.0.1:8080/stream").unwrap(), "http://127.0.0.1:8080/stream");
-        assert_eq!(check_http_url("http://localhost:9/s?token=x").unwrap(), "http://localhost:9/s");
+        assert_eq!(
+            check_http_url("http://127.0.0.1:8080/stream").unwrap(),
+            "http://127.0.0.1:8080/stream"
+        );
+        assert_eq!(
+            check_http_url("http://localhost:9/s?token=x").unwrap(),
+            "http://localhost:9/s"
+        );
         assert_eq!(check_http_url("http://[::1]:80").unwrap(), "http://[::1]:80/");
         for bad in [
             "https://127.0.0.1/",
@@ -1062,19 +1419,47 @@ mod tests {
         assert!(OpenConfig::from_params(&json!({})).is_err());
         assert!(OpenConfig::from_params(&json!({"source": "avfoundation"})).is_err());
         for d in ["default", "none", "0", " Cam", ""] {
-            assert!(OpenConfig::from_params(&json!({"source": "avfoundation", "device": d})).is_err(), "{d}");
+            assert!(
+                OpenConfig::from_params(&json!({"source": "avfoundation", "device": d})).is_err(),
+                "{d}"
+            );
         }
         assert_eq!(
-            OpenConfig::from_params(&json!({"source": "rtsp"})).unwrap_err().code,
+            OpenConfig::from_params(&json!({"source": "rtsp"}))
+                .unwrap_err()
+                .code,
             ErrorCode::Unsupported
         );
         assert!(OpenConfig::from_params(&json!({"source": "replay", "name": "../x"})).is_err());
         assert!(OpenConfig::from_params(&json!({"source": "replay", "name": "a/b.mp4"})).is_err());
-        assert!(OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "argv": []})).is_err());
-        assert!(OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "name": "x"})).is_err());
-        assert!(OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "fps": 61})).is_err());
-        assert!(OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "width": 641})).is_err());
-        let c = OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:8/s?k=1", "fps": 60})).unwrap();
+        assert!(
+            OpenConfig::from_params(
+                &json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "argv": []})
+            )
+            .is_err()
+        );
+        assert!(
+            OpenConfig::from_params(
+                &json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "name": "x"})
+            )
+            .is_err()
+        );
+        assert!(
+            OpenConfig::from_params(
+                &json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "fps": 61})
+            )
+            .is_err()
+        );
+        assert!(
+            OpenConfig::from_params(
+                &json!({"source": "http-mjpeg", "url": "http://127.0.0.1:1/", "width": 641})
+            )
+            .is_err()
+        );
+        let c = OpenConfig::from_params(
+            &json!({"source": "http-mjpeg", "url": "http://127.0.0.1:8/s?k=1", "fps": 60}),
+        )
+        .unwrap();
         assert_eq!((c.width, c.height, c.fps, c.quality), (1280, 720, 60, 5));
         assert_eq!(OpenConfig::from_params(&c.to_params()).unwrap(), c);
         assert_eq!(c.public()["source_label"], "http://127.0.0.1:8/s");
@@ -1083,7 +1468,8 @@ mod tests {
 
     #[test]
     fn argv_templates() {
-        let c = OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:8/s"})).unwrap();
+        let c =
+            OpenConfig::from_params(&json!({"source": "http-mjpeg", "url": "http://127.0.0.1:8/s"})).unwrap();
         let a = c.acquisition_args(Path::new("/r"));
         let s = a.join(" ");
         assert!(s.contains("-max_redirects 0 -reconnect 0"));
@@ -1091,15 +1477,22 @@ mod tests {
         assert!(s.contains("-vf fps=30,scale=1280:720"));
         assert!(s.ends_with("-f mjpeg -progress pipe:2 pipe:1"));
         assert!(!s.contains("-follow"));
-        let c = OpenConfig::from_params(&json!({"source": "avfoundation", "device": "USB Capture HDMI"})).unwrap();
+        let c = OpenConfig::from_params(&json!({"source": "avfoundation", "device": "USB Capture HDMI"}))
+            .unwrap();
         let a = c.acquisition_args(Path::new("/r"));
         let i = a.iter().position(|x| x == "-i").unwrap();
         assert_eq!(a[i + 1], "USB Capture HDMI:none");
         assert!(a.contains(&"-an".to_owned()));
         let c = OpenConfig::from_params(&json!({"source": "replay", "name": "clip.mp4"})).unwrap();
-        assert!(c.acquisition_args(Path::new("/h/video/replay")).contains(&"/h/video/replay/clip.mp4".to_owned()));
+        assert!(
+            c.acquisition_args(Path::new("/h/video/replay"))
+                .contains(&"/h/video/replay/clip.mp4".to_owned())
+        );
         let r = recorder_args(30, Path::new("/s/rec.mkv.part")).join(" ");
-        assert!(r.contains("-f mjpeg -framerate 30 -i pipe:0") && r.contains("-c:v copy -f matroska -n /s/rec.mkv.part"));
+        assert!(
+            r.contains("-f mjpeg -framerate 30 -i pipe:0")
+                && r.contains("-c:v copy -f matroska -n /s/rec.mkv.part")
+        );
     }
 
     #[test]
@@ -1110,12 +1503,22 @@ mod tests {
         let (k, p) = artifact_path(Path::new("/s"), &a).unwrap();
         assert_eq!(k, ArtifactKind::Snapshot);
         assert_eq!(p, PathBuf::from(format!("/s/video/{id}/{a}.jpg")));
-        for bad in ["snap-../x-1", "snap-vZZ-1", "rec-v0123456789ab-", "x-v0123456789ab-1", "snap-v0123456789ab-1-2", "SNAP-v0123456789ab-1"] {
+        for bad in [
+            "snap-../x-1",
+            "snap-vZZ-1",
+            "rec-v0123456789ab-",
+            "x-v0123456789ab-1",
+            "snap-v0123456789ab-1-2",
+            "SNAP-v0123456789ab-1",
+        ] {
             assert!(parse_artifact_id(bad).is_none(), "{bad}");
         }
         assert!(media_socket_path(Path::new("/tmp/loom-video-x"), &id).is_ok());
         let long = "/".to_owned() + &"x".repeat(90);
-        assert_eq!(media_socket_path(Path::new(&long), &id).unwrap_err().code, ErrorCode::Config);
+        assert_eq!(
+            media_socket_path(Path::new(&long), &id).unwrap_err().code,
+            ErrorCode::Config
+        );
     }
 
     #[test]
@@ -1178,10 +1581,19 @@ mod tests {
         assert!(r.bytes() <= RING_BYTES);
         assert_eq!(r.len(), 2);
         let f = Frame::new(1, 7, 2, 3, b"abc".to_vec());
-        assert_eq!(f.meta("v0")["sha256"], "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        assert_eq!(
+            f.meta("v0")["sha256"],
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
         assert!(f.meta("v0")["source_pts"].is_null());
         // wide values above 2^53 survive exactly as decimal strings
-        let big = Frame::new(9, 1_794_645_164_583_021_002, (1 << 53) + 1, 1_794_645_164_583_021_003, b"x".to_vec());
+        let big = Frame::new(
+            9,
+            1_794_645_164_583_021_002,
+            (1 << 53) + 1,
+            1_794_645_164_583_021_003,
+            b"x".to_vec(),
+        );
         let m = big.meta("v0");
         assert_eq!(m["capture_epoch"], "1794645164583021002");
         assert_eq!(m["recv_mono_ns"], "9007199254740993");
@@ -1191,15 +1603,29 @@ mod tests {
 
     #[test]
     fn quota_bounds() {
-        let u = Usage { session_files: 0, session_bytes: MAX_SESSION_BYTES - 10, home_bytes: 0, incomplete: false };
+        let u = Usage {
+            session_files: 0,
+            session_bytes: MAX_SESSION_BYTES - 10,
+            home_bytes: 0,
+            incomplete: false,
+        };
         assert_eq!(u.refuse(5), None);
         assert_eq!(u.refuse(11), Some("quota_session_bytes"));
         assert_eq!(u.remaining(), 10);
-        let u = Usage { session_files: MAX_SESSION_ARTIFACTS, ..Usage::default() };
+        let u = Usage {
+            session_files: MAX_SESSION_ARTIFACTS,
+            ..Usage::default()
+        };
         assert_eq!(u.refuse(1), Some("quota_session_artifacts"));
-        let u = Usage { home_bytes: MAX_HOME_BYTES, ..Usage::default() };
+        let u = Usage {
+            home_bytes: MAX_HOME_BYTES,
+            ..Usage::default()
+        };
         assert_eq!((u.refuse(1), u.remaining()), (Some("quota_home_bytes"), 0));
-        let u = Usage { incomplete: true, ..Usage::default() };
+        let u = Usage {
+            incomplete: true,
+            ..Usage::default()
+        };
         assert_eq!((u.refuse(0), u.remaining()), (Some("quota_scan_incomplete"), 0));
         assert_eq!(quota_limits()["auto_delete"], false);
     }
@@ -1207,19 +1633,39 @@ mod tests {
     #[test]
     fn progress_and_exit() {
         let mut p = Progress::default();
-        for l in ["frame=30", "fps=30.0", "drop_frames=2", "dup_frames=5", "speed=1.01x", "progress=continue", "Error x"] {
+        for l in [
+            "frame=30",
+            "fps=30.0",
+            "drop_frames=2",
+            "dup_frames=5",
+            "speed=1.01x",
+            "progress=continue",
+            "Error x",
+        ] {
             p.line(l);
         }
         assert_eq!((p.frame, p.drop_frames, p.dup_frames, p.ended), (30, 2, 5, false));
         assert!(p.line("progress=end") && p.ended);
-        assert_eq!(classify_exit(false, 0, "Connection refused"), ("failed", "connection_refused"));
+        assert_eq!(
+            classify_exit(false, 0, "Connection refused"),
+            ("failed", "connection_refused")
+        );
         assert_eq!(classify_exit(false, 9, "I/O error"), ("failed", "disconnect"));
         assert_eq!(classify_exit(true, 9, ""), ("closed", "eof"));
         let devs = parse_avf_devices(
             "[AVFoundation indev @ 0x1] AVFoundation video devices:\n[AVFoundation indev @ 0x1] [0] Cam A\n[AVFoundation indev @ 0x1] [1] USB Capture\n[AVFoundation indev @ 0x1] AVFoundation audio devices:\n[AVFoundation indev @ 0x1] [0] Mic\n",
         );
-        assert_eq!(devs, vec![json!({"index":0,"name":"Cam A"}), json!({"index":1,"name":"USB Capture"})]);
-        let src = Source::HttpMjpeg { url: "http://127.0.0.1:1/s?t=SECRET".into(), display: "http://127.0.0.1:1/s".into() };
+        assert_eq!(
+            devs,
+            vec![
+                json!({"index":0,"name":"Cam A"}),
+                json!({"index":1,"name":"USB Capture"})
+            ]
+        );
+        let src = Source::HttpMjpeg {
+            url: "http://127.0.0.1:1/s?t=SECRET".into(),
+            display: "http://127.0.0.1:1/s".into(),
+        };
         assert!(!redact("open http://127.0.0.1:1/s?t=SECRET failed", &src).contains("SECRET"));
     }
 }

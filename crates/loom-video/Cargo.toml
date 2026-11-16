@@ -18,13 +18,16 @@ tokio = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 loom-cli-kit = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
+# operator upgrade (S1/S2): ROI analysis decode + evidence bundle frames (worker only)
+zune-jpeg = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
 
 # The `loom` CLI links only `cli` (invariant I1: no gateway/worker code in the CLI binary).
 # `media` is the gateway-side reader of the worker's frame socket (used by loomd's HTTP routes).
 [features]
 default = ["gateway", "worker", "media", "cli"]
 gateway = ["dep:loom-domain-api", "dep:schemars"]
-worker = ["dep:loom-worker-sdk", "dep:tokio"]
+worker = ["dep:loom-worker-sdk", "dep:tokio", "dep:zune-jpeg", "dep:base64"]
 media = ["dep:tokio", "dep:futures-util"]
 cli = ["dep:loom-cli-kit", "dep:clap"]
 

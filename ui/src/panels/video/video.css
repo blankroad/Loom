@@ -17,6 +17,12 @@
 .vd-sha { word-break: break-all; }
 .vd-sha[data-mismatch='true'] { color: var(--err, #cf222e); font-weight: 700; }
 .vd-frozen { color: var(--accent, #0969da); font-weight: 600; }
+/* B3: freeze pin status (daemon retention) */
+.vd-pin { font-variant-numeric: tabular-nums; }
+.vd-pin[data-status='pinned'] { color: var(--ok, #1a7f37); }
+.vd-pin[data-status='pending'] { color: var(--muted, #57606a); }
+.vd-pin[data-status='refused'], .vd-pin[data-status='expired'], .vd-pin[data-status='error'] { color: var(--warn, #9a6700); font-weight: 600; }
+.vd-ring-nav { min-width: 2em; }
 .vd-tools { display: flex; gap: 6px; }
 .vd-health, .vd-record, .vd-note { opacity: 0.85; }
 .vd-snaps { display: flex; flex-direction: column; gap: 2px; font-family: ui-monospace, monospace; }
@@ -28,3 +34,29 @@
 /* module tab: explicit engine check */
 .vd-caprow { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-top: 4px; }
 .vd-caprow .vd-note { flex: 1; min-width: 12em; }
+/* operator upgrade B1: in-panel artifact viewer, snapshot rows with view/save, reuse + source lists */
+.vd-stage[data-view='artifact'] { outline: 3px dashed var(--accent, #0969da); }
+.vd-snap { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.vd-snap button { font-size: 11px; }
+.vd-reuse { white-space: nowrap; }
+/* operator upgrade B6: ROI inspection (daemon judgments rendered, never computed here) */
+.vd-roi-overlay { position: absolute; pointer-events: none; }
+.vd-roi-rect { fill: none; stroke-width: 0.004; vector-effect: non-scaling-stroke; stroke: var(--muted, #8c959f); }
+.vd-roi-rect[data-state='normal'] { stroke: var(--ok, #1a7f37); }
+.vd-roi-rect[data-state='changed'] { stroke: var(--err, #cf222e); stroke-width: 0.008; }
+.vd-roi-rect[data-state='unknown'] { stroke: var(--warn, #9a6700); stroke-dasharray: 0.02 0.01; }
+.vd-roi { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border, #d0d7de); padding-top: 4px; }
+.vd-roi-meta { opacity: 0.85; }
+.vd-roi-list, .vd-roi-history, .vd-evidence { display: flex; flex-direction: column; gap: 2px; font-family: ui-monospace, monospace; }
+.vd-roi-history { max-height: 10em; overflow: auto; }
+.vd-roi-row, .vd-evid-row { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.vd-roi-chip { font-weight: 600; }
+.vd-roi-row[data-state='normal'] .vd-roi-chip { color: var(--ok, #1a7f37); }
+.vd-roi-row[data-state='changed'] .vd-roi-chip { color: var(--err, #cf222e); }
+.vd-roi-row[data-state='unknown'] .vd-roi-chip { color: var(--warn, #9a6700); }
+.vd-roi-editor { display: flex; gap: 6px; flex-wrap: wrap; align-items: end; }
+.vd-roi-editor input { width: 7em; }
+.vd-roi-editor input[name='roi-rect'] { width: 12em; }
+.vd-roi-err { color: var(--err, #cf222e); min-height: 1em; }
+.vd-evid-nav { display: flex; gap: 6px; align-items: baseline; }
+.vd-evid-label[data-ok='false'] { color: var(--err, #cf222e); font-weight: 700; }

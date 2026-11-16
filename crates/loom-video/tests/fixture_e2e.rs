@@ -88,14 +88,24 @@ impl Fixture {
         let mut child = Command::new("python3")
             .arg("-I")
             .arg(fixture_script())
-            .args(["--port", "0", "--fps", &fps.to_string(), "--size", "640x360", "--log"])
+            .args([
+                "--port",
+                "0",
+                "--fps",
+                &fps.to_string(),
+                "--size",
+                "640x360",
+                "--log",
+            ])
             .arg(&log)
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
             .unwrap();
         let mut line = String::new();
-        BufReader::new(child.stdout.take().unwrap()).read_line(&mut line).unwrap();
+        BufReader::new(child.stdout.take().unwrap())
+            .read_line(&mut line)
+            .unwrap();
         let v: Value = serde_json::from_str(&line).unwrap();
         Fixture {
             child,
@@ -109,10 +119,17 @@ impl Fixture {
     }
     fn control(&self, path: &str) {
         let mut s = std::net::TcpStream::connect(("127.0.0.1", self.port)).unwrap();
-        write!(s, "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n").unwrap();
+        write!(
+            s,
+            "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+        )
+        .unwrap();
         let mut out = String::new();
         let _ = s.read_to_string(&mut out);
-        assert!(out.starts_with("HTTP/1.0 200") || out.starts_with("HTTP/1.1 200"), "{out}");
+        assert!(
+            out.starts_with("HTTP/1.0 200") || out.starts_with("HTTP/1.1 200"),
+            "{out}"
+        );
     }
     fn sent(&self) -> usize {
         std::fs::read_to_string(&self.log)
@@ -170,7 +187,12 @@ impl Run {
     fn status(&mut self) -> Value {
         self.fw.call("video.status", json!({})).unwrap()
     }
-    fn until(&mut self, limit: Duration, what: &str, pred: impl Fn(&Value, &[PublishedRecord]) -> bool) -> Value {
+    fn until(
+        &mut self,
+        limit: Duration,
+        what: &str,
+        pred: impl Fn(&Value, &[PublishedRecord]) -> bool,
+    ) -> Value {
         let t0 = Instant::now();
         loop {
             self.pull();
@@ -178,7 +200,11 @@ impl Run {
             if pred(&st, &self.events) {
                 return st;
             }
-            assert!(t0.elapsed() < limit, "timed out waiting for {what}; states {:?}; status {st}", self.states());
+            assert!(
+                t0.elapsed() < limit,
+                "timed out waiting for {what}; states {:?}; status {st}",
+                self.states()
+            );
             std::thread::sleep(Duration::from_millis(50));
         }
     }
@@ -219,13 +245,21 @@ fn live_snapshot_record_media_and_stop_cleanup() {
         .open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 640, "height": 360, "fps": 30}))
         .unwrap();
     assert_eq!(open["state"], "live", "{open}");
-    assert!(open["capture_epoch"].as_str().is_some_and(|e| e.parse::<u64>().unwrap() > (1 << 53)), "{open}");
+    assert!(
+        open["capture_epoch"]
+            .as_str()
+            .is_some_and(|e| e.parse::<u64>().unwrap() > (1 << 53)),
+        "{open}"
+    );
     let id = open["capture_id"].as_str().unwrap().to_owned();
     assert!(model::valid_capture_id(&id));
     // No URL query / home path in events.
     let st = run.until(Duration::from_secs(10), "60 frames", |s, _| last_frame(s) >= 60);
     let fps = st["health"]["measured_fps"].as_u64().unwrap();
-    assert!((24..=36).contains(&fps), "measured fps {fps} at 30 requested: {st}");
+    assert!(
+        (24..=36).contains(&fps),
+        "measured fps {fps} at 30 requested: {st}"
+    );
 
     // Frame identity: worker meta == media socket bytes hash == snapshot file hash.
     let n = last_frame(&st) - 5;
@@ -237,34 +271,77 @@ fn live_snapshot_record_media_and_stop_cleanup() {
     assert!(meta["source_pts"].is_null() && meta["timestamp_kind"] == "receive");
     let snap = run.call("video.snapshot", json!({"frame_id": n})).unwrap();
     let (_, path) = model::artifact_path(&home.session(), snap["artifact_id"].as_str().unwrap()).unwrap();
-    assert_eq!(sha(&std::fs::read(&path).unwrap()), meta["sha256"].as_str().unwrap());
+    assert_eq!(
+        sha(&std::fs::read(&path).unwrap()),
+        meta["sha256"].as_str().unwrap()
+    );
     {
         use std::os::unix::fs::PermissionsExt as _;
-        assert_eq!(std::fs::metadata(&path).unwrap().permissions().mode() & 0o777, 0o600);
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
     }
 
     // Gateway-side media reader (HTTP route body) over the same socket.
-    let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
-    let r = rt.block_on(loom_video::media::frame(&home.0, &id, Some(format!("id={n}").as_str())));
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let r = rt.block_on(loom_video::media::frame(
+        &home.0,
+        &id,
+        Some(format!("id={n}").as_str()),
+    ));
     assert_eq!(r.status, 200);
-    let hdr = |k: &str| r.headers.iter().find(|(h, _)| *h == k).map(|(_, v)| v.clone()).unwrap();
+    let hdr = |k: &str| {
+        r.headers
+            .iter()
+            .find(|(h, _)| *h == k)
+            .map(|(_, v)| v.clone())
+            .unwrap()
+    };
     assert_eq!(hdr("x-loom-frame-id"), n.to_string());
     assert_eq!(hdr("x-loom-frame-sha256"), meta["sha256"].as_str().unwrap());
     // wide values are decimal strings end to end (meta == header), never JSON numbers
     for k in ["capture_epoch", "recv_utc_ns", "recv_mono_ns"] {
         assert!(meta[k].is_string(), "{k}: {meta}");
     }
-    assert_eq!(hdr("x-loom-capture-epoch"), meta["capture_epoch"].as_str().unwrap());
+    assert_eq!(
+        hdr("x-loom-capture-epoch"),
+        meta["capture_epoch"].as_str().unwrap()
+    );
     assert_eq!(hdr("x-loom-recv-utc-ns"), meta["recv_utc_ns"].as_str().unwrap());
     assert_eq!(open["capture_epoch"], meta["capture_epoch"]);
-    let loom_video::media::Body::Bytes(b) = &r.body else { panic!("bytes") };
+    let loom_video::media::Body::Bytes(b) = &r.body else {
+        panic!("bytes")
+    };
     assert_eq!(sha(b), meta["sha256"].as_str().unwrap());
-    assert_eq!(rt.block_on(loom_video::media::frame(&home.0, &id, Some("token=x"))).status, 400);
-    assert_eq!(rt.block_on(loom_video::media::frame(&home.0, "../x", None)).status, 400);
-    assert_eq!(rt.block_on(loom_video::media::frame(&home.0, &id, Some("id=999999999"))).status, 404);
-    let a = rt.block_on(loom_video::media::artifact(&home.session(), snap["artifact_id"].as_str().unwrap()));
+    assert_eq!(
+        rt.block_on(loom_video::media::frame(&home.0, &id, Some("token=x")))
+            .status,
+        400
+    );
+    assert_eq!(
+        rt.block_on(loom_video::media::frame(&home.0, "../x", None))
+            .status,
+        400
+    );
+    assert_eq!(
+        rt.block_on(loom_video::media::frame(&home.0, &id, Some("id=999999999")))
+            .status,
+        404
+    );
+    let a = rt.block_on(loom_video::media::artifact(
+        &home.session(),
+        snap["artifact_id"].as_str().unwrap(),
+    ));
     assert_eq!((a.status, a.content_type), (200, "image/jpeg"));
-    assert_eq!(rt.block_on(loom_video::media::artifact(&home.session(), "snap-../../x-1")).status, 400);
+    assert_eq!(
+        rt.block_on(loom_video::media::artifact(&home.session(), "snap-../../x-1"))
+            .status,
+        400
+    );
     let m = rt.block_on(loom_video::media::meta(&home.0, &id));
     assert_eq!(m.status, 200);
 
@@ -274,7 +351,8 @@ fn live_snapshot_record_media_and_stop_cleanup() {
     let rid = rec["recording_id"].as_str().unwrap().to_owned();
     std::thread::sleep(Duration::from_secs(1));
     assert_eq!(
-        rt.block_on(loom_video::media::artifact(&home.session(), &rid)).status,
+        rt.block_on(loom_video::media::artifact(&home.session(), &rid))
+            .status,
         409,
         "in-progress recording is not served"
     );
@@ -285,35 +363,64 @@ fn live_snapshot_record_media_and_stop_cleanup() {
     assert!(fin["cleanup_ms"].as_u64().unwrap() <= 2100, "{fin}");
     assert_eq!(fin["lossless_claim"], false);
     let (_, rpath) = model::artifact_path(&home.session(), &rid).unwrap();
-    assert_eq!(std::fs::metadata(&rpath).unwrap().len(), fin["size"].as_u64().unwrap());
+    assert_eq!(
+        std::fs::metadata(&rpath).unwrap().len(),
+        fin["size"].as_u64().unwrap()
+    );
     let probe = Command::new(Path::new(&run.ffmpeg).with_file_name("ffprobe"))
-        .args(["-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries",
-               "stream=codec_name,nb_read_frames", "-of", "json"])
+        .args([
+            "-v",
+            "error",
+            "-count_frames",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=codec_name,nb_read_frames",
+            "-of",
+            "json",
+        ])
         .arg(&rpath)
         .output();
     if let Ok(o) = probe {
         let v: Value = serde_json::from_slice(&o.stdout).unwrap_or(Value::Null);
         assert_eq!(v["streams"][0]["codec_name"], "mjpeg", "{v}");
-        let frames: u64 = v["streams"][0]["nb_read_frames"].as_str().unwrap_or("0").parse().unwrap();
+        let frames: u64 = v["streams"][0]["nb_read_frames"]
+            .as_str()
+            .unwrap_or("0")
+            .parse()
+            .unwrap();
         assert_eq!(frames, fin["frames_written"].as_u64().unwrap(), "{v} {fin}");
     }
 
     // STOP: freeze + cleanup bounded; no new frames after; history readable.
     let before = last_frame(&run.status());
     run.fw.latch(true);
-    let st = run.until(Duration::from_secs(4), "closed after STOP", |s, _| s["capture"]["state"] == "closed");
+    let st = run.until(Duration::from_secs(4), "closed after STOP", |s, _| {
+        s["capture"]["state"] == "closed"
+    });
     assert_eq!(st["capture"]["reason"], "stop_latch");
     assert!(st["capture"]["cleanup_ms"].as_u64().unwrap() <= 2000, "{st}");
     let frozen_at = st["capture"]["stopped_at_frame_id"].as_u64().unwrap();
-    assert!(frozen_at >= before && frozen_at <= before + 3, "{frozen_at} vs {before}");
+    assert!(
+        frozen_at >= before && frozen_at <= before + 3,
+        "{frozen_at} vs {before}"
+    );
     std::thread::sleep(Duration::from_millis(500));
     assert_eq!(last_frame(&run.status()), frozen_at, "no publication after STOP");
     let (h, _) = socket_frame(&home, &id, None);
     assert_eq!(h["frame_id"], frozen_at);
     assert_eq!(h["frozen"], true);
     // Latched: open / snapshot / record refused.
-    assert_eq!(run.open(json!({"source": "http-mjpeg", "url": fx.url()})).unwrap_err().code, ErrorCode::Stopped);
-    assert_eq!(run.call("video.snapshot", json!({})).unwrap_err().code, ErrorCode::Stopped);
+    assert_eq!(
+        run.open(json!({"source": "http-mjpeg", "url": fx.url()}))
+            .unwrap_err()
+            .code,
+        ErrorCode::Stopped
+    );
+    assert_eq!(
+        run.call("video.snapshot", json!({})).unwrap_err().code,
+        ErrorCode::Stopped
+    );
     run.fw.latch(false);
     // Releasing the latch reopens nothing.
     std::thread::sleep(Duration::from_millis(300));
@@ -321,9 +428,16 @@ fn live_snapshot_record_media_and_stop_cleanup() {
 
     run.pull();
     assert!(run.events.iter().any(|e| e.kind == KIND_SNAPSHOT));
-    assert!(run.events.iter().any(|e| e.kind == KIND_RECORD_STATE && e.payload["state"] == "finalized"));
+    assert!(
+        run.events
+            .iter()
+            .any(|e| e.kind == KIND_RECORD_STATE && e.payload["state"] == "finalized")
+    );
     let all = serde_json::to_string(&run.events.iter().map(|e| &e.payload).collect::<Vec<_>>()).unwrap();
-    assert!(!all.contains(home.0.to_str().unwrap()), "home path leaked into events");
+    assert!(
+        !all.contains(home.0.to_str().unwrap()),
+        "home path leaked into events"
+    );
     assert!(fx.sent() > 0 && !fx.run_id.is_empty());
 }
 
@@ -331,12 +445,19 @@ fn live_snapshot_record_media_and_stop_cleanup() {
 fn refused_source_fails_explicitly() {
     let ff = need!();
     let home = Home::new("b");
-    let port = std::net::TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port();
+    let port = std::net::TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
     let mut run = Run::new(ff, &home);
     let e = run
         .open(json!({"source": "http-mjpeg", "url": format!("http://127.0.0.1:{port}/stream")}))
         .unwrap_err();
-    assert!(matches!(e.code, ErrorCode::NotFound | ErrorCode::Disconnected), "{e:?}");
+    assert!(
+        matches!(e.code, ErrorCode::NotFound | ErrorCode::Disconnected),
+        "{e:?}"
+    );
     assert_eq!(e.detail["state"], "failed", "{e:?}");
     assert_eq!(run.status()["running"], false);
 }
@@ -347,30 +468,45 @@ fn stall_disconnect_no_auto_reconnect_and_manual_reopen() {
     let home = Home::new("c");
     let fx = Fixture::start(&home, 30);
     let mut run = Run::new(ff, &home);
-    run.open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180})).unwrap();
+    run.open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180}))
+        .unwrap();
     run.until(Duration::from_secs(10), "frames", |s, _| last_frame(s) >= 20);
     fx.control("/control/stall?ms=3500");
-    run.until(Duration::from_secs(6), "stalled", |s, _| s["capture"]["state"] == "stalled");
-    run.until(Duration::from_secs(6), "live again", |s, _| s["capture"]["state"] == "live");
+    run.until(Duration::from_secs(6), "stalled", |s, _| {
+        s["capture"]["state"] == "stalled"
+    });
+    run.until(Duration::from_secs(6), "live again", |s, _| {
+        s["capture"]["state"] == "live"
+    });
     // corrupt + large parts are bounded: capture keeps going
     fx.control("/control/corrupt?n=5");
     fx.control("/control/large?n=2");
     let n0 = last_frame(&run.status());
-    run.until(Duration::from_secs(10), "frames after corrupt/large", |s, _| last_frame(s) >= n0 + 30);
+    run.until(Duration::from_secs(10), "frames after corrupt/large", |s, _| {
+        last_frame(s) >= n0 + 30
+    });
     fx.control("/control/disconnect");
     let st = run.until(Duration::from_secs(10), "terminal after disconnect", |s, _| {
         matches!(s["capture"]["state"].as_str(), Some("closed" | "failed"))
     });
     let reason = st["capture"]["reason"].as_str().unwrap().to_owned();
-    assert!(["eof", "disconnect", "stall_timeout"].contains(&reason.as_str()), "{st}");
+    assert!(
+        ["eof", "disconnect", "stall_timeout"].contains(&reason.as_str()),
+        "{st}"
+    );
     let frozen = last_frame(&run.status());
     std::thread::sleep(Duration::from_secs(1));
     assert_eq!(last_frame(&run.status()), frozen, "no automatic reconnect");
     // Manual reopen = new capture id / epoch.
-    let again = run.open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180})).unwrap();
+    let again = run
+        .open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180}))
+        .unwrap();
     assert_ne!(again["capture_id"], st["capture_id"]);
     let closed = run.call("video.close", json!({})).unwrap();
-    assert_eq!((closed["state"].as_str(), closed["closed"].as_bool()), (Some("closed"), Some(true)));
+    assert_eq!(
+        (closed["state"].as_str(), closed["closed"].as_bool()),
+        (Some("closed"), Some(true))
+    );
 }
 
 #[test]
@@ -379,11 +515,18 @@ fn storage_roots_socket_path_and_quota_are_explicit() {
     // No storage roots → refused (never ~/.loom).
     let mut fw = FakeWorker::new(VideoWorker::new());
     let e = fw
-        .call("video.open", json!({"config": {"source": "http-mjpeg", "url": "http://127.0.0.1:9/"}, "ffmpeg": ff}))
+        .call(
+            "video.open",
+            json!({"config": {"source": "http-mjpeg", "url": "http://127.0.0.1:9/"}, "ffmpeg": ff}),
+        )
         .unwrap_err();
     assert_eq!(e.code, ErrorCode::Config);
     // Socket path too long → explicit failure.
-    let long = PathBuf::from(format!("/tmp/loom-video-{}-{}", std::process::id(), "x".repeat(80)));
+    let long = PathBuf::from(format!(
+        "/tmp/loom-video-{}-{}",
+        std::process::id(),
+        "x".repeat(80)
+    ));
     std::fs::create_dir_all(&long).unwrap();
     let e = fw
         .call(
@@ -398,7 +541,8 @@ fn storage_roots_socket_path_and_quota_are_explicit() {
     let home = Home::new("d");
     let fx = Fixture::start(&home, 30);
     let mut run = Run::new(ff, &home);
-    run.open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180})).unwrap();
+    run.open(json!({"source": "http-mjpeg", "url": fx.url(), "width": 320, "height": 180}))
+        .unwrap();
     run.until(Duration::from_secs(10), "frames", |s, _| last_frame(s) >= 5);
     let filler = home.session().join("video/vfill00000000");
     std::fs::create_dir_all(&filler).unwrap();
@@ -409,6 +553,9 @@ fn storage_roots_socket_path_and_quota_are_explicit() {
     let e = run.call("video.snapshot", json!({})).unwrap_err();
     assert_eq!(e.code, ErrorCode::Limit, "{e:?}");
     assert_eq!(e.detail["reason"], "quota_session_bytes");
-    assert_eq!(run.call("video.record.start", json!({})).unwrap_err().code, ErrorCode::Limit);
+    assert_eq!(
+        run.call("video.record.start", json!({})).unwrap_err().code,
+        ErrorCode::Limit
+    );
     run.call("video.close", json!({})).unwrap();
 }

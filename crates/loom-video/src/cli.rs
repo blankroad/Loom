@@ -7,6 +7,8 @@ use loom_cli_kit::{DomainCli, RpcCall, UsageError, cursor_arg, render_common};
 use loom_proto::{cursor::Cursor, envelope::Envelope};
 use serde_json::{Value, json};
 
+use crate::analysis::RoiSpec;
+use crate::inspect::RoiConfig;
 use crate::model::OpenConfig;
 
 /// Video CLI fragment, registered through `CliOf<VideoCli>`.
@@ -17,7 +19,9 @@ pub struct VideoCli;
 pub fn parse_duration(s: &str) -> Result<Duration, String> {
     let at = s.find(|c: char| !c.is_ascii_digit()).unwrap_or(s.len());
     let (digits, unit) = s.split_at(at);
-    let n = digits.parse::<u64>().map_err(|_| format!("invalid duration {s:?}"))?;
+    let n = digits
+        .parse::<u64>()
+        .map_err(|_| format!("invalid duration {s:?}"))?;
     let f = match unit {
         "ms" => 1,
         "" | "s" => 1_000,
@@ -31,15 +35,39 @@ pub fn parse_duration(s: &str) -> Result<Duration, String> {
 
 /// Parse `1280x720`.
 pub fn parse_size(s: &str) -> Result<(u32, u32), String> {
-    let (w, h) = s.split_once(['x', 'X']).ok_or_else(|| format!("expected WxH, got {s:?}"))?;
+    let (w, h) = s
+        .split_once(['x', 'X'])
+        .ok_or_else(|| format!("expected WxH, got {s:?}"))?;
     Ok((
         w.parse().map_err(|_| format!("bad width in {s:?}"))?,
         h.parse().map_err(|_| format!("bad height in {s:?}"))?,
     ))
 }
 
+/// B5b C0: parse `--rect x,y,w,h` (four finite decimals, normalized; range checks are the ROI spec's).
+pub fn parse_rect(s: &str) -> Result<(f64, f64, f64, f64), String> {
+    let parts: Vec<&str> = s.split(',').collect();
+    let bad = || format!("expected x,y,w,h (normalized), got {s:?}");
+    if parts.len() != 4 {
+        return Err(bad());
+    }
+    let mut v = [0.0f64; 4];
+    for (slot, part) in v.iter_mut().zip(&parts) {
+        *slot = part
+            .trim()
+            .parse::<f64>()
+            .ok()
+            .filter(|n| n.is_finite())
+            .ok_or_else(bad)?;
+    }
+    Ok((v[0], v[1], v[2], v[3]))
+}
+
 fn capture() -> Arg {
-    Arg::new("capture").long("capture").value_name("ID").help("capture id (default: current)")
+    Arg::new("capture")
+        .long("capture")
+        .value_name("ID")
+        .help("capture id (default: current)")
 }
 
 fn ms(d: Duration) -> u64 {
@@ -59,6 +87,45 @@ impl DomainCli for VideoCli {
             .subcommand_required(true)
             .subcommand(Command::new("start").arg(capture()))
             .subcommand(Command::new("stop").arg(capture()));
+        let roi = Command::new("roi")
+            .about("Pixel-change ROI inspection (named rectangles, baseline, judged state; no scene understanding)")
+            .subcommand_required(true)
+            .subcommand(
+                Command::new("put")
+                    .about("Add or replace one ROI")
+                    .arg(Arg::new("name").long("name").required(true))
+                    .arg(Arg::new("rect").long("rect").required(true).value_name("X,Y,W,H").value_parser(parse_rect))
+                    .arg(Arg::new("enter").long("enter").required(true).value_parser(value_parser!(f64)))
+                    .arg(Arg::new("metric").long("metric").value_parser(["luma_delta", "mean_abs_diff", "changed_px"]))
+                    .arg(Arg::new("exit").long("exit").value_parser(value_parser!(f64)))
+                    .arg(Arg::new("dwell").long("dwell").value_parser(parse_duration))
+                    .arg(Arg::new("cooldown").long("cooldown").value_parser(parse_duration))
+                    .arg(Arg::new("pixel-threshold").long("pixel-threshold").value_parser(value_parser!(u64)))
+                    .arg(Arg::new("no-evidence").long("no-evidence").action(ArgAction::SetTrue))
+                    .arg(Arg::new("pre").long("pre").value_parser(value_parser!(u64)))
+                    .arg(Arg::new("post").long("post").value_parser(value_parser!(u64)))
+                    .arg(Arg::new("expect-rev").long("expect-rev").value_parser(value_parser!(u64))),
+            )
+            .subcommand(
+                Command::new("remove")
+                    .about("Remove one ROI")
+                    .arg(Arg::new("name").long("name").required(true))
+                    .arg(Arg::new("expect-rev").long("expect-rev").value_parser(value_parser!(u64))),
+            )
+            .subcommand(Command::new("list").about("ROI config, judged state, baselines, metrics and history"))
+            .subcommand(
+                Command::new("replace")
+                    .about("Replace the whole ROI set (a JSON array, or a saved `roi list`)")
+                    .arg(Arg::new("rois").long("rois").required(true))
+                    .arg(Arg::new("expect-rev").long("expect-rev").value_parser(value_parser!(u64))),
+            )
+            .subcommand(
+                Command::new("baseline")
+                    .about("Set the baseline of one or all ROIs from an exact frame (default: latest)")
+                    .arg(capture())
+                    .arg(Arg::new("frame").long("frame").value_parser(value_parser!(u64)))
+                    .arg(Arg::new("name").long("name")),
+            );
         Command::new("video")
             .about("Video capture via a daemon-owned FFmpeg (metadata in the journal, frames on the media plane)")
             .subcommand_required(true)
@@ -102,7 +169,21 @@ impl DomainCli for VideoCli {
                     .arg(capture())
                     .arg(Arg::new("frame").long("frame").value_parser(value_parser!(u64))),
             )
+            .subcommand(
+                Command::new("pin")
+                    .about("Keep a ring frame past eviction (memory only, bounded; released on unpin, TTL or next open)")
+                    .arg(capture())
+                    .arg(Arg::new("frame").long("frame").value_parser(value_parser!(u64)))
+                    .arg(Arg::new("ttl").long("ttl").value_parser(parse_duration)),
+            )
+            .subcommand(
+                Command::new("unpin")
+                    .about("Release your pinned frame (--frame) or all your pins")
+                    .arg(capture())
+                    .arg(Arg::new("frame").long("frame").value_parser(value_parser!(u64))),
+            )
             .subcommand(rec)
+            .subcommand(roi)
             .subcommand(Command::new("close").about("Stop acquisition and reap FFmpeg").arg(capture()))
             .subcommand(
                 Command::new("read")
@@ -111,7 +192,7 @@ impl DomainCli for VideoCli {
                     .arg(
                         Arg::new("kind")
                             .long("kind")
-                            .value_parser(["state", "health", "snapshot", "record", "all"]),
+                            .value_parser(["state", "health", "snapshot", "record", "roi", "metric", "evidence", "all"]),
                     )
                     .arg(Arg::new("tail").long("tail").value_parser(value_parser!(u64)))
                     .arg(cursor_arg("since"))
@@ -128,6 +209,9 @@ impl DomainCli for VideoCli {
                             .long("state")
                             .value_parser(["opening", "live", "stalled", "stopping", "closed", "failed"]),
                     )
+                    .arg(Arg::new("roi").long("roi").value_name("NAME"))
+                    .arg(Arg::new("roi-state").long("roi-state").value_parser(["unknown", "normal", "changed"]))
+                    .arg(Arg::new("new").long("new").action(ArgAction::SetTrue))
                     .arg(Arg::new("timeout").long("timeout").value_parser(parse_duration)),
             )
     }
@@ -138,7 +222,10 @@ impl DomainCli for VideoCli {
         };
         match name {
             "capabilities" => Ok(RpcCall::new("video.capabilities", json!({}))),
-            "sources" => Ok(RpcCall::new("video.sources", json!({"local": s.get_flag("local")}))),
+            "sources" => Ok(RpcCall::new(
+                "video.sources",
+                json!({"local": s.get_flag("local")}),
+            )),
             "status" => Ok(RpcCall::new("video.status", json!({}))),
             "open" => {
                 let mut p = json!({"source": s.get_one::<String>("source").cloned()});
@@ -169,6 +256,112 @@ impl DomainCli for VideoCli {
                         return Err(UsageError::new(format!("--{key} must be ≥ 1")));
                     }
                     p["frame_id"] = json!(f);
+                }
+                Ok(RpcCall::new(format!("video.{name}"), p))
+            }
+            "roi" => {
+                let Some((sub, r)) = s.subcommand() else {
+                    return Err(UsageError::new("expected roi put|remove|list|replace|baseline"));
+                };
+                let mut p = json!({});
+                if let Some(e) = r.try_get_one::<u64>("expect-rev").ok().flatten() {
+                    p["expect_rev"] = json!(e);
+                }
+                match sub {
+                    "put" => {
+                        let mut roi = json!({});
+                        if let Some(n) = r.get_one::<String>("name") {
+                            roi["name"] = json!(n);
+                        }
+                        if let Some((x, y, w, h)) = r.get_one::<(f64, f64, f64, f64)>("rect") {
+                            roi["x"] = json!(x);
+                            roi["y"] = json!(y);
+                            roi["w"] = json!(w);
+                            roi["h"] = json!(h);
+                        }
+                        if let Some(v) = r.get_one::<f64>("enter") {
+                            roi["enter"] = json!(v);
+                        }
+                        if let Some(v) = r.get_one::<String>("metric") {
+                            roi["metric"] = json!(v);
+                        }
+                        if let Some(v) = r.get_one::<f64>("exit") {
+                            roi["exit"] = json!(v);
+                        }
+                        if let Some(d) = r.get_one::<Duration>("dwell") {
+                            roi["dwell_ms"] = json!(ms(*d));
+                        }
+                        if let Some(d) = r.get_one::<Duration>("cooldown") {
+                            roi["cooldown_ms"] = json!(ms(*d));
+                        }
+                        if let Some(v) = r.get_one::<u64>("pixel-threshold") {
+                            roi["pixel_threshold"] = json!(v);
+                        }
+                        if r.get_flag("no-evidence") {
+                            roi["evidence"] = json!(false);
+                        }
+                        if let Some(v) = r.get_one::<u64>("pre") {
+                            roi["evidence_pre"] = json!(v);
+                        }
+                        if let Some(v) = r.get_one::<u64>("post") {
+                            roi["evidence_post"] = json!(v);
+                        }
+                        RoiSpec::from_json(&roi).map_err(UsageError::new)?;
+                        p["roi"] = roi;
+                        Ok(RpcCall::new("video.roi.put", p))
+                    }
+                    "remove" => {
+                        if let Some(n) = r.get_one::<String>("name") {
+                            p["roi"] = json!(n);
+                        }
+                        Ok(RpcCall::new("video.roi.remove", p))
+                    }
+                    "list" => Ok(RpcCall::new("video.roi.list", json!({}))),
+                    "replace" => {
+                        let text = r.get_one::<String>("rois").map(String::as_str).unwrap_or("");
+                        let v: Value = serde_json::from_str(text)
+                            .map_err(|e| UsageError::new(format!("--rois: {e}")))?;
+                        let list = match v.get("rois") {
+                            Some(l) if v.is_object() => l.clone(),
+                            _ => v,
+                        };
+                        RoiConfig::parse_list(&list).map_err(UsageError::new)?;
+                        p["rois"] = list;
+                        Ok(RpcCall::new("video.roi.replace", p))
+                    }
+                    "baseline" => {
+                        let mut b = json!({});
+                        put_capture(&mut b, r);
+                        if let Some(f) = r.get_one::<u64>("frame") {
+                            if *f == 0 {
+                                return Err(UsageError::new("--frame must be ≥ 1"));
+                            }
+                            b["frame_id"] = json!(f);
+                        }
+                        if let Some(n) = r.get_one::<String>("name") {
+                            b["roi"] = json!(n);
+                        }
+                        Ok(RpcCall::new("video.roi.baseline", b))
+                    }
+                    o => Err(UsageError::new(format!("unknown roi subcommand {o}"))),
+                }
+            }
+            "pin" | "unpin" => {
+                let mut p = json!({});
+                put_capture(&mut p, s);
+                if let Some(f) = s.get_one::<u64>("frame") {
+                    if *f == 0 {
+                        return Err(UsageError::new("--frame must be ≥ 1"));
+                    }
+                    p["frame_id"] = json!(f);
+                }
+                if name == "pin"
+                    && let Some(t) = s.get_one::<Duration>("ttl")
+                {
+                    if t.is_zero() || *t > Duration::from_secs(600) {
+                        return Err(UsageError::new("--ttl must be 1ms..=600s"));
+                    }
+                    p["ttl_ms"] = json!(ms(*t));
                 }
                 Ok(RpcCall::new(format!("video.{name}"), p))
             }
@@ -222,8 +415,23 @@ impl DomainCli for VideoCli {
                 put_capture(&mut p, s);
                 let frames = s.get_one::<u64>("frames").copied();
                 let state = s.get_one::<String>("state").cloned();
-                if frames.is_none() && state.is_none() {
-                    return Err(UsageError::new("give --frames and/or --state"));
+                let roi = s.get_one::<String>("roi").cloned();
+                let roi_state = s.get_one::<String>("roi-state").cloned();
+                let new = s.get_flag("new");
+                if roi.is_none() && (roi_state.is_some() || new) {
+                    return Err(UsageError::new("--roi-state and --new need --roi"));
+                }
+                if frames.is_none() && state.is_none() && roi.is_none() {
+                    return Err(UsageError::new("give --frames, --state and/or --roi"));
+                }
+                if let Some(r) = roi {
+                    p["roi"] = json!(r);
+                }
+                if let Some(rs) = roi_state {
+                    p["roi_state"] = json!(rs);
+                }
+                if new {
+                    p["new"] = json!(true);
                 }
                 if let Some(f) = frames {
                     p["frames"] = json!(f);
@@ -231,7 +439,10 @@ impl DomainCli for VideoCli {
                 if let Some(st) = state {
                     p["state"] = json!(st);
                 }
-                let d = s.get_one::<Duration>("timeout").copied().unwrap_or(Duration::from_secs(10));
+                let d = s
+                    .get_one::<Duration>("timeout")
+                    .copied()
+                    .unwrap_or(Duration::from_secs(10));
                 if d.is_zero() || d > Duration::from_secs(600) {
                     return Err(UsageError::new("--timeout must be 1ms..=600s"));
                 }
@@ -256,7 +467,11 @@ impl DomainCli for VideoCli {
                     }
                 }
             } else {
-                writeln!(out, "{}", serde_json::to_string_pretty(d).map_err(io::Error::other)?)?;
+                writeln!(
+                    out,
+                    "{}",
+                    serde_json::to_string_pretty(d).map_err(io::Error::other)?
+                )?;
             }
         }
         render_common(env, out)
@@ -280,10 +495,27 @@ mod tests {
         assert!(call(&["open"]).is_err());
         assert!(call(&["open", "--source", "avfoundation"]).is_err());
         assert!(call(&["open", "--source", "avfoundation", "--device", "default"]).is_err());
-        assert!(call(&["open", "--source", "http-mjpeg", "--url", "http://u:p@127.0.0.1:1/"]).is_err());
+        assert!(
+            call(&[
+                "open",
+                "--source",
+                "http-mjpeg",
+                "--url",
+                "http://u:p@127.0.0.1:1/"
+            ])
+            .is_err()
+        );
         assert!(call(&["open", "--source", "rtsp"]).is_err());
         let c = call(&[
-            "open", "--source", "http-mjpeg", "--url", "http://127.0.0.1:8090/stream", "--size", "640x480", "--fps", "60",
+            "open",
+            "--source",
+            "http-mjpeg",
+            "--url",
+            "http://127.0.0.1:8090/stream",
+            "--size",
+            "640x480",
+            "--fps",
+            "60",
         ])
         .unwrap();
         assert_eq!(c.method, "video.open");
@@ -295,9 +527,15 @@ mod tests {
 
     #[test]
     fn frame_snapshot_record_wait_read() {
-        assert_eq!(call(&["frame", "--id", "7"]).unwrap().params, json!({"frame_id": 7}));
+        assert_eq!(
+            call(&["frame", "--id", "7"]).unwrap().params,
+            json!({"frame_id": 7})
+        );
         assert!(call(&["frame", "--id", "0"]).is_err());
-        assert_eq!(call(&["snapshot", "--frame", "9"]).unwrap().method, "video.snapshot");
+        assert_eq!(
+            call(&["snapshot", "--frame", "9"]).unwrap().method,
+            "video.snapshot"
+        );
         assert_eq!(call(&["record", "start"]).unwrap().method, "video.record.start");
         assert_eq!(call(&["record", "stop"]).unwrap().method, "video.record.stop");
         assert!(call(&["wait"]).is_err());
@@ -307,8 +545,14 @@ mod tests {
         assert!(call(&["wait", "--frames", "1", "--timeout", "601s"]).is_err());
         assert!(call(&["read", "--wait", "1s"]).is_err());
         let r = call(&["read", "--follow", "--wait", "30s", "--kind", "health"]).unwrap();
-        assert_eq!((r.params["wait_ms"].as_u64(), r.params["kind"].as_str()), (Some(30_000), Some("health")));
-        assert_eq!(call(&["sources", "--local"]).unwrap().params, json!({"local": true}));
+        assert_eq!(
+            (r.params["wait_ms"].as_u64(), r.params["kind"].as_str()),
+            (Some(30_000), Some("health"))
+        );
+        assert_eq!(
+            call(&["sources", "--local"]).unwrap().params,
+            json!({"local": true})
+        );
         assert_eq!(call(&["sources"]).unwrap().params, json!({"local": false}));
     }
 }

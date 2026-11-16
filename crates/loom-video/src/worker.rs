@@ -17,17 +17,27 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use loom_proto::error::ErrorCode;
-use loom_proto::num::U64;
 use loom_proto::event::{Env, Origin, TsSource, WriteState};
+use loom_proto::num::U64;
 use loom_proto::worker::{Call, Input, WorkerError, Write as WorkerWrite};
 use loom_worker_sdk::{BoxFuture, Emitter, EventDraft, JobCmd, Worker, WorkerCtx, WriteOutcome};
 use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
 
-use crate::model::{
-    self, ArtifactKind, Frame, JpegSplitter, OpenConfig, Progress, Ring, Source, FIRST_FRAME_MS, STALL_MS,
+use crate::analysis::{ANALYSIS_HZ, MAX_ROIS, MAX_SAMPLES, RoiSpec, decode_luma};
+use crate::inspect::{
+    ConfigError, EVIDENCE_PIN_TTL_MS, EVIDENCE_SCHEMA, EvidencePlan, EvidenceTrigger, FrameRef, Inspector,
+    Liveness, MAX_PENDING_EVIDENCE, METRIC_PERIOD_MS, PIXEL_NOTE, ROI_HISTORY, RoiConfig,
 };
-use crate::{KIND_CAPTURE_STATE, KIND_HEALTH, KIND_RECORD_STATE, KIND_SNAPSHOT, WORKER_KIND};
+use crate::model::{
+    self, ArtifactKind, FIRST_FRAME_MS, Frame, JpegSplitter, OpenConfig, PIN_TTL_DEFAULT_MS, PIN_TTL_MAX_MS,
+    PinOwner, PinStore, Progress, Ring, STALL_MS, Source,
+};
+use crate::{
+    KIND_CAPTURE_STATE, KIND_EVIDENCE, KIND_HEALTH, KIND_RECORD_STATE, KIND_ROI_CONFIG, KIND_ROI_METRIC,
+    KIND_ROI_STATE, KIND_SNAPSHOT, ROI_IDLE_CHANNEL, WORKER_KIND,
+};
+use base64::Engine as _;
 
 /// stdout read size.
 pub const READ_CHUNK: usize = 64 * 1024;
@@ -170,8 +180,7 @@ fn exit_json(s: Option<ExitStatus>, how: &str) -> Value {
 
 /// Run a helper invocation to completion within [`PROBE_TIMEOUT`]; returns (stdout, stderr).
 fn run_bounded(program: &Path, args: &[String], max: usize) -> Result<(String, String, bool), String> {
-    let mut child =
-        spawn_group(program, args, Stdio::null()).map_err(|e| format!("spawn ffmpeg: {e}"))?;
+    let mut child = spawn_group(program, args, Stdio::null()).map_err(|e| format!("spawn ffmpeg: {e}"))?;
     let out = child.stdout.take();
     let errp = child.stderr.take();
     let read_all = move |r: Option<Box<dyn Read + Send>>| -> String {
@@ -411,14 +420,16 @@ impl Recorder {
         }
         let gap = self.gap.load(Ordering::Relaxed);
         let written = self.written.load(Ordering::Relaxed);
-        let clean = how == "eof" && st.is_some_and(|s| s.success()) && !self.writer_failed.load(Ordering::Relaxed);
+        let clean =
+            how == "eof" && st.is_some_and(|s| s.success()) && !self.writer_failed.load(Ordering::Relaxed);
         let elapsed = self.started.elapsed().as_secs_f64();
         let (size, sha) = match std::fs::rename(&self.part_path, &self.final_path) {
             Ok(()) => {
                 #[cfg(unix)]
                 {
                     use std::os::unix::fs::PermissionsExt as _;
-                    let _ = std::fs::set_permissions(&self.final_path, std::fs::Permissions::from_mode(0o600));
+                    let _ =
+                        std::fs::set_permissions(&self.final_path, std::fs::Permissions::from_mode(0o600));
                 }
                 file_hash(&self.final_path).map_or((None, None), |(n, h)| (Some(n), Some(h)))
             }
@@ -530,6 +541,8 @@ struct Shared {
     em: Emitter,
     requested_by: Origin,
     ring: Mutex<Ring>,
+    /// B2: frames held past ring eviction. Lock order: `ring` before `pins`, never the reverse.
+    pins: Mutex<PinStore>,
     frozen: AtomicBool,
     stop: Mutex<Option<&'static str>>,
     finished: AtomicBool,
@@ -545,11 +558,23 @@ struct Shared {
     record_last: Mutex<Value>,
     next_artifact: AtomicU64,
     stopped_at_frame: Mutex<Option<u64>>,
+    /// B5b: worker-scoped ROI config (same Arc as `VideoWorker::roi`). Lock order:
+    /// `roi_cfg` → `inspector` → `evidence` → `ring` → `pins`, never the reverse.
+    roi_cfg: Arc<Mutex<RoiConfig>>,
+    /// B5b: capture-scoped judgments/baselines/history.
+    inspector: Mutex<Inspector>,
+    /// B5b: evidence bundles being collected, each with its context (config_rev, spec, transition,
+    /// baseline, source config) captured at the trigger.
+    evidence: Mutex<Vec<(EvidencePlan, Value)>>,
+    /// B5b: evidence bundle counter (1-based ids).
+    next_evidence: AtomicU64,
 }
 
 impl std::fmt::Debug for Shared {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Shared").field("id", &self.id).finish_non_exhaustive()
+        f.debug_struct("Shared")
+            .field("id", &self.id)
+            .finish_non_exhaustive()
     }
 }
 
@@ -568,7 +593,11 @@ impl Shared {
     }
 
     fn env(&self) -> Option<Env> {
-        Some(if self.cfg.source.is_device() { Env::Bench } else { Env::Sim })
+        Some(if self.cfg.source.is_device() {
+            Env::Bench
+        } else {
+            Env::Sim
+        })
     }
 
     fn draft(&self, kind: &str, payload: Value) -> EventDraft {
@@ -621,9 +650,18 @@ impl Shared {
         let fps = lock(&self.fps).per_sec(now);
         let (latest, ring) = {
             let r = lock(&self.ring);
-            (r.latest().map(|f| (f.id, f.recv_mono_ns)), r.range())
+            (
+                r.latest().map(|f| (f.id, f.recv_mono_ns, f.recv_utc_ns)),
+                r.range(),
+            )
         };
         let age_ms = lock(&self.last_frame_at).map(|t| ms(now.duration_since(t)));
+        let pins = {
+            let now_ns = self.now_ns();
+            let mut p = lock(&self.pins);
+            p.expire(now_ns);
+            json!({"count": p.len(), "user_count": p.user_count(), "bytes": p.bytes()})
+        };
         let prog = lock(&self.progress).clone();
         let record = lock(&self.recorder).as_ref().map(Recorder::live);
         let c = &self.counters;
@@ -632,7 +670,9 @@ impl Shared {
             "frames_total": c.frames.load(Ordering::Relaxed),
             "measured_fps": fps, "requested_fps": self.cfg.fps,
             "last_frame_id": latest.map(|l| l.0), "last_recv_mono_ns": latest.map(|l| U64(l.1)),
-            "age_ms": age_ms, "stale": age_ms.is_none_or(|a| a > STALL_MS),
+            "last_recv_utc_ns": latest.map(|l| U64(l.2)), "pins": pins,
+            "age_ms": age_ms,
+            "stale": !matches!(state, "opening" | "live" | "stalled") || age_ms.is_none_or(|a| a > STALL_MS),
             "oversize": c.oversize.load(Ordering::Relaxed),
             "truncated": c.truncated.load(Ordering::Relaxed),
             "junk_bytes": c.junk_bytes.load(Ordering::Relaxed),
@@ -697,39 +737,156 @@ impl Shared {
     }
 
     fn frame_meta(&self, frame_id: Option<u64>) -> Result<Value, WorkerError> {
-        let r = lock(&self.ring);
-        let f = match frame_id {
-            Some(id) => r.get(id).ok_or_else(|| {
+        let (f, by) = match frame_id {
+            Some(id) => self.lookup(id).ok_or_else(|| {
+                let r = lock(&self.ring);
                 let first = r.range()["first_frame_id"].as_u64();
                 let expired = first.is_some_and(|f| id < f);
                 err_d(
                     ErrorCode::NotFound,
-                    if expired { "frame expired from the ring" } else { "frame not received" },
-                    json!({"frame_id": id, "expired": expired, "ring": r.range()}),
+                    if expired {
+                        "frame expired from the ring"
+                    } else {
+                        "frame not received"
+                    },
+                    json!({"frame_id": id, "expired": expired, "ring": r.range(), "pinned": false}),
                 )
             })?,
-            None => r
-                .latest()
-                .ok_or_else(|| err_d(ErrorCode::NotFound, "no frame yet", json!({"no_frame": true})))?,
+            None => {
+                let r = lock(&self.ring);
+                let f = r
+                    .latest()
+                    .cloned()
+                    .ok_or_else(|| err_d(ErrorCode::NotFound, "no frame yet", json!({"no_frame": true})))?;
+                (f, "ring")
+            }
+        };
+        let now = self.now_ns();
+        let (range, pin) = {
+            let r = lock(&self.ring);
+            let mut p = lock(&self.pins);
+            p.expire(now);
+            (r.range(), p.entry_json(f.id, now))
         };
         let mut m = f.meta(&self.id);
-        m["ring"] = r.range();
+        m["ring"] = range;
         m["frozen"] = json!(self.frozen.load(Ordering::Acquire));
         m["media_path"] = json!(format!("/api/v1/video/{}/frame?id={}", self.id, f.id));
+        m["retained_by"] = json!(by);
+        m["pin"] = pin;
         Ok(m)
     }
 
+    /// B2 W1: daemon monotonic now (ns) — the pin clock.
+    fn now_ns(&self) -> u64 {
+        self.cx.clock().mono_ns()
+    }
+
+    /// B2 W2: expire pins, then frame `id` from the ring, else from the pins (cloned; `"ring" | "pin"`).
+    fn lookup(&self, id: u64) -> Option<(Frame, &'static str)> {
+        if let Some(f) = lock(&self.ring).get(id) {
+            return Some((f.clone(), "ring"));
+        }
+        let now = self.now_ns();
+        let mut p = lock(&self.pins);
+        p.expire(now);
+        p.get(id).map(|f| (f.clone(), "pin"))
+    }
+
+    /// B2 W3: `video.pin` — hold frame `frame_id` (default: latest) for the caller (`PinOwner::User`).
+    fn pin(&self, frame_id: Option<u64>, ttl_ms: Option<u64>) -> Result<Value, WorkerError> {
+        let ttl = ttl_ms.unwrap_or(PIN_TTL_DEFAULT_MS);
+        let (f, before) = match frame_id {
+            Some(id) => match self.lookup(id) {
+                Some(x) => x,
+                None => {
+                    let now = self.now_ns();
+                    let r = lock(&self.ring);
+                    let expired = r.range()["first_frame_id"].as_u64().is_some_and(|f| id < f);
+                    let pins = lock(&self.pins).json(now);
+                    return Err(err_d(
+                        ErrorCode::NotFound,
+                        if expired {
+                            "frame expired from the ring (not pinned)"
+                        } else {
+                            "frame not received"
+                        },
+                        json!({"frame_id": id, "expired": expired, "ring": r.range(), "pins": pins}),
+                    ));
+                }
+            },
+            None => {
+                let r = lock(&self.ring);
+                match r.latest() {
+                    Some(f) => (f.clone(), "ring"),
+                    None => {
+                        return Err(err_d(
+                            ErrorCode::NotFound,
+                            "no frame yet",
+                            json!({"no_frame": true}),
+                        ));
+                    }
+                }
+            }
+        };
+        let now = self.now_ns();
+        let mut pins = lock(&self.pins);
+        pins.expire(now);
+        match pins.pin(&f, PinOwner::User, now, ttl) {
+            Ok(info) => Ok(json!({
+                "capture_id": self.id, "frame_id": info.frame_id, "sha256": info.sha256, "size": info.size,
+                "owner": "user", "ttl_ms": ttl, "expires_in_ms": info.expires_in_ms, "refreshed": info.refreshed,
+                "retained_by_before": before, "pins": pins.json(now),
+            })),
+            Err(refusal) => {
+                let reason = refusal.reason();
+                let mut detail = json!({"reason": reason, "frame_id": f.id, "pins": pins.json(now)});
+                if let model::PinRefusal::Bytes { need, free } = refusal {
+                    detail["need"] = json!(need);
+                    detail["free"] = json!(free);
+                }
+                Err(err_d(
+                    ErrorCode::Limit,
+                    format!(
+                        "pin refused: {reason} (unpin a frame first; pins are never evicted automatically)"
+                    ),
+                    detail,
+                ))
+            }
+        }
+    }
+
+    /// B2 W4: `video.unpin` — release one user pin (`Some`) or every user pin (`None`). Idempotent.
+    fn unpin(&self, frame_id: Option<u64>) -> Value {
+        let now = self.now_ns();
+        let mut pins = lock(&self.pins);
+        pins.expire(now);
+        let released = match frame_id {
+            Some(id) => u64::from(pins.unpin(id, PinOwner::User)),
+            None => pins.unpin_owner(PinOwner::User) as u64,
+        };
+        json!({"capture_id": self.id, "frame_id": frame_id, "released": released, "pins": pins.json(now)})
+    }
+
     fn snapshot(&self, frame_id: Option<u64>) -> Result<Value, WorkerError> {
-        let f = {
-            let r = lock(&self.ring);
-            match frame_id {
-                Some(id) => r.get(id).cloned().ok_or_else(|| {
-                    err_d(ErrorCode::NotFound, "frame not in the ring", json!({"frame_id": id, "ring": r.range()}))
-                })?,
-                None => r
+        let (f, by) = match frame_id {
+            Some(id) => self.lookup(id).ok_or_else(|| {
+                let now = self.now_ns();
+                let r = lock(&self.ring);
+                let pins = lock(&self.pins).json(now);
+                err_d(
+                    ErrorCode::NotFound,
+                    "frame not in the ring and not pinned",
+                    json!({"frame_id": id, "ring": r.range(), "pins": pins}),
+                )
+            })?,
+            None => {
+                let r = lock(&self.ring);
+                let f = r
                     .latest()
                     .cloned()
-                    .ok_or_else(|| err(ErrorCode::NotFound, "no frame yet"))?,
+                    .ok_or_else(|| err(ErrorCode::NotFound, "no frame yet"))?;
+                (f, "ring")
             }
         };
         let usage = model::scan_usage(&self.home, &self.session);
@@ -755,10 +912,335 @@ impl Shared {
         let mut p = f.meta(&self.id);
         p["artifact_id"] = json!(aid);
         p["kind"] = json!("snapshot");
+        p["retained_by"] = json!(by);
         p["media_path"] = json!(format!("/api/v1/video/artifact/{aid}"));
         p["frozen"] = json!(self.frozen.load(Ordering::Acquire));
         self.priority(KIND_SNAPSHOT, p.clone());
         Ok(p)
+    }
+
+    // ---- B5b ROI analysis / evidence (FUNCTIONS.md §B5b-W) ----
+
+    /// W2: capture-level input condition of an analysis round.
+    fn liveness(&self) -> Liveness {
+        if self.cx.latch().is_on() || self.stop_reason().is_some() {
+            return Liveness::NotLive;
+        }
+        let state = lock(&self.state)["state"].as_str().map(str::to_owned);
+        match state.as_deref() {
+            Some("live") => match *lock(&self.last_frame_at) {
+                Some(t) if ms(Instant::now().duration_since(t)) <= STALL_MS => Liveness::Live,
+                _ => Liveness::Stale,
+            },
+            Some("stalled") => Liveness::Stale,
+            _ => Liveness::NotLive,
+        }
+    }
+
+    /// W3: one analysis round (decode outside locks, then sync + round + publish under the config lock).
+    fn analysis_round(&self, last_decoded: &mut u64) {
+        let now = self.now_ns();
+        let live = self.liveness();
+        let has_specs = !lock(&self.roi_cfg).specs.is_empty();
+        let mut decoded = None;
+        if live == Liveness::Live && has_specs {
+            let latest = lock(&self.ring).latest().cloned();
+            if let Some(f) = latest
+                && f.id > *last_decoded
+            {
+                *last_decoded = f.id;
+                let luma = decode_luma(&f.data);
+                decoded = Some((f, luma));
+            }
+        }
+        let cfg = lock(&self.roi_cfg);
+        let mut ins = lock(&self.inspector);
+        let mut frags = ins.sync(&cfg, now);
+        let fr = decoded.as_ref().map(|(f, l)| FrameRef {
+            id: f.id,
+            sha256: &f.sha256,
+            recv_mono_ns: f.recv_mono_ns,
+            recv_utc_ns: f.recv_utc_ns,
+            luma: l.as_ref().map_err(String::as_str),
+        });
+        frags.extend(ins.round(live, fr, now));
+        drop(ins);
+        self.publish_roi(&cfg, frags);
+        drop(cfg);
+        self.step_evidence(false);
+    }
+
+    /// W4: publish `video.roi_state` fragments (adds capture identity) and start evidence bundles.
+    fn publish_roi(&self, cfg: &RoiConfig, frags: Vec<Value>) {
+        for mut p in frags {
+            p["capture_id"] = json!(self.id);
+            p["capture_epoch"] = json!(U64(self.epoch));
+            self.priority(KIND_ROI_STATE, p.clone());
+            if p["evidence"] == true {
+                self.start_evidence(cfg, &p);
+            }
+        }
+    }
+
+    /// W5: 1 s `video.roi_metric` (data lane) when ROIs are configured.
+    fn emit_roi_metric(&self) {
+        if lock(&self.roi_cfg).specs.is_empty() {
+            return;
+        }
+        let mut p = lock(&self.inspector).metric_json();
+        p["capture_id"] = json!(self.id);
+        p["capture_epoch"] = json!(U64(self.epoch));
+        p["inspection_hz_max"] = json!(ANALYSIS_HZ);
+        if self.em.data(self.draft(KIND_ROI_METRIC, p)).is_err() {
+            self.counters.emit_errors.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// W6: `video.roi_config` on this capture's channel.
+    fn roi_config_event(&self, cfg: &RoiConfig, change: Value) {
+        let j = cfg.json();
+        self.priority(
+            KIND_ROI_CONFIG,
+            json!({"capture_id": self.id, "capture_epoch": U64(self.epoch), "config_rev": j["config_rev"],
+                   "rois": j["rois"], "change": change, "note": PIXEL_NOTE}),
+        );
+    }
+
+    /// W7: start an evidence bundle for a `→ changed` fragment.
+    fn start_evidence(&self, cfg: &RoiConfig, frag: &Value) {
+        let Some(roi) = frag["roi"].as_str() else { return };
+        let Some(spec) = cfg.get(roi) else { return };
+        let transition_seq = frag["transition_seq"].clone();
+        let mut ev = lock(&self.evidence);
+        if ev.len() >= MAX_PENDING_EVIDENCE {
+            drop(ev);
+            self.priority(
+                KIND_EVIDENCE,
+                json!({"capture_id": self.id, "capture_epoch": U64(self.epoch), "state": "skipped",
+                       "reason": "evidence_busy", "roi": roi, "transition_seq": transition_seq}),
+            );
+            return;
+        }
+        let Some(frame_id) = frag["frame_id"].as_u64() else {
+            return;
+        };
+        let mono_ns = frag["recv_mono_ns"]
+            .as_str()
+            .and_then(|s| s.parse::<u64>().ok())
+            .or_else(|| frag["recv_mono_ns"].as_u64())
+            .unwrap_or(0);
+        let n = self.next_evidence.fetch_add(1, Ordering::AcqRel) + 1;
+        let trigger = EvidenceTrigger {
+            n,
+            roi: roi.to_owned(),
+            transition_seq: frag["transition_seq"].as_u64().unwrap_or(0),
+            frame_id,
+            mono_ns,
+        };
+        let first = lock(&self.ring).range()["first_frame_id"].as_u64();
+        let mut plan = EvidencePlan::new(trigger, spec, self.cfg.fps, first);
+        let now = self.now_ns();
+        let mut ids = plan.pre.clone();
+        ids.push(frame_id);
+        for id in ids {
+            let held = lock(&self.ring).get(id).cloned();
+            match held {
+                Some(f) => {
+                    let r = lock(&self.pins).pin(&f, PinOwner::Evidence(n), now, EVIDENCE_PIN_TTL_MS);
+                    if let Err(r) = r {
+                        plan.drop_frame(id, r.reason());
+                    }
+                }
+                None => plan.drop_frame(id, "frame_unavailable"),
+            }
+        }
+        let ctx = json!({"config_rev": frag["config_rev"], "spec": spec.to_json(), "transition": frag["transition"],
+                         "baseline": frag["baseline"], "metrics": frag["metrics"], "source": self.cfg.public()});
+        let payload = json!({"capture_id": self.id, "capture_epoch": U64(self.epoch), "state": "collecting",
+                             "evidence_id": n, "roi": roi, "transition_seq": plan.trigger.transition_seq,
+                             "trigger_frame_id": frame_id, "pre": plan.pre, "post_want": plan.post_want,
+                             "partial": plan.partial});
+        ev.push((plan, ctx));
+        drop(ev);
+        self.priority(KIND_EVIDENCE, payload);
+    }
+
+    /// W8: advance every pending bundle (pin new post frames; write or abort the due ones).
+    fn step_evidence(&self, ended: bool) {
+        let mut payloads: Vec<Value> = Vec::new();
+        {
+            let mut ev = lock(&self.evidence);
+            if ev.is_empty() {
+                return;
+            }
+            let latest = lock(&self.ring).latest().map_or(0, |f| f.id);
+            let now = self.now_ns();
+            let stopped = self.cx.latch().is_on();
+            let mut i = 0;
+            while i < ev.len() {
+                let n = ev[i].0.trigger.n;
+                if !stopped {
+                    let (plan, _) = &mut ev[i];
+                    for id in plan.offer(latest) {
+                        let held = lock(&self.ring).get(id).cloned();
+                        match held {
+                            Some(f) => {
+                                let r =
+                                    lock(&self.pins).pin(&f, PinOwner::Evidence(n), now, EVIDENCE_PIN_TTL_MS);
+                                if let Err(r) = r {
+                                    plan.drop_frame(id, r.reason());
+                                }
+                            }
+                            None => plan.drop_frame(id, "frame_unavailable"),
+                        }
+                    }
+                }
+                let base = json!({"capture_id": self.id, "capture_epoch": U64(self.epoch), "evidence_id": n,
+                                  "roi": ev[i].0.trigger.roi, "transition_seq": ev[i].0.trigger.transition_seq});
+                if stopped {
+                    let mut p = base;
+                    p["state"] = json!("aborted");
+                    p["reason"] = json!("stop_latch");
+                    lock(&self.pins).unpin_owner(PinOwner::Evidence(n));
+                    payloads.push(p);
+                    ev.remove(i);
+                    continue;
+                }
+                if ended || ev[i].0.due(now) {
+                    let (plan, ctx) = &mut ev[i];
+                    if ended && !plan.complete() {
+                        plan.drop_frame(0, "capture_ended");
+                    }
+                    let out = self.write_evidence(plan, ctx);
+                    payloads.push(out);
+                    ev.remove(i);
+                    continue;
+                }
+                i += 1;
+            }
+        }
+        for p in payloads {
+            self.priority(KIND_EVIDENCE, p);
+        }
+    }
+
+    /// W9: write one bundle (manifest JSON, quota-checked, create_new 0600) and release its pins.
+    /// Returns the `video.evidence` payload (`written` / `skipped` / `failed`).
+    fn write_evidence(&self, plan: &mut EvidencePlan, ctx: &Value) -> Value {
+        let n = plan.trigger.n;
+        let base = json!({"capture_id": self.id, "capture_epoch": U64(self.epoch), "evidence_id": n,
+                          "roi": plan.trigger.roi, "transition_seq": plan.trigger.transition_seq});
+        let with = |extra: Value| -> Value {
+            let mut p = base.clone();
+            if let (Some(o), Value::Object(e)) = (p.as_object_mut(), extra) {
+                o.extend(e);
+            }
+            p
+        };
+        let mut frames: std::collections::BTreeMap<u64, Frame> = std::collections::BTreeMap::new();
+        let mut want = vec![plan.trigger.frame_id];
+        want.extend(plan.pre.iter().copied());
+        want.extend(plan.post.iter().copied());
+        for id in want {
+            if let Some((f, _)) = self.lookup(id) {
+                frames.insert(id, f);
+            }
+        }
+        let sizes: std::collections::BTreeMap<u64, usize> =
+            frames.iter().map(|(id, f)| (*id, f.data.len())).collect();
+        let list = plan.fit(&sizes);
+        let b64 = base64::engine::general_purpose::STANDARD;
+        let mut full = Vec::new();
+        let mut brief = Vec::new();
+        for (role, id) in &list {
+            let Some(f) = frames.get(id) else { continue };
+            full.push(json!({"role": role, "frame_id": id, "sha256": f.sha256, "recv_utc_ns": U64(f.recv_utc_ns),
+                             "recv_mono_ns": U64(f.recv_mono_ns), "size": f.data.len(), "jpeg_b64": b64.encode(f.data.as_slice())}));
+            brief.push(json!({"role": role, "frame_id": id, "sha256": f.sha256, "size": f.data.len()}));
+        }
+        let aid = model::artifact_id(ArtifactKind::Evidence, &self.id, n);
+        let mut manifest = ctx.clone();
+        if let (Some(o), Value::Object(e)) = (
+            manifest.as_object_mut(),
+            json!({"schema": EVIDENCE_SCHEMA, "artifact_id": aid, "capture_id": self.id,
+                   "capture_epoch": U64(self.epoch), "evidence_id": n, "roi": plan.trigger.roi,
+                   "transition_seq": plan.trigger.transition_seq, "partial": plan.partial,
+                   "frames": full, "note": PIXEL_NOTE}),
+        ) {
+            o.extend(e);
+        }
+        let out = match serde_json::to_vec(&manifest) {
+            Err(e) => with(json!({"state": "failed", "error": format!("serialize: {e}")})),
+            Ok(bytes) => {
+                let usage = model::scan_usage(&self.home, &self.session);
+                if let Some(reason) = usage.refuse(bytes.len() as u64) {
+                    with(json!({"state": "skipped", "reason": reason, "quota": usage.json()}))
+                } else {
+                    let dir = model::capture_dir(&self.session, &self.id);
+                    let path = dir.join(format!("{aid}.json"));
+                    let written = ensure_private_dir(&dir).and_then(|()| {
+                        let mut file = create_private_new(&path)?;
+                        file.write_all(&bytes)?;
+                        file.sync_all()
+                    });
+                    match written {
+                        Err(e) => with(json!({"state": "failed", "error": e.to_string()})),
+                        Ok(()) => with(json!({"state": "written", "artifact_id": aid, "frames": brief,
+                                              "partial": plan.partial, "size": bytes.len(),
+                                              "media_path": format!("/api/v1/video/artifact/{aid}"),
+                                              "note": PIXEL_NOTE})),
+                    }
+                }
+            }
+        };
+        lock(&self.pins).unpin_owner(PinOwner::Evidence(n));
+        out
+    }
+
+    /// W10: set ROI baselines from one exact frame (ring or pin; default latest).
+    fn roi_baseline(&self, roi: Option<String>, frame_id: Option<u64>) -> Result<Value, WorkerError> {
+        let (f, by) = match frame_id {
+            Some(id) => self.lookup(id).ok_or_else(|| {
+                let now = self.now_ns();
+                let r = lock(&self.ring);
+                let pins = lock(&self.pins).json(now);
+                err_d(
+                    ErrorCode::NotFound,
+                    "frame not in the ring and not pinned",
+                    json!({"frame_id": id, "ring": r.range(), "pins": pins}),
+                )
+            })?,
+            None => {
+                let r = lock(&self.ring);
+                let f = r
+                    .latest()
+                    .cloned()
+                    .ok_or_else(|| err(ErrorCode::NotFound, "no frame yet"))?;
+                (f, "ring")
+            }
+        };
+        let luma = decode_luma(&f.data).map_err(|e| {
+            err(
+                ErrorCode::Internal,
+                format!("baseline frame {} could not be decoded: {e}", f.id),
+            )
+        })?;
+        let now = self.now_ns();
+        let cfg = lock(&self.roi_cfg);
+        let mut ins = lock(&self.inspector);
+        let frags = ins.sync(&cfg, now);
+        let items = ins.set_baseline(roi.as_deref(), f.id, &f.sha256, &luma);
+        drop(ins);
+        self.publish_roi(&cfg, frags);
+        let items = items.map_err(|m| err(ErrorCode::Usage, m))?;
+        self.roi_config_event(
+            &cfg,
+            json!({"op": "baseline", "roi": roi, "frame_id": f.id, "sha256": f.sha256, "baselines": items}),
+        );
+        Ok(
+            json!({"capture_id": self.id, "frame_id": f.id, "sha256": f.sha256, "retained_by": by,
+                  "config_rev": cfg.rev, "baselines": items}),
+        )
     }
 
     fn record_start(self: &Arc<Self>, ffmpeg: &Path) -> Result<Value, WorkerError> {
@@ -766,11 +1248,17 @@ impl Shared {
             return Err(err(ErrorCode::NotOpen, "capture is not live"));
         }
         if let Some(r) = lock(&self.recorder).as_ref() {
-            return Err(err_d(ErrorCode::Busy, "already recording", json!({"recording_id": r.artifact_id})));
+            return Err(err_d(
+                ErrorCode::Busy,
+                "already recording",
+                json!({"recording_id": r.artifact_id}),
+            ));
         }
         let usage = model::scan_usage(&self.home, &self.session);
         let byte_cap = usage.remaining().min(model::MAX_RECORD_BYTES);
-        let refuse = usage.refuse(model::MIN_RECORD_BUDGET).or((byte_cap < model::MIN_RECORD_BUDGET).then_some("quota_bytes"));
+        let refuse = usage
+            .refuse(model::MIN_RECORD_BUDGET)
+            .or((byte_cap < model::MIN_RECORD_BUDGET).then_some("quota_bytes"));
         if let Some(reason) = refuse {
             return Err(err_d(
                 ErrorCode::Limit,
@@ -785,7 +1273,8 @@ impl Shared {
         let final_path = dir.join(format!("{aid}.mkv"));
         let part_path = model::partial_path(&final_path);
         let marker = model::recording_marker(&final_path);
-        create_private_new(&marker).map_err(|e| err(ErrorCode::Internal, format!("recording marker: {e}")))?;
+        create_private_new(&marker)
+            .map_err(|e| err(ErrorCode::Internal, format!("recording marker: {e}")))?;
         let args = model::recorder_args(self.cfg.fps, &part_path);
         let mut child = match spawn_group(ffmpeg, &args, Stdio::piped()) {
             Ok(c) => c,
@@ -910,7 +1399,9 @@ fn remove_stale_socket(p: &Path) -> std::io::Result<()> {
     use std::os::unix::fs::FileTypeExt as _;
     match std::fs::symlink_metadata(p) {
         Ok(m) if m.file_type().is_socket() => std::fs::remove_file(p),
-        Ok(_) => Err(std::io::Error::other("media socket path exists and is not a socket")),
+        Ok(_) => Err(std::io::Error::other(
+            "media socket path exists and is not a socket",
+        )),
         Err(_) => Ok(()),
     }
 }
@@ -926,7 +1417,8 @@ fn start_media(path: PathBuf, shared: Arc<Shared>) -> Result<MediaServer, String
         use std::os::unix::fs::PermissionsExt as _;
         let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
     }
-    l.set_nonblocking(true).map_err(|e| format!("media socket: {e}"))?;
+    l.set_nonblocking(true)
+        .map_err(|e| format!("media socket: {e}"))?;
     let stop = Arc::new(AtomicBool::new(false));
     let stop2 = stop.clone();
     let join = thread("video-media", move || {
@@ -1005,13 +1497,23 @@ fn serve_conn(mut s: UnixStream, sh: &Shared) {
     let (head, body): (Value, Option<Arc<Vec<u8>>>) = match (parts.next(), parts.next(), parts.next()) {
         (Some("META"), None, None) => {
             let latest = lock(&sh.ring).latest().map(|f| f.meta(&sh.id));
-            let health = if sh.running() { sh.health(lock(&sh.state)["state"].as_str().unwrap_or("unknown")) } else { lock(&sh.health).clone() };
+            let pins = {
+                let now = sh.now_ns();
+                let mut p = lock(&sh.pins);
+                p.expire(now);
+                p.json(now)
+            };
+            let health = if sh.running() {
+                sh.health(lock(&sh.state)["state"].as_str().unwrap_or("unknown"))
+            } else {
+                lock(&sh.health).clone()
+            };
             (
                 json!({"ok": true, "capture_id": sh.id, "capture_epoch": U64(sh.epoch),
                        "state": lock(&sh.state)["state"], "frozen": sh.frozen.load(Ordering::Acquire),
                        "stopped_at_frame_id": *lock(&sh.stopped_at_frame),
                        "latest": latest, "health": health, "record": *lock(&sh.record_last),
-                       "config": sh.cfg.public(), "len": 0}),
+                       "config": sh.cfg.public(), "pins": pins, "len": 0}),
                 None,
             )
         }
@@ -1024,21 +1526,21 @@ fn serve_conn(mut s: UnixStream, sh: &Shared) {
                     return;
                 }
             };
-            let r = lock(&sh.ring);
-            let f = match id {
-                Some(n) => r.get(n),
-                None => r.latest(),
+            let hit = match id {
+                Some(n) => sh.lookup(n),
+                None => lock(&sh.ring).latest().cloned().map(|f| (f, "ring")),
             };
-            match f {
-                Some(f) => {
+            match hit {
+                Some((f, by)) => {
                     let mut m = f.meta(&sh.id);
                     m["ok"] = json!(true);
                     m["len"] = json!(f.data.len());
                     m["frozen"] = json!(sh.frozen.load(Ordering::Acquire));
+                    m["retained_by"] = json!(by);
                     (m, Some(f.data.clone()))
                 }
                 None => {
-                    let first = r.range()["first_frame_id"].as_u64();
+                    let first = lock(&sh.ring).range()["first_frame_id"].as_u64();
                     let e = match (id, first) {
                         (None, _) | (_, None) => "no_frame",
                         (Some(n), Some(f)) if n < f => "expired",
@@ -1075,7 +1577,11 @@ fn supervise(sh: Arc<Shared>, ffmpeg: PathBuf, replay_dir: PathBuf) {
         Ok(c) => c,
         Err(e) => {
             sh.freeze();
-            let p = sh.state("failed", Some("spawn_error"), json!({"error": format!("spawn ffmpeg: {e}")}));
+            let p = sh.state(
+                "failed",
+                Some("spawn_error"),
+                json!({"error": format!("spawn ffmpeg: {e}")}),
+            );
             sh.reply_open(Err(err_d(ErrorCode::Internal, "spawn ffmpeg failed", p.clone())));
             sh.finish(p);
             return;
@@ -1136,7 +1642,11 @@ fn supervise(sh: Arc<Shared>, ffmpeg: PathBuf, replay_dir: PathBuf) {
             if frames > 0 {
                 live = true;
                 let first = sh.frame_meta(None).ok();
-                let p = sh.state("live", None, json!({"first_frame": first, "open_ms": ms(t_open.elapsed())}));
+                let p = sh.state(
+                    "live",
+                    None,
+                    json!({"first_frame": first, "open_ms": ms(t_open.elapsed())}),
+                );
                 sh.reply_open(Ok(p));
             } else if now.duration_since(t_open) > Duration::from_millis(FIRST_FRAME_MS) {
                 sh.freeze();
@@ -1163,7 +1673,13 @@ fn supervise(sh: Arc<Shared>, ffmpeg: PathBuf, replay_dir: PathBuf) {
         }
         if now >= next_health {
             next_health = now + HEALTH_PERIOD;
-            let st = if !live { "opening" } else if stalled { "stalled" } else { "live" };
+            let st = if !live {
+                "opening"
+            } else if stalled {
+                "stalled"
+            } else {
+                "live"
+            };
             sh.emit_health(st);
         }
         std::thread::sleep(POLL);
@@ -1174,7 +1690,14 @@ fn supervise(sh: Arc<Shared>, ffmpeg: PathBuf, replay_dir: PathBuf) {
     sh.freeze();
     let stopping = matches!(end, End::Stop(_) | End::OpenTimeout);
     if stopping {
-        sh.state("stopping", match &end { End::Stop(r) => Some(*r), _ => Some("open_timeout") }, json!({}));
+        sh.state(
+            "stopping",
+            match &end {
+                End::Stop(r) => Some(*r),
+                _ => Some("open_timeout"),
+            },
+            json!({}),
+        );
     }
     let (exit, how) = match end {
         End::Exit(s) => (s, "exited"),
@@ -1222,7 +1745,11 @@ fn supervise(sh: Arc<Shared>, ffmpeg: PathBuf, replay_dir: PathBuf) {
     );
     if !live {
         sh.reply_open(Err(err_d(
-            if reason == "connection_refused" || reason == "source_not_found" { ErrorCode::NotFound } else { ErrorCode::Disconnected },
+            if reason == "connection_refused" || reason == "source_not_found" {
+                ErrorCode::NotFound
+            } else {
+                ErrorCode::Disconnected
+            },
             format!("video source did not deliver a frame ({reason})"),
             p.clone(),
         )));
@@ -1242,7 +1769,9 @@ struct Running {
 
 impl std::fmt::Debug for Running {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Running").field("id", &self.sh.id).finish_non_exhaustive()
+        f.debug_struct("Running")
+            .field("id", &self.sh.id)
+            .finish_non_exhaustive()
     }
 }
 
@@ -1250,6 +1779,8 @@ impl std::fmt::Debug for Running {
 #[derive(Debug, Default)]
 pub struct VideoWorker {
     cur: Option<Running>,
+    /// B5b: ROI inspection config, worker-scoped (survives reopen; shared with each capture).
+    roi: Arc<Mutex<RoiConfig>>,
     next: u64,
     probe: Arc<Mutex<Option<Value>>>,
 }
@@ -1270,10 +1801,16 @@ fn storage(call: &Call) -> Result<(PathBuf, PathBuf), WorkerError> {
 fn ffmpeg_path(call: &Call) -> Result<PathBuf, WorkerError> {
     match call.args["ffmpeg"].as_str() {
         Some(p) if Path::new(p).is_absolute() => Ok(PathBuf::from(p)),
-        Some(p) => Err(err(ErrorCode::Config, format!("ffmpeg path {p:?} is not absolute"))),
+        Some(p) => Err(err(
+            ErrorCode::Config,
+            format!("ffmpeg path {p:?} is not absolute"),
+        )),
         None => Err(err(
             ErrorCode::NotFound,
-            call.args["ffmpeg_error"].as_str().unwrap_or("ffmpeg not found").to_owned(),
+            call.args["ffmpeg_error"]
+                .as_str()
+                .unwrap_or("ffmpeg not found")
+                .to_owned(),
         )),
     }
 }
@@ -1286,6 +1823,79 @@ fn frame_arg(call: &Call) -> Result<Option<u64>, WorkerError> {
             .filter(|n| *n > 0)
             .map(Some)
             .ok_or_else(|| err(ErrorCode::Usage, "frame_id: expected a positive integer")),
+    }
+}
+
+/// B2 W5: optional `ttl_ms` worker arg (1..=[`PIN_TTL_MAX_MS`]).
+fn ttl_arg(call: &Call) -> Result<Option<u64>, WorkerError> {
+    match call.args.get("ttl_ms") {
+        None | Some(Value::Null) => Ok(None),
+        Some(v) => v
+            .as_u64()
+            .filter(|n| (1..=PIN_TTL_MAX_MS).contains(n))
+            .map(Some)
+            .ok_or_else(|| err(ErrorCode::Usage, format!("ttl_ms: expected 1..={PIN_TTL_MAX_MS}"))),
+    }
+}
+
+/// B5b W1: analysis thread body (`video-analysis`), ≤ [`ANALYSIS_HZ`] rounds per second until the
+/// capture finishes, then one final round and evidence flush.
+fn analyse(sh: Arc<Shared>) {
+    let period = Duration::from_millis(1000 / ANALYSIS_HZ);
+    let mut last = 0u64;
+    let mut next_metric = Instant::now() + Duration::from_millis(METRIC_PERIOD_MS);
+    loop {
+        let ended = sh.finished.load(Ordering::Acquire);
+        sh.analysis_round(&mut last);
+        if ended {
+            sh.step_evidence(true);
+            sh.emit_roi_metric();
+            return;
+        }
+        if Instant::now() >= next_metric {
+            sh.emit_roi_metric();
+            next_metric += Duration::from_millis(METRIC_PERIOD_MS);
+        }
+        std::thread::sleep(period);
+    }
+}
+
+/// B5b W11: optional `expect_rev` worker arg.
+fn expect_rev_arg(call: &Call) -> Result<Option<u64>, WorkerError> {
+    match call.args.get("expect_rev") {
+        None | Some(Value::Null) => Ok(None),
+        Some(v) => v
+            .as_u64()
+            .map(Some)
+            .ok_or_else(|| err(ErrorCode::Usage, "expect_rev: expected a non-negative integer")),
+    }
+}
+
+/// B5b W11: config refusal → worker error.
+fn config_err(e: ConfigError) -> WorkerError {
+    match &e {
+        ConfigError::RevMismatch { .. } => err_d(ErrorCode::Busy, e.message(), e.detail()),
+        ConfigError::Invalid(_) => err_d(ErrorCode::Usage, e.message(), e.detail()),
+    }
+}
+
+/// B5b W12: event draft for `video.roi_config` on [`ROI_IDLE_CHANNEL`] (no capture).
+fn idle_draft(cx: &WorkerCtx, payload: Value) -> EventDraft {
+    EventDraft {
+        kind: KIND_ROI_CONFIG.into(),
+        ts: cx.clock().ts(TsSource::HostReadComplete),
+        dir: None,
+        origin: Origin::Device,
+        client_id: None,
+        request_id: None,
+        job_id: None,
+        generation: None,
+        purpose: None,
+        risk: None,
+        env: None,
+        payload,
+        metrics: vec![],
+        quality: vec![],
     }
 }
 
@@ -1303,7 +1913,10 @@ impl VideoWorker {
         if want.is_some_and(|w| w != r.sh.id) {
             return Err(err_d(
                 ErrorCode::NotFound,
-                format!("capture {:?} is not the current capture", want.unwrap_or_default()),
+                format!(
+                    "capture {:?} is not the current capture",
+                    want.unwrap_or_default()
+                ),
                 json!({"current": r.sh.id}),
             ));
         }
@@ -1393,6 +2006,7 @@ impl VideoWorker {
             cx: cx.clone(),
             requested_by: call.origin,
             ring: Mutex::new(Ring::default()),
+            pins: Mutex::new(PinStore::default()),
             frozen: AtomicBool::new(false),
             stop: Mutex::new(None),
             finished: AtomicBool::new(false),
@@ -1408,6 +2022,10 @@ impl VideoWorker {
             record_last: Mutex::new(Value::Null),
             next_artifact: AtomicU64::new(0),
             stopped_at_frame: Mutex::new(None),
+            roi_cfg: self.roi.clone(),
+            inspector: Mutex::new(Inspector::new()),
+            evidence: Mutex::new(Vec::new()),
+            next_evidence: AtomicU64::new(0),
         });
         let media = match start_media(sock, sh.clone()) {
             Ok(m) => m,
@@ -1419,14 +2037,21 @@ impl VideoWorker {
             .spawn(move || supervise(sh2, ffmpeg, replay));
         match join {
             Ok(j) => {
+                let sh3 = sh.clone();
+                let _ = thread("video-analysis", move || analyse(sh3));
+                {
+                    let cfg = lock(&self.roi);
+                    sh.roi_config_event(&cfg, json!({"op": "open", "roi": null, "expect_rev": null}));
+                }
                 self.cur = Some(Running {
                     sh,
                     join: Some(j),
                     _media: Some(media),
                 });
                 Box::pin(async move {
-                    rx.await
-                        .unwrap_or_else(|_| Err(err(ErrorCode::Internal, "capture ended before open completed")))
+                    rx.await.unwrap_or_else(|_| {
+                        Err(err(ErrorCode::Internal, "capture ended before open completed"))
+                    })
                 })
             }
             Err(e) => ready(Err(err(ErrorCode::Internal, format!("thread: {e}")))),
@@ -1440,7 +2065,9 @@ impl VideoWorker {
         };
         if !sh.running() {
             let last = lock(&sh.state).clone();
-            return ready(Ok(json!({"closed": false, "reason": "not_running", "last": last})));
+            return ready(Ok(
+                json!({"closed": false, "reason": "not_running", "last": last}),
+            ));
         }
         let (tx, rx) = tokio::sync::oneshot::channel();
         lock(&sh.waiters).push(tx);
@@ -1460,10 +2087,109 @@ impl VideoWorker {
         })
     }
 
+    /// B5b W13: `video.roi.put` / `video.roi.remove` / `video.roi.replace`.
+    fn roi_edit(&mut self, cx: &WorkerCtx, call: &Call) -> Result<Value, WorkerError> {
+        let expect = expect_rev_arg(call)?;
+        let shared = self.roi.clone();
+        let mut cfg = lock(&shared);
+        let (change, mut out, applied) = match call.method.as_str() {
+            "video.roi.put" => {
+                let spec = RoiSpec::from_json(&call.args["roi"]).map_err(|m| err(ErrorCode::Usage, m))?;
+                let name = spec.name.clone();
+                cfg.put(spec, expect).map_err(config_err)?;
+                (
+                    json!({"op": "put", "roi": name, "expect_rev": expect}),
+                    json!({"roi": name}),
+                    true,
+                )
+            }
+            "video.roi.remove" => {
+                let name = call.args["roi"]
+                    .as_str()
+                    .ok_or_else(|| err(ErrorCode::Usage, "roi: expected a ROI name"))?
+                    .to_owned();
+                let removed = cfg.remove(&name, expect).map_err(config_err)?;
+                (
+                    json!({"op": "remove", "roi": name, "expect_rev": expect}),
+                    json!({"roi": name, "removed": removed}),
+                    removed,
+                )
+            }
+            "video.roi.replace" => {
+                let specs =
+                    RoiConfig::parse_list(&call.args["rois"]).map_err(|m| err(ErrorCode::Usage, m))?;
+                cfg.replace(specs, expect).map_err(config_err)?;
+                (
+                    json!({"op": "replace", "roi": null, "expect_rev": expect}),
+                    json!({}),
+                    true,
+                )
+            }
+            m => return Err(err(ErrorCode::NotImplemented, format!("{m} not implemented"))),
+        };
+        if applied {
+            self.emit_config(cx, &cfg, change);
+        }
+        let j = cfg.json();
+        let mut res = json!({"config_rev": j["config_rev"], "rois": j["rois"]});
+        if let (Some(o), Value::Object(e)) = (res.as_object_mut(), std::mem::take(&mut out)) {
+            o.extend(e);
+        }
+        Ok(res)
+    }
+
+    /// B5b W14: `video.roi_config` for an edit (current capture channel, else the idle channel).
+    fn emit_config(&self, cx: &WorkerCtx, cfg: &RoiConfig, change: Value) {
+        if let Some(r) = &self.cur {
+            r.sh.roi_config_event(cfg, change);
+            return;
+        }
+        let j = cfg.json();
+        let payload = json!({"capture_id": null, "config_rev": j["config_rev"], "rois": j["rois"],
+                             "change": change, "note": PIXEL_NOTE});
+        let _ = cx.emitter(ROI_IDLE_CHANNEL).priority(idle_draft(cx, payload));
+    }
+
+    /// B5b W15: `video.roi.list`.
+    fn roi_list(&mut self) -> Value {
+        let shared = self.roi.clone();
+        let cfg = lock(&shared);
+        let j = cfg.json();
+        let (capture_id, inspect) = match &self.cur {
+            Some(r) => (json!(r.sh.id), lock(&r.sh.inspector).json()),
+            None => (Value::Null, Value::Null),
+        };
+        json!({"config_rev": j["config_rev"], "rois": j["rois"], "capture_id": capture_id, "inspect": inspect,
+               "limits": {"max_rois": MAX_ROIS, "max_samples": MAX_SAMPLES, "analysis_hz": ANALYSIS_HZ,
+                          "history": ROI_HISTORY, "pending_evidence": MAX_PENDING_EVIDENCE},
+               "note": PIXEL_NOTE})
+    }
+
+    /// B5b W16: `video.roi.baseline` (decode offloaded).
+    fn roi_baseline(&mut self, call: &Call) -> BoxFuture<'static, Result<Value, WorkerError>> {
+        let sh = match self.target(call) {
+            Ok(s) => s,
+            Err(e) => return ready(Err(e)),
+        };
+        let id = match frame_arg(call) {
+            Ok(i) => i,
+            Err(e) => return ready(Err(e)),
+        };
+        let roi = match call.args.get("roi") {
+            None | Some(Value::Null) => None,
+            Some(Value::String(s)) => Some(s.clone()),
+            Some(_) => return ready(Err(err(ErrorCode::Usage, "roi: expected a ROI name"))),
+        };
+        offload("video-roi-baseline", move || sh.roi_baseline(roi, id))
+    }
+
     fn status(&mut self) -> Value {
         self.reap_finished();
         match &self.cur {
-            None => json!({"capture": null, "running": false}),
+            None => {
+                let cfg = lock(&self.roi).json();
+                json!({"capture": null, "running": false, "pins": null, "roi": {"config": cfg, "inspect": null}})
+            }
             Some(r) => {
                 let sh = &r.sh;
                 let health = if sh.running() {
@@ -1471,7 +2197,17 @@ impl VideoWorker {
                 } else {
                     lock(&sh.health).clone()
                 };
-                json!({"capture": *lock(&sh.state), "health": health, "record": *lock(&sh.record_last),
+                let pins = {
+                    let now = sh.now_ns();
+                    let mut p = lock(&sh.pins);
+                    p.expire(now);
+                    p.json(now)
+                };
+                let roi = {
+                    let cfg = lock(&self.roi).json();
+                    json!({"config": cfg, "inspect": lock(&sh.inspector).json()})
+                };
+                json!({"capture": *lock(&sh.state), "health": health, "record": *lock(&sh.record_last), "pins": pins, "roi": roi,
                        "recording": lock(&sh.recorder).is_some(),
                        "running": sh.running(), "capture_id": sh.id, "frozen": sh.frozen.load(Ordering::Acquire)})
             }
@@ -1532,7 +2268,9 @@ impl VideoWorker {
                 Ok((out, _, true)) => {
                     json!({"path": ff, "version": out.lines().next().unwrap_or("").trim(), "error": null})
                 }
-                Ok((_, e, false)) => json!({"path": ff, "version": null, "error": e.lines().last().unwrap_or("ffmpeg -version failed")}),
+                Ok((_, e, false)) => {
+                    json!({"path": ff, "version": null, "error": e.lines().last().unwrap_or("ffmpeg -version failed")})
+                }
                 Err(e) => json!({"path": ff, "version": null, "error": e}),
             };
             if v["error"].is_null() {
@@ -1572,9 +2310,26 @@ impl Worker for VideoWorker {
                 Err(e) => ready(Err(e)),
             },
             "video.frame" => {
-                let r = self.target(&call).and_then(|sh| frame_arg(&call).and_then(|id| sh.frame_meta(id)));
+                let r = self
+                    .target(&call)
+                    .and_then(|sh| frame_arg(&call).and_then(|id| sh.frame_meta(id)));
                 ready(r)
             }
+            "video.pin" => {
+                let r = self.target(&call).and_then(|sh| {
+                    frame_arg(&call).and_then(|id| ttl_arg(&call).and_then(|ttl| sh.pin(id, ttl)))
+                });
+                ready(r)
+            }
+            "video.unpin" => {
+                let r = self
+                    .target(&call)
+                    .and_then(|sh| frame_arg(&call).map(|id| sh.unpin(id)));
+                ready(r)
+            }
+            "video.roi.put" | "video.roi.remove" | "video.roi.replace" => ready(self.roi_edit(cx, &call)),
+            "video.roi.list" => ready(Ok(self.roi_list())),
+            "video.roi.baseline" => self.roi_baseline(&call),
             "video.snapshot" => {
                 if cx.latch().is_on() {
                     return ready(Err(err(ErrorCode::Stopped, "STOP latched: snapshot refused")));
@@ -1616,7 +2371,10 @@ impl Worker for VideoWorker {
             }
             m => {
                 let m = m.to_owned();
-                ready(Err(err(ErrorCode::NotImplemented, format!("{m} not implemented"))))
+                ready(Err(err(
+                    ErrorCode::NotImplemented,
+                    format!("{m} not implemented"),
+                )))
             }
         }
     }
@@ -1629,11 +2387,19 @@ impl Worker for VideoWorker {
         })
     }
 
-    fn on_job<'a>(&'a mut self, _cx: &'a WorkerCtx, _job: JobCmd) -> BoxFuture<'a, Result<Value, WorkerError>> {
+    fn on_job<'a>(
+        &'a mut self,
+        _cx: &'a WorkerCtx,
+        _job: JobCmd,
+    ) -> BoxFuture<'a, Result<Value, WorkerError>> {
         ready(Err(err(ErrorCode::NotImplemented, "video has no jobs")))
     }
 
-    fn on_input<'a>(&'a mut self, _cx: &'a WorkerCtx, _input: Input) -> BoxFuture<'a, Result<(), WorkerError>> {
+    fn on_input<'a>(
+        &'a mut self,
+        _cx: &'a WorkerCtx,
+        _input: Input,
+    ) -> BoxFuture<'a, Result<(), WorkerError>> {
         ready(Err(err(ErrorCode::NotImplemented, "video takes no input")))
     }
 

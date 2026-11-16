@@ -6,14 +6,18 @@
 //! `video.record_state`). Frame bytes reach the UI and agents through a separate read-only media
 //! plane: a private Unix socket served by the worker and authenticated loomd HTTP GET routes.
 //!
-//! Pieces: [`model`] (validation, argv, JPEG splitter, ring, ids — pure), [`gateway`]
+//! Pieces: [`analysis`] (ROI metrics + judgment — pure), [`inspect`] (ROI config + per-capture state — pure), [`model`] (validation, argv, JPEG splitter, ring, ids — pure), [`gateway`]
 //! (registration, handlers, reducer), [`worker`] (process supervision, media socket, recorder),
 //! [`media`] (gateway-side socket client used by loomd's HTTP routes), [`cli`].
 
+/// ROI analysis: luma decode, sampling, metrics, judgment state machine (pure; decode = worker).
+pub mod analysis;
 #[cfg(feature = "cli")]
 pub mod cli;
 #[cfg(feature = "gateway")]
 pub mod gateway;
+/// ROI inspection state: config revisions, per-capture judges/baselines, evidence plans (pure).
+pub mod inspect;
 #[cfg(feature = "media")]
 pub mod media;
 pub mod model;
@@ -33,3 +37,15 @@ pub const KIND_HEALTH: &str = "video.health";
 pub const KIND_SNAPSHOT: &str = "video.snapshot";
 /// Recording lifecycle (priority lane).
 pub const KIND_RECORD_STATE: &str = "video.record_state";
+/// ROI inspection config (full set + change; priority lane). Operator upgrade B5b.
+pub const KIND_ROI_CONFIG: &str = "video.roi_config";
+/// ROI judgment transition (priority lane): one per state/reason change, never inferred.
+/// Deliberately not `*_state`: the shared hub/UI treat `<domain>.*_state` on a channel as that
+/// channel's connectivity, and a ROI judgment must never replace the capture's channel state.
+pub const KIND_ROI_STATE: &str = "video.roi_judgment";
+/// 1 s ROI metric summary (data lane).
+pub const KIND_ROI_METRIC: &str = "video.roi_metric";
+/// Before/after evidence bundle lifecycle (priority lane).
+pub const KIND_EVIDENCE: &str = "video.evidence";
+/// Channel of `video.roi_config` edits made while no capture exists (otherwise the capture id).
+pub const ROI_IDLE_CHANNEL: &str = "inspect";

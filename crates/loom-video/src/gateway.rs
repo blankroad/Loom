@@ -15,8 +15,13 @@ use loom_proto::rpc::SubFilter;
 use schemars::{Schema, json_schema};
 use serde_json::{Map, Value, json};
 
+use crate::analysis::MAX_ROIS;
+use crate::inspect::PIXEL_NOTE;
 use crate::model::{self, OpenConfig};
-use crate::{DOMAIN, KIND_CAPTURE_STATE, KIND_HEALTH, KIND_RECORD_STATE, KIND_SNAPSHOT, WORKER_KIND};
+use crate::{
+    DOMAIN, KIND_CAPTURE_STATE, KIND_EVIDENCE, KIND_HEALTH, KIND_RECORD_STATE, KIND_ROI_CONFIG,
+    KIND_ROI_METRIC, KIND_ROI_STATE, KIND_SNAPSHOT, WORKER_KIND,
+};
 
 /// Default command wait.
 pub const DEFAULT_WAIT: Duration = Duration::from_secs(15);
@@ -42,6 +47,12 @@ pub const SNAP_SNAPSHOTS: usize = 16;
 pub const TERMINAL: &[&str] = &["closed", "failed"];
 /// All capture states.
 pub const STATES: &[&str] = &["opening", "live", "stalled", "stopping", "closed", "failed"];
+/// ROI judgment states (B5b).
+pub const ROI_STATES: &[&str] = &["unknown", "normal", "changed"];
+/// Latest ROI states kept for late joiners (per capture × ROI).
+pub const SNAP_ROI_STATES: usize = MAX_ROIS * SNAP_CAPTURES;
+/// Evidence lifecycle rows kept for late joiners.
+pub const SNAP_EVIDENCE: usize = 16;
 
 /// The domain module.
 #[derive(Debug, Default)]
@@ -160,6 +171,29 @@ macro_rules! forward {
                             "capture_id" => { if let Some(c) = capture_id(o)? { args[k] = json!(c); } }
                             "frame_id" => { if let Some(f) = frame_id(o)? { args[k] = json!(f); } }
                             "local" => { args[k] = json!(opt_bool(o, k)?); }
+                            "roi" => match o.get(k) {
+                                None | Some(Value::Null) => {}
+                                Some(v) if v.is_object() || v.is_string() => args[k] = v.clone(),
+                                Some(_) => return Err(usage("roi: expected an ROI object or name")),
+                            },
+                            "rois" => match o.get(k) {
+                                None => {}
+                                Some(v) if v.is_array() => args[k] = v.clone(),
+                                Some(_) => return Err(usage("rois: expected an array")),
+                            },
+                            "expect_rev" => {
+                                if let Some(r) = opt_u64(o, k, u64::MAX)? {
+                                    args[k] = json!(r);
+                                }
+                            }
+                            "ttl_ms" => {
+                                if let Some(t) = opt_u64(o, k, model::PIN_TTL_MAX_MS)? {
+                                    if t == 0 {
+                                        return Err(usage(format!("ttl_ms: expected 1..={}", model::PIN_TTL_MAX_MS)));
+                                    }
+                                    args[k] = json!(t);
+                                }
+                            }
                             _ => {}
                         }
                     }
@@ -178,6 +212,61 @@ forward!(Snapshot, "video.snapshot", ["capture_id", "frame_id"], false);
 forward!(RecordStart, "video.record.start", ["capture_id"], true);
 forward!(RecordStop, "video.record.stop", ["capture_id"], false);
 forward!(Sources, "video.sources", ["local"], true);
+// B2 (FUNCTIONS.md §B2-G): safe-direction memory ops; `ttl_ms` needs its macro arm (G1).
+forward!(Pin, "video.pin", ["capture_id", "frame_id", "ttl_ms"], false);
+forward!(Unpin, "video.unpin", ["capture_id", "frame_id"], false);
+// operator upgrade B5b (ROI inspection)
+forward!(RoiPut, "video.roi.put", ["roi", "expect_rev"], false);
+forward!(RoiRemove, "video.roi.remove", ["roi", "expect_rev"], false);
+forward!(RoiReplace, "video.roi.replace", ["rois", "expect_rev"], false);
+forward!(RoiList, "video.roi.list", [], false);
+forward!(
+    RoiBaseline,
+    "video.roi.baseline",
+    ["capture_id", "frame_id", "roi"],
+    false
+);
+
+/// B5b G2: does `video.status` satisfy a ROI wait? `Ok(Some(row))` = matched (the matching history
+/// entry, or the current ROI row without its history); `Ok(None)` = not yet; `Err` = unusable request.
+pub fn roi_wait_match(
+    status: &Value,
+    roi: &str,
+    roi_state: Option<&str>,
+    after_seq: Option<u64>,
+) -> Result<Option<Value>, String> {
+    if let Some(rs) = roi_state
+        && !ROI_STATES.contains(&rs)
+    {
+        return Err(format!("roi_state: expected one of {}", ROI_STATES.join(", ")));
+    }
+    let configured = status["roi"]["config"]["rois"]
+        .as_array()
+        .is_some_and(|a| a.iter().any(|r| r["name"].as_str() == Some(roi)));
+    if !configured {
+        return Err(format!("roi {roi} is not configured"));
+    }
+    let row = status["roi"]["inspect"]["rois"]
+        .as_array()
+        .and_then(|a| a.iter().find(|r| r["roi"].as_str() == Some(roi)));
+    let Some(row) = row else { return Ok(None) };
+    let state_ok = |v: &Value| roi_state.is_none_or(|rs| v["state"].as_str() == Some(rs));
+    match after_seq {
+        Some(s) => Ok(row["history"].as_array().and_then(|h| {
+            h.iter()
+                .find(|e| e["transition_seq"].as_u64().is_some_and(|q| q > s) && state_ok(e))
+                .cloned()
+        })),
+        None if state_ok(row) => {
+            let mut r = row.clone();
+            if let Some(o) = r.as_object_mut() {
+                o.remove("history");
+            }
+            Ok(Some(r))
+        }
+        None => Ok(None),
+    }
+}
 
 #[derive(Debug)]
 struct Open;
@@ -216,10 +305,21 @@ fn kinds_for(kind: &str) -> Result<&'static [&'static str], DomainError> {
         "health" => &[KIND_HEALTH],
         "snapshot" => &[KIND_SNAPSHOT],
         "record" => &[KIND_RECORD_STATE],
-        "all" => &[KIND_CAPTURE_STATE, KIND_HEALTH, KIND_SNAPSHOT, KIND_RECORD_STATE],
+        "roi" => &[KIND_ROI_CONFIG, KIND_ROI_STATE],
+        "metric" => &[KIND_ROI_METRIC],
+        "evidence" => &[KIND_EVIDENCE],
+        "all" => &[
+            KIND_CAPTURE_STATE,
+            KIND_HEALTH,
+            KIND_SNAPSHOT,
+            KIND_RECORD_STATE,
+            KIND_ROI_CONFIG,
+            KIND_ROI_STATE,
+            KIND_EVIDENCE,
+        ],
         o => {
             return Err(usage(format!(
-                "kind {o:?}: expected state, health, snapshot, record or all"
+                "kind {o:?}: expected state, health, snapshot, record, roi, metric, evidence or all"
             )));
         }
     })
@@ -349,21 +449,40 @@ struct Wait;
 impl Handler for Wait {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
-            let o = strict(&params, &["capture_id", "frames", "state", "timeout_ms"])?;
+            let o = strict(
+                &params,
+                &[
+                    "capture_id",
+                    "frames",
+                    "state",
+                    "timeout_ms",
+                    "roi",
+                    "roi_state",
+                    "new",
+                ],
+            )?;
             let capture = capture_id(o)?.map(str::to_owned);
             let frames = opt_u64(o, "frames", u64::MAX)?;
             let state = opt_str(o, "state", 16)?.map(str::to_owned);
             if state.as_deref().is_some_and(|s| !STATES.contains(&s)) {
                 return Err(usage(format!("state: expected one of {}", STATES.join(", "))));
             }
-            if frames.is_none() && state.is_none() {
-                return Err(usage("give frames and/or state"));
+            let roi = opt_str(o, "roi", 32)?.map(str::to_owned);
+            let roi_state = opt_str(o, "roi_state", 16)?.map(str::to_owned);
+            let new = opt_bool(o, "new")?;
+            if roi.is_none() && (roi_state.is_some() || new) {
+                return Err(usage("roi_state and new need roi"));
+            }
+            if frames.is_none() && state.is_none() && roi.is_none() {
+                return Err(usage("give frames, state and/or roi"));
             }
             let timeout_ms = match opt_u64(o, "timeout_ms", MAX_WAIT_MS)? {
                 Some(0) | None => return Err(usage(format!("timeout_ms: required, 1..={MAX_WAIT_MS}"))),
                 Some(t) => t,
             };
             let deadline = (Instant::now() + Duration::from_millis(timeout_ms)).min(ctx.deadline());
+            let mut base_cap: Option<Value> = None;
+            let mut after: Option<u64> = None;
             loop {
                 let st = ctx
                     .worker(WORKER_KIND)?
@@ -376,8 +495,34 @@ impl Handler for Wait {
                 let last = st["health"]["last_frame_id"].as_u64().unwrap_or(0);
                 let ok_frames = frames.is_none_or(|n| last >= n);
                 let ok_state = state.as_deref().is_none_or(|s| cur_state == s);
-                if same && ok_frames && ok_state {
-                    return Ok(json!({"matched": true, "status": st}));
+                let mut matched_roi = Value::Null;
+                let mut ok_roi = true;
+                if let Some(r) = roi.as_deref() {
+                    if new {
+                        let cap_now = st["capture_id"].clone();
+                        let row_seq = st["roi"]["inspect"]["rois"]
+                            .as_array()
+                            .and_then(|a| a.iter().find(|x| x["roi"].as_str() == Some(r)))
+                            .and_then(|x| x["transition_seq"].as_u64());
+                        match &base_cap {
+                            None => {
+                                base_cap = Some(cap_now);
+                                after = Some(row_seq.unwrap_or(0));
+                            }
+                            Some(b) if *b != cap_now => {
+                                base_cap = Some(cap_now);
+                                after = Some(0);
+                            }
+                            Some(_) => {}
+                        }
+                    }
+                    let m = roi_wait_match(&st, r, roi_state.as_deref(), if new { after } else { None })
+                        .map_err(usage)?;
+                    ok_roi = m.is_some();
+                    matched_roi = m.unwrap_or(Value::Null);
+                }
+                if same && ok_frames && ok_state && ok_roi {
+                    return Ok(json!({"matched": true, "status": st, "roi": matched_roi}));
                 }
                 // A terminal capture can no longer reach a frame/state goal it has not reached.
                 if same && TERMINAL.contains(&cur_state) && state.as_deref().is_none_or(|s| s != cur_state) {
@@ -406,9 +551,21 @@ pub struct VideoHooks;
 impl WriteHooks for VideoHooks {
     fn classify(&self, req: &WriteRequest<'_>) -> Classification {
         let (risk, reason) = match req.method {
-            "video.open" => (Risk::R1, "starts an FFmpeg acquisition process (observation only)"),
+            "video.open" => (
+                Risk::R1,
+                "starts an FFmpeg acquisition process (observation only)",
+            ),
             "video.record.start" => (Risk::R1, "writes a bounded recording artifact"),
             "video.snapshot" => (Risk::R1, "writes a bounded snapshot artifact"),
+            "video.pin" => (
+                Risk::R0,
+                "holds a ring frame in bounded daemon memory (no device, no disk)",
+            ),
+            "video.unpin" => (Risk::R0, "releases a pinned frame from daemon memory"),
+            "video.roi.put" | "video.roi.remove" | "video.roi.replace" => {
+                (Risk::R0, "edits the shared ROI inspection config (memory only)")
+            }
+            "video.roi.baseline" => (Risk::R0, "sets ROI baselines from an exact frame (memory only)"),
             _ => (Risk::R0, "stops capture or recording"),
         };
         Classification {
@@ -430,6 +587,14 @@ pub struct VideoReducer {
     health: VecDeque<Value>,
     records: VecDeque<Value>,
     snapshots: VecDeque<Value>,
+    /// B5b: latest `video.roi_config` (worker-scoped config; any channel).
+    roi_config: Option<Value>,
+    /// B5b: latest `video.roi_state` per (capture_id, roi).
+    roi_states: VecDeque<Value>,
+    /// B5b: latest `video.roi_metric` per capture.
+    roi_metrics: VecDeque<Value>,
+    /// B5b: latest `video.evidence` per (capture_id, evidence_id).
+    evidence: VecDeque<Value>,
 }
 
 fn upsert(q: &mut VecDeque<Value>, key: &str, v: &Value, cap: usize) {
@@ -445,7 +610,16 @@ fn upsert(q: &mut VecDeque<Value>, key: &str, v: &Value, cap: usize) {
 
 impl Reducer for VideoReducer {
     fn kinds(&self) -> &[&'static str] {
-        &[KIND_CAPTURE_STATE, KIND_HEALTH, KIND_SNAPSHOT, KIND_RECORD_STATE]
+        &[
+            KIND_CAPTURE_STATE,
+            KIND_HEALTH,
+            KIND_SNAPSHOT,
+            KIND_RECORD_STATE,
+            KIND_ROI_CONFIG,
+            KIND_ROI_STATE,
+            KIND_ROI_METRIC,
+            KIND_EVIDENCE,
+        ]
     }
     fn apply(&mut self, ev: &PublishedRecord) {
         let seq = ev.seq.get();
@@ -472,6 +646,31 @@ impl Reducer for VideoReducer {
                     self.snapshots.pop_front();
                 }
             }
+            KIND_ROI_CONFIG => self.roi_config = Some(p.clone()),
+            KIND_ROI_STATE => {
+                let same = |x: &Value| x["capture_id"] == p["capture_id"] && x["roi"] == p["roi"];
+                if let Some(slot) = self.roi_states.iter_mut().find(|x| same(x)) {
+                    *slot = p.clone();
+                } else {
+                    self.roi_states.push_back(p.clone());
+                    while self.roi_states.len() > SNAP_ROI_STATES {
+                        self.roi_states.pop_front();
+                    }
+                }
+            }
+            KIND_ROI_METRIC => upsert(&mut self.roi_metrics, "capture_id", p, SNAP_CAPTURES),
+            KIND_EVIDENCE => {
+                let same =
+                    |x: &Value| x["capture_id"] == p["capture_id"] && x["evidence_id"] == p["evidence_id"];
+                if let Some(slot) = self.evidence.iter_mut().find(|x| same(x)) {
+                    *slot = p.clone();
+                } else {
+                    self.evidence.push_back(p.clone());
+                    while self.evidence.len() > SNAP_EVIDENCE {
+                        self.evidence.pop_front();
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -487,11 +686,21 @@ impl Reducer for VideoReducer {
             "health": self.health.iter().filter(keep).collect::<Vec<_>>(),
             "records": self.records.iter().filter(keep).collect::<Vec<_>>(),
             "snapshots": self.snapshots.iter().filter(keep).collect::<Vec<_>>(),
+            "roi_config": self.roi_config,
+            "roi_states": self.roi_states.iter().filter(keep).collect::<Vec<_>>(),
+            "roi_metrics": self.roi_metrics.iter().filter(keep).collect::<Vec<_>>(),
+            "evidence": self.evidence.iter().filter(keep).collect::<Vec<_>>(),
         })]
     }
 }
 
-fn spec(method: &str, write: bool, handler: Arc<dyn Handler>, params: Value, max_wait: Duration) -> CommandSpec {
+fn spec(
+    method: &str,
+    write: bool,
+    handler: Arc<dyn Handler>,
+    params: Value,
+    max_wait: Duration,
+) -> CommandSpec {
     CommandSpec {
         method: method.into(),
         write_class: write.then_some(WriteClass::Request),
@@ -544,6 +753,11 @@ pub fn help() -> HelpSpec {
             ex("loom video wait --frames 30 --timeout 10s", "wait until 30 frames were received"),
             ex("loom video frame --id 120", "metadata + sha256 of one ring frame (no bytes)"),
             ex("loom video snapshot --frame 120", "save that exact JPEG as an artifact"),
+            ex("loom video pin --frame 120 --ttl 2m", "keep that exact frame past ring eviction (memory only, bounded)"),
+            ex("loom video roi put --name lamp --rect 0.1,0.1,0.2,0.2 --enter 12", "configure a named ROI"),
+            ex("loom video roi baseline", "baseline = the latest exact frame"),
+            ex("loom video wait --roi lamp --roi-state changed --new --timeout 30s", "wait for a judged change"),
+            ex("loom video read --kind evidence", "before/after evidence bundles"),
             ex("loom video record start", "start an MJPEG-copy Matroska recording (bounded)"),
             ex("loom video close", "stop acquisition and reap FFmpeg"),
         ],
@@ -554,6 +768,13 @@ pub fn help() -> HelpSpec {
             "avfoundation needs an exact device name; it is implemented but unverified on hardware; audio, RTSP and DeckLink are unavailable."
                 .into(),
             "Storage is capped (artifacts/bytes per session, home-wide bytes, recording size/duration); nothing is auto-deleted."
+                .into(),
+            "Pins: at most 4 frames per caller and 16 MiB per capture, TTL ≤ 600 s; released on unpin, TTL or the next open; nothing reaches disk unless you snapshot."
+                .into(),
+            PIXEL_NOTE.into(),
+            "ROI judgments are computed once by the daemon from the same frames the UI shows; UNKNOWN means no trustworthy judgment (not live, stale, no/mismatched baseline, decode error, analysis gap, config change)."
+                .into(),
+            "Inspection runs at most 10 Hz, separately from render fps; skipped frames are counted and transitions are never inferred."
                 .into(),
             "Recordings copy the preview JPEGs into Matroska (large files, not H.264).".into(),
         ],
@@ -571,8 +792,20 @@ impl DomainModule for Video {
         let b = json!({"type": "boolean"});
         let cap = json!({"capture_id": s});
         let commands = vec![
-            spec("video.capabilities", false, Arc::new(Capabilities), obj(json!({})), DEFAULT_WAIT),
-            spec("video.sources", false, Arc::new(Sources), obj(json!({"local": b})), DEFAULT_WAIT),
+            spec(
+                "video.capabilities",
+                false,
+                Arc::new(Capabilities),
+                obj(json!({})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.sources",
+                false,
+                Arc::new(Sources),
+                obj(json!({"local": b})),
+                DEFAULT_WAIT,
+            ),
             spec(
                 "video.open",
                 true,
@@ -582,7 +815,13 @@ impl DomainModule for Video {
                     "width": i, "height": i, "fps": i, "quality": i}}),
                 DEFAULT_WAIT,
             ),
-            spec("video.status", false, Arc::new(Status), obj(json!({})), DEFAULT_WAIT),
+            spec(
+                "video.status",
+                false,
+                Arc::new(Status),
+                obj(json!({})),
+                DEFAULT_WAIT,
+            ),
             spec(
                 "video.frame",
                 false,
@@ -597,28 +836,97 @@ impl DomainModule for Video {
                 obj(json!({"capture_id": s, "frame_id": i})),
                 DEFAULT_WAIT,
             ),
-            spec("video.record.start", true, Arc::new(RecordStart), obj(cap.clone()), DEFAULT_WAIT),
-            spec("video.record.stop", true, Arc::new(RecordStop), obj(cap.clone()), DEFAULT_WAIT),
+            spec(
+                "video.record.start",
+                true,
+                Arc::new(RecordStart),
+                obj(cap.clone()),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.record.stop",
+                true,
+                Arc::new(RecordStop),
+                obj(cap.clone()),
+                DEFAULT_WAIT,
+            ),
             spec("video.close", true, Arc::new(Close), obj(cap), DEFAULT_WAIT),
+            spec(
+                "video.pin",
+                true,
+                Arc::new(Pin),
+                obj(json!({"capture_id": s, "frame_id": i, "ttl_ms": i})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.unpin",
+                true,
+                Arc::new(Unpin),
+                obj(json!({"capture_id": s, "frame_id": i})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.roi.put",
+                true,
+                Arc::new(RoiPut),
+                obj(json!({"roi": {"type": "object"}, "expect_rev": i})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.roi.remove",
+                true,
+                Arc::new(RoiRemove),
+                obj(json!({"roi": s, "expect_rev": i})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.roi.replace",
+                true,
+                Arc::new(RoiReplace),
+                obj(json!({"rois": {"type": "array"}, "expect_rev": i})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.roi.baseline",
+                true,
+                Arc::new(RoiBaseline),
+                obj(json!({"capture_id": s, "frame_id": i, "roi": s})),
+                DEFAULT_WAIT,
+            ),
+            spec(
+                "video.roi.list",
+                false,
+                Arc::new(RoiList),
+                obj(json!({})),
+                DEFAULT_WAIT,
+            ),
             spec(
                 "video.read",
                 false,
                 Arc::new(Read),
-                obj(json!({"capture_id": s, "kind": {"enum": ["state", "health", "snapshot", "record", "all"]},
-                           "tail": i, "since": s, "wait_ms": i, "follow": b})),
+                obj(
+                    json!({"capture_id": s, "kind": {"enum": ["state", "health", "snapshot", "record", "roi", "metric", "evidence", "all"]},
+                           "tail": i, "since": s, "wait_ms": i, "follow": b}),
+                ),
                 Duration::from_millis(MAX_READ_WAIT_MS) + DEFAULT_WAIT,
             ),
             spec(
                 "video.wait",
                 false,
                 Arc::new(Wait),
-                obj(json!({"capture_id": s, "frames": i, "state": {"enum": STATES}, "timeout_ms": i})),
+                obj(
+                    json!({"capture_id": s, "frames": i, "state": {"enum": STATES}, "timeout_ms": i,
+                           "roi": s, "roi_state": {"enum": ROI_STATES}, "new": b}),
+                ),
                 Duration::from_millis(MAX_WAIT_MS) + DEFAULT_WAIT,
             ),
         ];
         for mut c in commands {
             // Safe-direction stops are allowed to watchers too (like logic.stop / core STOP).
-            if c.method == "video.close" || c.method == "video.record.stop" {
+            if matches!(
+                c.method.as_str(),
+                "video.close" | "video.record.stop" | "video.pin" | "video.unpin"
+            ) {
                 c.roles = RoleSet::READ;
             }
             reg.command(c)?;
@@ -641,6 +949,24 @@ impl DomainModule for Video {
         .event_kind(kind(
             KIND_RECORD_STATE,
             &["capture_id", "state", "recording_id"],
+            vec![ptr("/payload/state", ValueType::String)],
+        ))?
+        .event_kind(kind(KIND_ROI_CONFIG, &["config_rev", "rois"], vec![]))?
+        .event_kind(kind(
+            KIND_ROI_STATE,
+            &["capture_id", "roi", "state", "transition_seq"],
+            vec![
+                ptr(
+                    "/payload/state",
+                    ValueType::Enum(ROI_STATES.iter().map(|s| (*s).to_owned()).collect()),
+                ),
+                ptr("/payload/roi", ValueType::String),
+            ],
+        ))?
+        .event_kind(kind(KIND_ROI_METRIC, &["capture_id", "rois"], vec![]))?
+        .event_kind(kind(
+            KIND_EVIDENCE,
+            &["capture_id", "state", "evidence_id"],
             vec![ptr("/payload/state", ValueType::String)],
         ))?
         .risk_table(RiskTable {
@@ -674,6 +1000,42 @@ impl DomainModule for Video {
                     selector: None,
                     risk: Risk::R0,
                     reason: "stops a capture".into(),
+                },
+                RiskRow {
+                    method: "video.roi.put".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "memory-only ROI config".into(),
+                },
+                RiskRow {
+                    method: "video.roi.remove".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "memory-only ROI config".into(),
+                },
+                RiskRow {
+                    method: "video.roi.replace".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "memory-only ROI config".into(),
+                },
+                RiskRow {
+                    method: "video.roi.baseline".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "memory-only ROI baseline".into(),
+                },
+                RiskRow {
+                    method: "video.pin".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "bounded memory pin (no device, no disk)".into(),
+                },
+                RiskRow {
+                    method: "video.unpin".into(),
+                    selector: None,
+                    risk: Risk::R0,
+                    reason: "releases a memory pin".into(),
                 },
             ],
             ..RiskTable::default()

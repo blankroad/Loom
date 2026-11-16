@@ -44,6 +44,8 @@ mime_guess = "2.0.5"
 etherparse = "=0.21.0"
 pcap = "=2.5.0"
 ipnet = "2.12.2"
+# video (operator-upgrade S1, ROOT-approved 2026-11-15): pure-Rust JPEG decoder for ROI analysis; MSRV 1.75, MIT/Apache-2.0/Zlib, only dep zune-core 0.5.1
+zune-jpeg = "=0.5.15"
 
 loom-proto = { path = "crates/loom-proto" }
 loom-domain-api = { path = "crates/loom-domain-api" }

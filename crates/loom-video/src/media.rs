@@ -66,19 +66,28 @@ fn error(status: u16, code: &str) -> Reply {
 /// Parse the frame query: absent, or exactly `id=<1..=20 digits>`. Anything else is refused
 /// (in particular no tokens in the URL).
 pub fn parse_frame_query(q: Option<&str>) -> Result<Option<u64>, &'static str> {
-    let Some(q) = q.filter(|q| !q.is_empty()) else { return Ok(None) };
+    let Some(q) = q.filter(|q| !q.is_empty()) else {
+        return Ok(None);
+    };
     let v = q.strip_prefix("id=").ok_or("bad_query")?;
     if v.is_empty() || v.len() > 20 || !v.bytes().all(|b| b.is_ascii_digit()) {
         return Err("bad_query");
     }
-    v.parse::<u64>().ok().filter(|n| *n > 0).map(Some).ok_or("bad_query")
+    v.parse::<u64>()
+        .ok()
+        .filter(|n| *n > 0)
+        .map(Some)
+        .ok_or("bad_query")
 }
 
 #[cfg(unix)]
 async fn ask(sock: &Path, req: &str) -> Result<(Value, Vec<u8>), Reply> {
     let mut s = match tokio::net::UnixStream::connect(sock).await {
         Ok(s) => s,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound || e.kind() == std::io::ErrorKind::ConnectionRefused => {
+        Err(e)
+            if e.kind() == std::io::ErrorKind::NotFound
+                || e.kind() == std::io::ErrorKind::ConnectionRefused =>
+        {
             return Err(error(404, "no_media"));
         }
         Err(_) => return Err(error(503, "media_unavailable")),
@@ -133,7 +142,9 @@ fn reply_error(head: &Value) -> Reply {
 /// numbers are printed; anything else is empty.
 pub fn header_value(head: &Value, k: &str) -> String {
     match &head[k] {
-        Value::String(s) if !s.is_empty() && s.len() <= 20 && s.bytes().all(|b| b.is_ascii_digit()) => s.clone(),
+        Value::String(s) if !s.is_empty() && s.len() <= 20 && s.bytes().all(|b| b.is_ascii_digit()) => {
+            s.clone()
+        }
         Value::Number(n) => n.as_u64().map(|n| n.to_string()).unwrap_or_default(),
         _ => String::new(),
     }
@@ -171,8 +182,14 @@ pub async fn frame(home: &Path, capture_id: &str, query: Option<&str>) -> Reply 
             ("x-loom-capture-epoch", h("capture_epoch")),
             ("x-loom-recv-mono-ns", h("recv_mono_ns")),
             ("x-loom-recv-utc-ns", h("recv_utc_ns")),
-            ("x-loom-frame-sha256", head["sha256"].as_str().unwrap_or("").to_owned()),
-            ("x-loom-frozen", head["frozen"].as_bool().unwrap_or(false).to_string()),
+            (
+                "x-loom-frame-sha256",
+                head["sha256"].as_str().unwrap_or("").to_owned(),
+            ),
+            (
+                "x-loom-frozen",
+                head["frozen"].as_bool().unwrap_or(false).to_string(),
+            ),
         ],
         body: Body::Bytes(body),
     }
@@ -212,6 +229,10 @@ pub async fn artifact(session: &Path, artifact_id: &str) -> Reply {
             headers: vec![
                 ("cache-control", "no-store".into()),
                 ("x-loom-artifact-id", artifact_id.to_owned()),
+                (
+                    "content-disposition",
+                    format!("attachment; filename=\"{artifact_id}.{}\"", kind.ext()),
+                ),
             ],
             body: Body::File { path, len: m.len() },
         },
@@ -235,7 +256,9 @@ enum St {
 }
 
 /// Chunked file stream for [`Body::File`].
-pub fn file_chunks(path: PathBuf) -> impl futures_util::Stream<Item = std::io::Result<Vec<u8>>> + Send + 'static {
+pub fn file_chunks(
+    path: PathBuf,
+) -> impl futures_util::Stream<Item = std::io::Result<Vec<u8>>> + Send + 'static {
     futures_util::stream::unfold(St::Start(path), |st| async move {
         let mut f = match st {
             St::Done => return None,
@@ -277,7 +300,14 @@ mod tests {
         assert_eq!(parse_frame_query(None), Ok(None));
         assert_eq!(parse_frame_query(Some("")), Ok(None));
         assert_eq!(parse_frame_query(Some("id=42")), Ok(Some(42)));
-        for bad in ["id=0", "id=", "id=-1", "token=x", "id=1&token=x", "id=99999999999999999999999"] {
+        for bad in [
+            "id=0",
+            "id=",
+            "id=-1",
+            "token=x",
+            "id=1&token=x",
+            "id=99999999999999999999999",
+        ] {
             assert!(parse_frame_query(Some(bad)).is_err(), "{bad}");
         }
     }

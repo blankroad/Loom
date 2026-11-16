@@ -35,9 +35,9 @@ describe('video shell wiring', () => {
   it('panel manifest: open/snapshot/record need operate; close/record stop are watch safety actions', () => {
     const m = getPanel('video.workbench')!.manifest;
     const right = Object.fromEntries(m.actions.map((a) => [a.id, a.right]));
-    expect(right).toEqual({ open: 'operate', snapshot: 'operate', record_start: 'operate', record_stop: 'watch', close: 'watch' });
-    expect(m.actions.filter((a) => a.safetyDirection === 'reduce').map((a) => a.id).sort()).toEqual(['close', 'record_stop']);
+    expect(right).toEqual({ open: 'operate', snapshot: 'operate', record_start: 'operate', record_stop: 'watch', close: 'watch', pin: 'watch', unpin: 'watch', roi_put: 'operate', roi_remove: 'operate', roi_baseline: 'operate' });
+    expect(m.actions.filter((a) => a.safetyDirection === 'reduce').map((a) => a.id).sort()).toEqual(['close', 'record_stop', 'unpin']);
     expect(m.media).toEqual({ prefixes: ['/api/v1/video/'] });
-    expect(m.topics[0]!.filter({}).kinds).toEqual(['video.capture_state', 'video.health', 'video.snapshot', 'video.record_state']);
+    expect(m.topics[0]!.filter({}).kinds).toEqual(['video.capture_state', 'video.health', 'video.snapshot', 'video.record_state', 'video.roi_config', 'video.roi_judgment', 'video.roi_metric', 'video.evidence']);
   });
 });

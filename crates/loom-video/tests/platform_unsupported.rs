@@ -55,13 +55,18 @@ fn open_is_refused_as_unsupported_without_starting_ffmpeg() {
 #[test]
 fn live_frame_and_meta_routes_report_media_unavailable() {
     let home = Home::new("b");
-    let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
     let f = rt.block_on(media::frame(&home.0, "v0123456789ab", None));
     assert_eq!(f.status, 503);
     let m = rt.block_on(media::meta(&home.0, "v0123456789ab"));
     assert_eq!(m.status, 503);
     for r in [f, m] {
-        let media::Body::Bytes(b) = r.body else { panic!("json body expected") };
+        let media::Body::Bytes(b) = r.body else {
+            panic!("json body expected")
+        };
         let v: Value = serde_json::from_slice(&b).unwrap();
         assert_eq!(v["error"], "media_unavailable", "{v}");
     }
