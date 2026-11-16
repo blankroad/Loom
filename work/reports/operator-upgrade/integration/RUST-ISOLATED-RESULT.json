@@ -1,0 +1,24 @@
+{
+  "passed": 1561,
+  "failed": 1,
+  "ignored": 6,
+  "test_suites": 247,
+  "exit_code": 101,
+  "failed_target": "loom-uart-worker --test worker_e2e",
+  "failed_test": "stop_latch_blocks_agent_but_not_the_viewer",
+  "failure": "condition not reached within2s",
+  "isolated_failed_suite_recheck": {
+    "command": "cargo test --locked -p loom-uart-worker --test worker_e2e -- --test-threads=1",
+    "result": "10/10 pass, 1.82s",
+    "note": "Subset Cargo feature graph differs from whole workspace; exact original workspace artifact also being rechecked separately."
+  },
+  "original_workspace_artifact_recheck": {
+    "command": "/tmp/loom-operator-root-check-610029e/debug/deps/worker_e2e-e3dd51af081488a7 --test-threads=1",
+    "binary_sha256": "e070784ac2b4a75383c41e5c9c751879f737eb38af3f2071ff981a1e7fc16769",
+    "exit_code": 0,
+    "result": "10/10 passed, 1.80s",
+    "source_changed": false,
+    "timeout_weakened": false
+  },
+  "overall": "Initial whole workspace run remains exit101 (1561pass/1fail/6ignored); failing suite passes standalone and original exact artifact. No clean single full-run pass claim. Final source freeze will require final integrated checks."
+}

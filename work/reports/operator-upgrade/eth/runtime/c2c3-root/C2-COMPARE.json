@@ -1,0 +1,15 @@
+{
+  "checks": {
+    "stale_binary_original_error": true,
+    "isolated_bounded_partial": true,
+    "resume_progress": true,
+    "resumed_complete": true,
+    "all14_frames": true,
+    "original_refs_equal": true,
+    "same_packet_summaries": true
+  },
+  "all_pass": true,
+  "scanned_first_bytes": 67109075,
+  "phase": "isolated-root main-source target",
+  "note": "Bounded show context is only8MiB and truthfully remains unknown when SYN cannot be reached. C2 is a progressing partial query, not removal of scan budgets. Original reference query contained23 frames including9 beyond explicit end10351; saved failed whole-set assertion, corrected comparison filters the identical selected range."
+}

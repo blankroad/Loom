@@ -1,0 +1,23 @@
+{
+  "phase": "SIX_RECHECK",
+  "epoch": "1794778200",
+  "request_id": "w8",
+  "final_seq": "2437",
+  "viewer_rights": "watch",
+  "checks": {
+    "A_user_psu_off_row": true,
+    "A_user_effective_verified_off": true,
+    "A_wire_OUTP_OFF_then_readback_0": true,
+    "A_fixture_and_status_off": true,
+    "B_no_user_rows": true,
+    "B_no_write_on_wire": true,
+    "B_readback_stays_1": true,
+    "B_fixture_and_status_on": true,
+    "live_observer_has_final": true
+  },
+  "all_pass": true,
+  "original_assertion_failure_preserved": "../../psu/runtime/RC-41-watch-off.json",
+  "corrected_assertion_reason": "Final psu.write uses lines/readback rather than state. No write repeated.",
+  "hardware": "independent SCPI loopback fixtures only",
+  "scope": "one alias A; B stayed ON, no global fanout claim"
+}

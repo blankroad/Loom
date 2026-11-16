@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "four_pin_limit": true,
+    "same_retained_hash": true,
+    "evicted_but_pinned": true,
+    "unpin_four": true,
+    "cooldown": true,
+    "stale_unknown": true,
+    "recovered_normal": true,
+    "closed": true,
+    "ended_stale": true,
+    "all_rois_unknown_not_live": true,
+    "rate_bounded": true,
+    "stable_live15fps": true,
+    "no_pins_remaining": true
+  },
+  "all_pass": true,
+  "analysis_interval_seconds": 98.261043833,
+  "analysed_delta": 815,
+  "skipped_delta": 658,
+  "analysed_per_second": 8.294233077608425,
+  "note": "Includes explicit stall interval; source fps is verified in stable pre-stall 11-status, not immediate post-stall health window. Original overly strict post-stall fps assertion preserved in LIFECYCLE-COMPARE-first-assertion.json. No physical capture board. Replay cross-check and final native/Opus review remain pending."
+}

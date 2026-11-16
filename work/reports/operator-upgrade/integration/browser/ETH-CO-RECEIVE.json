@@ -1,0 +1,32 @@
+{
+  "phase": "FIRST3_CURRENT_BUILD_ONLY",
+  "nonce": "upqalive205045",
+  "request_id": "w32",
+  "pkt": {
+    "ref": "eth:upqa-eth-live@seq:9943",
+    "seq": "9943",
+    "epoch": "1794774986",
+    "host_recv_ns": 1794775846207040000,
+    "source_seq": "513",
+    "link": {
+      "confidence": "exact",
+      "domain": "eth",
+      "request_id": "w32",
+      "role": "tx"
+    },
+    "attributed_origin": "agent",
+    "origin": "device",
+    "bytes_equal": true,
+    "info": "40000 \u2192 65201 Len=24"
+  },
+  "ui_observed_wall_ms": 1794775847352,
+  "checks": {
+    "cli_all": true,
+    "ui_seq_equals_cli": true,
+    "ui_bytes_equal": true,
+    "ui_contains_nonce": true,
+    "viewers_visible": true
+  },
+  "all_pass": true,
+  "note": "Agent-owned raw frame on in-daemon simulator: correlation evidence, not ECU behaviour or physical NIC validation. First two sends were known-successful separate setup phases; final visible phase uses distinct nonce/key. UI own-ETH request-id attribute absent; RID is proven through CLI exact link to the same displayed seq/bytes."
+}

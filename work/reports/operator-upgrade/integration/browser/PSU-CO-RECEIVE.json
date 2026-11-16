@@ -1,0 +1,68 @@
+{
+  "ui_clock": "05:56:20.573",
+  "ui_values": [
+    "5.776 V",
+    "577.6 mA",
+    "3.336 W"
+  ],
+  "captured_ms": 1794776180664,
+  "matching_pubrecords": [
+    {
+      "channel": "upqa-psu-a",
+      "dir": "rx",
+      "domain": "psu",
+      "epoch": "1794774986",
+      "generation": 4,
+      "kind": "psu.meas",
+      "metrics": [
+        {
+          "name": "voltage",
+          "unit": "V",
+          "value": 5.7759
+        },
+        {
+          "name": "current",
+          "unit": "A",
+          "value": 0.57762
+        },
+        {
+          "name": "power",
+          "unit": "W",
+          "value": 3.336275358
+        }
+      ],
+      "origin": "device",
+      "payload": {
+        "age_ms": 0,
+        "backend": "scpi-tcp",
+        "ch": "upqa-psu-a",
+        "out": true,
+        "poll_n": "4233"
+      },
+      "producer_epoch": "1",
+      "producer_id": "psu.upqa-psu-a",
+      "purpose": "poll",
+      "schema_version": 1,
+      "seq": "14959",
+      "session_id": "s1794774986",
+      "source_seq": "5043",
+      "ts": {
+        "clock_id": "proc-61566",
+        "mono_ns": "1014958636875",
+        "source": "host_read_complete",
+        "wall_ns": "1794776180573578000"
+      }
+    }
+  ],
+  "matching_count": 1,
+  "fresh_clock_match": true,
+  "note": "UI numbers are formatted with engineering units and precision; public raw values remain in the matched record. Same wall-ms matches one live measurement, not only a historical query.",
+  "expected_ui_values": [
+    "5.776 V",
+    "577.6 mA",
+    "3.336 W"
+  ],
+  "formatted_values_match": true,
+  "ui_observation_upper_bound_ms": 90.422119140625,
+  "all_pass": true
+}

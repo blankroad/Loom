@@ -1,0 +1,6 @@
+{
+  "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tmp/loom-operator-root-check-610029e cargo clippy --workspace --all-targets --locked -- -D warnings",
+  "exit_code": 0,
+  "source_checkpoint": "SOURCE-CHECKPOINT-ISOLATED.json",
+  "note": "Main source in isolated target; no automatic retries or new product code."
+}

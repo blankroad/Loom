@@ -1,0 +1,42 @@
+{
+  "phase": "FIRST3_CURRENT_BUILD_ONLY",
+  "marker": "UPQA-FRESH-C4N8 0061",
+  "epoch": "1794774986",
+  "seq": 21323,
+  "ui": {
+    "capture_id": "lc-1a1e10534e9-5",
+    "start": "61001675",
+    "decoder": "uart-1",
+    "cells": [
+      "61,001,675\u201361,001,745",
+      "61.0017 s",
+      "70 \u00b5s",
+      "uart-1 RX D0",
+      "1"
+    ],
+    "observed_ms": 1794777050006
+  },
+  "cli_annotation": {
+    "capture_id": "lc-1a1e10534e9-5",
+    "class": null,
+    "decoder": "uart-1",
+    "end_sample": 61001745,
+    "role": "data",
+    "seq": 21323,
+    "start_sample": 61001675,
+    "t_end_ns": 61001745000,
+    "t_start_ns": 61001675000,
+    "text": "31",
+    "type": "annotation"
+  },
+  "checks": {
+    "same_capture": true,
+    "exact_samples": true,
+    "same_decoder": true,
+    "same_ascii_byte": true,
+    "wait_after_gate": true,
+    "observer_contains_wait_seq": true
+  },
+  "all_pass": true,
+  "note": "Panel selected and live before future frame chosen; UI uses own live mirror, not historical query. Generated digital source decoded by real sigrok, not physical probe. Live search index and keyboard visibility defects are separate OPEN corrections."
+}

@@ -1,0 +1,41 @@
+{
+  "checks": {
+    "config_survived": true,
+    "baseline_new_capture": true,
+    "normal_changed_normal_unknown": true,
+    "closed_eof": true,
+    "all_unknown_not_live": true,
+    "one_written_for_this_capture": true,
+    "no_partial": true,
+    "pins_zero": true
+  },
+  "all_pass": true,
+  "capture_id": "v2c2043e5215f",
+  "history": [
+    [
+      "unknown",
+      "not_live"
+    ],
+    [
+      "unknown",
+      "no_baseline"
+    ],
+    [
+      "normal",
+      null
+    ],
+    [
+      "changed",
+      null
+    ],
+    [
+      "normal",
+      null
+    ],
+    [
+      "unknown",
+      "not_live"
+    ]
+  ],
+  "note": "Initial closed snapshot raced ROI not_live publication; bounded explicit wait observes final unknown. First snapshot preserved. video read default includes both captures: assertion now filters exact capture id. Not a claim of atomic closed+ROI snapshot or native verification; final Opus review pending."
+}

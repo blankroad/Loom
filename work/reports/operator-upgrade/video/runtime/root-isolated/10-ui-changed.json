@@ -1,0 +1,42 @@
+[
+  {
+    "id": "video-status",
+    "state": "live",
+    "text": "● 수신 중vfc61c1d87e8d · epoch 1794782260690739001 · http-mjpeg http://127.0.0.1:56166/stream · 640×360@15↺ 같은 설정으로 다시 열기■ 캡처 닫기"
+  },
+  {
+    "id": "video-roi-row",
+    "state": "changed",
+    "text": "lamp 변화 평균 차 % 75.3 · 평균 밝기 223.9 진입 ≥ 20 · 해제 ≤ 8 기준 frame 30 ✕ 삭제"
+  },
+  {
+    "id": "video-roi-row",
+    "state": "normal",
+    "text": "ref 정상 평균 차 % 0.0 · 평균 밝기 128.0 진입 ≥ 20 · 해제 ≤ 8 기준 frame 30 ✕ 삭제"
+  },
+  {
+    "id": "video-roi-hist-row",
+    "state": "changed",
+    "text": "#4 lamp → 변화 · frame 50 · 07:37:44.237"
+  },
+  {
+    "id": "video-roi-hist-row",
+    "state": "normal",
+    "text": "#3 ref → 정상 · frame 38 · 07:37:43.443"
+  },
+  {
+    "id": "video-roi-hist-row",
+    "state": "normal",
+    "text": "#3 lamp → 정상 · frame 38 · 07:37:43.443"
+  },
+  {
+    "id": "video-roi-hist-row",
+    "state": "unknown",
+    "text": "#2 ref → 판정 불가 · 기준 없음 · frame 1 · 07:37:40.905"
+  },
+  {
+    "id": "video-roi-hist-row",
+    "state": "unknown",
+    "text": "#2 lamp → 판정 불가 · 기준 없음 · frame 1 · 07:37:40.905"
+  }
+]

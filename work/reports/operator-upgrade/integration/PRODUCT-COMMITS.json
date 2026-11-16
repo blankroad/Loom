@@ -1,0 +1,50 @@
+[
+  {
+    "scope": "format",
+    "sha": "1cbdf64770f18f523272751aed8ba4d9a8c650ab",
+    "files": 3,
+    "subject": "style(rust): format CLI and gateway code"
+  },
+  {
+    "scope": "eth",
+    "sha": "eb4d54495ba23d00fb99112df1a76fd1accfd5c4",
+    "files": 42,
+    "subject": "feat(eth): improve packet inspection and bounded history queries"
+  },
+  {
+    "scope": "logic",
+    "sha": "02314be684885605a06c114fd7671560eb899217",
+    "files": 30,
+    "subject": "feat(logic): add durable decoder archives and navigation"
+  },
+  {
+    "scope": "uds",
+    "sha": "cc53e8d2e89855fd858e18a443d20abd2cf65fba",
+    "files": 40,
+    "subject": "feat(uds): add diagnostic databases and session automation"
+  },
+  {
+    "scope": "psu",
+    "sha": "7a947fef47106a33bf72307e490ae12cc35345ab",
+    "files": 22,
+    "subject": "feat(psu): add SCPI history and verified output controls"
+  },
+  {
+    "scope": "can",
+    "sha": "c23ff09d215ceb52caedefdc591302d447450e2c",
+    "files": 45,
+    "subject": "feat(can): expand signal inspection and capture export"
+  },
+  {
+    "scope": "video",
+    "sha": "bf23147c1a2c376cc1c9a4a9762b7dcb00e1ba6b",
+    "files": 35,
+    "subject": "feat(video): add ROI inspection and retained evidence frames"
+  },
+  {
+    "scope": "uart",
+    "sha": "440aadcb1155bea83d459dd0cc2eca8f8fa550bf",
+    "files": 54,
+    "subject": "feat(uart): improve terminal controls and serial session recovery"
+  }
+]

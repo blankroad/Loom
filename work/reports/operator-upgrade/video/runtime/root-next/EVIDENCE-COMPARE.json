@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "five_roles": true,
+    "five_exact_ids": true,
+    "all_hashes": true,
+    "all_lengths": true,
+    "bytes_cap": true,
+    "complete_evidence": true,
+    "same_transition": true,
+    "same_baseline": true,
+    "same_trigger_sha": true,
+    "journal_one_changed": true,
+    "ui_same_transition": true,
+    "lamp_pixels": true,
+    "ref_normal": true,
+    "pins_released": true
+  },
+  "all_pass": true,
+  "journal_epoch": "1794781383",
+  "journal_seq": "568",
+  "ui_journal_seq_exposed": false,
+  "note": "UI exposes transition/frame/hash, not journal sequence. No claim of UI seq assertion; prior wait selector hit hidden inactive panel and timed out; visible DOM scoped by geometry passes."
+}

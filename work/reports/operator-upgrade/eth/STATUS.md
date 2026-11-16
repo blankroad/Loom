@@ -1,0 +1,52 @@
+# ETH status
+
+**FIRST3 RUNTIME FINAL; C1 APPLIED BY ROOT** (ETH-RT-01/02/03 open until revised-build GUI/marker recheck) — 2026-11-16 · was READY_TO_INTEGRATE 2026-11-15 · lead ETH Opus 5.5 · worktree `/Users/ctmctm/workspace/Loom/.worktrees/operator-eth` (610029e)
+
+- All 6 findings delivered (ETH-01…06) in batches B1, B2, B3a, B4a, B3b, B4b (Sonnet bodies, Opus contracts/tests/reviews) + B5 skill docs (Opus).
+- Final report: `/Users/ctmctm/workspace/Loom/work/reports/operator-upgrade/eth/READY.md` (files, module hash `5ed72bd8…b2ed`, exact gate results, risks, ROOT evidence asks).
+- Final gates: Rust 132/0 + clippy/fmt clean; UI ETH 103/103, whole UI 807/807, isolated tsc app/node 0, eslint 0.
+- No lease outstanding; worker `upgrade-eth-sonnet` idle. No git index changes. Waiting for ROOT integration / evidence; lead stays available for corrections.
+- Earlier incident (self-reported): one shared-cache tsc write at 21:44; all later checks isolated.
+- 2026-11-16: ROOT took the module-integration lease and is integrating the frozen owned source. ETH lead/worker make no source/test edits until a ROOT correction request. Worktree retained, uncommitted. Module-level pass ≠ release acceptance; ROOT still owes external fixture/native checks and combined tests (READY.md §evidence).
+- 2026-11-16 runtime QA on ROOT daemon 55517: `RUNTIME.md` / `RUNTIME-READY.json`.
+  - Pass: R1–R3 (R3 = stopped record 642 s old: default 0 rows `partial: default_lookback`, explicit start complete), UDP follow, Decode As, export, and the live co-receive final visible phase (ROOT, w32 / seq 9943).
+  - Fail: F1 tree filters, 2/250 (ETH-RT-02).
+  - Findings: ETH-RT-01 (skill replay timestamp wording) and ETH-RT-03 (own-ETH request id not projected in the UI; pre-existing).
+- 2026-11-16 C1 correction, authorized by ROOT:
+  - Opus scaffold, spec tests and skill text are done; the contract is FUNCTIONS.md §C1 (sha `2048b644…94f9`), go-ahead C1-GO.md (sha `f9c1962b…6053`).
+  - Sonnet `upgrade-eth-sonnet` holds the body lease on stream.rs, net.rs, handlers.rs and ethModel.ts.
+  - Baseline copies are in `c1/baseline/`. Incremental diff for ROOT after review.
+- 2026-11-16 C1 accepted (C1-REVIEW.md).
+  - Gates: Rust 143/0, clippy/fmt clean; ETH UI 106/106; tsc/eslint 0.
+  - Whole UI suite: 808 pass, 2 load timeouts in defaultLayout.test.tsx; that file passes alone.
+  - Patch: `c1/C1.patch` sha `db6f4405…4f98`, verified against main's FIRST3 files.
+  - The worker lease is released (worker idle). Waiting for ROOT rebuild and focused recheck.
+- 2026-11-16: ROOT test-resource amendment adopted (targeted Vitest `--maxWorkers=2`; full UI suite ROOT-only at final freeze). Added to C1-GO.md and FUNCTIONS.md, and the worker was told.
+- 2026-11-16: ROOT verified the C1 patch sha and applied it to main.
+  - The FIRST3 runtime report is final and frozen: RUNTIME.md §FINAL, `runtime/EVIDENCE.sha256`.
+  - Findings stay OPEN until ROOT's revised-build checks.
+  - The live channels are kept until ROOT's cleanup request.
+  - Worktree and role are kept, for actual revised-source corrections only.
+- 2026-11-16 cleanup for the revised-source recheck: ETH I/O paused.
+  - `eth capture stop --ch upqa-eth-live` → `stopped` (exit 0, `runtime/logs/90/91`, hashes appended to EVIDENCE.sha256). `upqa-eth-old` was already `replay_done` and was left as is.
+  - No ETH observers or ETH processes of mine are running. Daemon-owned eth worker processes 61449/68773 (children of 55517) were not touched; they end with ROOT's daemon stop.
+  - Pcap fixture and evidence kept. No new markers. Waiting for ROOT metadata.
+- 2026-11-16: SIX_RECHECK daemon 56402/50689. `C1-RUNTIME-PLAN.md` is staged and **inert**: no Loom calls, captures or markers until ROOT signals.
+  - Binary hashes verified; main's C1 files are identical to the review.
+  - New mid-stream fixture `runtime/fixture/upqa-eth-mid.pcapng` (sha `478eadd8…1ee1`).
+- 2026-11-16 C1 runtime recheck on SIX daemon 56402 (RUNTIME-C1.md): steps 0–3 and 5b pass.
+  - F1 tree filters: 250/250 on `upqa-eth-c1` and 357/357 on `upqa-eth-c1mid`.
+  - Step 4 and part of step 5 fail: show context is never reached (`window_from seq:0` → core `E_SCAN_LIMIT` → fallback) → new finding **ETH-RT-04**.
+  - Refs for the GUI: row 10 = `eth:upqa-eth-c1@seq:10347`, mid row 3 = `eth:upqa-eth-c1mid@seq:10372`.
+- 2026-11-16 C2 (ETH-RT-04), ROOT-authorized, ETH gateway only:
+  - The Opus scaffold and tests are done; contract FUNCTIONS.md §C2 (sha `fcd3c804…9044`), go-ahead C2-GO.md (sha `dac2e5b7…003e`).
+  - Sonnet holds the lease on common.rs and handlers.rs.
+- 2026-11-16 C2 accepted (C2-REVIEW.md): Rust 151/0, clippy/fmt clean; `c2/C2.patch` sha `ab07ae3e…4674`, verified against main. The worker is idle without a lease.
+- 2026-11-16: ROOT imported C2 (sha `ab07ae3e…4674`).
+- 2026-11-16 C3 (GUI: own chip LIVE on a finished replay; ROOT-granted ethModel/ethPanel functions):
+  - Confirmed: daemon events are starting → live → replay_done (gen 1), and the scaffold test reproduces "expected 'live' to be 'replay_done'".
+  - Contract FUNCTIONS.md §C3 (sha `bfc9a8da…be32`), C3-GO.md (sha `1cbe114f…e97e`). Sonnet holds the lease on the bodies.
+- 2026-11-16 C3 accepted (C3-REVIEW.md): ETH UI 110/110, tsc/eslint 0; `c3/C3.patch` sha `e2d42dfc…8361`, verified against main. The worker is idle without a lease.
+- 2026-11-16: ROOT imported C3 (sha `e2d42dfc…`) and froze C3 source.
+  - The import deviation is recorded as a violation. Standing rule added to FUNCTIONS.md: missing import → lease return → Opus static edit → re-freeze.
+  - ETH I/O is paused until the next stable metadata from ROOT; then the C2/C3 runtime recheck and the live request-id check.

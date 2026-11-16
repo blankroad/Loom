@@ -1,0 +1,30 @@
+{
+  "phase": "SIX_RECHECK",
+  "capture_id": "lc-1a1e12380c6-1",
+  "archive_total": 27470,
+  "window1": [
+    1,
+    20000
+  ],
+  "window2": [
+    20001,
+    27470
+  ],
+  "search_hits": [
+    96,
+    35
+  ],
+  "last_next_disabled": true,
+  "invalid_seek": 27471,
+  "invalid_seek_rejected": true,
+  "valid_seek": 5,
+  "valid_seek_accepted": true,
+  "gui_full_export_rows": 27470,
+  "evidence": [
+    "logic-b6-window-first.txt",
+    "logic-b6-window-last.json",
+    "logic-b6-seek.json",
+    "logic-b6-gui-export.json"
+  ],
+  "limit": "Old retained archives are CLI readable but not in GUI capture selector after daemon restart. Fresh dense capture used for actual B6 correction. No archive-picker implementation claimed."
+}

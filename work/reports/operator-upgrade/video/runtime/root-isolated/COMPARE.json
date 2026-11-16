@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "status_live": true,
+    "ui_same_transition_frame": true,
+    "hashes_exact": true,
+    "sizes_exact": true,
+    "roles": true,
+    "same_trigger": true,
+    "complete": true,
+    "closed_success": true
+  },
+  "all_pass": true,
+  "capture": "vfc61c1d87e8d",
+  "capture_epoch": "1794782260690739001",
+  "transition": 4,
+  "frame": 50,
+  "sha256": "132adb8f4f891f7b062c7bbc6c3c1a3073e5a3bcd6406066d95dd41548542bfd",
+  "open_findings": [
+    "ROI stroke effectively invisible"
+  ],
+  "note": "Fresh main-only Cargo target binary. Opening-state issue not reproduced; no new source fix claimed. Wait returned current judgment snapshot; exact transition identity comes from canonical history in the same response. Initial harness KeyError assumed transition shape and caused no device action. Physical capture board/TCC/native and final Opus review pending."
+}

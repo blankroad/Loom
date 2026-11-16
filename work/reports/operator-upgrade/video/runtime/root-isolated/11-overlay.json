@@ -1,0 +1,26 @@
+[
+  {
+    "box": {
+      "x": 768,
+      "y": 170,
+      "width": 417,
+      "height": 234,
+      "top": 170,
+      "right": 1185,
+      "bottom": 404,
+      "left": 768
+    },
+    "rects": [
+      {
+        "state": "changed",
+        "stroke": "0.008px",
+        "vectorEffect": "non-scaling-stroke"
+      },
+      {
+        "state": "normal",
+        "stroke": "0.004px",
+        "vectorEffect": "non-scaling-stroke"
+      }
+    ]
+  }
+]
