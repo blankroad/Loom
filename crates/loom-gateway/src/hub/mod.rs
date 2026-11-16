@@ -1410,14 +1410,37 @@ mod channel_state_tests {
     #[test]
     fn recording_lifecycle_never_replaces_capture_connectivity() {
         let mut c = CoreState::default();
-        c.apply(&rec(1, "video.capture_state", "v1", json!({"capture_id": "v1", "state": "live"})));
-        c.apply(&rec(2, "video.record_state", "v1", json!({"capture_id": "v1", "state": "failed"})));
+        c.apply(&rec(
+            1,
+            "video.capture_state",
+            "v1",
+            json!({"capture_id": "v1", "state": "live"}),
+        ));
+        c.apply(&rec(
+            2,
+            "video.record_state",
+            "v1",
+            json!({"capture_id": "v1", "state": "failed"}),
+        ));
         let list = c.channel_list();
         assert_eq!(list.len(), 1, "{list:?}");
         assert_eq!(list[0]["state"], "live");
         assert_eq!(list[0]["kind"], "video.capture_state");
-        c.apply(&rec(3, "video.capture_state", "v1", json!({"capture_id": "v1", "state": "closed"})));
-        c.apply(&rec(4, "video.record_state", "v1", json!({"capture_id": "v1", "state": "finalized"})));
-        assert!(c.channel_list().is_empty(), "a closed capture is not resurrected by a late record row");
+        c.apply(&rec(
+            3,
+            "video.capture_state",
+            "v1",
+            json!({"capture_id": "v1", "state": "closed"}),
+        ));
+        c.apply(&rec(
+            4,
+            "video.record_state",
+            "v1",
+            json!({"capture_id": "v1", "state": "finalized"}),
+        ));
+        assert!(
+            c.channel_list().is_empty(),
+            "a closed capture is not resurrected by a late record row"
+        );
     }
 }

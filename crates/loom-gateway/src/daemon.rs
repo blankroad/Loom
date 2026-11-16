@@ -3082,7 +3082,10 @@ mod audit_secret_tests {
     #[test]
     fn audit_file_has_no_secret_bytes_and_chain_verifies() {
         let dir = tempfile::tempdir().unwrap();
-        let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         let audit = Audit::start(dir.path().to_path_buf());
         let args = secret_send();
         rt.block_on(audit.append(
@@ -3092,12 +3095,23 @@ mod audit_secret_tests {
         ))
         .unwrap();
         drop(audit);
-        let path = std::fs::read_dir(dir.path()).unwrap().next().unwrap().unwrap().path();
+        let path = std::fs::read_dir(dir.path())
+            .unwrap()
+            .next()
+            .unwrap()
+            .unwrap()
+            .path();
         let text = std::fs::read_to_string(&path).unwrap();
-        assert!(text.contains("write.intent") && text.contains("\"len\":13"), "{text}");
+        assert!(
+            text.contains("write.intent") && text.contains("\"len\":13"),
+            "{text}"
+        );
         let lower = text.to_ascii_lowercase();
         assert!(!lower.contains(&SECRET_HEX[..24]), "hex leaked: {text}");
-        assert!(!text.contains("DummySecret1") && !text.contains("RHVtbXlTZWNyZXQx"), "{text}");
+        assert!(
+            !text.contains("DummySecret1") && !text.contains("RHVtbXlTZWNyZXQx"),
+            "{text}"
+        );
         crate::audit::verify_file(&path, "").expect("chain");
     }
 }
@@ -3146,7 +3160,9 @@ fn outputs_held_from(channels: &[Value], holding: &[&str]) -> Vec<loom_proto::co
                 if let Some(i) = st["set_i"].as_f64() {
                     d.push_str(&format!(" {i} A"));
                 }
-                d.push_str(&format!(" (last reported, seq {seq}; not re-measured; STOP does not switch it off)"));
+                d.push_str(&format!(
+                    " (last reported, seq {seq}; not re-measured; STOP does not switch it off)"
+                ));
                 d.push_str(stale);
                 d
             }
@@ -3184,7 +3200,10 @@ mod outputs_held_tests {
         let held = outputs_held_from(&ch, &["psu"]);
         let names: Vec<&str> = held.iter().map(|h| h.channel.as_str()).collect();
         assert_eq!(names, ["bench", "nostate", "gone"]);
-        assert!(held[0].description.contains("out ON 13.5 V 1 A") && held[0].description.contains("seq 41"), "{held:?}");
+        assert!(
+            held[0].description.contains("out ON 13.5 V 1 A") && held[0].description.contains("seq 41"),
+            "{held:?}"
+        );
         assert!(held[0].description.contains("not re-measured"));
         assert!(held[1].description.contains("not reported (unknown"), "{held:?}");
         assert!(held[2].description.contains("stale"), "{held:?}");
@@ -3201,13 +3220,24 @@ mod outputs_held_tests {
                              "connected": connected, "link": if connected { "up" } else { "lost" }, "lost_why": null}})
         };
         let held = outputs_held_from(
-            &[scpi("unk", false, false, true), scpi("unk-gone", false, false, false), scpi("off", false, true, true), scpi("on", true, true, true)],
+            &[
+                scpi("unk", false, false, true),
+                scpi("unk-gone", false, false, false),
+                scpi("off", false, true, true),
+                scpi("on", true, true, true),
+            ],
             &["psu"],
         );
         let names: Vec<&str> = held.iter().map(|h| h.channel.as_str()).collect();
         assert_eq!(names, ["unk", "unk-gone", "on"], "{held:?}");
-        assert!(held[0].description.contains("not reported (unknown") && !held[0].description.contains("stale"), "{held:?}");
-        assert!(held[1].description.contains("not reported (unknown") && held[1].description.contains("stale"), "{held:?}");
+        assert!(
+            held[0].description.contains("not reported (unknown") && !held[0].description.contains("stale"),
+            "{held:?}"
+        );
+        assert!(
+            held[1].description.contains("not reported (unknown") && held[1].description.contains("stale"),
+            "{held:?}"
+        );
         assert!(held[2].description.contains("out ON 12 V 1 A"), "{held:?}");
     }
 }

@@ -328,9 +328,7 @@ fn events_params(m: &ArgMatches, since: Option<String>) -> Value {
 }
 
 fn seq_field(v: &Value) -> Option<u64> {
-    v.as_str()
-        .and_then(|s| s.parse().ok())
-        .or_else(|| v.as_u64())
+    v.as_str().and_then(|s| s.parse().ok()).or_else(|| v.as_u64())
 }
 
 /// Inclusive start (`seq:N` reads seq ≥ N) of the next `--follow` poll, or `None` to repeat the
@@ -984,7 +982,10 @@ mod argument_tests {
             30000,
         ));
         #[cfg(feature = "video")]
-        cases.push((vec!["loom", "video", "wait", "--frames", "1", "--timeout", "3s"], 30000));
+        cases.push((
+            vec!["loom", "video", "wait", "--frames", "1", "--timeout", "3s"],
+            30000,
+        ));
         for (args, millis) in cases {
             let m = command(&ds).try_get_matches_from(args.clone()).unwrap();
             assert_eq!(
@@ -1052,7 +1053,10 @@ mod follow_tests {
     /// Before the fix an empty first page kept `now`, so every later event was skipped.
     #[test]
     fn empty_now_follow_sees_later_events_once_across_capped_pages() {
-        let mut ring = Ring { hw: 6, events: (1..=6).map(|s| (s, "uds.tx")).collect() };
+        let mut ring = Ring {
+            hw: 6,
+            events: (1..=6).map(|s| (s, "uds.tx")).collect(),
+        };
         let mut since = "now".to_owned();
         let mut seen = Vec::new();
         let poll = |ring: &Ring, since: &mut String, seen: &mut Vec<u64>| {
@@ -1064,7 +1068,10 @@ mod follow_tests {
         };
         poll(&ring, &mut since, &mut seen);
         assert!(seen.is_empty());
-        assert_eq!(since, "e7:seq:7", "empty page resumes after the scanned high-water");
+        assert_eq!(
+            since, "e7:seq:7",
+            "empty page resumes after the scanned high-water"
+        );
         // Filtered-out traffic moves the high-water but must not hide matching events.
         ring.publish("uds.state");
         poll(&ring, &mut since, &mut seen);
