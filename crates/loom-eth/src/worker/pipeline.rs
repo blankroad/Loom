@@ -419,7 +419,15 @@ pub(crate) fn run(
                     } else {
                         bounded_text(&decoded.summary.info, 512)
                     },
-                    stream: scalar(&decoded, "tcp.stream").and_then(|v| u32::try_from(v).ok()),
+                    stream: match (scalar(&decoded, "tcp.stream"), scalar(&decoded, "udp.stream")) {
+                        (Some(v), _) | (None, Some(v)) => u32::try_from(v).ok(),
+                        (None, None) => None,
+                    },
+                    stream_proto: match (scalar(&decoded, "tcp.stream"), scalar(&decoded, "udp.stream")) {
+                        (Some(v), _) => u32::try_from(v).ok().map(|_| "tcp".to_owned()),
+                        (None, Some(v)) => u32::try_from(v).ok().map(|_| "udp".to_owned()),
+                        (None, None) => None,
+                    },
                     layers: layers(&decoded, &frame),
                     link: replay_meta
                         .and_then(|m| m.req.as_ref())

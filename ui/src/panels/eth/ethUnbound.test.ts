@@ -41,6 +41,10 @@ describe('eth.packets unbound (props {})', () => {
     for (const t of ['eth-toolbar', 'eth-status', 'eth-filter-host', 'eth-panes', 'eth-statusbar', 'eth-iface-config']) expect(q(`[data-testid="${t}"]`), t).not.toBeNull();
     expect(h.host.querySelector('.eth-list')).not.toBeNull();
     expect(h.host.querySelector('.eth-sock')).not.toBeNull();
+    // B2 / ETH-05: channel-dependent toolbar duplicates are hidden while unbound (the card's [연결…] and + tile stay)
+    for (const c of ['add-channel', 'start-all', 'stop-all']) expect(cmd(c).hidden, c).toBe(true);
+    expect(cmd('iface-connect').hidden).toBe(false);
+    expect(cmd('add-channel-tile').hidden).toBe(false);
     expect(q('[data-testid="eth-status"]').dataset.state).toBe('UNBOUND');
     expect(q('[data-testid="eth-status"] .alias').textContent).toBe('채널 미선택');
     // no server subscription at all, and lan1 never appears anywhere
@@ -104,17 +108,33 @@ describe('eth.packets unbound (props {})', () => {
     expect(h.net.subs).toHaveLength(0); // this panel stays unbound; the bound channel is its own panel
   });
 
-  it('refuses an alias that already exists in the daemon (never restarts another channel)', async () => {
+  it('a saved config whose alias already exists in the daemon offers 기존 채널 열기 (no RPC); the dialog still refuses to restart it', async () => {
     localStorage.setItem(IFACE_CFG_KEY, JSON.stringify([CFG('lan1', 'en5')]));
     h = mountPanel('eth.packets', {});
     h.net.responders.set('eth.capture.status', () => ({ channels: [{ ch: 'lan1', state: 'stopped' }] }));
+    h.net.emitControl(ev({ kind: 'eth.capture_state', domain: 'eth', channel: 'lan1', payload: { ch: 'lan1', state: 'stopped' } }));
     await flush();
+    // B2 / ETH-05: same alias → open the existing channel's panel instead of a [연결…] that would be refused
+    expect(cmd('iface-connect').textContent).toContain('기존 채널 열기');
+    expect(cmd('iface-connect').dataset.mode).toBe('open');
     cmd('iface-connect').click();
+    await flush();
+    expect(h.host.querySelector('[data-testid="eth-connect-dialog"]')).toBeNull();
+    expect(writes()).toEqual([]);
+    expect(h.toasts.at(-1)).toBe('채널 lan1 패널을 열었습니다 — 캡처는 시작하지 않았습니다');
+    // [구성 편집…] → [연결 (캡처 시작)] is still guarded against restarting an existing channel
+    cmd('iface-edit').click();
     await flush();
     q<HTMLButtonElement>('[data-testid="eth-add-channel-start"]').click();
     await flush();
     expect(h.net.calls.some((c) => c.method === 'eth.capture.start')).toBe(false);
     expect(q('[data-testid="eth-capture-msg"]').textContent).toContain('이미 있는 채널');
+    // a different (new) alias keeps the explicit [연결…]
+    q<HTMLSelectElement>('[data-testid="eth-iface-config"]').value = '\u0000new';
+    q<HTMLSelectElement>('[data-testid="eth-iface-config"]').dispatchEvent(new Event('change'));
+    h.frame();
+    expect(cmd('iface-connect').textContent).toContain('연결…');
+    expect(cmd('iface-connect').dataset.mode).toBe('connect');
   });
 
   it('saved configurations: choose / edit / save / delete are local only (no RPC)', async () => {

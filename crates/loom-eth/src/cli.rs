@@ -47,6 +47,42 @@ pub fn parse_duration(s: &str) -> Result<Duration, String> {
     Ok(d)
 }
 
+/// (operator-upgrade B3b, ETH-06) `tcp|udp:PORT=doip|someip` → `{"transport","port","proto"}`
+/// (FUNCTIONS.md F5.13).
+pub fn parse_decode_as(s: &str) -> Result<Value, String> {
+    let bad = || format!("bad --decode-as {s:?}: expected tcp|udp:PORT=doip|someip (PORT 1..65535)");
+    let (t, rest) = s.split_once(':').ok_or_else(bad)?;
+    let (port, proto) = rest.split_once('=').ok_or_else(bad)?;
+    if !matches!(t, "tcp" | "udp") || !matches!(proto, "doip" | "someip") {
+        return Err(bad());
+    }
+    if port.is_empty() || port.len() > 5 || !port.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(bad());
+    }
+    let port: u32 = port.parse().map_err(|_| bad())?;
+    if !(1..=65535).contains(&port) {
+        return Err(bad());
+    }
+    Ok(json!({"transport": t, "port": port, "proto": proto}))
+}
+
+/// (B3b) `--decode-as` values as the `decode_as` request array; `null` when absent (FUNCTIONS.md F5.13).
+fn decode_as(m: &ArgMatches) -> Value {
+    match m.try_get_many::<Value>("decode-as") {
+        Ok(Some(v)) => Value::Array(v.cloned().collect()),
+        _ => Value::Null,
+    }
+}
+
+fn decode_as_arg() -> Arg {
+    Arg::new("decode-as")
+        .long("decode-as")
+        .value_name("tcp|udp:PORT=doip|someip")
+        .action(ArgAction::Append)
+        .value_parser(parse_decode_as)
+        .help("decode a non-standard port as DoIP/SOME-IP for this read (repeatable, ≤ 8)")
+}
+
 /// `N` or `N..M` or `N..` → (min, max).
 pub fn parse_count(s: &str) -> Result<(u64, Option<u64>), String> {
     let bad = || format!("bad count {s:?} (use N, N..M or N..)");
@@ -198,6 +234,7 @@ impl DomainCli for EthCli {
             )
             .subcommand(
                 Command::new("trace")
+                    .arg(decode_as_arg())
                     .about("Packet list: the latest --max rows in [--since, --until]")
                     .arg(Arg::new("chan").value_name("CH"))
                     .arg(ch_arg())
@@ -227,6 +264,7 @@ impl DomainCli for EthCli {
             .subcommand(
                 Command::new("last")
                     .about("Latest packets")
+                    .arg(decode_as_arg())
                     .arg(ch_arg())
                     .arg(filter_arg())
                     .arg(Arg::new("n").short('n').value_parser(rows).default_value("20")),
@@ -234,6 +272,7 @@ impl DomainCli for EthCli {
             .subcommand(
                 Command::new("show")
                     .about("Layer tree (+ hex) of one packet")
+                    .arg(decode_as_arg())
                     .arg(Arg::new("ref").required(true).value_name("REF"))
                     .arg(Arg::new("hex").long("hex").action(ArgAction::SetTrue)),
             )
@@ -261,6 +300,7 @@ impl DomainCli for EthCli {
             .subcommand(
                 Command::new("stats")
                     .about("Statistics over a range")
+                    .arg(decode_as_arg())
                     .arg(ch_arg())
                     .arg(
                         Arg::new("by")
@@ -313,6 +353,7 @@ impl DomainCli for EthCli {
             .subcommand(
                 Command::new("export")
                     .about("Export packets to a file")
+                    .arg(decode_as_arg())
                     .arg(Arg::new("format").required(true).value_parser(["pcapng"]))
                     .arg(
                         Arg::new("out")
@@ -354,7 +395,8 @@ impl DomainCli for EthCli {
                     "eth.query",
                     json!({"ch": ch, "range": range(s), "filter": opt_str(s, "filter"),
                            "max": s.get_one::<u32>("max").copied().unwrap_or(QUERY_DEFAULT_ROWS),
-                           "detail": s.get_flag("detail"), "wait_ms": wait.map(ms)}),
+                           "detail": s.get_flag("detail"), "wait_ms": wait.map(ms),
+                           "decode_as": decode_as(s)}),
                 );
                 call.wait = wait.map(|d| d + Duration::from_secs(2));
                 Ok(call)
@@ -362,7 +404,8 @@ impl DomainCli for EthCli {
             Some(("last", s)) => Ok(RpcCall::new(
                 "eth.query",
                 json!({"ch": opt_str(s, "ch"), "range": {"from": null, "to": null}, "filter": opt_str(s, "filter"),
-                       "max": s.get_one::<u32>("n").copied().unwrap_or(20), "detail": false}),
+                       "max": s.get_one::<u32>("n").copied().unwrap_or(20), "detail": false,
+                       "decode_as": decode_as(s)}),
             )),
             Some(("show", s)) => {
                 let r = need(s, "ref")?;
@@ -372,7 +415,7 @@ impl DomainCli for EthCli {
                 }
                 Ok(RpcCall::new(
                     "eth.show",
-                    json!({"ref": r, "hex": s.get_flag("hex")}),
+                    json!({"ref": r, "hex": s.get_flag("hex"), "decode_as": decode_as(s)}),
                 ))
             }
             Some(("wait-for", s)) => {
@@ -403,7 +446,7 @@ impl DomainCli for EthCli {
             Some(("stats", s)) => Ok(RpcCall::new(
                 "eth.stats",
                 json!({"ch": opt_str(s, "ch"), "by": opt_str(s, "by").unwrap_or_else(|| "proto".into()),
-                       "filter": opt_str(s, "filter"), "range": range(s)}),
+                       "filter": opt_str(s, "filter"), "range": range(s), "decode_as": decode_as(s)}),
             )),
             Some(("follow", s)) => Ok(RpcCall::new(
                 "eth.follow",
@@ -414,7 +457,7 @@ impl DomainCli for EthCli {
             Some(("export", s)) => Ok(RpcCall::new(
                 "eth.export",
                 json!({"ch": opt_str(s, "ch"), "format": need(s, "format")?, "path": need(s, "out")?,
-                       "filter": opt_str(s, "filter"), "range": range(s)}),
+                       "filter": opt_str(s, "filter"), "range": range(s), "decode_as": decode_as(s)}),
             )),
             Some(("filter", f)) => match f.subcommand() {
                 Some(("check", s)) => Ok(RpcCall::new(
@@ -648,7 +691,7 @@ fn render_data(call: &RpcCall, d: &Value, out: &mut dyn io::Write) -> io::Result
         ),
         "eth.export" => writeln!(
             out,
-            "wrote {} packets ({} B) to {}{}",
+            "wrote {} packets ({} B) to {}{}{}",
             s(&d["packets"]),
             s(&d["bytes"]),
             s(&d["path"]),
@@ -656,7 +699,10 @@ fn render_data(call: &RpcCall, d: &Value, out: &mut dyn io::Write) -> io::Result
                 " · truncated"
             } else {
                 ""
-            }
+            },
+            completeness_note(d)
+                .map(|n| format!(" · {n}"))
+                .unwrap_or_default()
         ),
         "eth.filter.check" => {
             if d["ok"] == true {
@@ -723,6 +769,24 @@ fn gaps_note(d: &Value) -> String {
 }
 
 /// tshark-like packet list with the standard trailer.
+/// (operator-upgrade B3a, ETH-01) Trailer note from the B1 honesty fields: `Some("complete")`,
+/// `Some("partial: r1,r2")`, or `None` for an older daemon without `partial_reasons` (FUNCTIONS.md F3.8).
+fn completeness_note(d: &Value) -> Option<String> {
+    let reasons = d["partial_reasons"].as_array()?;
+    if reasons.is_empty() {
+        return Some(
+            if d["complete"] == true {
+                "complete"
+            } else {
+                "partial: unreported"
+            }
+            .to_owned(),
+        );
+    }
+    let names: Vec<&str> = reasons.iter().filter_map(Value::as_str).collect();
+    Some(format!("partial: {}", names.join(",")))
+}
+
 fn render_rows(d: &Value, out: &mut dyn io::Write) -> io::Result<()> {
     let rows = d["rows"].as_array().cloned().unwrap_or_default();
     writeln!(
@@ -778,6 +842,12 @@ fn render_rows(d: &Value, out: &mut dyn io::Write) -> io::Result<()> {
     }
     if let Some(n) = d["next_cursor"].as_str() {
         parts.push(format!("next: --since {n}"));
+    }
+    if let Some(n) = completeness_note(d) {
+        parts.push(n);
+    }
+    if let Some(c) = d["resume_cursor"].as_str() {
+        parts.push(format!("resume: --since {c}"));
     }
     writeln!(out, "({})", parts.join(" · "))
 }

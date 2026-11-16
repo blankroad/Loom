@@ -191,6 +191,8 @@ pub static FIELDS: &[FieldDef] = &[
     ),
     d("udp.length", U16, Dec, "Length"),
     d("udp.checksum", U16, Hex, "Checksum"),
+    // operator-upgrade B3a (ETH-03): UDP conversation index, Wireshark `udp.stream` (separate from tcp.stream)
+    d("udp.stream", U32, Dec, "Stream index"),
     p("tcp", "TCP"),
     d("tcp.srcport", U16, Dec, "Source port"),
     d("tcp.dstport", U16, Dec, "Destination port"),

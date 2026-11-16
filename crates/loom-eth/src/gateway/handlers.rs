@@ -5,7 +5,9 @@ use std::collections::{BTreeMap, VecDeque};
 use std::time::{Duration, Instant};
 
 use loom_domain_api::{BoxFuture, CallCtx, DomainError, Handler};
-use loom_eth_decode::{Decoded, FieldValue, StreamTable, field_def};
+use loom_eth_decode::{
+    Base, DecodeAs, Decoded, Field, FieldType, FieldValue, Layer, StreamTable, field_def, fmt_mac,
+};
 use loom_eth_filter::Filter;
 use loom_proto::cursor::{Cursor, TimeUnit};
 use loom_proto::error::ErrorCode;
@@ -33,6 +35,18 @@ pub const STATS_TOP: usize = 20;
 pub const STATS_MAX_KEYS: usize = 4096;
 /// Nodes in an `eth.show` tree.
 pub const SHOW_MAX_NODES: usize = 2048;
+/// (C1, ETH-RT-02) `eth.show` of a TCP packet re-decodes the channel from this many journal seqs
+/// before the packet, so relative TCP numbers use the same stream context as a list read.
+pub const SHOW_CONTEXT_SEQS: u64 = 100_000;
+/// (C1) Byte budget of that context scan; when it stops before the packet, the context is unknown.
+pub const SHOW_CONTEXT_BYTES: u64 = 8 * 1024 * 1024;
+/// (C1) Shown instead of a relative TCP number whose SYN was not inside the show window.
+pub const TCP_REL_UNKNOWN: &str = "unknown (stream SYN not in the show window)";
+/// (C1) Warning code added by [`mark_tcp_rel_unknown`].
+pub const WARN_TCP_REL_UNKNOWN: &str = "tcp_relative_unknown";
+/// (C1) Detail text of that warning.
+pub const WARN_TCP_REL_UNKNOWN_DETAIL: &str =
+    "relative tcp.seq/tcp.ack need the stream's SYN inside the show window; use tcp.seq_raw / tcp.ack_raw";
 /// Packets written by one export.
 pub const EXPORT_MAX_PACKETS: usize = 100_000;
 /// Bytes written by one export.
@@ -48,25 +62,42 @@ fn compile(filter: Option<&str>) -> Result<Option<Filter>, DomainError> {
     }
 }
 
-/// Packet passes the optional display filter (decodes only when a filter is given).
+/// Packet passes the optional display filter (decodes only when a filter is given, or always when
+/// the request has Decode As rules — B3b).
 struct Matcher {
     filter: Option<Filter>,
     streams: StreamTable,
     decoded: usize,
+    /// (B3b) the request has Decode As rules: every packet is decoded (rows/keys may be re-summarised).
+    redecode: bool,
 }
 
 impl Matcher {
-    fn new(filter: Option<Filter>) -> Matcher {
+    /// (B3b) Matcher decoding with `rules` (FUNCTIONS.md F5.10).
+    fn with_decode_as(filter: Option<Filter>, rules: DecodeAs) -> Matcher {
         Matcher {
             filter,
-            streams: StreamTable::new(),
+            redecode: !rules.is_empty(),
+            streams: StreamTable::with_decode_as(rules),
             decoded: 0,
         }
     }
-    fn matches(&mut self, rec: &PublishedRecord) -> bool {
-        let Some(f) = &self.filter else { return true };
+    /// (B3b) `(passes, decoded)`: decodes when a filter is set or `redecode`; counts toward
+    /// [`MAX_DECODE_PER_REQUEST`] like `matches` (FUNCTIONS.md F5.10).
+    fn check(&mut self, rec: &PublishedRecord) -> (bool, Option<Decoded>) {
+        if self.filter.is_none() && !self.redecode {
+            return (true, None);
+        }
         self.decoded += 1;
-        decode_record(rec, &mut self.streams).is_some_and(|d| f.matches(&d))
+        let d = decode_record(rec, &mut self.streams);
+        let pass = match &self.filter {
+            None => true,
+            Some(f) => d.as_ref().is_some_and(|d| f.matches(d)),
+        };
+        (pass, d)
+    }
+    fn matches(&mut self, rec: &PublishedRecord) -> bool {
+        self.check(rec).0
     }
     fn exhausted(&self) -> bool {
         self.decoded >= MAX_DECODE_PER_REQUEST
@@ -110,7 +141,9 @@ impl Handler for Status {
                 .0
                 .all()
                 .into_iter()
-                .map(|(ch, i)| json!({"ch": ch, "state": i.state, "backend": i.backend, "iface": i.iface, "generation": i.generation}))
+                .map(|(ch, i)| json!({"ch": ch, "state": i.state, "backend": i.backend, "iface": i.iface, "generation": i.generation,
+                    "start_cursor": i.start_at.map(|(e, s)| Cursor::Seq { epoch: Some(e), seq: s }.to_string()),
+                    "start_seq": i.start_at.map(|(_, s)| s.to_string())}))
                 .collect();
             Ok(json!({"channels": chans}))
         })
@@ -216,16 +249,15 @@ impl Handler for Query {
                 .clamp(1, CONTRACT_MAX_ROWS) as usize;
             let detail = params.get("detail").and_then(Value::as_bool).unwrap_or(false);
             let filter = compile(str_param(&params, "filter"))?;
-            let range = params.get("range").cloned().unwrap_or(Value::Null);
-            let from = cursor_param(range.get("from"))?;
-            let to = cursor_param(range.get("to"))?;
+            let scope = range_scope(&params)?;
+            let decode_as = decode_as_param(&params)?;
             let wait = params
                 .get("wait_ms")
                 .and_then(Value::as_u64)
                 .map(|ms| Duration::from_millis(ms).min(FOLLOW_WAIT_MAX));
             let deadline = wait.map(|w| (Instant::now() + w).min(ctx.deadline()));
             loop {
-                let r = query_once(ctx, &ch, from.clone(), to.clone(), filter.clone(), max, detail).await?;
+                let r = query_once(ctx, &ch, &scope, filter.clone(), &decode_as, max, detail).await?;
                 let empty = r["rows"].as_array().is_none_or(Vec::is_empty);
                 match deadline {
                     Some(dl) if empty && Instant::now() + WAIT_POLL < dl => Delay::new(WAIT_POLL).await,
@@ -239,13 +271,13 @@ impl Handler for Query {
 async fn query_once(
     ctx: &CallCtx,
     ch: &str,
-    from: Option<Cursor>,
-    to: Option<Cursor>,
+    scope: &ScanScope,
     filter: Option<Filter>,
+    decode_as: &DecodeAs,
     max: usize,
     detail: bool,
 ) -> Result<Value, DomainError> {
-    let mut m = Matcher::new(filter);
+    let mut m = Matcher::with_decode_as(filter, decode_as.clone());
     let mut rows: VecDeque<Value> = VecDeque::new();
     let mut matched = 0usize;
     let mut last_seq = None;
@@ -253,15 +285,16 @@ async fn query_once(
     let sum = scan_packets(
         ctx,
         ch,
-        from.unwrap_or_else(lookback),
-        to,
+        scope.from.clone(),
+        scope.to.clone(),
         SCAN_BUDGET_BYTES,
         &mut |rec| {
             if m.exhausted() {
                 stopped_early = true;
                 return false;
             }
-            if !m.matches(rec) {
+            let (pass, d) = m.check(rec);
+            if !pass {
                 return true;
             }
             matched += 1;
@@ -270,7 +303,10 @@ async fn query_once(
             if rows.len() == max {
                 rows.pop_front();
             }
-            rows.push_back(row(rec, detail));
+            rows.push_back(match d {
+                Some(d) if m.redecode => row_redecoded(rec, detail, &d),
+                _ => row(rec, detail),
+            });
             true
         },
     )
@@ -288,7 +324,14 @@ async fn query_once(
         .and_then(|s| s.parse::<u64>().ok())
         .filter(|s| *s > 0 && matched > rows.len())
         .map(|s| format!("seq:{}", s - 1));
-    Ok(json!({
+    let decode_stopped = stopped_early;
+    let caps = if matched > rows.len() {
+        &[REASON_ROW_CAP][..]
+    } else {
+        &[]
+    };
+    let reasons = partial_reasons(scope, &sum, decode_stopped, caps);
+    let mut out = json!({
         "ch": ch,
         "rows": rows,
         "range": {"from": first, "to": last},
@@ -296,10 +339,19 @@ async fn query_once(
         "matched": matched,
         "gaps": sum.gaps,
         "gaps_omitted": sum.gaps_omitted,
-        "complete": sum.complete && !stopped_early,
+        "complete": complete_from(&reasons),
+        "scan_complete": scan_complete_from(&reasons),
+        "scope": scope_json(scope),
+        "scanned": scanned_json(&sum),
+        "resume_cursor": resume_cursor_json(&sum, &reasons),
+        "partial_reasons": reasons,
         "next_cursor": next,
         "prev_cursor": prev,
-    }))
+    });
+    if !decode_as.is_empty() {
+        out["decode_as"] = decode_as_json(decode_as);
+    }
+    Ok(out)
 }
 
 // --- eth.show ---------------------------------------------------------------------------------
@@ -311,26 +363,81 @@ pub struct Show;
 impl Handler for Show {
     fn call<'a>(&'a self, ctx: &'a mut CallCtx, params: Value) -> BoxFuture<'a, Result<Value, DomainError>> {
         Box::pin(async move {
+            let decode_as = decode_as_param(&params)?;
             let r = str_param(&params, "ref").ok_or_else(|| usage("show needs ref"))?;
             let (ch, epoch, seq, _) = parse_ref(r)?;
             let at = Cursor::Seq { epoch, seq };
             let mut found: Option<PublishedRecord> = None;
-            scan_packets(ctx, &ch, at.clone(), Some(at), SCAN_BYTES_PER_CALL, &mut |rec| {
-                if rec.seq.get() == seq {
-                    found = Some(rec.clone());
-                    false
-                } else {
-                    true
-                }
-            })
+            scan_packets(
+                ctx,
+                &ch,
+                at.clone(),
+                Some(at.clone()),
+                SCAN_BYTES_PER_CALL,
+                &mut |rec| {
+                    if rec.seq.get() == seq {
+                        found = Some(rec.clone());
+                        false
+                    } else {
+                        true
+                    }
+                },
+            )
             .await?;
             let rec = found
                 .ok_or_else(|| DomainError::new(ErrorCode::NotFound, format!("{r} not in the journal")))?;
-            let mut st = StreamTable::new();
-            let d = decode_record(&rec, &mut st)
+            let mut st = StreamTable::with_decode_as(decode_as.clone());
+            let mut d = decode_record(&rec, &mut st)
                 .ok_or_else(|| DomainError::new(ErrorCode::Internal, "packet has no decodable bytes"))?;
+            let mut tcp_rel: Option<Value> = None;
+            if d.tcp_rel.is_some() {
+                let from = Cursor::Seq {
+                    epoch,
+                    seq: seq.saturating_sub(SHOW_CONTEXT_SEQS).max(1),
+                };
+                let mut ctx_st = StreamTable::with_decode_as(decode_as.clone());
+                let mut target: Option<Decoded> = None;
+                let scanned = scan_packets(
+                    ctx,
+                    &ch,
+                    from.clone(),
+                    Some(at.clone()),
+                    SHOW_CONTEXT_BYTES,
+                    &mut |rec| {
+                        let Some(dec) = decode_record(rec, &mut ctx_st) else {
+                            return true;
+                        };
+                        if rec.seq.get() == seq {
+                            target = Some(dec);
+                            false
+                        } else {
+                            true
+                        }
+                    },
+                )
+                .await;
+                let mut reached = false;
+                if scanned.is_ok()
+                    && let Some(full) = target
+                {
+                    d = full;
+                    reached = true;
+                }
+                let b = d.tcp_rel.unwrap_or_default();
+                let has_ack = d
+                    .layers
+                    .iter()
+                    .any(|l| l.name == "tcp" && l.fields.iter().any(|f| f.name == "tcp.ack"));
+                tcp_rel = Some(json!({
+                    "window_from": from.to_string(),
+                    "reached": reached,
+                    "seq_known": b.seq_from_syn,
+                    "ack_known": if has_ack { Some(b.ack_from_syn) } else { None },
+                }));
+                mark_tcp_rel_unknown(&mut d);
+            }
             let p = &rec.payload;
-            Ok(json!({
+            let mut out = json!({
                 "ref": ref_of(&rec),
                 "len": p.get("len"),
                 "caplen": p.get("caplen"),
@@ -340,7 +447,14 @@ impl Handler for Show {
                 "summary": d.summary,
                 "warnings": d.warnings,
                 "tree": tree(&d),
-            }))
+            });
+            if let Some(v) = tcp_rel {
+                out["tcp_rel"] = v;
+            }
+            if !decode_as.is_empty() {
+                out["decode_as"] = decode_as_json(&decode_as);
+            }
+            Ok(out)
         })
     }
 }
@@ -370,7 +484,8 @@ pub fn tree(d: &Decoded) -> Vec<Value> {
             let shown = f.show.clone().unwrap_or_else(|| value_text(f.name, &f.value));
             let fp = f.pos.filter(|p| p.buf == 0);
             let node = json!({"name": f.name, "label": format!("{desc}: {shown}"),
-                              "off": fp.map(|p| p.off), "len": fp.map(|p| p.len), "children": []});
+                              "off": fp.map(|p| p.off), "len": fp.map(|p| p.len), "children": [],
+                              "filter": node_filter(l, f)});
             while let Some((dep, _)) = stack.last() {
                 if *dep >= f.depth {
                     let Some((_, done)) = stack.pop() else { break };
@@ -384,9 +499,125 @@ pub fn tree(d: &Decoded) -> Vec<Value> {
         while let Some((_, done)) = stack.pop() {
             attach(&mut stack, &mut top, done);
         }
-        out.push(json!({"name": l.name, "label": l.title, "off": pos.map(|p| p.off), "len": pos.map(|p| p.len), "children": top}));
+        out.push(json!({"name": l.name, "label": l.title, "off": pos.map(|p| p.off), "len": pos.map(|p| p.len), "children": top,
+                         "filter": filter_expr(l.name, None)}));
     }
     out
+}
+
+/// (C1, ETH-RT-02) Ready filter of one tree field node. Relative TCP numbers depend on where
+/// decoding started, so `tcp.seq` / `tcp.ack` nodes select the packet by the raw header value of the
+/// same layer (`tcp.seq_raw` / `tcp.ack_raw`); `None` when that raw field is missing. Every other
+/// field: [`filter_expr`]`(f.name, Some(&f.value))`. FUNCTIONS.md FC1.3.
+pub fn node_filter(layer: &Layer, f: &Field) -> Option<String> {
+    let raw_name = match f.name {
+        "tcp.seq" => "tcp.seq_raw",
+        "tcp.ack" => "tcp.ack_raw",
+        _ => return filter_expr(f.name, Some(&f.value)),
+    };
+    let raw = layer.fields.iter().find(|x| x.name == raw_name)?;
+    filter_expr(raw_name, Some(&raw.value))
+}
+
+/// (C1, ETH-RT-02) Marks relative TCP numbers whose SYN base is unknown (`d.tcp_rel` flags false)
+/// as unavailable instead of showing a decode-start-relative number. FUNCTIONS.md FC1.5.
+pub fn mark_tcp_rel_unknown(d: &mut Decoded) {
+    let Some(b) = d.tcp_rel else { return };
+    // first `pat` followed by at least one ASCII digit → the digits become `?`
+    let blank = |text: &mut String, pat: &str| {
+        let Some(i) = text.find(pat) else { return };
+        let start = i + pat.len();
+        let digits = text[start..].bytes().take_while(u8::is_ascii_digit).count();
+        if digits > 0 {
+            text.replace_range(start..start + digits, "?");
+        }
+    };
+    let mut changed = false;
+    if !b.seq_from_syn {
+        for l in d.layers.iter_mut().filter(|l| l.name == "tcp") {
+            for f in l.fields.iter_mut().filter(|f| f.name == "tcp.seq") {
+                f.show = Some(TCP_REL_UNKNOWN.to_owned());
+            }
+            blank(&mut l.title, "Seq: ");
+        }
+        blank(&mut d.summary.info, "Seq=");
+        changed = true;
+    }
+    if !b.ack_from_syn {
+        let mut has_ack = false;
+        for l in d.layers.iter_mut().filter(|l| l.name == "tcp") {
+            for f in l.fields.iter_mut().filter(|f| f.name == "tcp.ack") {
+                f.show = Some(TCP_REL_UNKNOWN.to_owned());
+                has_ack = true;
+            }
+        }
+        if has_ack {
+            blank(&mut d.summary.info, "Ack=");
+            changed = true;
+        }
+    }
+    if changed && d.warnings.len() < loom_eth_decode::MAX_WARNINGS {
+        d.warnings.push(loom_eth_decode::DecodeWarning {
+            code: WARN_TCP_REL_UNKNOWN,
+            layer: "tcp",
+            detail: WARN_TCP_REL_UNKNOWN_DETAIL.to_owned(),
+        });
+    }
+}
+
+/// (operator-upgrade B3a, ETH-02) Display-filter expression selecting this field value (or, with
+/// `value: None`, this protocol layer), only when [`Filter::compile`] accepts it; `None` otherwise
+/// (unknown field, unsupported value, over the size caps). FUNCTIONS.md F3.7.
+pub fn filter_expr(name: &str, value: Option<&FieldValue>) -> Option<String> {
+    let def = field_def(name)?;
+    let expr = match value {
+        None => {
+            if def.ty != FieldType::Protocol {
+                return None;
+            }
+            name.to_owned()
+        }
+        Some(FieldValue::Uint(n)) => {
+            if def.base == Base::Hex {
+                format!("{name} == 0x{n:x}")
+            } else {
+                format!("{name} == {n}")
+            }
+        }
+        Some(FieldValue::Bool(b)) => format!("{name} == {}", u8::from(*b)),
+        Some(FieldValue::Ipv4(a)) => format!("{name} == {a}"),
+        Some(FieldValue::Ipv6(a)) => format!("{name} == {a}"),
+        Some(FieldValue::Mac(m)) => format!("{name} == {}", fmt_mac(m)),
+        Some(FieldValue::Bytes(b)) => {
+            if b.is_empty() || b.len() > 64 {
+                return None;
+            }
+            let hex: Vec<String> = b.iter().map(|x| format!("{x:02x}")).collect();
+            format!("{name} == {}", hex.join(":"))
+        }
+        Some(FieldValue::Str(s)) => {
+            if s.chars().count() > 128 {
+                return None;
+            }
+            let mut esc = String::new();
+            for ch in s.chars() {
+                match ch {
+                    '\\' => esc.push_str("\\\\"),
+                    '"' => esc.push_str("\\\""),
+                    '\n' => esc.push_str("\\n"),
+                    '\t' => esc.push_str("\\t"),
+                    '\r' => esc.push_str("\\r"),
+                    '\0' => esc.push_str("\\0"),
+                    c if (c as u32) < 0x20 || c as u32 == 0x7f => {
+                        esc.push_str(&format!("\\x{:02x}", c as u32))
+                    }
+                    c => esc.push(c),
+                }
+            }
+            format!("{name} == \"{esc}\"")
+        }
+    };
+    Filter::compile(&expr).is_ok().then_some(expr)
 }
 
 fn attach(stack: &mut [(u8, Value)], top: &mut Vec<Value>, node: Value) {
@@ -421,58 +652,77 @@ impl Handler for Stats {
             if !matches!(by.as_str(), "proto" | "conv" | "endpoint" | "io") {
                 return Err(usage("stats --by proto|conv|endpoint|io"));
             }
-            let mut m = Matcher::new(compile(str_param(&params, "filter"))?);
-            let range = params.get("range").cloned().unwrap_or(Value::Null);
-            let from = cursor_param(range.get("from"))?.unwrap_or_else(lookback);
-            let to = cursor_param(range.get("to"))?;
+            let decode_as = decode_as_param(&params)?;
+            let mut m = Matcher::with_decode_as(compile(str_param(&params, "filter"))?, decode_as.clone());
+            let scope = range_scope(&params)?;
             let mut table: BTreeMap<String, (u64, u64)> = BTreeMap::new();
             let (mut packets, mut bytes, mut other) = (0u64, 0u64, 0u64);
             let mut t0: Option<u64> = None;
             let mut partial = false;
-            let sum = scan_packets(ctx, &ch, from, to, SCAN_BUDGET_BYTES, &mut |rec| {
-                if m.exhausted() {
-                    partial = true;
-                    return false;
-                }
-                if !m.matches(rec) {
-                    return true;
-                }
-                let p = &rec.payload;
-                let len = p.get("len").and_then(Value::as_u64).unwrap_or(0);
-                let s = |k: &str| p.get(k).and_then(Value::as_str).unwrap_or("?").to_owned();
-                let keys: Vec<String> = match by.as_str() {
-                    "proto" => vec![s("proto")],
-                    "conv" => {
-                        let (a, b) = (s("src"), s("dst"));
-                        let (a, b) = if a <= b { (a, b) } else { (b, a) };
-                        let st = p
-                            .get("stream")
-                            .and_then(Value::as_u64)
-                            .map(|n| format!(" #{n}"))
-                            .unwrap_or_default();
-                        vec![format!("{a} ↔ {b}{st}")]
+            let sum = scan_packets(
+                ctx,
+                &ch,
+                scope.from.clone(),
+                scope.to.clone(),
+                SCAN_BUDGET_BYTES,
+                &mut |rec| {
+                    if m.exhausted() {
+                        partial = true;
+                        return false;
                     }
-                    "endpoint" => vec![s("src"), s("dst")],
-                    _ => {
-                        let t = rec.ts.mono_ns.get();
-                        let base = *t0.get_or_insert(t);
-                        vec![format!("{:>6}s", t.saturating_sub(base) / 1_000_000_000)]
+                    let (pass, d) = m.check(rec);
+                    if !pass {
+                        return true;
                     }
-                };
-                packets += 1;
-                bytes += len;
-                for k in keys {
-                    if let Some(e) = table.get_mut(&k) {
-                        e.0 += 1;
-                        e.1 += len;
-                    } else if table.len() < STATS_MAX_KEYS {
-                        table.insert(k, (1, len));
-                    } else {
-                        other += 1;
+                    let p = &rec.payload;
+                    let len = p.get("len").and_then(Value::as_u64).unwrap_or(0);
+                    let redec = d
+                        .as_ref()
+                        .filter(|d| d.warnings.iter().any(|w| w.code == "decode_as"));
+                    let s = |k: &str| match (redec, k) {
+                        (Some(d), "proto") => d.summary.proto.clone(),
+                        (Some(d), "src") => d.summary.src.clone(),
+                        (Some(d), "dst") => d.summary.dst.clone(),
+                        _ => p.get(k).and_then(Value::as_str).unwrap_or("?").to_owned(),
+                    };
+                    let s = |k: &str| {
+                        let v = s(k);
+                        if v.is_empty() { "?".to_owned() } else { v }
+                    };
+                    let keys: Vec<String> = match by.as_str() {
+                        "proto" => vec![s("proto")],
+                        "conv" => {
+                            let (a, b) = (s("src"), s("dst"));
+                            let (a, b) = if a <= b { (a, b) } else { (b, a) };
+                            let st = p
+                                .get("stream")
+                                .and_then(Value::as_u64)
+                                .map(|n| format!(" #{n}"))
+                                .unwrap_or_default();
+                            vec![format!("{a} ↔ {b}{st}")]
+                        }
+                        "endpoint" => vec![s("src"), s("dst")],
+                        _ => {
+                            let t = rec.ts.mono_ns.get();
+                            let base = *t0.get_or_insert(t);
+                            vec![format!("{:>6}s", t.saturating_sub(base) / 1_000_000_000)]
+                        }
+                    };
+                    packets += 1;
+                    bytes += len;
+                    for k in keys {
+                        if let Some(e) = table.get_mut(&k) {
+                            e.0 += 1;
+                            e.1 += len;
+                        } else if table.len() < STATS_MAX_KEYS {
+                            table.insert(k, (1, len));
+                        } else {
+                            other += 1;
+                        }
                     }
-                }
-                true
-            })
+                    true
+                },
+            )
             .await?;
             let mut rows: Vec<(String, (u64, u64))> = table.into_iter().collect();
             if by != "io" {
@@ -483,12 +733,20 @@ impl Handler for Stats {
                 .take(STATS_TOP.max(if by == "io" { 120 } else { 0 }))
                 .map(|(k, (n, b))| json!({"key": k, "packets": n, "bytes": b}))
                 .collect();
-            Ok(
-                json!({"ch": ch, "by": by, "rows": shown, "keys": rows.len(), "other": other,
+            let reasons = partial_reasons(&scope, &sum, partial, &[]);
+            let mut out = json!({"ch": ch, "by": by, "rows": shown, "keys": rows.len(), "other": other,
                       "total_packets": packets, "total_bytes": bytes,
                       "truncated": partial || sum.budget_hit || rows.len() > shown.len(),
-                      "gaps": sum.gaps, "complete": sum.complete && !partial}),
-            )
+                      "gaps": sum.gaps, "complete": complete_from(&reasons),
+                      "scan_complete": scan_complete_from(&reasons),
+                      "scope": scope_json(&scope),
+                      "scanned": scanned_json(&sum),
+                      "resume_cursor": resume_cursor_json(&sum, &reasons),
+                      "partial_reasons": reasons});
+            if !decode_as.is_empty() {
+                out["decode_as"] = decode_as_json(&decode_as);
+            }
+            Ok(out)
         })
     }
 }
@@ -516,63 +774,91 @@ impl Handler for Follow {
                 .and_then(Value::as_u64)
                 .unwrap_or(u64::from(FOLLOW_MAX_BYTES))
                 .min(u64::from(FOLLOW_MAX_BYTES)) as usize;
-            let range = params.get("range").cloned().unwrap_or(Value::Null);
-            let from = cursor_param(range.get("from"))?.unwrap_or_else(lookback);
-            let to = cursor_param(range.get("to"))?;
+            let scope = range_scope(&params)?;
             let mut st = StreamTable::new();
             let mut segs: Vec<Value> = Vec::new();
             let mut used = 0usize;
             let mut truncated = false;
+            let mut decode_stopped = false;
+            let mut output_cap = false;
             let mut client: Option<String> = None;
             let mut offs = [0usize; 2];
             let mut decoded = 0usize;
-            let sum = scan_packets(ctx, &ch, from, to, SCAN_BUDGET_BYTES, &mut |rec| {
-                if rec.payload.get("stream").and_then(Value::as_u64) != Some(stream) {
-                    return true;
-                }
-                decoded += 1;
-                if decoded > MAX_DECODE_PER_REQUEST {
-                    truncated = true;
-                    return false;
-                }
-                let Some(d) = decode_record(rec, &mut st) else {
-                    return true;
-                };
-                if !d.has_protocol(&proto) || d.field_values("tcp.analysis.retransmission").next().is_some() {
-                    return true;
-                }
-                let Some(data) = transport_payload(&d, &proto) else {
-                    return true;
-                };
-                if data.is_empty() {
-                    return true;
-                }
-                let src = rec
-                    .payload
-                    .get("src")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_owned();
-                let c = client.get_or_insert_with(|| src.clone());
-                let dir = usize::from(*c != src);
-                let room = max_bytes.saturating_sub(used);
-                let take = data.len().min(room);
-                segs.push(
-                    json!({"dir": if dir == 0 { "c2s" } else { "s2c" }, "off": offs[dir], "seq": rec.seq,
+            let sum = scan_packets(
+                ctx,
+                &ch,
+                scope.from.clone(),
+                scope.to.clone(),
+                SCAN_BUDGET_BYTES,
+                &mut |rec| {
+                    if rec.payload.get("stream").and_then(Value::as_u64) != Some(stream) {
+                        return true;
+                    }
+                    if rec
+                        .payload
+                        .get("stream_proto")
+                        .and_then(Value::as_str)
+                        .unwrap_or("tcp")
+                        != proto
+                    {
+                        return true;
+                    }
+                    decoded += 1;
+                    if decoded > MAX_DECODE_PER_REQUEST {
+                        truncated = true;
+                        decode_stopped = true;
+                        return false;
+                    }
+                    let Some(d) = decode_record(rec, &mut st) else {
+                        return true;
+                    };
+                    if !d.has_protocol(&proto)
+                        || d.field_values("tcp.analysis.retransmission").next().is_some()
+                    {
+                        return true;
+                    }
+                    let Some(data) = transport_payload(&d, &proto) else {
+                        return true;
+                    };
+                    if data.is_empty() {
+                        return true;
+                    }
+                    let src = rec
+                        .payload
+                        .get("src")
+                        .and_then(Value::as_str)
+                        .unwrap_or("")
+                        .to_owned();
+                    let c = client.get_or_insert_with(|| src.clone());
+                    let dir = usize::from(*c != src);
+                    let room = max_bytes.saturating_sub(used);
+                    let take = data.len().min(room);
+                    segs.push(
+                        json!({"dir": if dir == 0 { "c2s" } else { "s2c" }, "off": offs[dir], "seq": rec.seq,
                                  "data": loom_eth_decode::fmt_hex(&data[..take])}),
-                );
-                offs[dir] += take;
-                used += take;
-                if take < data.len() {
-                    truncated = true;
-                    return false;
-                }
-                true
-            })
+                    );
+                    offs[dir] += take;
+                    used += take;
+                    if take < data.len() {
+                        truncated = true;
+                        output_cap = true;
+                        return false;
+                    }
+                    true
+                },
+            )
             .await?;
+            let caps = if output_cap { &[REASON_OUTPUT_CAP][..] } else { &[] };
+            let reasons = partial_reasons(&scope, &sum, decode_stopped, caps);
             Ok(
                 json!({"ch": ch, "proto": proto, "stream": stream, "segments": segs, "bytes": used,
-                      "truncated": truncated || sum.budget_hit, "gaps": sum.gaps, "complete": sum.complete}),
+                      "truncated": truncated || sum.budget_hit, "gaps": sum.gaps,
+                      "complete": complete_from(&reasons),
+                      "scan_complete": scan_complete_from(&reasons),
+                      "scope": scope_json(&scope),
+                      "scanned": scanned_json(&sum),
+                      "resume_cursor": resume_cursor_json(&sum, &reasons),
+                      "partial_reasons": reasons}),
             )
         })
     }
@@ -759,10 +1045,10 @@ impl Handler for Export {
             if str_param(&params, "format").is_some_and(|f| f != "pcapng") {
                 return Err(usage("export supports format pcapng only"));
             }
-            let mut m = Matcher::new(compile(str_param(&params, "filter"))?);
-            let range = params.get("range").cloned().unwrap_or(Value::Null);
-            let from = cursor_param(range.get("from"))?.unwrap_or_else(lookback);
-            let to = cursor_param(range.get("to"))?;
+            let filter_expr = compile(str_param(&params, "filter"))?;
+            let decode_as = decode_as_param(&params)?;
+            let mut m = Matcher::with_decode_as(filter_expr, decode_as.clone());
+            let scope = range_scope(&params)?;
             // Explicit path: create/truncate (CLI `-o FILE`). Default: a fresh daemon-side temp file
             // per export (create_new + bounded suffixes), never an earlier export's file.
             let explicit = str_param(&params, "path").map(std::path::PathBuf::from);
@@ -800,52 +1086,67 @@ impl Handler for Export {
             let mut comments_dropped = 0usize;
             let mut err: Option<DomainError> = None;
             let mut truncated = false;
-            let sum = scan_packets(ctx, &ch, from, to, SCAN_BUDGET_BYTES, &mut |rec| {
-                if packets >= EXPORT_MAX_PACKETS || bytes >= EXPORT_MAX_BYTES || m.exhausted() {
-                    truncated = true;
-                    return false;
-                }
-                if !m.matches(rec) {
-                    return true;
-                }
-                let p = &rec.payload;
-                let (Ok(Some(data)), Some(lt)) = (
-                    payload_bytes(p),
-                    p.get("linktype")
-                        .and_then(Value::as_u64)
-                        .and_then(|v| u16::try_from(v).ok()),
-                ) else {
-                    return true;
-                };
-                let id = match ifaces.get(&lt) {
-                    Some(id) => *id,
-                    None => match w.write_interface(&Interface {
-                        linktype: lt,
-                        snaplen: 65535,
-                        name: ch.clone(),
-                        tsresol: TimestampResolution::NANO,
-                    }) {
-                        Ok(id) => {
-                            ifaces.insert(lt, id);
-                            id
-                        }
-                        Err(e) => {
-                            err = Some(io(e));
-                            return false;
-                        }
-                    },
-                };
-                let (pkt, dropped) = super::export::to_packet(rec, id, data);
-                comments_dropped += dropped;
-                let caplen = pkt.caplen;
-                if let Err(e) = w.write_packet(&pkt) {
-                    err = Some(io(e));
-                    return false;
-                }
-                packets += 1;
-                bytes += u64::from(caplen);
-                true
-            })
+            let mut decode_stopped = false;
+            let mut output_cap = false;
+            let sum = scan_packets(
+                ctx,
+                &ch,
+                scope.from.clone(),
+                scope.to.clone(),
+                SCAN_BUDGET_BYTES,
+                &mut |rec| {
+                    if packets >= EXPORT_MAX_PACKETS || bytes >= EXPORT_MAX_BYTES {
+                        truncated = true;
+                        output_cap = true;
+                        return false;
+                    }
+                    if m.exhausted() {
+                        truncated = true;
+                        decode_stopped = true;
+                        return false;
+                    }
+                    if !m.matches(rec) {
+                        return true;
+                    }
+                    let p = &rec.payload;
+                    let (Ok(Some(data)), Some(lt)) = (
+                        payload_bytes(p),
+                        p.get("linktype")
+                            .and_then(Value::as_u64)
+                            .and_then(|v| u16::try_from(v).ok()),
+                    ) else {
+                        return true;
+                    };
+                    let id = match ifaces.get(&lt) {
+                        Some(id) => *id,
+                        None => match w.write_interface(&Interface {
+                            linktype: lt,
+                            snaplen: 65535,
+                            name: ch.clone(),
+                            tsresol: TimestampResolution::NANO,
+                        }) {
+                            Ok(id) => {
+                                ifaces.insert(lt, id);
+                                id
+                            }
+                            Err(e) => {
+                                err = Some(io(e));
+                                return false;
+                            }
+                        },
+                    };
+                    let (pkt, dropped) = super::export::to_packet(rec, id, data);
+                    comments_dropped += dropped;
+                    let caplen = pkt.caplen;
+                    if let Err(e) = w.write_packet(&pkt) {
+                        err = Some(io(e));
+                        return false;
+                    }
+                    packets += 1;
+                    bytes += u64::from(caplen);
+                    true
+                },
+            )
             .await;
             let sum = match sum {
                 Ok(s) => s,
@@ -859,10 +1160,24 @@ impl Handler for Export {
                 return Err(fail(e));
             }
             w.flush().map_err(io).map_err(fail)?;
-            Ok(
-                json!({"path": path.display().to_string(), "packets": packets, "bytes": bytes,
-                      "truncated": truncated || sum.budget_hit, "comments_dropped": comments_dropped, "gaps": sum.gaps}),
-            )
+            let caps = if output_cap { &[REASON_OUTPUT_CAP][..] } else { &[] };
+            let reasons = partial_reasons(&scope, &sum, decode_stopped, caps);
+            let filter = str_param(&params, "filter")
+                .filter(|f| !f.trim().is_empty())
+                .map(str::to_owned);
+            let mut out = json!({"path": path.display().to_string(), "packets": packets, "bytes": bytes,
+                      "truncated": truncated || sum.budget_hit, "comments_dropped": comments_dropped, "gaps": sum.gaps,
+                      "filter": filter,
+                      "scope": scope_json(&scope),
+                      "scanned": scanned_json(&sum),
+                      "partial_reasons": reasons,
+                      "resume_cursor": resume_cursor_json(&sum, &reasons),
+                      "complete": complete_from(&reasons),
+                      "scan_complete": scan_complete_from(&reasons)});
+            if !decode_as.is_empty() {
+                out["decode_as"] = decode_as_json(&decode_as);
+            }
+            Ok(out)
         })
     }
 }

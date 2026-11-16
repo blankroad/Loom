@@ -100,22 +100,24 @@ describe('eth.packets', () => {
     expect(h.net.subs[0]!.closed).toBe(true);
     expect(h.net.subs[1]!.filter.ext).toEqual({ eth_filter: 'doip' });
     const q = h.net.calls.find((c) => c.method === 'eth.query')!;
-    expect(q.params).toMatchObject({ ch: 'lan1', filter: 'doip', max: 2000, detail: false });
+    // B2: explicit range (capture anchor unknown here → labelled recent-10-minutes fallback), page = daemon cap 1,000
+    expect(q.params).toEqual({ ch: 'lan1', range: { from: '-600s' }, filter: 'doip', max: 1000, detail: false });
     h.frame();
-    expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toContain('완전(저널 기준) · 3행 seq 50000–50002');
+    // this fixture daemon sends no partial_reasons (pre-B1 shape) → never 완전
+    expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toBe('완전 여부 미확인 · 최근 10분 (캡처 시작 위치 모름) · 3행 · seq 50000–50002');
   });
 
   it('sampling badge while live; Space → complete journal query replaces the sampled rows', async () => {
     h = mountPanel('eth.packets', { channel: 'lan1' });
     h.net.responders.set('eth.query', (p) => {
-      expect((p as { range: { to: string } }).range).toEqual({ to: 'seq:41280' }); // proto cursor grammar, never a bare number
+      expect((p as { range: { to: string } }).range).toEqual({ from: '-600s', to: 'seq:41280' }); // proto cursor grammar, never a bare number; B2: never from-less
       return { rows: fixtureQueryRows(5), range: { from: '50000', to: '50004' } };
     });
     h.batch([...fixtureEvents(), fixtureRecord('eth.batch', 41281, { covered_first_seq: '41230', covered_last_seq: '41281', total: 1000, shown: 10 })]);
     expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toBe('라이브 · 표시 1/100 샘플링 · 기록 100 %');
     h.host.querySelector<HTMLElement>('.eth-panel')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
     await flush(h);
-    expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toContain('완전(저널 기준) · 5행');
+    expect(h.host.querySelector('[data-testid="eth-mode"]')!.textContent).toBe('완전 여부 미확인 · 최근 10분 (캡처 시작 위치 모름) · 5행 · seq 50000–50004');
     expect(pktRows(h).map((r) => r.dataset.seq)).toEqual(['50000', '50001', '50002', '50003', '50004']);
     // Space again → back to live
     h.host.querySelector<HTMLElement>('.eth-panel')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
@@ -224,6 +226,12 @@ const daemonEnv = (cmd: string, body: { data?: unknown; error?: unknown }) => ({
 
 describe('eth.packets — export result and failed TX reason', () => {
   const exportBtn = (hh: Harness) => hh.host.querySelector<HTMLButtonElement>('[data-cmd="export"]')!;
+  /** B2: [내보내기] opens the range dialog; [eth-export-run] starts the one export */
+  const startExport = async (hh: Harness) => {
+    exportBtn(hh).click();
+    await flush(hh);
+    hh.host.querySelector<HTMLButtonElement>('[data-testid="eth-export-run"]')!.click();
+  };
   const dialog = (hh: Harness) => hh.host.querySelector<HTMLElement>('[data-testid="eth-export-result"]');
   const stubClipboard = () => {
     const writeText = vi.fn((text: string) => Promise.resolve(text).then(() => undefined));
@@ -240,8 +248,10 @@ describe('eth.packets — export result and failed TX reason', () => {
     let resolve!: (v: unknown) => void;
     h.net.responders.set('eth.export', () => new Promise((r) => (resolve = r)));
     expect(exportBtn(h).title).not.toContain('Activity');
-    exportBtn(h).click();
+    await startExport(h);
     await flush(h);
+    // live mode, unknown capture anchor → the dialog's default "capture" scope = explicit recent-10-minutes range
+    expect(h.net.calls.find((c) => c.method === 'eth.export')!.params).toEqual({ ch: 'lan1', format: 'pcapng', range: { from: '-600s' } });
     // in flight: a second click is not a second export, no result shown yet
     expect(exportBtn(h).disabled).toBe(true);
     exportBtn(h).click();
@@ -258,6 +268,9 @@ describe('eth.packets — export result and failed TX reason', () => {
     expect(d.textContent).toContain('브라우저 다운로드가 아닙니다');
     expect(d.textContent).not.toContain('잘림');
     expect(d.textContent).not.toContain('손실');
+    // pre-B1 result shape: completeness and scope are unknown, never claimed
+    expect(d.textContent).toContain('완전성완전 여부 미확인 (이전 daemon)');
+    expect(d.textContent).toContain('요청 범위정보 없음 (이전 daemon)');
     expect(h.toasts.join('\n')).not.toContain('Activity');
     expect(h.toasts.at(-1)).toContain(path);
     const writeText = stubClipboard();
@@ -267,7 +280,7 @@ describe('eth.packets — export result and failed TX reason', () => {
     // a second export shows its own (new) result, one dialog at a time
     const path2 = path.replace('.pcapng', '-1.pcapng');
     h.net.responders.set('eth.export', () => daemonEnv('eth.export', { data: { path: path2, packets: 3, bytes: 99, truncated: true, comments_dropped: 2, gaps: [{ kind: 'source.gap' }] } }));
-    exportBtn(h).click();
+    await startExport(h);
     await flush(h);
     expect(h.host.querySelectorAll('[data-testid="eth-export-result"]')).toHaveLength(1);
     const d2 = dialog(h)!;
@@ -284,7 +297,7 @@ describe('eth.packets — export result and failed TX reason', () => {
     h.net.responders.set('eth.export', () =>
       daemonEnv('eth.export', { error: { code: 'internal', message: 'cannot create /ro/x.pcapng: Permission denied (os error 13)', retryable: false } }),
     );
-    exportBtn(h).click();
+    await startExport(h);
     await flush(h);
     expect(dialog(h)).toBeNull();
     expect(h.toasts.at(-1)).toContain('export 실패');
@@ -682,17 +695,17 @@ describe('eth.packets fidelity layout & interaction', () => {
     h.net.responders.set('eth.query', () => ({ rows: fixtureQueryRows(3), range: { from: '50000', to: '50002' } }));
     const queries = () => h!.net.calls.filter((c) => c.method === 'eth.query').map((c) => c.params as { range?: { from?: string; to?: string }; filter?: string });
     const button = (text: string) => { h!.frame(); return [...h!.host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text))!; };
-    // no packet yet: pause queries an open range, never "seq:0" / "0"
+    // no packet yet: pause queries an explicit start without an end, never "seq:0" / "0" (B2: never from-less)
     button('일시정지').click();
     await vi.advanceTimersByTimeAsync(10);
-    expect(queries().at(-1)!.range).toBeUndefined();
+    expect(queries().at(-1)!.range).toEqual({ from: '-600s' });
     button('라이브로').click();
     // live packets → pause: complete query up to the live head as seq:N
     h.batch(fixtureEvents());
     const head = pktRows(h).map((r) => r.dataset.seq).filter(Boolean).at(-1)!;
     button('일시정지').click();
     await vi.advanceTimersByTimeAsync(10);
-    expect(queries().at(-1)!.range).toEqual({ to: `seq:${head}` });
+    expect(queries().at(-1)!.range).toEqual({ from: '-600s', to: `seq:${head}` });
     button('라이브로').click();
     // display filter → complete filtered range, same cursor grammar, filter preserved
     const input = h.host.querySelector<HTMLInputElement>('[data-testid="eth-filter-input"]')!;
@@ -701,14 +714,19 @@ describe('eth.packets fidelity layout & interaction', () => {
     await vi.advanceTimersByTimeAsync(160);
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     await vi.advanceTimersByTimeAsync(10);
-    expect(queries().at(-1)).toMatchObject({ filter: 'arp', range: { to: `seq:${head}` } });
-    // export in complete mode: both ends as seq cursors
+    expect(queries().at(-1)).toMatchObject({ filter: 'arp', range: { from: '-600s', to: `seq:${head}` } });
+    // export (B2 range dialog): default = the current complete view incl. its display filter, same cursors
     await flush(h);
     button('내보내기').click();
     await vi.advanceTimersByTimeAsync(10);
+    const filterBox = h.host.querySelector<HTMLInputElement>('[data-testid="eth-export-filter"]')!;
+    expect(filterBox.checked).toBe(true);
+    expect(filterBox.closest('label')!.textContent).toContain('표시 필터 적용: arp');
+    h.host.querySelector<HTMLButtonElement>('[data-testid="eth-export-run"]')!.click();
+    await vi.advanceTimersByTimeAsync(10);
     const ex = h.net.calls.find((c) => c.method === 'eth.export')!.params as { range?: { from?: string; to?: string } };
-    expect(ex).toMatchObject({ ch: 'lan1', format: 'pcapng', filter: 'arp', range: { from: 'seq:50000', to: 'seq:50002' } });
-    for (const r of [...queries().map((x) => x.range), ex.range]) for (const v of [r?.from, r?.to]) expect(v === undefined || /^seq:\d+$/.test(v)).toBe(true);
+    expect(ex).toEqual({ ch: 'lan1', format: 'pcapng', filter: 'arp', range: { from: '-600s', to: `seq:${head}` } });
+    for (const r of [...queries().map((x) => x.range), ex.range]) for (const v of [r?.from, r?.to]) expect(v === undefined || /^(-\d+s|(e\d+:)?seq:\d+)$/.test(v)).toBe(true);
   });
 
   it('relative time uses the real capture start (snapshot anchor), never the first visible backlog packet; new generation resets it', () => {
@@ -957,7 +975,8 @@ describe('eth.packets channel add vs current-channel capture start (real eth.cap
     expect(follow.disabled).toBe(false);
     follow.click();
     await flush(h);
-    expect(h.net.calls.find((c) => c.method === 'eth.follow')!.params).toEqual({ ch: 'lan1', proto: 'tcp', stream: 4 });
+    // B2: explicit range (live: capture anchor unknown → recent-10-minutes fallback up to the live head)
+    expect(h.net.calls.find((c) => c.method === 'eth.follow')!.params).toEqual({ ch: 'lan1', proto: 'tcp', stream: 4, range: { from: '-600s', to: 'seq:50' } });
     const body = q('[data-testid="eth-follow-body"]');
     expect([...body.children].map((c) => [c.className, c.textContent])).toEqual([['c', 'STAT?'], ['s', 'OK']]);
   });

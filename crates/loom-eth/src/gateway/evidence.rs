@@ -326,7 +326,12 @@ impl Reducer for EthReducer {
 
     fn apply(&mut self, ev: &PublishedRecord) {
         match ev.kind.as_str() {
-            KIND_CAPTURE_STATE => self.book.update(channel_of(ev), &ev.payload, ev.generation),
+            KIND_CAPTURE_STATE => self.book.update_at(
+                channel_of(ev),
+                &ev.payload,
+                ev.generation,
+                Some((ev.epoch.get(), ev.seq.get())),
+            ),
             KIND_PKT => {
                 if self.last.len() == REDUCER_LAST_PKTS {
                     self.last.pop_front();
@@ -355,6 +360,9 @@ impl Reducer for EthReducer {
                 // Late joiners need the real start anchor; omitted (never invented) when unknown.
                 if let Some(start) = i.started_mono_ns {
                     v["started_mono_ns"] = json!(start.to_string());
+                }
+                if let Some((e, n)) = i.start_at {
+                    v["start_cursor"] = json!(format!("e{e}:seq:{n}"));
                 }
                 v
             })

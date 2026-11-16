@@ -119,6 +119,10 @@ pub struct PktPayload {
     /// `tcp.stream` / UDP conversation number.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stream: Option<u32>,
+    /// (operator-upgrade B3a) Index space of `stream`: `"tcp"` (`tcp.stream`) or `"udp"`
+    /// (`udp.stream`). Present iff `stream` is. Absent on older records: `stream` was tcp only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stream_proto: Option<String>,
     /// Key fields per layer (≤ [`MAX_LAYERS_JSON`]).
     pub layers: Value,
     /// Link known at publish time.
@@ -414,6 +418,7 @@ mod tests {
             dst: "192.168.0.10".into(),
             info: "Diag 0x0E80→0x1001 22 F1 90 ReadDataByIdentifier".into(),
             stream: Some(3),
+            stream_proto: Some("tcp".into()),
             layers: json!({"doip": {"type": "0x8001"}}),
             link: None,
             pdu_first_src_seq: None,

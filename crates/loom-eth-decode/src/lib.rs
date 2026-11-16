@@ -12,6 +12,7 @@
 //!
 //! Every buffer, map and list is bounded (`MAX_*` constants in each module). No input panics.
 
+mod decode_as;
 mod doip;
 pub mod fields;
 mod json;
@@ -23,15 +24,17 @@ mod stream;
 mod uds;
 mod value;
 
+pub use decode_as::{AppProto, DecodeAs, DecodeAsError, DecodeAsRule, MAX_DECODE_AS_RULES, Transport};
 pub use fields::{FIELDS, FieldDef, field_def, protocols};
 pub use json::{CompactLayers, ValueJson};
 pub use model::{
     DecodeWarning, Decoded, Dir, Field, FieldValues, FrameMeta, Layer, Loc, MAX_BUFFERS, MAX_FIELD_DEPTH,
-    MAX_FIELDS, MAX_FRAME_BYTES, MAX_INFO_LEN, MAX_LAYERS, MAX_WARNINGS, Origin, Pos, Summary,
+    MAX_FIELDS, MAX_FRAME_BYTES, MAX_INFO_LEN, MAX_LAYERS, MAX_WARNINGS, Origin, Pos, Summary, TcpRelBase,
 };
 pub use stream::{
     MAX_OOO_DISTANCE, MAX_PDU_BYTES, MAX_PDUS_PER_PACKET, MAX_PENDING_SEGMENTS, MAX_STREAM_BUFFERED_BYTES,
-    MAX_STREAMS, MAX_TOTAL_BUFFERED_BYTES, STREAM_IDLE_NS, SWEEP_INTERVAL_NS, StreamTable,
+    MAX_STREAMS, MAX_TOTAL_BUFFERED_BYTES, MAX_UDP_CONVERSATIONS, STREAM_IDLE_NS, SWEEP_INTERVAL_NS,
+    StreamTable,
 };
 pub use value::{Base, FieldType, FieldValue, fmt_hex, fmt_mac};
 

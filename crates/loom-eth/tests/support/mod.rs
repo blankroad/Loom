@@ -41,11 +41,29 @@ pub fn block_on<F: Future>(f: F) -> F::Output {
 
 // --- journal ----------------------------------------------------------------------------------
 
-/// Events in seq order. Supports `Seq` cursors; every other cursor means "from the start".
+/// Events in seq order. Supports `Seq` cursors; every other cursor means "from the start" —
+/// unless `relative_now_wall` is set: then a `Relative` start cursor keeps only records with
+/// `ts.wall_ns >= now - amount` (the real journal's look-back, used by the ETH-01 regression).
 #[derive(Default)]
 pub struct FakeJournal {
     pub events: Mutex<Vec<PublishedRecord>>,
     pub scans: Mutex<u32>,
+    pub relative_now_wall: Mutex<Option<u64>>,
+    /// (C2) Emulates the core journal's recording path: a `Seq` start below `oldest` answers
+    /// `E_SCAN_LIMIT` with `detail` (default: `{partial: [], resume_from: "e1:seq:<oldest>",
+    /// scanned_bytes: "<bytes>"}`) instead of rows, like daemon 56402 for `seq:0`.
+    pub below_ring: Mutex<Option<BelowRing>>,
+}
+
+/// (C2) See [`FakeJournal::below_ring`].
+#[derive(Debug, Clone)]
+pub struct BelowRing {
+    /// First seq the ring serves; a start cursor below it gets the error.
+    pub oldest: u64,
+    /// `scanned_bytes` reported with the error.
+    pub bytes: u64,
+    /// Replaces the whole error `detail` when set (malformed-detail tests).
+    pub detail: Option<Value>,
 }
 
 fn seq_of(c: &Cursor) -> Option<u64> {
@@ -63,9 +81,36 @@ impl JournalReader for FakeJournal {
     ) -> BoxFuture<'a, Result<ScanResult, DomainError>> {
         Box::pin(async move {
             *self.scans.lock().expect("lock") += 1;
+            if let (Some(b), Some(start)) = (self.below_ring.lock().expect("lock").clone(), seq_of(&q.from))
+                && start < b.oldest
+            {
+                let detail = b.detail.unwrap_or_else(|| {
+                    json!({"partial": [], "resume_from": format!("e1:seq:{}", b.oldest),
+                           "scanned_bytes": b.bytes.to_string()})
+                });
+                return Err(DomainError::new(
+                    loom_proto::error::ErrorCode::ScanLimit,
+                    "scan budget reached — continue from resume_from",
+                )
+                .with_detail(detail));
+            }
             let from = seq_of(&q.from).unwrap_or(0);
             let until = q.until.as_ref().and_then(seq_of).unwrap_or(u64::MAX);
-            let all = self.events.lock().expect("lock").clone();
+            let min_wall = match (
+                *self.relative_now_wall.lock().expect("lock"),
+                q.from.relative_duration(),
+            ) {
+                (Some(now), Some(d)) => now.saturating_sub(u64::try_from(d.as_nanos()).unwrap_or(u64::MAX)),
+                _ => 0,
+            };
+            let all: Vec<PublishedRecord> = self
+                .events
+                .lock()
+                .expect("lock")
+                .iter()
+                .filter(|e| e.ts.wall_ns.get() >= min_wall)
+                .cloned()
+                .collect();
             let mut out = Vec::new();
             let mut resume_from = None;
             let mut scanned_bytes = 0u64;

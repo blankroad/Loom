@@ -51,6 +51,10 @@ export interface PktRow {
   txRequestId: string | null;
   /** daemon conversation index (record payload `stream`) — key for eth.follow */
   stream: number | null;
+  /** (B4a) index space of `stream` (payload `stream_proto`); null = absent (older records: tcp) */
+  streamProto: 'tcp' | 'udp' | null;
+  /** (B4b) the daemon re-decoded this row with a Decode As rule (query row `decode_as_applied === true`) */
+  decodeAsApplied: boolean;
   gap: { kind: string; count: number | bigint | 'unknown'; cause: string; firstSeq: bigint | null; lastSeq: bigint | null } | null;
   /** rough retained size for the 4 MiB panel budget */
   bytesEst: number;
@@ -90,6 +94,16 @@ function firstAddr(layers: Record<string, unknown>, key: 'src' | 'dst'): string 
   return '';
 }
 
+/**
+ * (C1, ETH-RT-03) Request id of Loom's own `eth.send` copy: `link` with `domain === 'eth'` and a
+ * non-empty string `request_id`; anything else → null. UDS links stay with {@link readLink}.
+ * FUNCTIONS.md FC1.7.
+ */
+export function readEthLinkRequestId(v: unknown): string | null {
+  const l = obj(v);
+  return l.domain === 'eth' && typeof l.request_id === 'string' && l.request_id !== '' ? l.request_id : null;
+}
+
 /** Row-shaped object (query row, or event flattened by fromEvent) → PktRow. */
 export function readPkt(row: Record<string, unknown>, channel: string): PktRow | null {
   const seq = big(row.seq);
@@ -121,8 +135,10 @@ export function readPkt(row: Record<string, unknown>, channel: string): PktRow |
     info,
     color: colorOf(proto, layers),
     link: readLink(row.link),
-    txRequestId: s(row.tx_request_id),
+    txRequestId: s(row.tx_request_id) ?? readEthLinkRequestId(row.link),
     stream: n(row.stream) ?? null,
+    streamProto: n(row.stream) !== null && (row.stream_proto === 'tcp' || row.stream_proto === 'udp') ? row.stream_proto : null,
+    decodeAsApplied: row.decode_as_applied === true,
     gap: null,
     bytesEst: 200 + 2 * (src.length + dst.length + proto.length + info.length),
   };
@@ -155,6 +171,8 @@ export function gapRow(kind: string, count: number | bigint | 'unknown', cause: 
     link: null,
     txRequestId: null,
     stream: null,
+    streamProto: null,
+    decodeAsApplied: false,
     gap: { kind, count, cause, firstSeq, lastSeq },
     bytesEst: 160,
   };
@@ -245,6 +263,25 @@ function normState(v: unknown): string | null {
   const t = s(v);
   if (!t) return null;
   return LEGACY_STATE[t] ?? t.toLowerCase();
+}
+
+/** (C3) Capture states that end a generation; the worker never leaves them within the same generation. */
+export const TERMINAL_CAPTURE_STATES: ReadonlySet<string> = new Set(['stopped', 'replay_done', 'error', 'permission_denied']);
+
+/**
+ * (operator-upgrade C3) Lifecycle merge rule for capture state from any source (control event,
+ * backlog, snapshot item, or eth.capture.status reply, which has no event seq). Within one generation
+ * the worker goes starting → running → terminal and never back, so an input that would move the state
+ * backwards is stale and returns false; an older generation is stale, a newer one is accepted.
+ * FUNCTIONS.md FC3.1.
+ */
+export function supersedesCapture(prevState: string | null, prevGen: number | null, nextState: unknown, nextGen: number | null): boolean {
+  const n = normState(nextState);
+  if (n === null) return true;
+  if (prevState === null || prevState === '?') return true;
+  if (prevGen !== null && nextGen !== null && nextGen !== prevGen) return nextGen > prevGen;
+  const rank = (x: string): number => (x === 'starting' ? 0 : TERMINAL_CAPTURE_STATES.has(x) ? 2 : 1);
+  return rank(n) >= rank(prevState);
 }
 
 export function readCaptureState(p: unknown, prev: CaptureState | null): CaptureState {
@@ -389,4 +426,271 @@ export class PacketStore {
     this.rows.splice(0, k);
     this.evicted += k;
   }
+}
+
+// ---- range / read scope (operator-upgrade B2, finding ETH-01) ----
+// Complete (journal) views always send an explicit `range.from`: the capture start anchor the daemon
+// observed (`start_cursor`), else an explicit "recent N" range labelled as a fallback, or a typed seq range.
+// The daemon's `partial_reasons` / `complete` decide the badge; `complete` is shown as 완전 ONLY when the
+// daemon reported partial_reasons (B1+) and none of them (contract: work/reports/operator-upgrade/eth/FUNCTIONS.md B2).
+
+/** rows per complete-mode page = the daemon's hard row cap (CONTRACT_MAX_ROWS) */
+export const PAGE_ROWS = 1_000;
+/** newer-page cursors remembered while paging back (oldest dropped beyond this) */
+export const MAX_PAGE_STACK = 32;
+/** explicit "recent" choices (seconds) */
+export const RECENT_CHOICES = [600, 3_600, 21_600] as const;
+export type RecentSecs = (typeof RECENT_CHOICES)[number];
+/** `start_cursor` grammar the daemon emits (`e<E>:seq:<N>`, `seq:<N>` accepted) */
+export const START_CURSOR_RE = /^(e\d{1,20}:)?seq:\d{1,20}$/;
+
+export type RangeChoice = { kind: 'capture' } | { kind: 'recent'; secs: RecentSecs } | { kind: 'seq'; from: bigint; to: bigint | null };
+export interface RangeAnchors {
+  /** daemon `start_cursor` of this channel's current generation; null = unknown */
+  startCursor: string | null;
+  /** newest packet seq the panel knows (live head); null/≤0 = unknown → no `to` */
+  headSeq: bigint | null;
+}
+/** eth.query/export/follow `range` — `from` is always present */
+export interface RangeRequest {
+  from: string;
+  to?: string;
+}
+export interface ResolvedRange {
+  req: RangeRequest;
+  label: string;
+  /** capture start unknown → explicit recent-10-minutes fallback */
+  fallback: boolean;
+}
+
+export const PARTIAL_REASONS = ['default_lookback', 'scan_budget', 'scan_incomplete', 'decode_budget', 'loss', 'row_cap', 'output_cap'] as const;
+export type PartialReason = (typeof PARTIAL_REASONS)[number];
+
+export interface ReadScope {
+  from: string | null;
+  to: string | null;
+  fromSource: 'explicit' | 'default_lookback' | null;
+  lookbackSecs: number | null;
+}
+/** honesty fields of eth.query / eth.export / eth.follow / eth.stats results (daemon B1) */
+export interface ReadMeta {
+  /** the daemon sent `partial_reasons` (B1+). false = older daemon → completeness unknown, never 완전 */
+  known: boolean;
+  /** known && daemon `complete === true` && no reason (known or unknown) */
+  complete: boolean;
+  /** daemon `scan_complete` (coverage of the applied range only); null = absent */
+  scanComplete: boolean | null;
+  reasons: PartialReason[];
+  /** reason strings this UI does not know (shown verbatim, still partial) */
+  unknownReasons: string[];
+  scope: ReadScope | null;
+  scannedFirst: bigint | null;
+  scannedLast: bigint | null;
+  resumeCursor: string | null;
+  /** listed gap entries + gaps_omitted */
+  gaps: number;
+}
+export interface QueryPage {
+  rows: PktRow[];
+  rowsFrom: bigint | null;
+  rowsTo: bigint | null;
+  matched: number | null;
+  truncated: boolean;
+  prevCursor: string | null;
+  nextCursor: string | null;
+  meta: ReadMeta;
+}
+export interface CompleteBadge {
+  text: string;
+  state: 'complete' | 'partial' | 'unknown';
+  title: string;
+}
+/** complete-mode paging state: `base` = resolved range, `current` = request on screen, `newer` = `to` values to go back to */
+export interface PageNav {
+  base: RangeRequest;
+  current: RangeRequest;
+  newer: (string | undefined)[];
+}
+
+/** F2.1 */
+export function resolveRange(choice: RangeChoice, anchors: RangeAnchors): ResolvedRange {
+  const head = anchors.headSeq !== null && anchors.headSeq > 0n ? `seq:${anchors.headSeq}` : undefined;
+  const withTo = (from: string, to: string | undefined): RangeRequest => (to !== undefined ? { from, to } : { from });
+  if (choice.kind === 'capture') {
+    if (anchors.startCursor !== null) return { req: withTo(anchors.startCursor, head), label: '캡처 시작 이후', fallback: false };
+    return { req: withTo('-600s', head), label: '최근 10분 (캡처 시작 위치 모름)', fallback: true };
+  }
+  if (choice.kind === 'recent') {
+    const label = choice.secs === 600 ? '최근 10분' : choice.secs === 3_600 ? '최근 1시간' : '최근 6시간';
+    return { req: withTo(`-${choice.secs}s`, head), label, fallback: false };
+  }
+  const to = choice.to !== null ? `seq:${choice.to}` : head;
+  return { req: withTo(`seq:${choice.from}`, to), label: `seq ${choice.from}–${choice.to !== null ? choice.to : '최신'}`, fallback: false };
+}
+/** F2.2 — `<select>` value + seq inputs → choice, or a user-facing error */
+export function parseRangeChoice(value: string, fromText: string, toText: string): RangeChoice | { error: string } {
+  if (value === 'capture') return { kind: 'capture' };
+  if (value === 'recent:600') return { kind: 'recent', secs: 600 };
+  if (value === 'recent:3600') return { kind: 'recent', secs: 3_600 };
+  if (value === 'recent:21600') return { kind: 'recent', secs: 21_600 };
+  if (value !== 'seq') return { error: '알 수 없는 범위' };
+  const u64Text = (t: string): bigint | null => {
+    if (!/^\d{1,20}$/.test(t)) return null;
+    const b = BigInt(t);
+    return b <= 0xffff_ffff_ffff_ffffn ? b : null;
+  };
+  const from = u64Text(fromText.trim());
+  if (from === null) return { error: '시작 seq를 숫자로 입력하세요' };
+  const toT = toText.trim();
+  const to = toT === '' ? null : u64Text(toT);
+  if (toT !== '' && to === null) return { error: '끝 seq를 숫자로 입력하세요' };
+  if (to !== null && from > to) return { error: '시작 seq가 끝 seq보다 큽니다' };
+  return { kind: 'seq', from, to };
+}
+/** F2.3 — choice → `<select>` value */
+export function rangeChoiceValue(choice: RangeChoice): string {
+  return choice.kind === 'recent' ? `recent:${choice.secs}` : choice.kind;
+}
+/** F2.4 */
+export function readReadMeta(v: unknown): ReadMeta {
+  const o = obj(v);
+  const known = Array.isArray(o.partial_reasons);
+  const reasons: PartialReason[] = [];
+  const unknownReasons: string[] = [];
+  if (Array.isArray(o.partial_reasons)) {
+    for (const r of o.partial_reasons as unknown[]) {
+      if (typeof r !== 'string') continue;
+      if ((PARTIAL_REASONS as readonly string[]).includes(r)) {
+        if (!reasons.includes(r as PartialReason)) reasons.push(r as PartialReason);
+      } else unknownReasons.push(r);
+    }
+  }
+  const sc = o.scope;
+  const scope: ReadScope | null =
+    typeof sc === 'object' && sc !== null
+      ? (() => {
+          const so = obj(sc);
+          return {
+            from: typeof so.from === 'string' ? so.from : null,
+            to: typeof so.to === 'string' ? so.to : null,
+            fromSource: so.from_source === 'explicit' || so.from_source === 'default_lookback' ? so.from_source : null,
+            lookbackSecs: n(so.lookback_secs),
+          };
+        })()
+      : null;
+  const scanned = obj(o.scanned);
+  return {
+    known,
+    complete: known && o.complete === true && reasons.length === 0 && unknownReasons.length === 0,
+    scanComplete: typeof o.scan_complete === 'boolean' ? o.scan_complete : null,
+    reasons,
+    unknownReasons,
+    scope,
+    scannedFirst: u64(scanned.first_seq),
+    scannedLast: u64(scanned.last_seq),
+    resumeCursor: typeof o.resume_cursor === 'string' && o.resume_cursor !== '' ? o.resume_cursor : null,
+    gaps: (Array.isArray(o.gaps) ? o.gaps.length : 0) + (n(o.gaps_omitted) ?? 0),
+  };
+}
+/** F2.5 */
+export function readQueryPage(v: unknown, channel: string): QueryPage {
+  const o = obj(v);
+  const rows: PktRow[] = [];
+  if (Array.isArray(o.rows)) {
+    for (const r of o.rows as unknown[]) {
+      const row = readPkt(obj(r), channel);
+      if (row) rows.push(row);
+    }
+  }
+  const range = obj(o.range);
+  return {
+    rows,
+    rowsFrom: big(range.from) ?? rows[0]?.seq ?? null,
+    rowsTo: big(range.to) ?? rows[rows.length - 1]?.seq ?? null,
+    matched: n(o.matched),
+    truncated: o.truncated === true,
+    prevCursor: typeof o.prev_cursor === 'string' ? o.prev_cursor : null,
+    nextCursor: typeof o.next_cursor === 'string' ? o.next_cursor : null,
+    meta: readReadMeta(v),
+  };
+}
+/** F2.6 */
+export function reasonText(r: PartialReason, meta: ReadMeta): string {
+  switch (r) {
+    case 'default_lookback':
+      return '기본 조회(최근 10분)만';
+    case 'scan_budget':
+      return '스캔 한도(64 MiB) 도달';
+    case 'scan_incomplete':
+      return '저널 스캔 불완전';
+    case 'decode_budget':
+      return '디코드 한도 도달';
+    case 'loss':
+      return `손실 구간 ${meta.gaps}건`;
+    case 'row_cap':
+      return `최대 ${PAGE_ROWS.toLocaleString('ko-KR')}행 초과`;
+    case 'output_cap':
+      return '출력 한도 도달';
+  }
+}
+/** F2.7 */
+export function scopeText(meta: ReadMeta): string {
+  if (!meta.known) return '요청/스캔 범위 정보 없음 (이전 daemon)';
+  const sc = meta.scope;
+  return (
+    `요청 범위 ${sc?.from ?? '?'} → ${sc?.to ?? '최신'}` +
+    (sc?.fromSource === 'default_lookback' ? ' (기본 최근 10분)' : '') +
+    ` · 스캔 seq ${meta.scannedFirst ?? '?'}–${meta.scannedLast ?? '?'}` +
+    (meta.scanComplete === true ? ' · 스캔 범위 전체 확인' : meta.scanComplete === false ? ' · 스캔 중단' : '')
+  );
+}
+/** F2.8 */
+export function completeBadge(page: QueryPage, label: string): CompleteBadge {
+  const meta = page.meta;
+  const cnt = page.rows.length.toLocaleString('ko-KR');
+  const seqs = page.rowsFrom !== null && page.rowsTo !== null ? ` · seq ${page.rowsFrom}–${page.rowsTo}` : '';
+  const title = scopeText(meta);
+  if (!meta.known) return { text: `완전 여부 미확인 · ${label} · ${cnt}행${seqs}`, state: 'unknown', title };
+  if (meta.complete) return { text: `완전 · ${label} · ${cnt}행${seqs}`, state: 'complete', title };
+  const m = page.matched !== null && page.matched > page.rows.length ? ` / 일치 ${page.matched.toLocaleString('ko-KR')}` : '';
+  const list = [...meta.reasons.map((r) => reasonText(r, meta)), ...meta.unknownReasons.map((r) => `기타 사유 ${r}`)].join(' · ');
+  return { text: `부분 · ${label} · ${cnt}행${m}${seqs} — ${list || '완전 아님(사유 미보고)'}`, state: 'partial', title };
+}
+/** F2.9 */
+export function navStart(req: RangeRequest): PageNav {
+  return { base: { ...req }, current: { ...req }, newer: [] };
+}
+/** F2.10 */
+export function navOlder(nav: PageNav, prevCursor: string): PageNav {
+  return {
+    base: nav.base,
+    current: { from: nav.current.from, to: prevCursor },
+    newer: [...nav.newer, nav.current.to].slice(-MAX_PAGE_STACK),
+  };
+}
+/** F2.11 */
+export function navNewer(nav: PageNav): PageNav | null {
+  if (nav.newer.length === 0) return null;
+  const t = nav.newer[nav.newer.length - 1];
+  return {
+    base: nav.base,
+    current: t !== undefined ? { from: nav.current.from, to: t } : { from: nav.current.from },
+    newer: nav.newer.slice(0, -1),
+  };
+}
+/** F2.12 */
+export function navResume(nav: PageNav, resumeCursor: string): PageNav {
+  return {
+    base: nav.base,
+    current: { from: resumeCursor, ...(nav.current.to !== undefined ? { to: nav.current.to } : {}) },
+    newer: [],
+  };
+}
+
+// ---- tree → display filter (operator-upgrade B4a, ETH-02) ----
+
+/** F4.2 — "prepare as filter … and/or": combine the field's text with a daemon-made expression */
+export function combineFilter(draft: string, expr: string, op: '&&' | '||'): string {
+  const d = draft.trim();
+  return d === '' ? expr : `(${d}) ${op} ${expr}`;
 }

@@ -35,9 +35,10 @@ import {
   type StoreMirror,
   type TreeNode,
 } from '../../sdk';
-import { openAddChannel, openCaptureStart, openConnectInterface, openEditSend, openFollow, openKeys } from './dialogs';
+import { openAddChannel, openCaptureStart, openConnectInterface, openEditSend, openFollow, openKeys, openReplayFile } from './dialogs';
 import { loadConfigs, saveConfigs, upsertConfig, type IfaceConfig } from './ifaceConfigs';
 import { createSocketDrawer } from './socketDrawer';
+import { decodeAsNotes, loadRules, MAX_DECODE_AS, rulesText, saveRules, validateRules, type DecodeAsRule } from './decodeAs';
 import { btn, divider, grow, icon, loadJson, saveJson, tbtn, vdiv } from '../../workbench/eth/bench';
 import {
   fmtTime,
@@ -53,22 +54,43 @@ import {
   fmtCount,
   fmtRate,
   u64,
-  seqRange,
   type CaptureStats,
   readLinkEvent,
-  readPkt,
   samplingText,
   type BatchCoverage,
   type CaptureState,
   type PktLink,
   type PktRow,
   type TimeMode,
+  PAGE_ROWS,
+  START_CURSOR_RE,
+  combineFilter,
+  completeBadge,
+  navNewer,
+  navOlder,
+  navResume,
+  navStart,
+  parseRangeChoice,
+  rangeChoiceValue,
+  readQueryPage,
+  readReadMeta,
+  reasonText,
+  resolveRange,
+  scopeText,
+  supersedesCapture,
+  type PageNav,
+  type QueryPage,
+  type RangeAnchors,
+  type RangeChoice,
+  type RangeRequest,
+  type ReadMeta,
 } from './ethModel';
 import { FilterBar } from './filterBar';
 import '../../workbench/eth/bench.css';
 import './eth.css';
 
-export const QUERY_MAX = 2_000;
+/** complete-mode page size = daemon row cap (was 2,000, which the daemon silently clamped to 1,000) */
+export const QUERY_MAX = PAGE_ROWS;
 /** other-channel card refresh (read-only eth.capture.status) */
 export const CH_REFRESH_MS = 5_000;
 const MAX_PENDING_LINKS = 2_000; // links for packets not seen yet (C2)
@@ -120,6 +142,10 @@ export interface ExportResult {
   /** loss entries listed for the exported range */
   gaps: number;
   commentsDropped: number;
+  /** (B2) applied display filter as the daemon reports it; null = none / not reported */
+  filter: string | null;
+  /** (B2) scope / completeness / partial reasons (readReadMeta of the result) */
+  meta: ReadMeta;
 }
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' && /^\d+$/.test(v) ? Number(v) : null);
 /** null when the action reported no result object at all (e.g. a source-compatible fake handle) */
@@ -133,6 +159,8 @@ export function readExportResult(v: unknown): ExportResult | null {
     truncated: o.truncated === true,
     gaps: Array.isArray(o.gaps) ? o.gaps.length : 0,
     commentsDropped: num(o.comments_dropped) ?? 0,
+    filter: typeof o.filter === 'string' && o.filter ? o.filter : null,
+    meta: readReadMeta(o),
   };
 }
 /** daemon write-row `error` ({code, message} or a string) → "E_LOCKED: message"; null when absent */
@@ -192,7 +220,12 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   let lastTsSource = '?';
 
   let mode: 'live' | 'complete' = 'live';
-  let complete: { rows: PktRow[]; from: bigint | null; to: bigint | null; truncated: boolean; reason: string } | null = null;
+  let rangeChoice: RangeChoice = { kind: 'capture' };
+  let startCursor: string | null = null;
+  let nav: PageNav | null = null;
+  let page: QueryPage | null = null;
+  let pageLabel = '';
+  let exportScopeDlg: { close(): void } | null = null;
   let completeState: 'idle' | 'loading' | 'error' = 'idle';
   let completeErr = '';
   let completeAc: AbortController | null = null;
@@ -202,6 +235,9 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   let detailHex: string | null = null;
   let detailAc: AbortController | null = null;
   let detailMs: number | null = null;
+  let daRules: DecodeAsRule[] = bound ? loadRules(ch) : [];
+  let daDlg: { close(): void } | null = null;
+  let detailDaNotes: string[] = [];
   let itemsDirty = true;
   let prevMono = new Map<string, bigint>();
   let relRid: string | null = null; // request_id of the selected packet's eth.link
@@ -262,7 +298,10 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   const chState = el('span', 'wb-chip stopped', '?');
   const chSim = el('span', 'wb-chip sim', 'SIM tap');
   chSim.title = 'daemon이 보고한 시뮬레이션 탭 (실제 NIC 아님)';
-  chName.append(chAlias, chState, chSim);
+  const chReplay = el('span', 'wb-chip replay', 'REPLAY 파일');
+  chReplay.title = 'daemon이 파일을 재생 중 — 실제 NIC 캡처 아님';
+  chReplay.hidden = true;
+  chName.append(chAlias, chState, chSim, chReplay);
   const statusText = el('span', 'ch-meta');
   const chActs = el('span', 'ch-acts');
   const cardStart = btn('', 'wb-btn', '캡처 시작… (eth.capture.start)');
@@ -293,6 +332,8 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   cfgEdit.setAttribute('data-cmd', 'iface-edit');
   const cfgDel = btn('삭제', 'wb-btn', '저장된 구성 삭제 (로컬만 — daemon 채널·기록은 그대로)');
   cfgDel.setAttribute('data-cmd', 'iface-delete');
+  const cfgReplay = btn('파일 열기 (replay)…', 'wb-btn', 'pcap/pcapng 파일을 daemon에서 재생 — 경로는 daemon 머신 기준 (실제 NIC 아님)');
+  cfgReplay.setAttribute('data-cmd', 'iface-replay');
   const selectedCfg = (): IfaceConfig | null => cfgs.find((c) => c.alias === cfgSel.value) ?? null;
   let cfgKey = '';
   const renderCfgs = () => {
@@ -301,7 +342,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     cfgKey = key;
     const prev = cfgSel.value;
     cfgSel.replaceChildren(
-      ...cfgs.map((c) => Object.assign(el('option', undefined, `${c.alias} · ${c.iface}${c.backend === 'sim' ? ' (SIM)' : ''}`), { value: c.alias })),
+      ...cfgs.map((c) => Object.assign(el('option', undefined, `${c.alias} · ${c.iface}${c.backend === 'sim' ? ' (SIM)' : c.backend === 'replay' ? ' (REPLAY)' : ''}`), { value: c.alias })),
       Object.assign(el('option', undefined, '새 구성…'), { value: NEW_CFG }),
     );
     cfgSel.value = cfgs.some((c) => c.alias === prev) ? prev : (cfgs[0]?.alias ?? NEW_CFG);
@@ -313,23 +354,32 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     cfgSel.value = c.alias;
     ctx.scheduler.invalidate();
   };
-  const connectCfg = (initial: IfaceConfig | null) =>
-    openConnectInterface(dialogHost, ctx, initial, {
-      onSave: (c, prevAlias) => {
-        storeCfg(c, prevAlias);
-        ctx.ui.toast(`구성 ${c.alias} 저장 — 캡처는 시작하지 않았습니다`);
-      },
-      onStarted: (newCh, c) => {
-        storeCfg(c, initial?.alias ?? null);
-        void refreshChannels();
-        ctx.ui.openPanel('eth.packets', { channel: newCh });
-        ctx.ui.toast(`채널 ${newCh} 캡처 시작 — 그 채널 패널을 열었습니다`);
-      },
-    });
+  const cfgHandlers = (initialAlias: string | null) => ({
+    onSave: (c: IfaceConfig, prevAlias: string | null) => {
+      storeCfg(c, prevAlias);
+      ctx.ui.toast(`구성 ${c.alias} 저장 — 캡처는 시작하지 않았습니다`);
+    },
+    onStarted: (newCh: string, c: IfaceConfig) => {
+      storeCfg(c, initialAlias);
+      void refreshChannels();
+      ctx.ui.openPanel('eth.packets', { channel: newCh });
+      ctx.ui.toast(`채널 ${newCh} 캡처 시작 — 그 채널 패널을 열었습니다`);
+    },
+  });
+  const connectCfg = (initial: IfaceConfig | null) => openConnectInterface(dialogHost, ctx, initial, cfgHandlers(initial?.alias ?? null));
   if (!bound) {
     renderCfgs();
-    cfgConnect.addEventListener('click', () => connectCfg(selectedCfg()));
+    cfgConnect.addEventListener('click', () => {
+      const c = selectedCfg();
+      if (cfgConnect.dataset.mode === 'open' && c) {
+        ctx.ui.openPanel('eth.packets', { channel: c.alias });
+        ctx.ui.toast(`채널 ${c.alias} 패널을 열었습니다 — 캡처는 시작하지 않았습니다`);
+        return;
+      }
+      connectCfg(c);
+    });
     cfgEdit.addEventListener('click', () => connectCfg(selectedCfg()));
+    cfgReplay.addEventListener('click', () => openReplayFile(dialogHost, ctx, cfgHandlers(null)));
     cfgDel.addEventListener('click', () => {
       const c = selectedCfg();
       if (!c) return;
@@ -340,7 +390,11 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     });
     cfgSel.addEventListener('change', () => ctx.scheduler.invalidate());
     status.dataset.unbound = 'true';
-    chActs.replaceChildren(cfgSel, cfgConnect, cfgEdit, cfgDel); // the channel card's start/stop need a channel
+    chbar.dataset.unbound = 'true';
+    addBtn.hidden = true;
+    startBtn.hidden = true;
+    stopBtn.hidden = true;
+    chActs.replaceChildren(cfgSel, cfgConnect, cfgEdit, cfgDel, cfgReplay); // the channel card's start/stop need a channel
   }
   const otherHost = el('span', 'eth-chothers');
   otherHost.setAttribute('data-testid', 'eth-other-channels');
@@ -373,6 +427,11 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       .query<{ channels?: Record<string, unknown>[] }>('eth.capture.status', {})
       .then((r) => {
         channelsErr = false;
+        if (bound) {
+          const own = r?.channels?.find((c) => c.ch === ch);
+          if (own && typeof own.state === 'string') applyCapture(own, typeof own.generation === 'number' ? own.generation : null);
+          if (own) startCursor = typeof own.start_cursor === 'string' && START_CURSOR_RE.test(own.start_cursor) ? own.start_cursor : null;
+        }
         others.clear();
         for (const c of r?.channels ?? []) noteOther(c.ch, c, true);
         ctx.scheduler.invalidate();
@@ -397,6 +456,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       const nm = el('span', 'ch-name');
       nm.append(el('span', 'alias', name), el('span', `wb-chip ${live ? 'live' : o.state === 'error' || o.state === 'permission_denied' ? 'err' : o.state === '?' ? 'pend' : 'stopped'}`, o.state === '?' ? '상태 미상' : o.state.toUpperCase()));
       if (o.backend === 'sim') nm.append(el('span', 'wb-chip sim', 'SIM'));
+      if (o.backend === 'replay') nm.append(el('span', 'wb-chip replay', 'REPLAY'));
       const open = btn('열기', 'wb-btn', `${name} 패널 열기`);
       const acts = el('span', 'ch-acts');
       acts.append(open);
@@ -412,6 +472,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       });
       return card;
     });
+    if (!bound && list.length > 0) cards.unshift(el('span', 'eth-ch-head', '기존 채널 이어 보기'));
     if (channelsErr) cards.push(Object.assign(el('span', 'eth-ch-note', '다른 채널 목록 조회 실패'), { title: 'eth.capture.status' }));
     otherHost.replaceChildren(...cards);
   };
@@ -436,13 +497,52 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   modeBar.setAttribute('data-testid', 'eth-mode-row');
   const modeBadge = el('span', 'eth-mode-badge');
   modeBadge.setAttribute('data-testid', 'eth-mode');
-  scopeRow.append(scopeLab, chipCh, capf, grow(), timeSel, modeBadge);
+  const daBtn = btn('Decode As', 'wb-btn', '');
+  daBtn.setAttribute('data-cmd', 'decode-as');
+  daBtn.hidden = !bound;
+  scopeRow.append(scopeLab, chipCh, capf, daBtn, grow(), timeSel, modeBadge);
   const dfCount = el('span', 'eth-dfcount');
   dfCount.setAttribute('data-testid', 'eth-dfcount');
   dfCount.setAttribute('aria-live', 'polite');
   const filterHost = el('div', 'eth-filter-host');
   filterHost.setAttribute('data-testid', 'eth-filter-host');
-  fbar.append(scopeRow, filterHost);
+  const rangeRow = el('div', 'eth-frow eth-range-row');
+  rangeRow.setAttribute('data-testid', 'eth-range-row');
+  rangeRow.hidden = !bound;
+  const rangeLab = el('span', 'eth-flab', '조회 범위');
+  rangeLab.title = '완전(저널) 조회 범위 — 항상 명시 범위로 조회';
+  const rangeSel = el('select', 'wb-tsel');
+  rangeSel.setAttribute('data-testid', 'eth-range');
+  rangeSel.setAttribute('aria-label', '완전 조회 범위');
+  for (const [v, t] of [['capture', '캡처 시작 이후'], ['recent:600', '최근 10분'], ['recent:3600', '최근 1시간'], ['recent:21600', '최근 6시간'], ['seq', 'seq 범위…']] as const) {
+    rangeSel.append(Object.assign(el('option', undefined, t), { value: v }));
+  }
+  rangeSel.value = 'capture';
+  const rangeFrom = el('input', 'eth-range-seq');
+  rangeFrom.setAttribute('data-testid', 'eth-range-from');
+  rangeFrom.placeholder = '시작 seq';
+  rangeFrom.inputMode = 'numeric';
+  rangeFrom.setAttribute('aria-label', '시작 seq');
+  rangeFrom.hidden = true;
+  const rangeTo = el('input', 'eth-range-seq');
+  rangeTo.setAttribute('data-testid', 'eth-range-to');
+  rangeTo.placeholder = '끝 seq (비우면 최신)';
+  rangeTo.inputMode = 'numeric';
+  rangeTo.setAttribute('aria-label', '끝 seq (비우면 최신)');
+  rangeTo.hidden = true;
+  const rangeApply = btn('조회', 'wb-btn', 'seq 범위 조회');
+  rangeApply.setAttribute('data-cmd', 'range-apply');
+  rangeApply.hidden = true;
+  const olderBtn = btn('◀ 이전 1,000행', 'wb-btn', '더 오래된 1,000행 (prev_cursor)');
+  olderBtn.setAttribute('data-cmd', 'page-older');
+  const newerBtn = btn('최신 쪽 ▶', 'wb-btn', '이전에 보던 더 최신 페이지');
+  newerBtn.setAttribute('data-cmd', 'page-newer');
+  const resumeBtn = btn('계속 스캔 ▶', 'wb-btn', '스캔 한도에서 멈춘 지점부터 이어서 조회 (resume_cursor)');
+  resumeBtn.setAttribute('data-cmd', 'page-resume');
+  const rangeScope = el('span', 'eth-range-scope');
+  rangeScope.setAttribute('data-testid', 'eth-range-scope');
+  rangeRow.append(rangeLab, rangeSel, rangeFrom, rangeTo, rangeApply, olderBtn, newerBtn, resumeBtn, rangeScope);
+  fbar.append(scopeRow, rangeRow, filterHost);
 
   // capture workspace
   const wsp = el('div', 'eth-wsp');
@@ -462,10 +562,17 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   detailInfo.setAttribute('data-testid', 'eth-detail-info');
   const expandBtn = btn('＋', 'wb-ibtn', '모두 펼치기');
   const collapseBtn = btn('－', 'wb-ibtn', '모두 접기');
-  detailBar.append(el('span', undefined, '패킷 상세'), detailInfo, grow(), resendBtn, editBtn, refBtn, copyBtn, expandBtn, collapseBtn);
+  const fldBtn = btn('필드 동작…', 'wb-btn', '선택한 필드로 필터 적용/준비, 필드명 복사 (우클릭·Shift+F10도 가능)');
+  fldBtn.setAttribute('data-cmd', 'fld-menu');
+  detailBar.append(el('span', undefined, '패킷 상세'), detailInfo, grow(), resendBtn, editBtn, fldBtn, refBtn, copyBtn, expandBtn, collapseBtn);
   lower.append(detailBar);
   // Wireshark details pane: protocol layers start collapsed; node selection feeds the status bar.
-  const treeHex = new TreeHex(lower, { collapseTopLayers: true, onSelectNode: () => ctx.scheduler.invalidate() });
+  let fieldMenu: { close(): void } | null = null;
+  const treeHex = new TreeHex(lower, {
+    collapseTopLayers: true,
+    onSelectNode: () => ctx.scheduler.invalidate(),
+    onNodeContext: (node, _anchor, at) => openFieldMenu(node, at),
+  });
   treeHex.root.classList.add('eth-treehex');
   const splitB = el('div', 'eth-split eth-split-b');
   splitB.setAttribute('data-testid', 'eth-split-bytes');
@@ -525,7 +632,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     });
 
   // ---- list ----
-  const items = (): PktRow[] => (mode === 'complete' ? (complete?.rows ?? []) : live.rows);
+  const items = (): PktRow[] => (mode === 'complete' ? (page?.rows ?? []) : live.rows);
   const cols: Column<PktRow>[] = [
     {
       key: 'rel',
@@ -545,7 +652,12 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     },
     { key: 'src', header: 'Source', width: '136px', cell: (r) => r.src },
     { key: 'dst', header: 'Destination', width: '136px', cell: (r) => r.dst },
-    { key: 'proto', header: 'Protocol', width: '84px', cell: (r) => r.proto },
+    {
+      key: 'proto',
+      header: 'Protocol',
+      width: '84px',
+      cell: (r) => (r.kind === 'pkt' && r.decodeAsApplied ? { text: r.proto, cls: 'eth-da', title: 'Decode As 규칙으로 해석됨 (읽기 해석, 기록은 그대로)' } : r.proto),
+    },
     { key: 'len', header: 'Length', width: '58px', cell: (r) => (r.kind === 'pkt' ? { text: String(r.len), cls: 'eth-num' } : '') },
     { key: 'info', header: 'Info', width: 'minmax(240px, 1fr)', cell: (r) => r.info },
     {
@@ -592,7 +704,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     onScrollAway: () => {
       if (mode === 'live') goComplete('scrollback');
     },
-    emptyText: '패킷 없음',
+    emptyText: bound ? '패킷 없음' : '채널 미연결 — 기존 채널 [열기] 또는 구성 [연결…]',
     ariaLabel: '패킷 목록',
   });
 
@@ -650,32 +762,23 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     return mirror.headSeq;
   };
 
-  const goComplete = (reason: string) => {
-    if (!bound) return; // no journal range without a channel: the empty live view stays as it is
+  const anchors = (): RangeAnchors => ({ startCursor, headSeq: headSeq() > 0n ? headSeq() : null });
+
+  const runQuery = (_reason: string) => {
+    void _reason; // kept for future use (contract F2.21)
+    if (!bound || !nav) return;
     mode = 'complete';
     completeState = 'loading';
     completeAc?.abort();
     const ac = new AbortController();
     completeAc = ac;
-    const to = headSeq();
     const expr = filter.applied;
     itemsDirty = true;
     ctx
-      .query<{ rows?: unknown[]; range?: { from?: string; to?: string }; truncated?: boolean }>(
-        'eth.query',
-        { ch, range: seqRange(null, to > 0n ? to : null), ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false },
-        ac.signal,
-      )
+      .query<unknown>('eth.query', { ch, range: nav.current, ...(expr ? { filter: expr } : {}), max: QUERY_MAX, detail: false, ...(daRules.length ? { decode_as: daRules } : {}) }, ac.signal)
       .then((res) => {
         if (ac.signal.aborted) return;
-        const rows = (res?.rows ?? []).map((r) => readPkt(obj(r), ch)).filter((r): r is PktRow => r !== null);
-        complete = {
-          rows,
-          from: big(res?.range?.from) ?? rows[0]?.seq ?? null,
-          to: big(res?.range?.to) ?? rows[rows.length - 1]?.seq ?? to,
-          truncated: res?.truncated === true || rows.length >= QUERY_MAX,
-          reason,
-        };
+        page = readQueryPage(res, ch);
         completeState = 'idle';
         itemsDirty = true;
         ctx.scheduler.invalidate();
@@ -689,21 +792,161 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     ctx.scheduler.invalidate();
   };
 
+  const goComplete = (reason: string) => {
+    if (!bound) return; // no journal range without a channel: the empty live view stays as it is
+    const r = resolveRange(rangeChoice, anchors());
+    pageLabel = r.label;
+    nav = navStart(r.req);
+    runQuery(reason);
+  };
+
   const goLive = () => {
     mode = 'live';
-    complete = null;
+    page = null;
+    nav = null;
     completeState = 'idle';
     completeAc?.abort();
     itemsDirty = true;
     table.followTail();
   };
 
+  const pageOlder = () => {
+    if (mode === 'complete' && nav && page?.prevCursor) {
+      nav = navOlder(nav, page.prevCursor);
+      runQuery('page');
+    }
+  };
+  const pageNewer = () => {
+    const n = nav && navNewer(nav);
+    if (n) {
+      nav = n;
+      runQuery('page');
+    }
+  };
+  const pageResume = () => {
+    if (nav && page?.meta.resumeCursor) {
+      nav = navResume(nav, page.meta.resumeCursor);
+      runQuery('resume');
+    }
+  };
+  const onRangeSelect = () => {
+    if (!bound) return;
+    if (rangeSel.value === 'seq') {
+      rangeFrom.hidden = false;
+      rangeTo.hidden = false;
+      rangeApply.hidden = false;
+      return;
+    }
+    rangeFrom.hidden = true;
+    rangeTo.hidden = true;
+    rangeApply.hidden = true;
+    const c = parseRangeChoice(rangeSel.value, '', '');
+    if ('error' in c) return;
+    rangeChoice = c;
+    goComplete('range');
+  };
+  const onRangeApply = () => {
+    if (!bound) return;
+    const c = parseRangeChoice('seq', rangeFrom.value, rangeTo.value);
+    if ('error' in c) {
+      ctx.ui.toast(c.error);
+      return;
+    }
+    rangeChoice = c;
+    rangeSel.value = rangeChoiceValue(c);
+    goComplete('range');
+  };
+  rangeSel.addEventListener('change', onRangeSelect);
+  rangeApply.addEventListener('click', onRangeApply);
+  olderBtn.addEventListener('click', pageOlder);
+  newerBtn.addEventListener('click', pageNewer);
+  resumeBtn.addEventListener('click', pageResume);
+
   const togglePause = () => (mode === 'live' ? goComplete('pause') : goLive());
 
   // ---- detail ----
+  const openFieldMenu = (node: TreeNode, at: { x: number; y: number }) => {
+    fieldMenu?.close();
+    const menu = el('div', 'eth-fld-menu');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', '필드 동작');
+    menu.setAttribute('data-testid', 'eth-fld-menu');
+    menu.tabIndex = -1;
+    menu.style.left = `${at.x}px`;
+    menu.style.top = `${at.y}px`;
+    menu.append(el('div', 'eth-fld-head', `${node.name ?? '(이름 없음)'}${node.filter ? ` — ${node.filter}` : ''}`));
+    const items: HTMLButtonElement[] = [];
+    const onOutside = (e: Event) => {
+      if (!menu.contains(e.target as Node)) close();
+    };
+    const close = () => {
+      menu.remove();
+      document.removeEventListener('pointerdown', onOutside, true);
+      if (fieldMenu?.close === close) fieldMenu = null;
+    };
+    const copy = (t: string) => {
+      const done = navigator.clipboard?.writeText(t);
+      if (!done) ctx.ui.toast(t);
+      else done.then(() => ctx.ui.toast(`복사: ${t}`)).catch(() => ctx.ui.toast(t));
+    };
+    const f = node.filter ?? null;
+    const addItem = (cmd: string, text: string, run: () => void, disabled: boolean, why: string) => {
+      const b = el('button', 'eth-fld-item', text);
+      b.type = 'button';
+      b.setAttribute('role', 'menuitem');
+      b.setAttribute('data-cmd', cmd);
+      if (disabled) {
+        b.disabled = true;
+        b.title = why;
+      }
+      b.addEventListener('click', () => {
+        close();
+        run();
+      });
+      items.push(b);
+      menu.append(b);
+    };
+    const noFilter = 'daemon이 이 항목의 필터 식을 주지 않았습니다';
+    addItem('fld-apply', '필터로 적용', () => {
+      filter.setExpr(f ?? '');
+      void filter.applyNow();
+    }, f === null, noFilter);
+    addItem('fld-prepare', '필터로 준비', () => filter.setExpr(f ?? ''), f === null, noFilter);
+    addItem('fld-and', '…그리고(&&) 준비', () => filter.setExpr(combineFilter(filter.input.value, f ?? '', '&&')), f === null, noFilter);
+    addItem('fld-or', '…또는(||) 준비', () => filter.setExpr(combineFilter(filter.input.value, f ?? '', '||')), f === null, noFilter);
+    addItem('fld-copy-name', '필드명 복사', () => copy(node.name ?? ''), !node.name, '필드명이 없습니다');
+    addItem('fld-copy-filter', '필터 식 복사', () => copy(f ?? ''), f === null, noFilter);
+    menu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        close();
+        return;
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      const enabled = items.filter((b) => !b.disabled);
+      if (!enabled.length) return;
+      const i = enabled.indexOf(document.activeElement as HTMLButtonElement);
+      const j = e.key === 'ArrowDown' ? (i + 1) % enabled.length : (i <= 0 ? enabled.length - 1 : i - 1);
+      enabled[j]?.focus();
+    });
+    document.addEventListener('pointerdown', onOutside, true);
+    dialogHost.append(menu);
+    fieldMenu = { close };
+    (items.find((b) => !b.disabled) ?? menu).focus();
+  };
+  fldBtn.addEventListener('click', () => {
+    const n = treeHex.selectedNode;
+    if (!n) return;
+    const r = fldBtn.getBoundingClientRect();
+    openFieldMenu(n, { x: r.left, y: r.bottom });
+  });
+
   const onSelect = (key: string | null) => {
+    fieldMenu?.close();
     detailAc?.abort();
     detailHex = null;
+    detailDaNotes = [];
     selected = key ? (items().find((r) => r.key === key) ?? null) : null;
     relRid = selected?.kind === 'pkt' ? (selected.link?.requestId ?? null) : null;
     itemsDirty = true; // re-render related-packet glyphs
@@ -717,10 +960,11 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     const t0 = performance.now();
     treeHex.clear('불러오는 중…');
     ctx
-      .query<Record<string, unknown>>('eth.show', { ref: selected.ref }, ac.signal)
+      .query<Record<string, unknown>>('eth.show', { ref: selected.ref, ...(daRules.length ? { decode_as: daRules } : {}) }, ac.signal)
       .then((res) => {
         if (ac.signal.aborted) return;
         detailMs = Math.round(performance.now() - t0);
+        detailDaNotes = decodeAsNotes(res);
         const bytes = decodePayloadBytes(res?.bytes) ?? (typeof res?.hex === 'string' ? decodePayloadBytes({ encoding: 'hex', data: res.hex }) : null);
         detailHex = bytes && res?.truncated !== true ? [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('') : null;
         const raw = typeof res?.raw_url === 'string' ? res.raw_url : null;
@@ -736,6 +980,94 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       });
     ctx.scheduler.invalidate();
   };
+
+  const openDecodeAsDialog = () => {
+    daDlg?.close();
+    const overlay = el('div', 'eth-dialog-overlay');
+    const box = el('div', 'eth-dialog');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Decode As');
+    box.setAttribute('data-testid', 'eth-decodeas-dialog');
+    const body = el('div');
+    const close = () => {
+      overlay.remove();
+      if (daDlg?.close === close) daDlg = null;
+    };
+    const note = el('p', 'muted', '읽기 해석 규칙 — 저장된 기록은 바꾸지 않습니다. 완전(저널) 조회·상세·내보내기 필터에 적용되고, 라이브 목록은 원래 디코드 그대로입니다.');
+    const rowsEl = el('div', 'eth-da-rows');
+    const daAdd = btn('+ 규칙', 'wb-btn');
+    daAdd.setAttribute('data-cmd', 'da-add');
+    const sync = () => {
+      daAdd.disabled = rowsEl.children.length >= MAX_DECODE_AS;
+    };
+    const addRow = (r: { transport: string; port: string; proto: string }) => {
+      const row = el('div', 'eth-da-row');
+      const t = el('select');
+      t.setAttribute('aria-label', '전송 계층');
+      for (const [v, x] of [['tcp', 'TCP'], ['udp', 'UDP']] as const) t.append(Object.assign(el('option', undefined, x), { value: v }));
+      t.value = r.transport;
+      const p = el('input');
+      p.setAttribute('aria-label', '포트');
+      p.inputMode = 'numeric';
+      p.value = r.port;
+      const a = el('select');
+      a.setAttribute('aria-label', '해석');
+      for (const [v, x] of [['doip', 'DoIP'], ['someip', 'SOME/IP']] as const) a.append(Object.assign(el('option', undefined, x), { value: v }));
+      a.value = r.proto;
+      const rm = btn('삭제', 'wb-btn');
+      rm.setAttribute('data-cmd', 'da-remove');
+      rm.addEventListener('click', () => {
+        row.remove();
+        sync();
+      });
+      row.append(t, p, a, rm);
+      rowsEl.append(row);
+      sync();
+    };
+    for (const r of daRules) addRow({ transport: r.transport, port: String(r.port), proto: r.proto });
+    daAdd.addEventListener('click', () => {
+      if (rowsEl.children.length < MAX_DECODE_AS) addRow({ transport: 'udp', port: '', proto: 'doip' });
+    });
+    const msg = el('div', 'eth-da-msg');
+    const actions = el('div', 'eth-dialog-actions');
+    const cancel = btn('취소 (Esc)', 'wb-btn');
+    cancel.setAttribute('data-cmd', 'da-cancel');
+    cancel.addEventListener('click', close);
+    const apply = btn('적용', 'wb-btn primary');
+    apply.setAttribute('data-testid', 'eth-decodeas-apply');
+    apply.addEventListener('click', () => {
+      const rows = [...rowsEl.querySelectorAll<HTMLElement>('.eth-da-row')].map((row) => {
+        const sels = row.querySelectorAll<HTMLSelectElement>('select');
+        return { transport: sels[0]?.value ?? '', port: row.querySelector<HTMLInputElement>('input')?.value ?? '', proto: sels[1]?.value ?? '' };
+      });
+      const r = validateRules(rows);
+      if ('error' in r) {
+        msg.textContent = r.error;
+        msg.classList.add('err');
+        return;
+      }
+      saveRules(ch, r);
+      daRules = r;
+      close();
+      if (mode === 'complete') goComplete('decode_as');
+      if (selected?.kind === 'pkt') onSelect(selected.key);
+      ctx.scheduler.invalidate();
+    });
+    actions.append(cancel, apply);
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        close();
+      }
+    });
+    body.append(note, rowsEl, daAdd, msg, actions);
+    box.append(el('header', undefined, `Decode As — 읽기 해석 규칙 (${ch})`), body);
+    overlay.append(box);
+    dialogHost.append(overlay);
+    daDlg = { close };
+    apply.focus();
+  };
+  daBtn.addEventListener('click', openDecodeAsDialog);
 
   // ---- buttons & keys ----
   const stopCapture = () => {
@@ -767,8 +1099,9 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   });
   followBtn.addEventListener('click', () => {
     if (selected?.kind !== 'pkt' || selected.stream === null) return;
-    const proto = /udp/i.test(selected.proto) || /(^|\.)udp/.test(selected.proto.toLowerCase()) ? 'udp' : 'tcp';
-    openFollow(dialogHost, ctx, ch, proto, selected.stream, (expr) => filter.setExpr(expr));
+    const proto = selected.streamProto ?? 'tcp';
+    const range: RangeRequest = mode === 'complete' && nav ? { ...nav.current } : resolveRange(rangeChoice, anchors()).req;
+    openFollow(dialogHost, ctx, ch, proto, selected.stream, (expr) => filter.setExpr(expr), range);
   });
   clearBtn.addEventListener('click', () => {
     live.clear();
@@ -796,13 +1129,11 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   // actual result {path, packets, bytes, truncated, gaps, comments_dropped}. Errors stay errors (act() toast).
   let exportDlg: { close(): void } | null = null;
   let disposed = false;
-  exportBtn.addEventListener('click', () => {
-    if (exportBtn.disabled || !bound) return;
-    const range = mode === 'complete' && complete ? seqRange(complete.from, complete.to) : undefined;
+  const runExport = (params: object) => {
     exportBtn.disabled = true;
     exportBtn.setAttribute('aria-busy', 'true');
     exportBtn.title = '내보내는 중… (daemon이 파일을 쓰는 중)';
-    void act('export', { ch, format: 'pcapng', ...(filter.applied ? { filter: filter.applied } : {}), ...(range ? { range } : {}) })
+    void act('export', params)
       .then((h) => {
         if (!h || disposed) return;
         const r = readExportResult(h.result);
@@ -819,6 +1150,116 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         exportBtn.removeAttribute('aria-busy');
         exportBtn.title = EXPORT_TITLE;
       });
+  };
+  const openExportDialog = () => {
+    exportScopeDlg?.close();
+    const overlay = el('div', 'eth-dialog-overlay');
+    const box = el('div', 'eth-dialog');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'pcapng 내보내기 범위');
+    box.setAttribute('data-testid', 'eth-export-dialog');
+    const body = el('div');
+    const close = () => {
+      overlay.remove();
+      if (exportScopeDlg?.close === close) exportScopeDlg = null;
+    };
+    const sel = selected;
+    const selPkt = sel?.kind === 'pkt' ? sel : null;
+    const scopeBox = el('div', 'eth-export-scope');
+    const radios = new Map<string, HTMLInputElement>();
+    const addScope = (value: string, text: string, disabled: boolean): HTMLLabelElement => {
+      const lab = el('label');
+      const inp = el('input');
+      inp.type = 'radio';
+      inp.name = 'eth-export-scope';
+      inp.value = value;
+      inp.disabled = disabled;
+      radios.set(value, inp);
+      lab.append(inp, text);
+      scopeBox.append(lab);
+      return lab;
+    };
+    addScope('view', `현재 조회 범위 — ${pageLabel}`, !(mode === 'complete' && nav));
+    addScope('capture', `캡처 시작 이후 전체 — ${resolveRange({ kind: 'capture' }, anchors()).label}`, false);
+    addScope('selected', selPkt ? `선택 행만 — seq ${selPkt.seq}` : '선택 행만 — 선택 없음', !selPkt);
+    const seqLab = addScope('seq', 'seq 범위', false);
+    const seqFrom = el('input');
+    seqFrom.type = 'text';
+    seqFrom.placeholder = '시작 seq';
+    seqFrom.setAttribute('data-testid', 'eth-export-from');
+    const seqTo = el('input');
+    seqTo.type = 'text';
+    seqTo.placeholder = '끝 seq (비우면 최신)';
+    seqTo.setAttribute('data-testid', 'eth-export-to');
+    seqLab.append(seqFrom, seqTo);
+    (radios.get('view')!.disabled ? radios.get('capture')! : radios.get('view')!).checked = true;
+    let filterCb: HTMLInputElement | null = null;
+    const filterLab = filter.applied ? el('label') : null;
+    if (filterLab) {
+      filterCb = el('input');
+      filterCb.type = 'checkbox';
+      filterCb.checked = true;
+      filterCb.setAttribute('data-testid', 'eth-export-filter');
+      filterLab.append(filterCb, `표시 필터 적용: ${filter.applied}`);
+    }
+    const rangeEl = el('div', 'eth-export-range');
+    rangeEl.setAttribute('data-testid', 'eth-export-range');
+    const note = el('p', 'muted', '파일은 daemon(벤치) 머신에 생성됩니다 — 브라우저 다운로드가 아닙니다.');
+    const actions = el('div', 'eth-dialog-actions');
+    const cancelBtn = btn('취소 (Esc)', 'wb-btn');
+    const runBtn = btn('내보내기', 'wb-btn primary');
+    runBtn.setAttribute('data-testid', 'eth-export-run');
+    actions.append(cancelBtn, runBtn);
+    const checkedScope = (): string => [...radios.entries()].find(([, r]) => r.checked)?.[0] ?? 'capture';
+    const compute = (): RangeRequest | { error: string } => {
+      const sc = checkedScope();
+      if (sc === 'view') return nav ? { ...nav.current } : resolveRange({ kind: 'capture' }, anchors()).req;
+      if (sc === 'selected' && selPkt) return { from: `seq:${selPkt.seq}`, to: `seq:${selPkt.seq}` };
+      if (sc === 'seq') {
+        const c = parseRangeChoice('seq', seqFrom.value, seqTo.value);
+        return 'error' in c ? c : resolveRange(c, anchors()).req;
+      }
+      return resolveRange({ kind: 'capture' }, anchors()).req;
+    };
+    const update = () => {
+      const r = compute();
+      if ('error' in r) {
+        rangeEl.textContent = r.error;
+        rangeEl.classList.add('err');
+        runBtn.disabled = true;
+      } else {
+        rangeEl.textContent = `범위 ${r.from} → ${r.to ?? '최신'}`;
+        rangeEl.classList.remove('err');
+        runBtn.disabled = false;
+      }
+    };
+    box.addEventListener('change', update);
+    box.addEventListener('input', update);
+    cancelBtn.addEventListener('click', close);
+    runBtn.addEventListener('click', () => {
+      const req = compute();
+      if ('error' in req) return;
+      const useFilter = !!filterCb && filterCb.checked && checkedScope() !== 'selected';
+      close();
+      runExport({ ch, format: 'pcapng', range: req, ...(useFilter ? { filter: filter.applied } : {}), ...(daRules.length ? { decode_as: daRules } : {}) });
+    });
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        close();
+      }
+    });
+    update();
+    body.append(scopeBox, ...(filterLab ? [filterLab] : []), rangeEl, note, actions);
+    box.append(el('header', undefined, 'pcapng 내보내기 — 범위 선택'), body);
+    overlay.append(box);
+    dialogHost.append(overlay);
+    runBtn.focus();
+    exportScopeDlg = { close };
+  };
+  exportBtn.addEventListener('click', () => {
+    if (exportBtn.disabled || !bound) return;
+    openExportDialog();
   });
   const openExportResult = (r: ExportResult): { close(): void } => {
     const overlay = el('div', 'eth-dialog-overlay');
@@ -841,6 +1282,14 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     add('파일 (daemon 머신)', pathEl);
     add('패킷', r.packets === null ? '?' : String(r.packets));
     add('바이트', r.bytes === null ? '?' : `${r.bytes} B`);
+    add('요청 범위', r.meta.scope ? `${r.meta.scope.from ?? '?'} → ${r.meta.scope.to ?? '최신'}` : '정보 없음 (이전 daemon)');
+    add('표시 필터', r.filter ?? '(없음)');
+    const rlist = [...r.meta.reasons.map((x) => reasonText(x, r.meta)), ...r.meta.unknownReasons.map((x) => `기타 사유 ${x}`)].join(' · ');
+    add(
+      '완전성',
+      r.meta.complete ? '완전 — 요청 범위 전체 기록' : !r.meta.known ? '완전 여부 미확인 (이전 daemon)' : `부분 — ${rlist || '사유 미보고'}`,
+      r.meta.complete ? undefined : 'res-fail',
+    );
     if (r.truncated) add('잘림', '예 — 한도/스캔 예산에 도달해 일부만 저장됨', 'res-fail');
     if (r.gaps > 0) add('손실 구간', `${r.gaps}건 — 이 범위에 캡처 손실이 있었음`, 'res-fail');
     if (r.commentsDropped > 0) add('주석 생략', `${r.commentsDropped}개 (pcapng 한도)`);
@@ -945,11 +1394,13 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
   // ---- consume live stream ----
   /** A new capture generation never inherits the previous start anchor (worker clock, kept as reported). */
   const applyCapture = (p: Record<string, unknown>, generation: number | null, seq: bigint | null = null) => {
+    if (!supersedesCapture(capture?.state ?? null, captureGen, p.state, generation)) return;
     // control path and backlog/snapshot can both carry a state: never let an older one override a newer one
     if (seq !== null) {
       if (seq <= captureSeq) return;
       captureSeq = seq;
     }
+    if (generation !== null && captureGen !== null && generation !== captureGen) startCursor = null;
     const prev = generation !== null && captureGen !== null && generation !== captureGen && capture ? { ...capture, startMonoNs: null } : capture;
     if (generation !== null) captureGen = generation;
     capture = readCaptureState(p, prev);
@@ -1042,6 +1493,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
         const st = obj(item.state);
         if (item.domain !== 'eth' || st.kind !== 'eth.capture_state' || (st.ch ?? item.channel) !== ch) continue;
         applyCapture(st, typeof st.generation === 'number' ? st.generation : null, snap.throughSeq);
+        if (typeof st.start_cursor === 'string' && START_CURSOR_RE.test(st.start_cursor) && (typeof st.generation !== 'number' || st.generation === captureGen)) startCursor = st.start_cursor;
       }
     }
     for (const ev of mirror.after(lastSeq)) {
@@ -1092,18 +1544,24 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     chState.className = `wb-chip ${!bound ? 'stopped' : live_ ? 'live' : st === 'error' || perm ? 'err' : st === '?' ? 'pend' : 'stopped'}`;
     chSim.hidden = !capture?.sim;
     chSim.textContent = capture?.sim ? 'SIM tap' : '';
+    chReplay.hidden = capture?.backend !== 'replay';
     if (!bound) renderCfgs();
-    statusText.textContent = !bound
-      ? `인터페이스 구성을 고르거나 새로 만든 뒤 [연결…] — 이 탭을 여는 것만으로는 캡처·송신하지 않습니다${others.size ? ' · 이미 있는 daemon 채널은 오른쪽 카드 [열기]' : ''}`
-      : [
-      ...(capture?.iface ? [capture.iface] : []),
-      ...(st === 'error' && capture?.error ? [`오류: ${capture.error}`] : []),
-      `pps ${stats.pps === null ? '?' : fmtCount(stats.pps)}`,
-      `bps ${fmtRate(stats.bps)}`,
-      drop,
-      `기록 ${ctx.recordHealth}`,
-      `ts ${lastTsSource}${capture?.tsPrecision ? ` (${capture.tsPrecision})` : ''}`,
+    if (!bound) {
+      statusText.replaceChildren(
+        el('span', 'ch-line', '인터페이스 구성을 고르거나 새로 만든 뒤 [연결…] — 이 탭을 여는 것만으로는 캡처·송신하지 않습니다.'),
+        ...(others.size ? [el('span', 'ch-line', '이미 daemon에 있는 채널은 [열기]로 기록을 이어 봅니다 (캡처를 시작하지 않음).')] : []),
+      );
+    } else {
+      statusText.textContent = [
+        ...(capture?.iface ? [capture.iface] : []),
+        ...(st === 'error' && capture?.error ? [`오류: ${capture.error}`] : []),
+        `pps ${stats.pps === null ? '?' : fmtCount(stats.pps)}`,
+        `bps ${fmtRate(stats.bps)}`,
+        drop,
+        `기록 ${ctx.recordHealth}`,
+        `ts ${lastTsSource}${capture?.tsPrecision ? ` (${capture.tsPrecision})` : ''}`,
       ].join(' · ');
+    }
     capf.replaceChildren(el('span', 'k', '캡처 필터 '), el('b', undefined, capture?.bpf || '(없음)'), capture?.bpf ? ' (캡처 정지 후 변경)' : '');
     status.classList.toggle('has-drop', dropTotal > 0n);
     permEl.hidden = !perm;
@@ -1111,10 +1569,17 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
 
     renderOthers();
     addTile.disabled = !canOperate();
+    if (bound) {
+      const n = daRules.length;
+      daBtn.textContent = n > 0 ? `Decode As (${n})` : 'Decode As';
+      daBtn.dataset.active = String(n > 0);
+      daBtn.title = n > 0 ? `Decode As: ${rulesText(daRules)} — 완전 조회·상세·내보내기 필터에 적용 (라이브 목록·기록은 그대로)` : '비표준 포트를 DoIP/SOME/IP로 해석 (읽기 해석 — 기록은 그대로)';
+    }
     // mode bar
     if (mode === 'live') {
       modeBadge.dataset.mode = 'live';
-      modeBadge.textContent = `라이브 · ${samplingText(coverage, ctx.recordHealth)}`;
+      modeBadge.title = '';
+      modeBadge.textContent = `라이브 · ${samplingText(coverage, ctx.recordHealth)}${daRules.length ? ' · Decode As는 완전 조회·상세에만 적용' : ''}`;
       pauseBtn.label.textContent = '표시 일시정지';
       pauseBtn.classList.remove('paused');
       pauseBtn.setAttribute('aria-pressed', 'false');
@@ -1123,11 +1588,30 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
       pauseBtn.label.textContent = '라이브로';
       pauseBtn.classList.add('paused');
       pauseBtn.setAttribute('aria-pressed', 'true');
-      if (completeState === 'loading') modeBadge.textContent = '완전 범위 조회 중… (저널)';
-      else if (completeState === 'error') modeBadge.textContent = `완전 범위 조회 실패: ${completeErr}`;
-      else if (complete) {
-        const r = complete.from !== null && complete.to !== null ? ` seq ${complete.from}–${complete.to}` : '';
-        modeBadge.textContent = `완전(저널 기준) · ${complete.rows.length.toLocaleString('ko-KR')}행${r}${complete.truncated ? ` · 최대 ${QUERY_MAX.toLocaleString('ko-KR')}행 — 범위를 좁히세요` : ''}`;
+      if (completeState === 'loading') {
+        modeBadge.textContent = '조회 중… (저널)';
+        delete modeBadge.dataset.complete;
+      } else if (completeState === 'error') {
+        modeBadge.textContent = `조회 실패: ${completeErr}`;
+        delete modeBadge.dataset.complete;
+      } else if (page) {
+        const b = completeBadge(page, pageLabel);
+        modeBadge.textContent = b.text + (daRules.length ? ` · Decode As ${rulesText(daRules)}` : '');
+        modeBadge.dataset.complete = b.state;
+        modeBadge.title = b.title;
+      }
+    }
+    if (mode === 'live') delete modeBadge.dataset.complete;
+    if (bound) {
+      const idle = mode === 'complete' && completeState === 'idle';
+      olderBtn.disabled = !(idle && !!page?.prevCursor);
+      newerBtn.disabled = !(idle && !!nav && nav.newer.length > 0);
+      resumeBtn.disabled = !(idle && !!page?.meta.resumeCursor);
+      if (mode === 'complete' && page && completeState !== 'loading') rangeScope.textContent = scopeText(page.meta);
+      else if (mode === 'complete' && completeState === 'loading') rangeScope.textContent = '조회 중… (저널)';
+      else if (mode === 'live') {
+        const r = resolveRange(rangeChoice, anchors());
+        rangeScope.textContent = `다음 완전 조회: ${r.label} (${r.req.from} → ${r.req.to ?? '최신'})`;
       }
     }
     // bottom status bar (Wireshark Fig 3.22/3.24): selected field · shown/kept · selection
@@ -1137,7 +1621,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     statusBar.dataset.selected = sel?.kind === 'pkt' ? 'packet' : sel ? 'gap' : 'none';
     sbField.textContent =
       sel?.kind === 'pkt' && fieldLabel
-        ? `${fieldLabel}${hl ? ` · ${hl.len} byte${hl.len === 1 ? '' : 's'} @0x${hl.off.toString(16).padStart(4, '0')}` : ''}`
+        ? `${fieldLabel}${treeHex.selectedNode?.name ? ` (${treeHex.selectedNode.name})` : ''}${hl ? ` · ${hl.len} byte${hl.len === 1 ? '' : 's'} @0x${hl.off.toString(16).padStart(4, '0')}` : ''}`
         : sel?.kind === 'pkt'
           ? `선택 seq ${sel.seq} · ${sel.proto} · ${sel.len} B${relRid ? ` · UDS ${relRid}` : ''}`
           : sel
@@ -1153,7 +1637,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     const fx = filter.applied ? `표시 필터 적용(서버)` : '표시 필터 없음';
     sbCount.textContent =
       mode === 'complete'
-        ? `완전 범위 패킷 ${nPkt.toLocaleString('ko-KR')}${nGap ? ` · 손실 행 ${nGap}` : ''} · ${fx}`
+        ? `저널 조회 패킷 ${nPkt.toLocaleString('ko-KR')}${nGap ? ` · 손실 행 ${nGap}` : ''} · ${fx}`
         : `라이브 표시 패킷 ${nPkt.toLocaleString('ko-KR')}${nGap ? ` · 손실 행 ${nGap}` : ''} · ${fx}`;
     dfCount.replaceChildren('표시 ', el('b', undefined, nPkt.toLocaleString('ko-KR')), ' / 보관 ', el('b', undefined, live.rows.length.toLocaleString('ko-KR')));
     keepEl.textContent = `보관 ${live.rows.length.toLocaleString('ko-KR')}행${live.evicted ? ` · 이전 ${live.evicted.toLocaleString('ko-KR')}행 보관 범위 밖 → 일시정지하면 저널에서 조회` : ''}`;
@@ -1165,9 +1649,22 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     sockBtn.disabled = !op || !bound;
     sockBtn.title = bound ? 'UDP/TCP 소켓 테스트 패널 (Alt+S)' : '소켓 테스트는 연결된 채널에서 — 먼저 [연결…]';
     startBtn.disabled = addBtn.disabled = cardStart.disabled = !op;
-    cfgConnect.disabled = !op;
+    {
+      const c = selectedCfg();
+      const existing = !!c && others.has(c.alias);
+      const want = existing ? 'open' : 'connect';
+      if (cfgConnect.dataset.mode !== want) {
+        cfgConnect.replaceChildren(icon('play'), existing ? '기존 채널 열기' : '연결…');
+        cfgConnect.title = existing
+          ? '이 이름의 daemon 채널이 이미 있음 — 그 채널 패널을 엽니다 (캡처 시작 아님). 다시 캡처는 그 패널의 [캡처 시작…]'
+          : '선택한 구성으로 캡처 시작 (eth.capture.start) — 확인 대화상자에서 [연결]을 눌러야 시작';
+        cfgConnect.dataset.mode = want;
+      }
+      cfgConnect.disabled = existing ? false : !op;
+    }
     // editing a new/saved config is local (no RPC); only [삭제] needs a saved one
     cfgDel.disabled = !selectedCfg();
+    cfgReplay.disabled = !op;
     sock.setWritable(op && bound !== null);
     exportBtn.disabled = !bound || exportBtn.getAttribute('aria-busy') === 'true';
     // safety direction: enabled unless the capture is known to have ended (stopping it again does nothing)
@@ -1176,7 +1673,8 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     cardStop.hidden = !live_ && st !== '?';
     autoBtn.setAttribute('aria-pressed', String(mode === 'live' && table.following));
     followBtn.disabled = selected?.kind !== 'pkt' || selected.stream === null;
-    followBtn.title = followBtn.disabled ? '스트림 번호가 있는 TCP/UDP 패킷을 선택하세요 (daemon eth.follow)' : `선택 패킷의 대화 따라가기 — stream ${selected?.kind === 'pkt' ? selected.stream : ''}`;
+    fldBtn.disabled = selected?.kind !== 'pkt' || !treeHex.selectedNode;
+    followBtn.title = followBtn.disabled ? '스트림 번호가 있는 TCP/UDP 패킷을 선택하세요 (daemon eth.follow)' : `선택 패킷의 대화 따라가기 — ${(selected?.kind === 'pkt' ? (selected.streamProto ?? 'tcp') : 'tcp').toUpperCase()} stream ${selected?.kind === 'pkt' ? selected.stream : ''}`;
     tbCtx.replaceChildren(
       ...(selected?.kind === 'pkt'
         ? [el('b', undefined, `#${selected.seq}`), ` ${selected.proto} · ${selected.len} B · ${ch}`]
@@ -1185,7 +1683,7 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     bytesSel.textContent = hl ? `offset 0x${hl.off.toString(16).padStart(4, '0')} · ${hl.len} byte${hl.len === 1 ? '' : 's'}` : '';
     refBtn.disabled = selected?.kind !== 'pkt';
     copyBtn.disabled = selected?.kind !== 'pkt';
-    detailInfo.textContent = selected?.kind === 'pkt' ? `${selected.ref}${detailMs !== null ? ` · 상세 ${detailMs} ms` : ''}` : '';
+    detailInfo.textContent = selected?.kind === 'pkt' ? `${selected.ref}${detailMs !== null ? ` · 상세 ${detailMs} ms` : ''}${detailDaNotes.length ? ` · Decode As: ${detailDaNotes.join(' · ')}` : ''}` : '';
     return lastSeq;
   };
   const offFrame = ctx.scheduler.onFrame(draw);
@@ -1214,6 +1712,9 @@ export function createEthPackets(ctx: PanelContext): PanelInstance {
     dispose() {
       disposed = true;
       exportDlg?.close();
+      exportScopeDlg?.close();
+      daDlg?.close();
+      fieldMenu?.close();
       completeAc?.abort();
       detailAc?.abort();
       offAppend();

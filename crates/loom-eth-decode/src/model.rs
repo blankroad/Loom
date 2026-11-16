@@ -147,6 +147,17 @@ pub struct DecodeWarning {
     pub detail: String,
 }
 
+/// (operator-upgrade C1, ETH-RT-02) Whether the relative TCP numbers of a packet have a base that
+/// the decoding [`crate::StreamTable`] saw itself. Without the SYN the base is "first seen − 1",
+/// which depends on where decoding started and must not be presented as the stream's value.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct TcpRelBase {
+    /// `tcp.seq` is relative to this direction's SYN, seen by the same table.
+    pub seq_from_syn: bool,
+    /// `tcp.ack` is present and relative to the other direction's SYN, seen by the same table.
+    pub ack_from_syn: bool,
+}
+
 /// Decode result of one packet.
 #[derive(Debug, Clone)]
 pub struct Decoded {
@@ -154,6 +165,8 @@ pub struct Decoded {
     pub layers: Vec<Layer>,
     pub warnings: Vec<DecodeWarning>,
     pub meta: FrameMeta,
+    /// (C1) Set by the TCP decoder (last TCP header of the packet); `None` = no TCP layer.
+    pub tcp_rel: Option<TcpRelBase>,
     /// 0 = frame bytes (≤ MAX_FRAME_BYTES), then reassembled PDU buffers.
     buffers: Vec<Vec<u8>>,
     field_count: usize,
@@ -167,6 +180,7 @@ impl Decoded {
             layers: Vec::new(),
             warnings: Vec::new(),
             meta: meta.clone(),
+            tcp_rel: None,
             buffers: vec![keep.to_vec()],
             field_count: 0,
         };

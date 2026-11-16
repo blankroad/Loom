@@ -12,11 +12,18 @@ export interface TreeNode {
   off?: number;
   len?: number;
   children?: TreeNode[];
+  /** optional machine name of the field / layer (e.g. `doip.target_address`); domain text, never parsed */
+  name?: string;
+  /** optional ready display-filter expression for this node (domain-made, already validated); null/absent = none */
+  filter?: string | null;
 }
 
 export interface TreeHexOptions {
   collapseTopLayers?: boolean;
   onSelectNode?: (node: TreeNode | null) => void;
+  /** optional: context request on a node (right click, ContextMenu key, Shift+F10). The node is selected first.
+   *  Absent → TreeHex leaves the browser's default context menu alone. `at` = viewport coordinates. */
+  onNodeContext?: (node: TreeNode, anchor: HTMLElement, at: { x: number; y: number }) => void;
 }
 
 export const MAX_HEX_BYTES = 16 * 1024;
@@ -59,6 +66,7 @@ export class TreeHex {
     this.treeEl.addEventListener('click', this.onTreeClick);
     this.treeEl.addEventListener('keydown', this.onTreeKey);
     this.hexEl.addEventListener('click', this.onHexClick);
+    this.treeEl.addEventListener('contextmenu', this.onTreeContext);
   }
 
   /** Replace content. `note` = e.g. "큰 프레임 — 원본 링크" (text only). */
@@ -86,6 +94,11 @@ export class TreeHex {
 
   clear(text = ''): void {
     this.set([], null, text ? { text } : null);
+  }
+
+  /** (operator-upgrade B4a) the selected node object, or null */
+  get selectedNode(): TreeNode | null {
+    return this.selected?.node ?? null;
   }
 
   get selectedLabel(): string | null {
@@ -118,6 +131,7 @@ export class TreeHex {
     this.treeEl.removeEventListener('click', this.onTreeClick);
     this.treeEl.removeEventListener('keydown', this.onTreeKey);
     this.hexEl.removeEventListener('click', this.onHexClick);
+    this.treeEl.removeEventListener('contextmenu', this.onTreeContext);
     this.root.remove();
   }
 
@@ -251,6 +265,13 @@ export class TreeHex {
   private onTreeKey = (e: KeyboardEvent): void => {
     const path = (e.target as HTMLElement).closest<HTMLElement>('.th-node')?.dataset.path;
     const f = this.flat.find((item) => item.path === path);
+    if (f && this.options.onNodeContext && (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey))) {
+      e.preventDefault();
+      this.selectFlat(f);
+      const r = f.el.getBoundingClientRect();
+      this.options.onNodeContext(f.node, f.el, { x: r.left, y: r.bottom });
+      return;
+    }
     if (!f || !['ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(e.key)) return;
     e.preventDefault();
     this.selectFlat(f);
@@ -260,6 +281,17 @@ export class TreeHex {
       const toggle = f.el.querySelector('.th-tog');
       if (toggle) toggle.textContent = f.childrenEl.hidden ? '▸' : '▾';
     }
+  };
+
+  /** (B4a) `contextmenu` on the tree (FUNCTIONS.md F4.3) */
+  private onTreeContext = (e: MouseEvent): void => {
+    if (!this.options.onNodeContext) return;
+    const path = (e.target as HTMLElement).closest<HTMLElement>('.th-node')?.dataset.path;
+    const f = path === undefined ? undefined : this.flat.find((item) => item.path === path);
+    if (!f) return;
+    e.preventDefault();
+    this.selectFlat(f);
+    this.options.onNodeContext(f.node, f.el, { x: e.clientX, y: e.clientY });
   };
 
   private onHexClick = (e: Event): void => {

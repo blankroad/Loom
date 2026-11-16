@@ -4,7 +4,8 @@
 // unless dry_run is true.
 
 import { bytesToHex, type PanelContext } from '../../sdk';
-import type { IfaceConfig } from './ifaceConfigs';
+import { captureParams, MAX_REPLAY_PATH, REPLAY_SPEEDS, replayLabel, type IfaceConfig } from './ifaceConfigs';
+import { readReadMeta, reasonText, scopeText, type RangeRequest } from './ethModel';
 
 export const PREVIEW_MS = 200;
 
@@ -183,7 +184,22 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
   iface.setAttribute('list', list.id);
   const backend = document.createElement('select');
   backend.setAttribute('aria-label', '백엔드');
-  for (const [v, t] of [['live', 'live — 실제 NIC'], ['sim', 'sim — daemon 합성 탭 (SIM)']] as const) backend.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
+  for (const [v, t] of [['live', 'live — 실제 NIC'], ['sim', 'sim — daemon 합성 탭 (SIM)'], ['replay', 'replay — pcap/pcapng 파일 재생 (daemon 머신 경로)']] as const) backend.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
+  const nicField = field('NIC', iface);
+  const replayPath = Object.assign(document.createElement('input'), { placeholder: '/path/on/daemon/host/capture.pcapng', spellcheck: false });
+  replayPath.setAttribute('data-testid', 'eth-replay-path');
+  replayPath.setAttribute('aria-label', '파일 경로 (daemon 머신)');
+  const replaySpeed = document.createElement('select');
+  replaySpeed.setAttribute('data-testid', 'eth-replay-speed');
+  for (const sp of REPLAY_SPEEDS) {
+    replaySpeed.append(Object.assign(document.createElement('option'), { value: String(sp), textContent: sp === 'max' ? '최대 속도' : sp === 1 ? '원래 속도 ×1' : `×${sp}` }));
+  }
+  const replayRepeat = Object.assign(document.createElement('input'), { type: 'checkbox' });
+  replayRepeat.setAttribute('data-testid', 'eth-replay-repeat');
+  const replayBox = document.createElement('div');
+  replayBox.className = 'eth-replay-fields';
+  replayBox.setAttribute('data-testid', 'eth-replay-fields');
+  replayBox.append(field('파일 경로 (daemon 머신)', replayPath), field('재생 속도', replaySpeed), field('반복', replayRepeat));
   const bpf = Object.assign(document.createElement('input'), { placeholder: 'port 13400 or arp (BPF, live 전용)' });
   bpf.className = 'mono bpf';
   const snaplen = Object.assign(document.createElement('input'), { value: '262144', inputMode: 'numeric' });
@@ -196,7 +212,11 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
   msg.textContent = note;
   const syncBackend = () => {
     if (iface.value.trim() === 'sim') backend.value = 'sim';
+    replayBox.hidden = backend.value !== 'replay';
+    nicField.hidden = backend.value === 'replay';
     bpf.disabled = backend.value !== 'live';
+    msg.classList.remove('err');
+    msg.textContent = backend.value === 'replay' ? 'REPLAY: 파일을 재생합니다 — 실제 NIC 캡처가 아니며, 경로는 daemon이 실행 중인 머신 기준입니다.' : note;
   };
   iface.addEventListener('input', syncBackend);
   backend.addEventListener('change', syncBackend);
@@ -218,6 +238,11 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
     snaplen.value = String(init.snaplen);
     promisc.checked = init.promisc;
     buffer.value = String(init.bufferMib);
+    if (init.replay) {
+      replayPath.value = init.replay.path;
+      replaySpeed.value = String(init.replay.speed);
+      replayRepeat.checked = init.replay.repeat;
+    }
   }
   /** the form as a config, or null (message set) when alias / NIC are invalid */
   const formConfig = (): IfaceConfig | null => {
@@ -226,15 +251,37 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
       msg.textContent = '채널 이름: 영문·숫자·_.- 1–64자';
       return null;
     }
-    if (!iface.value.trim()) {
-      msg.textContent = 'NIC를 고르세요';
-      return null;
-    }
     const posInt = (v: string, def: number) => {
       const n = Number(v);
       return Number.isInteger(n) && n > 0 ? n : def;
     };
-    const be = backend.value === 'sim' ? 'sim' : 'live';
+    const be = backend.value === 'sim' || backend.value === 'replay' ? backend.value : 'live';
+    if (be === 'replay') {
+      const p = replayPath.value.trim();
+      if (!p) {
+        msg.textContent = '파일 경로를 입력하세요 (daemon 머신 기준)';
+        return null;
+      }
+      if (p.length > MAX_REPLAY_PATH) {
+        msg.textContent = '파일 경로가 너무 깁니다';
+        return null;
+      }
+      const speed = replaySpeed.value === 'max' ? 'max' : (Number(replaySpeed.value) as (typeof REPLAY_SPEEDS)[number]);
+      return {
+        alias: a,
+        iface: replayLabel(p),
+        backend: 'replay',
+        bpf: '',
+        snaplen: posInt(snaplen.value, 262144),
+        promisc: promisc.checked,
+        bufferMib: posInt(buffer.value, 64),
+        replay: { path: p, speed, repeat: replayRepeat.checked },
+      };
+    }
+    if (!iface.value.trim()) {
+      msg.textContent = 'NIC를 고르세요';
+      return null;
+    }
     return { alias: a, iface: iface.value.trim(), backend: be, bpf: be === 'live' ? bpf.value.trim() : '', snaplen: posInt(snaplen.value, 262144), promisc: promisc.checked, bufferMib: posInt(buffer.value, 64) };
   };
   let busy = false;
@@ -243,15 +290,7 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
     const cfg = formConfig();
     if (!cfg) return;
     const newCh = cfg.alias;
-    const params = {
-      iface: iface.value.trim(),
-      ch: newCh,
-      backend: backend.value,
-      ...(backend.value === 'live' && bpf.value.trim() ? { bpf: bpf.value.trim() } : {}),
-      snaplen: Number(snaplen.value) || 262144,
-      promisc: promisc.checked,
-      buffer_mib: Number(buffer.value) || 64,
-    };
+    const params = captureParams(cfg);
     busy = true;
     start.disabled = true;
     const go = async () => {
@@ -294,7 +333,7 @@ function captureForm(host: HTMLElement, ctx: PanelContext, ch: string, o: Captur
   row.append(start);
   if (adding) d.body.append(field('새 채널 이름', alias));
   else d.body.append(field('채널', Object.assign(document.createElement('b'), { textContent: ch })));
-  d.body.append(field('NIC', iface), list, field('백엔드', backend), field('캡처 필터 (BPF)', bpf), field('snaplen', snaplen), field('promiscuous', promisc), field('버퍼 MiB', buffer), msg, row);
+  d.body.append(nicField, list, field('백엔드', backend), replayBox, field('캡처 필터 (BPF)', bpf), field('snaplen', snaplen), field('promiscuous', promisc), field('버퍼 MiB', buffer), msg, row);
   syncBackend();
   (adding ? alias : iface).focus();
   return d;
@@ -340,6 +379,28 @@ export function openConnectInterface(
   });
 }
 
+/** (B4a, ETH-04) prefill for "파일 열기 (replay)" — alias empty on purpose (the user names the channel) */
+export const REPLAY_TEMPLATE: IfaceConfig = { alias: '', iface: '', backend: 'replay', bpf: '', snaplen: 262144, promisc: false, bufferMib: 64, replay: { path: '', speed: 'max', repeat: false } };
+
+/** (B4a, ETH-04) Unbound "파일 열기 (replay)…": the shared capture form with backend replay preselected (FUNCTIONS.md F4.9). */
+export function openReplayFile(
+  host: HTMLElement,
+  ctx: PanelContext,
+  on: { onSave: (cfg: IfaceConfig, previousAlias: string | null) => void; onStarted: (ch: string, cfg: IfaceConfig) => void },
+): DialogHandle {
+  return captureForm(host, ctx, '', {
+    add: {
+      existing: () =>
+        ctx.query<{ channels?: { ch?: string }[] }>('eth.capture.status', {}).then((r) => (r?.channels ?? []).map((c) => c.ch).filter((x): x is string => typeof x === 'string')),
+      onStarted: on.onStarted,
+      onSave: on.onSave,
+      initial: REPLAY_TEMPLATE,
+      title: '파일 열기 — replay (daemon 머신의 pcap/pcapng)',
+      testId: 'eth-replay-dialog',
+    },
+  });
+}
+
 /** Follow stream (selected web dlgFollow): the daemon's `eth.follow` reassembly — client red, server blue. */
 export function openFollow(
   host: HTMLElement,
@@ -348,6 +409,8 @@ export function openFollow(
   proto: 'tcp' | 'udp',
   stream: number,
   onOnly: (expr: string) => void,
+  /** (B2) explicit journal range of the follow (never the daemon's default look-back) */
+  range: RangeRequest,
 ): DialogHandle {
   const d = openDialog(host, `스트림 따라가기 — ${proto.toUpperCase()} stream ${stream}`, 'eth-follow-dialog');
   d.el.classList.add('eth-dialog-wide');
@@ -385,12 +448,16 @@ export function openFollow(
   const load = () => {
     out.textContent = '불러오는 중…';
     ctx
-      .query<{ segments?: { dir?: string; data?: string; seq?: string }[]; bytes?: unknown; truncated?: boolean; gaps?: unknown }>('eth.follow', { ch, proto, stream })
+      .query<{ segments?: { dir?: string; data?: string; seq?: string }[]; bytes?: unknown; truncated?: boolean; gaps?: unknown }>('eth.follow', { ch, proto, stream, range })
       .then((r) => {
         segs = (r?.segments ?? []).map((s) => ({ dir: s.dir === 'c2s' ? 'c2s' : 's2c', bytes: toBytes(typeof s.data === 'string' ? s.data : ''), seq: String(s.seq ?? '') }));
         const c = segs.filter((s) => s.dir === 'c2s').reduce((a, s) => a + s.bytes.length, 0);
         const sv = segs.filter((s) => s.dir !== 'c2s').reduce((a, s) => a + s.bytes.length, 0);
-        sum.textContent = `클라이언트 ${c} B · 서버 ${sv} B${r?.truncated ? ' · 잘림(최대 크기)' : ''} — daemon eth.follow`;
+        const meta = readReadMeta(r);
+        const list = [...meta.reasons.map((x) => reasonText(x, meta)), ...meta.unknownReasons.map((x) => `기타 사유 ${x}`)].join(' · ');
+        const q = meta.complete ? '완전' : !meta.known ? '완전 여부 미확인' : `부분: ${list || '사유 미보고'}`;
+        sum.textContent = `클라이언트 ${c} B · 서버 ${sv} B${r?.truncated ? ' · 잘림(최대 크기)' : ''} — daemon eth.follow · ${q}`;
+        sum.title = scopeText(meta);
         render();
       })
       .catch((e: unknown) => (out.textContent = `스트림 조회 실패: ${e instanceof Error ? e.message : String(e)}`));

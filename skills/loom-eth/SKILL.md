@@ -16,20 +16,30 @@ Exact verbs, flags, defaults, exit codes: `loom eth help --json`. Don't guess fl
 | `-Y 'doip'` (list) | `trace dut -Y 'doip' --since -10s` · latest: `last -n 20` |
 | `-V -x` for one frame | `show eth:dut@seq:1234 --hex` |
 | `-z conv,tcp` / `io,phs` | `stats --by conv` · `--by proto` · `--by io` |
-| `-z follow,tcp,hex,3` | `follow tcp 3` |
+| `-z follow,tcp,hex,3` | `follow tcp 3` · UDP conversation: `follow udp 3` (`udp.stream`) |
 | `-w out.pcapng` | `export pcapng -o out.pcapng -Y 'doip'` |
 | `-Y` syntax check | `filter check 'uds.sid == 0x22'` |
+| Decode As (port → protocol) | `trace dut -Y doip --since seq:1 --decode-as udp:64681=doip` (read-time only; also `last`/`show`/`stats`/`export`) |
 
 ## Filters
 - `-Y` is a Wireshark display-filter **subset**: `== != < <= > >= && || !`, `contains`, `matches`, `in {…}`, slices `eth.src[0:3]`, bare protocol/field names. Run `filter check` when unsure; errors show the position.
 - `a != b` means `!(a == b)`: no value of the field equals b, and it is **true when the field is absent** (`doip.type != 0x8001` also matches ARP). Add the protocol: `doip && doip.type != 0x8001`.
 - Not supported (error with position): functions (`len()`), arithmetic, bit ops `&`, field-to-field comparison, macros `${…}`, `===`/`!==`, single `=`, `any`/`all`, value names (`== offer`; use numbers).
+- Building a filter from a packet: `show REF --json` tree nodes carry `name` and a ready, already-validated `filter` (e.g. `doip.target_address == 0x1001`); use it instead of composing literals from labels.
+- Relative `tcp.seq`/`tcp.ack` count from the stream's SYN; `show` rebuilds the stream context from the packets before it and prints `unknown` (warning `tcp_relative_unknown`) when the SYN is not in that window. Their ready filters use `tcp.seq_raw`/`tcp.ack_raw`.
+- `tcp.stream` and `udp.stream` are separate index spaces; rows carry `stream` + `stream_proto` (`tcp|udp`). Older records without `stream_proto` only have TCP numbers.
 - `--bpf` is a libpcap **capture** filter (decides what is stored at all). `-Y` only selects what you see; it never loses packets. Prefer `-Y`.
 
 ## Output caps and cursors
 - Lists: 100 rows by default, `--max` ≤ 1000; `follow` ≤ 64 KiB; `wait-for` ≤ 3600 s; `trace --follow` ≤ 600 s.
+- **Without `--since` a read covers only the last 600 s** (`partial: default_lookback`) — older packets are not searched. For history or absence claims always pass a start: the capture start is `channels[].start_cursor` of `loom eth capture status --json` (e.g. `--since e3:seq:1370`; `null` = unknown → give an explicit time/seq range and say so).
+- Completeness: trailer `· complete` or `· partial: <reasons>`; JSON `complete` is true **only** when `partial_reasons` is empty. Reasons: `default_lookback`, `scan_budget` (64 MiB scanned; continue with the printed `resume: --since …`), `scan_incomplete`, `decode_budget`, `loss`, `row_cap` (more matches than `--max`; page with `older: --until`), `output_cap`. `scan_complete` only says the chosen window was fully scanned — never use it as evidence. `scope` echoes the range actually used. Same fields on `stats`, `follow`, `export`.
 - Trailer `(N rows · source.gap N · display a/b · next: --since seq:X)`: newer: the printed `--since`; older rows (when truncated): the printed `older: --until`. Lists show the **latest** rows of the range.
 - `source.gap` = packets lost before Loom; `display a/b` = only a of b captured packets were published (overload); the rest are only in the raw recording. Counts/absence over such a window are inconclusive — say so.
+
+## Files and Decode As
+- Replay a pcap/pcapng: `capture start host.pcapng --replay /path/on/daemon/host.pcapng --ch rp1 [--speed max|N] [--repeat]` (the positional iface is only a label) (path is on the daemon machine; the UI's "파일 열기 (replay)…" does the same). Replayed frames are not live NIC traffic. Rows are timestamped when Loom reads them, and ranges (`--since -10s`, the default look-back) use that time; the file's own timestamp is only in `layers._capture.ts_ns`.
+- `--decode-as tcp|udp:PORT=doip|someip` (repeatable, ≤ 8) re-interprets a non-standard port for that read only (filters, rows, tree, stats, export selection); records and the live list are unchanged. Rows decoded through a rule have `decode_as_applied: true`, `show` adds a `decode_as` warning, and the response echoes `decode_as`. State the rule whenever you cite such a result.
 
 ## Waiting and evidence
 - Wait with `wait-for`, never `sleep`: `wait-for -Y 'uds.sid == 0x62' --timeout 5s`; counts `--count 3` (≥ 3), `--count 0..0` (absence), window `--within 5s [--anchor REF]`.

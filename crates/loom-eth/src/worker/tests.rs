@@ -1421,3 +1421,48 @@ fn stream_restart_after_truncated_error_starts_new_generation_with_capture_resta
     t.join().expect("producer 2");
     stop(&mut worker, &h);
 }
+/// operator-upgrade B3a (ETH-03, FUNCTIONS.md F3.3): every published packet states the index space of
+/// its `stream` — `tcp` frames carry `tcp.stream`, `udp` frames `udp.stream`; neither → both absent.
+#[test]
+fn replay_packets_carry_stream_and_stream_proto_by_transport() {
+    let h = Harness::new(128);
+    let mut worker = EthWorker::new();
+    replay(&mut worker, &h);
+    let mut rows = Vec::new();
+    until(&h, &mut rows, |r| {
+        r.iter()
+            .any(|e| e.payload.get("state") == Some(&json!("replay_done")))
+    });
+    let packets: Vec<_> = rows.iter().filter(|r| r.kind == KIND_PKT).collect();
+    let frames = sample();
+    assert_eq!(packets.len(), frames.len());
+    let mut table = loom_eth_decode::StreamTable::new();
+    let (mut tcp, mut udp) = (0, 0);
+    for (r, f) in packets.iter().zip(&frames) {
+        let d = loom_eth_decode::decode(1, f, &Default::default(), &mut table);
+        let want = if d.has_protocol("tcp") {
+            Some("tcp")
+        } else if d.has_protocol("udp") {
+            Some("udp")
+        } else {
+            None
+        };
+        match want {
+            Some(p) => {
+                assert_eq!(r.payload["stream_proto"], p, "{:?}", r.payload);
+                assert!(r.payload["stream"].as_u64().is_some(), "{:?}", r.payload);
+                if p == "tcp" {
+                    tcp += 1;
+                } else {
+                    udp += 1;
+                }
+            }
+            None => {
+                assert!(r.payload.get("stream").is_none(), "{:?}", r.payload);
+                assert!(r.payload.get("stream_proto").is_none(), "{:?}", r.payload);
+            }
+        }
+    }
+    assert!(tcp + udp > 0, "fixture has transport packets");
+    stop(&mut worker, &h);
+}

@@ -338,7 +338,8 @@ impl DomainModule for Eth {
                 Arc::new(Query(book.clone())),
                 obj(
                     json!({"ch": ch, "range": range_schema(), "filter": {"type": "string"}, "max": {"type": "integer"},
-                           "detail": {"type": "boolean"}, "wait_ms": {"type": "integer"}}),
+                           "detail": {"type": "boolean"}, "wait_ms": {"type": "integer"},
+                           "decode_as": {"type": "array", "maxItems": 8, "items": {"type": "object"}}}),
                     &[],
                 ),
                 FOLLOW_WAIT_MAX,
@@ -347,7 +348,10 @@ impl DomainModule for Eth {
                 "eth.show",
                 false,
                 Arc::new(Show),
-                obj(json!({"ref": {"type": "string"}}), &["ref"]),
+                obj(
+                    json!({"ref": {"type": "string"}, "decode_as": {"type": "array", "maxItems": 8, "items": {"type": "object"}}}),
+                    &["ref"],
+                ),
                 DEFAULT_WAIT,
             ),
             spec(
@@ -366,7 +370,8 @@ impl DomainModule for Eth {
                 false,
                 Arc::new(Stats(book.clone())),
                 obj(
-                    json!({"ch": ch, "by": {"enum": ["proto", "conv", "endpoint", "io"]}, "filter": {"type": "string"}, "range": range_schema()}),
+                    json!({"ch": ch, "by": {"enum": ["proto", "conv", "endpoint", "io"]}, "filter": {"type": "string"}, "range": range_schema(),
+                           "decode_as": {"type": "array", "maxItems": 8, "items": {"type": "object"}}}),
                     &[],
                 ),
                 DEFAULT_WAIT,
@@ -398,7 +403,8 @@ impl DomainModule for Eth {
                 false,
                 Arc::new(Export(book.clone())),
                 obj(
-                    json!({"ch": ch, "format": {"enum": ["pcapng"]}, "filter": {"type": "string"}, "range": range_schema(), "path": {"type": "string"}}),
+                    json!({"ch": ch, "format": {"enum": ["pcapng"]}, "filter": {"type": "string"}, "range": range_schema(), "path": {"type": "string"},
+                           "decode_as": {"type": "array", "maxItems": 8, "items": {"type": "object"}}}),
                     &[],
                 ),
                 Duration::from_secs(600),

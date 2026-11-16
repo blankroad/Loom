@@ -15,6 +15,7 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
 
+use crate::decode_as::{AppProto, DecodeAs, Transport};
 use crate::{doip, someip};
 
 /// Concurrent streams. Over: idle streams are evicted first, then the least recently used one
@@ -33,6 +34,10 @@ pub const MAX_OOO_DISTANCE: u32 = 4 * 1024 * 1024;
 pub const MAX_PDU_BYTES: usize = 1_048_576;
 /// PDUs emitted for one packet. Over: the rest stays buffered and is emitted with the next packet.
 pub const MAX_PDUS_PER_PACKET: usize = 64;
+/// UDP conversations tracked for `udp.stream` numbering (operator-upgrade B3a). Over: idle ones are
+/// evicted first, then the least recently used one (warning `udp_conversation_evicted`; its later
+/// datagrams get a new number).
+pub const MAX_UDP_CONVERSATIONS: usize = 1024;
 /// Idle time after which a stream is evicted (by packet timestamps).
 pub const STREAM_IDLE_NS: u64 = 120_000_000_000;
 /// Minimum interval between idle sweeps (by packet timestamps).
@@ -66,6 +71,8 @@ struct Key {
 struct DirState {
     /// Seq that counts as relative 0 (SYN seq, or first seen seq - 1).
     isn: Option<u32>,
+    /// (C1) `isn` was taken from a SYN of this direction (not from "first seen − 1").
+    isn_syn: bool,
     /// Next expected seq for reassembly.
     next: Option<u32>,
     pending: Vec<(u32, u64, Vec<u8>)>,
@@ -140,6 +147,10 @@ pub(crate) struct FeedResult {
     pub stream: u64,
     pub rel_seq: u32,
     pub rel_ack: Option<u32>,
+    /// (C1) `rel_seq` is based on this direction's SYN (`DirState::isn_syn` after this segment).
+    pub seq_from_syn: bool,
+    /// (C1) `rel_ack` is `Some` and based on the other direction's SYN.
+    pub ack_from_syn: bool,
     pub retransmission: bool,
     pub out_of_order: bool,
     pub lost_segment: bool,
@@ -147,6 +158,13 @@ pub(crate) struct FeedResult {
     pub partial: bool,
     pub pdus: Vec<Pdu>,
     pub warnings: Vec<(&'static str, String)>,
+}
+
+/// One UDP conversation (direction-independent 5-tuple + VLAN) for `udp.stream`.
+#[derive(Debug, Clone, Copy)]
+struct UdpConv {
+    id: u64,
+    last_ts: u64,
 }
 
 /// TCP stream state for one capture interface. Bounded by the `MAX_*` constants of this module.
@@ -157,6 +175,12 @@ pub struct StreamTable {
     buffered_total: usize,
     last_sweep_ns: u64,
     evicted: u64,
+    /// (B3a) UDP conversations → `udp.stream` (own index space, starts at 0 like `tcp.stream`).
+    udp: HashMap<Key, UdpConv>,
+    next_udp_id: u64,
+    udp_evicted: u64,
+    /// (B3b) read-time Decode As rules (empty = well-known ports only).
+    decode_as: DecodeAs,
 }
 
 impl StreamTable {
@@ -177,6 +201,77 @@ impl StreamTable {
     /// Streams evicted so far (idle or LRU).
     pub fn evicted(&self) -> u64 {
         self.evicted
+    }
+
+    /// (B3b) A table that decodes with `rules` (FUNCTIONS.md F5.5).
+    pub fn with_decode_as(rules: DecodeAs) -> StreamTable {
+        StreamTable {
+            decode_as: rules,
+            ..Default::default()
+        }
+    }
+
+    /// (B3b) The Decode As rules of this table.
+    pub fn decode_as(&self) -> &DecodeAs {
+        &self.decode_as
+    }
+
+    /// (B3a) UDP conversations evicted so far (idle or LRU, only when the table was full).
+    pub fn udp_evicted(&self) -> u64 {
+        self.udp_evicted
+    }
+
+    /// (B3a) `udp.stream` number of a datagram: same number for both directions of one
+    /// VLAN + endpoint pair; a new pair gets the next number. Bounded by [`MAX_UDP_CONVERSATIONS`]
+    /// (FUNCTIONS.md F3.1). Eviction warnings are appended to `warnings`.
+    pub(crate) fn udp_conversation(
+        &mut self,
+        vlan: u16,
+        src: (IpAddr, u16),
+        dst: (IpAddr, u16),
+        ts_ns: u64,
+        warnings: &mut Vec<(&'static str, String)>,
+    ) -> u64 {
+        let key = if src <= dst {
+            Key { vlan, a: src, b: dst }
+        } else {
+            Key { vlan, a: dst, b: src }
+        };
+        if let Some(c) = self.udp.get_mut(&key) {
+            c.last_ts = ts_ns;
+            return c.id;
+        }
+        if self.udp.len() >= MAX_UDP_CONVERSATIONS {
+            let idle: Vec<Key> = self
+                .udp
+                .iter()
+                .filter(|(_, c)| c.last_ts.saturating_add(STREAM_IDLE_NS) <= ts_ns)
+                .map(|(k, _)| *k)
+                .collect();
+            for k in &idle {
+                self.udp.remove(k);
+            }
+            self.udp_evicted += idle.len() as u64;
+            if idle.is_empty() {
+                let lru = self
+                    .udp
+                    .iter()
+                    .min_by_key(|(_, c)| (c.last_ts, c.id))
+                    .map(|(k, c)| (*k, c.id));
+                if let Some((lk, lid)) = lru {
+                    self.udp.remove(&lk);
+                    self.udp_evicted += 1;
+                    warnings.push((
+                        "udp_conversation_evicted",
+                        format!("table full ({MAX_UDP_CONVERSATIONS}), evicted udp stream {lid}"),
+                    ));
+                }
+            }
+        }
+        let id = self.next_udp_id;
+        self.next_udp_id += 1;
+        self.udp.insert(key, UdpConv { id, last_ts: ts_ns });
+        id
     }
 
     fn remove(&mut self, k: &Key) {
@@ -217,7 +312,14 @@ impl StreamTable {
         }
         let id = self.next_id;
         self.next_id += 1;
-        let app = app_for(k.a.1, k.b.1);
+        let app = self
+            .decode_as
+            .lookup(Transport::Tcp, k.a.1, k.b.1)
+            .map(|r| match r.proto {
+                AppProto::Doip => App::Doip,
+                AppProto::SomeIp => App::SomeIp,
+            })
+            .or_else(|| app_for(k.a.1, k.b.1));
         self.map.insert(
             k,
             Entry {
@@ -279,13 +381,16 @@ impl StreamTable {
         }
         let app = e.app;
         let other_isn = e.dirs[1 - d].isn;
+        let other_isn_syn = e.dirs[1 - d].isn_syn;
         let other_dir_buffered = e.dirs[1 - d].buffered();
         let st = &mut e.dirs[d];
         if s.syn {
             st.isn = Some(s.seq);
+            st.isn_syn = true;
             st.next = Some(s.seq.wrapping_add(1));
         } else if st.isn.is_none() {
             st.isn = Some(s.seq.wrapping_sub(1));
+            st.isn_syn = false;
             st.next = Some(s.seq);
         }
         r.rel_seq = s.seq.wrapping_sub(st.isn.unwrap_or(s.seq));
@@ -294,6 +399,8 @@ impl StreamTable {
         } else {
             None
         };
+        r.seq_from_syn = st.isn_syn;
+        r.ack_from_syn = r.rel_ack.is_some() && other_isn_syn;
         if s.fin {
             st.fin = true;
         }

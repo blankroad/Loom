@@ -8,8 +8,9 @@ use etherparse::{
     UdpHeaderSlice,
 };
 
+use crate::decode_as::{AppProto, Transport};
 use crate::linktype;
-use crate::model::{Decoded, Loc, Pos};
+use crate::model::{Decoded, Loc, Pos, TcpRelBase};
 use crate::rd::{be16, be32};
 use crate::stream::{App, Segment, StreamTable};
 use crate::value::{FieldValue, fmt_mac};
@@ -537,7 +538,7 @@ fn transport(
     match proto {
         1 => icmp4(d, c, seg, off),
         58 => icmp6(d, c, seg, off),
-        17 => udp(d, c, seg, off),
+        17 => udp(d, c, seg, off, src, dst, streams),
         6 => tcp(d, c, seg, off, src, dst, streams),
         p => c.info = format!("IP protocol {p}"),
     }
@@ -646,7 +647,17 @@ fn icmp6(d: &mut Decoded, c: &mut Ctx, seg: &[u8], off: usize) {
     };
 }
 
-fn udp(d: &mut Decoded, c: &mut Ctx, seg: &[u8], off: usize) {
+/// (B3a) `src`/`dst`/`streams` number the UDP conversation (`udp.stream`, FUNCTIONS.md F3.2).
+#[allow(clippy::too_many_arguments)]
+fn udp(
+    d: &mut Decoded,
+    c: &mut Ctx,
+    seg: &[u8],
+    off: usize,
+    src: IpAddr,
+    dst: IpAddr,
+    streams: &mut StreamTable,
+) {
     let h = match UdpHeaderSlice::from_slice(seg) {
         Ok(h) => h,
         Err(e) => {
@@ -679,6 +690,12 @@ fn udp(d: &mut Decoded, c: &mut Ctx, seg: &[u8], off: usize) {
         FieldValue::Uint(h.checksum().into()),
         Pos::frame(off + 6, 2),
     );
+    let mut w = Vec::new();
+    let sid = streams.udp_conversation(c.vlan, (src, sp), (dst, dp), d.meta.ts_ns, &mut w);
+    for (code, msg) in w {
+        d.warn(code, "udp", msg);
+    }
+    d.add(l, "udp.stream", FieldValue::Uint(sid), None);
     c.proto = "UDP".into();
     if ul < 8 {
         d.warn("malformed", "udp", format!("length {ul} below 8"));
@@ -693,7 +710,18 @@ fn udp(d: &mut Decoded, c: &mut Ctx, seg: &[u8], off: usize) {
         return;
     }
     let loc = Loc { buf: 0, off: off + 8 };
-    let infos = if sp == doip::DOIP_PORT || dp == doip::DOIP_PORT {
+    let rule = streams.decode_as().lookup(Transport::Udp, sp, dp);
+    let infos = if let Some(r) = rule {
+        d.warn(
+            "decode_as",
+            "udp",
+            format!("UDP port {} decoded as {} (Decode As)", r.port, r.proto.as_str()),
+        );
+        match r.proto {
+            AppProto::Doip => doip::decode_datagram(d, payload, loc),
+            AppProto::SomeIp => someip::decode_datagram(d, payload, loc),
+        }
+    } else if sp == doip::DOIP_PORT || dp == doip::DOIP_PORT {
         doip::decode_datagram(d, payload, loc)
     } else if sp == someip::SOMEIP_SD_PORT
         || dp == someip::SOMEIP_SD_PORT
@@ -758,8 +786,23 @@ fn tcp(
         pkt_seq: d.meta.seq,
         ts_ns: d.meta.ts_ns,
     });
+    d.tcp_rel = Some(TcpRelBase {
+        seq_from_syn: r.seq_from_syn,
+        ack_from_syn: r.ack_from_syn,
+    });
     for (code, msg) in &r.warnings {
         d.warn(code, "tcp", msg.clone());
+    }
+    if let Some(rule) = streams.decode_as().lookup(Transport::Tcp, sp, dp) {
+        d.warn(
+            "decode_as",
+            "tcp",
+            format!(
+                "TCP port {} decoded as {} (Decode As)",
+                rule.port,
+                rule.proto.as_str()
+            ),
+        );
     }
     let flags16 = be16(seg, 12).unwrap_or(0) & 0x0FFF;
     let l = d.push_layer(
